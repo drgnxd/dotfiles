@@ -1,0 +1,109 @@
+# Taps
+tap "homebrew/autoupdate"
+
+# Brews
+# Clone of cat(1) with syntax highlighting and Git integration
+brew "bat"
+# Resource monitor. C++ version and continuation of bashtop and bpytop
+brew "btop"
+# Manage your dotfiles across multiple diverse machines, securely
+brew "chezmoi"
+# Cross-platform make
+brew "cmake"
+# Load/unload environment variables based on $PWD
+brew "direnv"
+# Modern, maintained replacement for ls
+brew "eza"
+# Simple, fast and user-friendly alternative to find
+brew "fd"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# GitHub command-line tool
+brew "gh"
+# Enable transparent encryption/decryption of files in a git repo
+brew "git-crypt"
+# Syntax-highlighting pager for git and diff output
+brew "git-delta"
+# GNU Pretty Good Privacy (PGP) package
+brew "gnupg"
+# Post-modern modal text editor
+brew "helix"
+# Simple terminal UI for git commands
+brew "lazygit"
+# Next-gen compiler infrastructure
+brew "llvm"
+# NCurses Disk Usage
+brew "ncdu"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# AI coding agent, built for the terminal
+brew "opencode"
+# 7-Zip (high compression file archiver) implementation
+brew "p7zip"
+# Python version management
+brew "pyenv"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.14"
+# Software environment for statistical computing
+brew "r"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Safe, concurrent, practical language
+brew "rust"
+# 7-Zip is a file archiver with a high compression ratio
+brew "sevenzip"
+# Control and monitor storage systems using S.M.A.R.T.
+brew "smartmontools"
+# Cross-shell prompt for astronauts
+brew "starship"
+# Feature-rich console based todo list manager
+brew "task"
+# Terminal multiplexer
+brew "tmux"
+# Internet file retriever
+brew "wget"
+# Blazing fast terminal file manager written in Rust, based on async I/O
+brew "yazi"
+# Plain text note-taking assistant
+brew "zk"
+# Shell extension to navigate your filesystem faster
+brew "zoxide"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+brew "zsh-completions"
+# Fish shell like syntax highlighting for zsh
+brew "zsh-fast-syntax-highlighting"
+
+# Casks
+# GPU-accelerated terminal emulator
+cask "alacritty"
+# Privacy-focused Firefox-based browser
+cask "floorp"
+cask "font-hackgen"
+cask "font-hackgen-nerd"
+# Free and open-source image editor
+cask "gimp"
+# Web browser
+cask "google-chrome"
+# Desktop automation application
+cask "hammerspoon"
+# Free cross-platform office suite, fresh version
+cask "libreoffice"
+# Software for Logitech devices
+cask "logi-options+"
+# Clipboard manager
+cask "maccy"
+# Client for Proton Drive
+cask "proton-drive"
+# Client for Proton Mail and Proton Calendar
+cask "proton-mail"
+# Desktop client for Proton Pass
+cask "proton-pass"
+# VPN client focusing on security
+cask "protonvpn"
+# Instant messaging application focusing on security
+cask "signal"
+# Launcher & command palette
+cask "sol"
+# System monitor for the menu bar
+cask "stats"

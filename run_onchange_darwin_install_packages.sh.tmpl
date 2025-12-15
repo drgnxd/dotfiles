@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# dot_Brewfile hash: {{ include "dot_Brewfile" | sha256sum }}
+
+set -e
+
+echo "Checking for Homebrew..."
+
+if command -v brew >/dev/null 2>&1; then
+  echo "Homebrew found. Running 'brew bundle' using source Brewfile..."
+  
+  # ソースディレクトリ内の dot_Brewfile を直接参照して bundle を実行
+  if brew bundle --file="{{ .chezmoi.sourceDir }}/dot_Brewfile"; then
+    echo "brew bundle completed successfully."
+  else
+    echo "Error: brew bundle failed." >&2
+    exit 1
+  fi
+else
+  echo "Homebrew not found. Skipping brew bundle."
+  echo "Please install Homebrew manually or ensure it is in your PATH." >&2
+  exit 1
+fi

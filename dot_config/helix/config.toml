@@ -1,0 +1,26 @@
+# 外観
+theme = "tokyonight"
+
+[editor]
+# ターミナルの背景を透過させる
+true-color = true
+
+[editor.inline-diagnostics]
+cursor-line = "hint"
+
+[keys.insert]
+# --- カーソル移動 (Emacs Standard) ---
+C-f = "move_char_right"
+C-b = "move_char_left"
+C-n = "move_visual_line_down"
+C-p = "move_visual_line_up"
+C-a = "goto_line_start"
+C-e = "goto_line_end"
+
+# --- 削除系 ---
+C-h = "delete_char_backward"  # Backspace
+C-w = "delete_word_backward"  # 単語削除 (超重要)
+C-u = "kill_to_line_start"    # 行頭まで削除 (Unix標準) !!追加!!
+
+# --- その他 ---
+ C-k = "kill_to_line_end"    # シグネチャヘルプと被るならオフ、そうでなければオン[keys.insert]

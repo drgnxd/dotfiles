@@ -1,0 +1,14 @@
+# XDG Base Directory 準拠のためのブートストラップ
+# このファイルは $HOME/.zshenv として配置される
+
+# 1. XDG_CONFIG_HOME の定義 (未定義時のフォールバック付き)
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+# 2. Zshの設定ディレクトリを XDG配下 ($HOME/.config/zsh) に変更
+#    これにより、以降の .zshrc 等はここから読み込まれる
+export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+
+# 3. 実体の .zshenv がもしあれば読み込む (環境変数の定義など)
+if [[ -f "$ZDOTDIR/.zshenv" ]]; then
+    source "$ZDOTDIR/.zshenv"
+fi

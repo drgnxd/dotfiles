@@ -1,0 +1,19 @@
+# Base Configuration
+news.version=3.4.2
+verbose=quiet
+confirmation=no
+
+# Date Formats
+report.list.dateformat=Y-M-D H:N
+report.all.dateformat=Y-M-D H:N
+
+# GTD Defaults
+default.project=Inbox
+alias.in=add project:Inbox
+
+# ------------------------------------------------------------------------------
+# Includes
+# ------------------------------------------------------------------------------
+include ~/.config/taskwarrior/colors.rc
+include ~/.config/taskwarrior/reports.rc
+include ~/.config/taskwarrior/local.rc

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -e
+
+echo "Setting up login items..."
+
+# ログイン項目に追加したいアプリケーションのリスト
+# アプリケーション名は .app の前の名前
+apps=(
+    "Alacritty"
+    "Floorp"
+    "Hammerspoon"
+    "Maccy"
+    "Proton Mail"
+    "Proton Pass"
+    "ProtonVPN"
+    "Sol"
+    "Stats"
+)
+
+for app in "${apps[@]}"; do
+    echo "Processing $app..."
+    
+    # アプリケーションが存在するか確認
+    if [ -d "/Applications/${app}.app" ]; then
+        # 既にログイン項目にあるか確認し、なければ追加
+        osascript -e "tell application \"System Events\" to if not (exists login item \"${app}\") then make login item at end with properties {path:\"/Applications/${app}.app\", hidden:false}"
+        echo "  Ensure $app is in login items."
+    else
+        echo "  Warning: /Applications/${app}.app not found. Skipping."
+    fi
+done
+
+echo "Login items setup complete."

@@ -1,0 +1,23 @@
+# ~/.config/zsh/.homebrew
+
+# ------------------------------------------------------------------------------
+# Homebrew
+# ------------------------------------------------------------------------------
+
+# Homebrewのパス候補 (Apple Silicon, Intel Mac, Linuxbrew)
+typeset -a brew_paths
+brew_paths=(
+  "/opt/homebrew/bin/brew"
+  "/usr/local/bin/brew"
+  "/home/linuxbrew/.linuxbrew/bin/brew"
+)
+
+for brew_path in "${brew_paths[@]}"; do
+  if [ -x "$brew_path" ]; then
+    # Homebrewの環境変数を設定 (pyenvなどHomebrewで入れたコマンドより先に実行)
+    eval "$("$brew_path" shellenv)"
+    break
+  fi
+done
+
+unset brew_paths brew_path

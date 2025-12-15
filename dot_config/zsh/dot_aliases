@@ -1,0 +1,20 @@
+# ~/.config/zsh/.aliases
+
+# 基本コマンドのモダン化
+# ls -> eza (アイコン・Gitステータス・グループ化などをデフォルト化)
+alias ls='eza --icons --git'
+alias ll='eza --icons --git -l'
+alias la='eza --icons --git -la'
+alias lt='eza --icons --git --tree'
+
+# grep -> rg (ripgrep: 1文字で呼び出せるようにする)
+alias g='rg'
+
+# アプリケーション短縮
+# LazyGit
+alias lg='lazygit'
+
+# config編集 (chezmoi経由)
+alias c='chezmoi'
+alias ca='chezmoi apply'
+alias ce='chezmoi edit'

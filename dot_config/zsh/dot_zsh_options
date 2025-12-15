@@ -1,0 +1,22 @@
+# ~/.config/zsh/.zsh_options
+# Zshのオプションとシェル変数を設定
+
+# ------------------------------------------------------------------------------
+# 履歴 (History)
+# ------------------------------------------------------------------------------
+# 履歴ファイルの保存先設定
+# XDG_STATE_HOME (デフォルトは ~/.local/state)を使用
+XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+[ -d "$XDG_STATE_HOME/zsh" ] || mkdir -p "$XDG_STATE_HOME/zsh"
+# 履歴ファイルのパスを指定
+HISTFILE="$XDG_STATE_HOME/zsh/history"
+# メモリに保存する履歴の件数
+HISTSIZE=10000
+# 履歴ファイルに保存する件数
+SAVEHIST=10000
+# 履歴を共有 (複数のターミナルで履歴を即時共有)
+setopt share_history
+# 履歴をインクリメンタルに保存
+setopt inc_append_history
+# 重複する履歴を保存しない
+setopt hist_ignore_dups

@@ -1,0 +1,39 @@
+# Inbox Report
+report.inbox.description=Inbox (Unprocessed)
+report.inbox.columns=id,entry,description
+report.inbox.labels=ID,Added,Description
+report.inbox.sort=entry+
+report.inbox.filter=status:pending project:Inbox
+
+# Urgency Coefficients (GTD)
+urgency.user.tag.next.coefficient=15.0
+urgency.user.tag.wait.coefficient=-10.0
+
+# Ready (Next Actions)
+report.ready.description=Ready (Next Actions)
+report.ready.columns=id,project,tags,due,urgency,description
+report.ready.labels=ID,Proj,Tags,Due,Urg,Desc
+report.ready.sort=urgency-
+report.ready.filter=+READY -wait
+
+# ------------------------------------------------------------------------------
+# Report Filters (Focus)
+# ------------------------------------------------------------------------------
+# Hide 'wait' tasks from standard lists
+report.list.filter=status:pending -wait
+report.next.filter=+READY -wait limit:page
+
+# Waiting / Deferred
+report.waiting.description=Waiting/Deferred
+report.waiting.columns=id,project,due,wait,description
+report.waiting.labels=ID,Proj,Due,Wait,Desc
+report.waiting.sort=wait+,due+
+report.waiting.filter=status:waiting or +wait
+
+# ------------------------------------------------------------------------------
+# List Report Customization
+# ------------------------------------------------------------------------------
+# タグを表示するようにカラムを再定義
+# (id, プロジェクト, タグ, 優先度, 期限, 説明 の順で表示)
+report.list.columns=id,project,tags,priority,due,description
+report.list.labels=ID,Proj,Tags,Pri,Due,Desc

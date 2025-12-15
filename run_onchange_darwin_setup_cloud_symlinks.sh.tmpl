@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Library/CloudStorageが存在しない場合は何もしない
+CLOUD_DIR="{{ .chezmoi.homeDir }}/Library/CloudStorage"
+if [ ! -d "$CLOUD_DIR" ]; then
+    exit 0
+fi
+
+echo "☁️  Checking CloudStorage directories..."
+
+# CloudStorage内のディレクトリを走査
+for target in "$CLOUD_DIR"/*; do
+    if [ -d "$target" ]; then
+        default_name=$(basename "$target")
+        
+        # ユーザー入力の取得 (TTY経由)
+        if [ -c /dev/tty ]; then
+            echo "---------------------------------------------------"
+            echo "Found: $default_name"
+            echo -n "🔗 Create symlink for '$default_name'? [y/N]: "
+            read answer < /dev/tty
+            
+            case "$answer" in
+                [yY]*)
+                    # リンク名の入力
+                    echo -n "📝 Enter link name [default: $default_name]: "
+                    read input_name < /dev/tty
+                    
+                    # 入力が空ならデフォルト名を使用
+                    link_name="${input_name:-$default_name}"
+                    link_path="{{ .chezmoi.homeDir }}/$link_name"
+                    
+                    ln -sFn "$target" "$link_path"
+                    echo "✅ Created: $link_path -> $target"
+                    ;;
+                *)
+                    echo "⏭️  Skipped: $default_name"
+                    ;;
+            esac
+        else
+            echo "Warning: No TTY available. Skipping '$default_name'."
+        fi
+    fi
+done
