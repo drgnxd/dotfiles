@@ -1,0 +1,12 @@
+# ~/.config/helix/languages.toml
+
+[language-server.r]
+command = "R"
+args = ["--slave", "-e", "languageserver::run()"]
+
+[[language]]
+name = "r"
+scope = "source.r"
+language-servers = [ "r" ]
+formatter = { command = "Rscript", args = ["-e", "styler::style_file(stdin(), output = stdout(), transformers = styler::tidyverse_style())"] }
+auto-format = true

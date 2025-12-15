@@ -1,0 +1,91 @@
+# ~/.config/zsh/.exports
+# シェルが読み込む環境変数を定義
+
+# ------------------------------------------------------------------------------
+# XDG Base Directory Specification
+# ------------------------------------------------------------------------------
+# 標準的なXDG設定
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+
+# ------------------------------------------------------------------------------
+# アプリケーション固有のホームディレクトリ
+# ------------------------------------------------------------------------------
+# GnuPG
+export GNUPGHOME="$HOME/.config/gnupg"
+
+# Cargo (Rust)
+export CARGO_HOME="$XDG_DATA_HOME/cargo"
+
+# npm (Node.js)
+export NPM_CONFIG_PREFIX="$HOME/.config/npm/global"
+export NPM_CONFIG_CACHE="$HOME/.cache/npm"
+export NPM_CONFIG_USERCONFIG="$HOME/.config/npm/npmrc"
+
+# Pyenv
+export PYENV_ROOT="$HOME/.local/share/.pyenv"
+
+# Taskwarrior
+export TASKRC="${HOME}/.config/taskwarrior/config"
+export TASKDATA="${HOME}/.local/share/taskwarrior"
+
+# zk
+export ZK_NOTEBOOK_DIR="$HOME/dev/zettel"
+export ZK_EDITOR="hx"
+
+# zoxide
+export _ZO_DATA_DIR="$XDG_DATA_HOME/zoxide"
+
+# bat
+export BAT_CONFIG_DIR="$XDG_CONFIG_HOME/bat"
+export BAT_CACHE_DIR="$XDG_CACHE_HOME/bat"
+
+# Starship
+export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+
+# macOS Session
+export SHELL_SESSION_DIR="$XDG_STATE_HOME/zsh/sessions"
+
+# ------------------------------------------------------------------------------
+# シェル履歴 (XDG準拠)
+# ------------------------------------------------------------------------------
+export HISTFILE="$HOME/.local/state/zsh/history"
+export LESSHISTFILE="$HOME/.local/state/less/history"
+
+# ------------------------------------------------------------------------------
+# LLVM (Homebrew)
+# ------------------------------------------------------------------------------
+# PATH 以外 (LDFLAGS, CPPFLAGS) のみを設定
+export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+
+# ------------------------------------------------------------------------------
+# ターミナル設定
+# ------------------------------------------------------------------------------
+# 標準の terminfo 辞書(xterm-256color)を使うよう指定
+export TERM="xterm-256color"
+
+# ------------------------------------------------------------------------------
+# デフォルトエディタ設定 (chezmoi edit など)
+# ------------------------------------------------------------------------------
+# ターミナル内でhxを使用する
+export EDITOR="hx"
+export VISUAL="$EDITOR"
+
+# ------------------------------------------------------------------------------
+# $PATH の設定
+# ------------------------------------------------------------------------------
+# 優先させたいPATHを定義
+local -a my_paths
+my_paths=(
+  "$HOME/.local/bin"
+  "$CARGO_HOME/bin"
+  "$NPM_CONFIG_PREFIX/bin"
+  "/opt/homebrew/opt/llvm/bin"
+)
+
+# 既存のPATHの *前* に追加
+export PATH="${(j|:|)my_paths}:$PATH"
+unset my_paths

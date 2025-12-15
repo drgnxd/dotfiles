@@ -1,0 +1,46 @@
+# ~/.config/alacritty/alacritty.toml
+
+[window]
+# ウィンドウの余白（ピクセル）
+padding = { x = 10, y = 10 }
+
+# 背景の透明度（0.0〜1.0）
+# 0.95 くらいがおすすめ
+opacity = 0.8
+
+[font]
+# 好みのフォント名（Nerd Font推奨）とサイズを指定
+# 例: "HackGen Console NF", "PlemolJP Console NF"
+size = 14.0
+
+[font.normal]
+family = "HackGen Console NF"
+style = "Regular"
+
+[env]
+# EmacsやVimに「256色対応だ」と伝える（.exports と重複してもOK）
+TERM = "xterm-256color"
+
+# Tokyo Night Color Theme
+[colors]
+primary = { background = "#1a1b26", foreground = "#c0caf5" }
+
+[colors.normal]
+black = "#15161e"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#a9b1d6"
+
+[colors.bright]
+black = "#414868"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#c0caf5"

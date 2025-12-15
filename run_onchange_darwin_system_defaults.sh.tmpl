@@ -1,0 +1,98 @@
+#!/bin/bash
+
+set -e
+
+echo "Setting macOS defaults..."
+
+# システム環境設定が開いていると上書きされる可能性があるため終了させる
+osascript -e 'tell application "System Preferences" to quit'
+
+###############################################################################
+# General UI/UX                                                               #
+###############################################################################
+
+# 保存ダイアログを常に詳細表示にする
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+
+# 印刷ダイアログを常に詳細表示にする
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+
+# Disable the “Are you sure you want to open this application?” dialog
+defaults write com.apple.LaunchServices LSQuarantine -bool false
+
+# Disable Spotlight keyboard shortcuts (Command+Space and Command+Option+Space)
+# 64: Show Spotlight search
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
+# 65: Show Finder search window
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
+
+###############################################################################
+# Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
+###############################################################################
+
+# タップでクリックを有効化
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+# Fast key repeat
+defaults write NSGlobalDomain KeyRepeat -int 2
+defaults write NSGlobalDomain InitialKeyRepeat -int 15
+
+# Set trackpad/mouse tracking speed to fast (0-7, 7 is fastest)
+defaults write -g com.apple.mouse.scaling -int 7
+
+###############################################################################
+# Finder                                                                      #
+###############################################################################
+
+# 拡張子を常に表示する
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# ステータスバーを表示
+defaults write com.apple.finder ShowStatusBar -bool true
+
+# パスバーを表示
+defaults write com.apple.finder ShowPathbar -bool true
+
+# 名前で並べ替え時にフォルダを先頭に表示
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
+
+# 検索実行時は現在のフォルダをデフォルトにする
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+
+# USBやネットワークストレージに .DS_Store ファイルを作成しない
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+###############################################################################
+# Dock, Dashboard, and hot corners                                            #
+###############################################################################
+
+# Dockを自動的に隠す
+defaults write com.apple.dock autohide -bool true
+
+# 最近使ったアプリケーションをDockに表示しない
+defaults write com.apple.dock show-recents -bool false
+
+# Dockのアイコンサイズを設定 (ピクセル)
+defaults write com.apple.dock tilesize -int 48
+
+###############################################################################
+# Screenshots                                                                 #
+###############################################################################
+
+# スクリーンショットの影を無効化
+defaults write com.apple.screencapture disable-shadow -bool true
+
+###############################################################################
+# Kill affected applications                                                  #
+###############################################################################
+
+for app in "Dock" "Finder" "SystemUIServer"; do
+	killall "${app}" > /dev/null 2>&1
+done
+
+echo "macOS defaults set successfully."

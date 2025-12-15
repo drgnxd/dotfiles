@@ -1,0 +1,48 @@
+# ~/.config/zsh/.functions
+
+# --- Yazi (カレントディレクトリ追従ラッパー) ---
+# 'y' コマンドで起動し、終了時にそのディレクトリに留まる
+function y() {
+	local tmp=$(mktemp -t "yazi-cwd.XXXXXX")
+	yazi "$@" --cwd-file="$tmp"
+	if cwd=$(cat -- "$tmp") && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
+# --- zk wrapper for git sync ---
+# zk sync と打つとGit保存、それ以外は通常のzkコマンドとして動作
+function zk() {
+    if [[ "$1" == "sync" ]]; then
+        # サブシェルで実行してディレクトリ移動の影響を残さない
+        (
+            cd "$ZK_NOTEBOOK_DIR" && \
+            git add . && \
+            git commit -m "Update zettel: $(date '+%Y-%m-%d %H:%M')" && \
+            git push origin main
+        )
+    else
+        # 通常のzkコマンドを実行
+        command zk "$@"
+    fi
+}
+
+# --- Stats 設定のXMLエクスポート ---
+function save_stats() {
+	local src="$HOME/Library/Preferences/eu.exelban.Stats.plist"
+	local dest="$(chezmoi source-path)/dot_config/stats/eu.exelban.Stats.plist"
+
+	if [[ ! -f "$src" ]]; then
+		echo "Stats plist not found at $src" >&2
+		return 1
+	fi
+
+	echo "Exporting Stats config to XML..."
+	if ! plutil -convert xml1 "$src" -o "$dest"; then
+		echo "Failed to convert Stats plist" >&2
+		return 1
+	fi
+
+	echo "Saved to $dest"
+}

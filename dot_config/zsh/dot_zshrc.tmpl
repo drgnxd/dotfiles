@@ -1,0 +1,37 @@
+# ~/.config/zsh/.zshrc
+#
+# このファイルは、各設定ファイルを読み込む「目次」です。
+# 設定の本体は、他の dot_ で始まるファイルに記述します。
+
+# Zsh設定ファイル群のパス
+ZDOTDIR="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
+
+# 読み込む設定ファイルのリスト
+# (この順番が重要です)
+local -a zsh_config_files
+zsh_config_files=(
+  "$ZDOTDIR/.exports"        # 1. 環境変数 (PATHなど)
+  "$ZDOTDIR/.zsh_options"    # 2. Zshのオプション (履歴、プロンプトなど)
+  "$ZDOTDIR/.aliases"        # 3. エイリアス
+  "$ZDOTDIR/.functions"      # 4. 関数
+  "$ZDOTDIR/.homebrew"       # 5. Homebrew (プラグインより先に読むことでパスを解決)
+  "$ZDOTDIR/.zsh_completion" # 6. 補完
+  "$ZDOTDIR/.zsh_plugins"    # 7. プラグイン (Homebrewパスに依存する場合がある)
+  "$ZDOTDIR/.pyenv"          # 8. pyenv
+  "$ZDOTDIR/.zoxide"         # 9. zoxide
+  "$ZDOTDIR/.proton"         # 10. Proton Pass
+  "$ZDOTDIR/.direnv"         # 11. direnv (最後に読む)
+)
+
+# 各設定ファイルが存在すれば読み込む
+for file in $zsh_config_files; do
+  [ -f "$file" ] && . "$file"
+done
+
+unset zsh_config_files file
+
+# --- Local Settings ---
+# このファイルが存在する場合のみ読み込む（Gitには含めない）
+if [ -f "$HOME/.config/zsh/local.zsh" ]; then
+    source "$HOME/.config/zsh/local.zsh"
+fi

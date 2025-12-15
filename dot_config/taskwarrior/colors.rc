@@ -1,0 +1,31 @@
+# Precedence
+rule.precedence.color=deleted,completed,active,keyword.,tag.,project.,overdue,scheduled,due.today,due,blocked,blocking,recurring,tagged,uda.
+
+# Task State Colors
+color.active=black on green
+color.blocked=black on yellow
+color.completed=gray6
+color.deleted=gray4
+
+# Urgency / Due Dates
+color.overdue=bold white on red
+color.due.today=bold red
+color.due=bold yellow
+
+# Priority
+color.pri.H=bold white on blue
+color.pri.M=bold blue
+color.pri.L=green
+
+# UI Elements
+color.header=bold yellow
+color.footnote=cyan
+color.warning=bold red
+color.error=bold white on red
+color.debug=gray
+color.alternate=on gray2
+
+# GTD Context Colors
+color.tag.next=bold yellow
+color.tag.wait=on gray4
+color.tag.mit=bold white on red

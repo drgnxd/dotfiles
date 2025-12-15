@@ -1,0 +1,37 @@
+# ~/.config/zsh/.zsh_completion
+
+# ------------------------------------------------------------------------------
+# 1. zsh-completions のパス設定 (compinitより前に行う必要あり)
+# ------------------------------------------------------------------------------
+# .homebrew で設定された HOMEBREW_PREFIX を利用
+if [ -n "$HOMEBREW_PREFIX" ] && [ -d "$HOMEBREW_PREFIX/share/zsh-completions" ]; then
+  fpath=("$HOMEBREW_PREFIX/share/zsh-completions" $fpath)
+fi
+
+# ------------------------------------------------------------------------------
+# 2. 補完システムの初期化
+# ------------------------------------------------------------------------------
+autoload -U compinit
+# セキュリティチェックをスキップして高速化 (-C: キャッシュ利用)
+compinit -C
+
+# ------------------------------------------------------------------------------
+# 3. スタイル設定 (視認性の向上)
+# ------------------------------------------------------------------------------
+# 補完候補をメニュー形式で選択可能にする
+zstyle ':completion:*' menu select
+
+# 補完候補に「説明（Description）」を表示する (例: --help  -- display usage information)
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:descriptions' format '%F{green}-- %d --%f'
+zstyle ':completion:*:messages' format '%F{yellow}%d%f'
+zstyle ':completion:*:warnings' format '%F{red}No matches for: %d%f'
+
+# 補完候補をグループ化する（コマンド、エイリアス、ファイルなどを区別）
+zstyle ':completion:*' group-name ''
+
+# 大文字小文字を区別しない
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+# ls コマンド等の補完時に色を付ける
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"

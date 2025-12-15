@@ -1,0 +1,45 @@
+# Cache, lock, and temporary files
+*.lock
+*.socket
+*~
+#*#
+*/__pycache__/
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Zsh session & history
+.zsh_sessions/
+.zsh_history
+zsh_history
+**/.zsh_history
+
+# General cache & trash
+.cache/
+.local/share/Trash/
+
+# GitHub CLI auth file
+.config/gh/hosts.yml
+
+# Repository metadata
+README.md
+README.ja.md
+LICENSE
+.gitignore
+.github
+
+# XDG準拠のローカル設定を無視
+.config/zsh/local.zsh
+
+# 常に無視するファイル (OS共通)
+.Brewfile
+.config/zsh/local.zsh
+
+# Linux/Non-Darwin exclusions
+{{ if ne .chezmoi.os "darwin" }}
+.config/hammerspoon
+.config/zsh/.homebrew
+run_onchange_darwin-install-packages.sh
+{{ end }}

@@ -1,0 +1,60 @@
+# ~/.config/git/config
+
+# --- Core: 基本設定 ---
+[core]
+    editor = hx                  # エディタはHelix
+    pager = delta                # ページャーはDelta
+    ignorecase = false           # 大文字小文字を区別する (トラブル防止)
+    quotepath = false            # 日本語ファイル名を化けさせない
+    precomposeunicode = true     # macOSの濁点分離問題を防ぐ
+
+[init]
+    defaultBranch = main
+
+# --- Delta: 見た目のカスタマイズ ---
+[delta]
+    navigate = true
+    light = false
+    line-numbers = true
+    side-by-side = true
+    syntax-theme = TwoDark       # Helixのテーマに合わせてもOK
+
+[interactive]
+    diffFilter = delta --color-only
+
+[merge]
+    conflictstyle = diff3        # 競合時に「共通の祖先」も表示 (解決しやすい)
+
+# --- Push/Pull: 運用を楽にする設定 ---
+[pull]
+    rebase = false               # 初心者はマージコミットを作る方が安全
+
+[push]
+    autoSetupRemote = true       # 超便利: 初回push時に -u を打たなくて良くなる
+    default = simple
+
+[fetch]
+    prune = true                 # リモートで消えたブランチをローカル情報からも消す
+
+# --- Alias: 爆速操作 ---
+[alias]
+    st = status -s
+    co = checkout
+    br = branch
+    cm = commit -m
+    a  = add
+    aa = add .
+    d  = diff
+    ds = diff --staged
+    
+    # 便利系
+    amend = commit --amend --no-edit
+    undo  = reset --soft HEAD^
+    lg    = !lazygit
+    
+    # ログ (グラフ表示)
+    hist = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+
+# --- ★重要: ローカル設定の読み込み ---
+[include]
+    path = config.local

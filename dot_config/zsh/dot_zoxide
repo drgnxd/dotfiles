@@ -1,0 +1,25 @@
+# zoxide initialization with lazy loading
+_zoxide_lazy_init() {
+    if ! command -v zoxide >/dev/null 2>&1; then
+        printf 'zoxide: command not found\n' >&2
+        return 127
+    fi
+
+    unset -f zoxide z zi
+    eval "$(command zoxide init zsh)" || return $?
+}
+
+zoxide() {
+    _zoxide_lazy_init || return $?
+    zoxide "$@"
+}
+
+z() {
+    _zoxide_lazy_init || return $?
+    z "$@"
+}
+
+zi() {
+    _zoxide_lazy_init || return $?
+    zi "$@"
+}

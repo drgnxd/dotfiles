@@ -1,0 +1,11 @@
+# ~/.config/git/config.local
+# This file is ignored by git (via .chezmoiignore or .gitignore strategies usually,
+# but here it is simply not tracked by chezmoi by default unless added).
+# Use this file to store your private git configuration.
+
+[user]
+    name = Your Name
+    email = your.email@example.com
+
+# [credential]
+#     helper = osxkeychain

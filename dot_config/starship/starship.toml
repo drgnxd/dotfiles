@@ -1,0 +1,168 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+$os\
+$hostname\
+$shdo\
+$custom\
+$direnv\
+$directory\
+$git_branch\
+$git_status\
+$git_metrics\
+$fill\
+$conda\
+$python\
+$c\
+$lua\
+$rust\
+$line_break\
+$character"""
+
+right_format = """
+$cmd_duration\
+$time\
+"""
+
+[os]
+disabled = false
+format = """
+[](fg:#7aa2f7)\
+[$symbol]($style)\
+[](fg:#7aa2f7)\
+"""
+style = "bold fg:#1a1b26 bg:#7aa2f7"
+
+[os.symbols]
+Macos = "  "
+Ubuntu = "  "
+Windows = " 󰍲 " 
+
+[hostname]
+ssh_only = true
+ssh_symbol = " "
+format = """
+[](fg:#bb9af7)\
+[$ssh_symbol$hostname]($style)\
+[](fg:#bb9af7)\
+"""
+style = "bold fg:#1a1b26 bg:#bb9af7"
+
+[sudo]
+disabled = false
+symbol = ' 󰿆 sudo'
+format = """
+[](fg:#f7768e)\
+[$symbol]($style)\
+[](fg:#f7768e)\
+"""
+style = "bold fg:#1a1b26 bg:#f7768e"
+
+[custom.venv]
+command = "basename \"$VIRTUAL_ENV\""
+when = "test -n \"$VIRTUAL_ENV\""
+format = """
+[](fg:#bb9af7)\
+[$output]($style)\
+[](fg:#bb9af7)\
+"""
+style = "bold fg:#1a1b26 bg:#bb9af7"
+
+[direnv]
+disabled = false
+format = """
+[](fg:#7dcfff)\
+[$symbol$allowed]($style)\
+[](fg:#7dcfff)\
+"""
+style = "bold fg:#1a1b26 bg:#7dcfff"
+
+[directory]
+truncation_length = 5
+truncation_symbol = ' '
+truncate_to_repo = false
+home_symbol = '󰋞 ~'
+read_only = ' 󰌾 '
+format = """
+[](fg:#7dcfff)\
+[$path]($style)\
+[$read_only]($read_only_style)\
+[](fg:#7dcfff)\
+"""
+style = 'bold fg:#1a1b26 bg:#7dcfff'
+read_only_style = 'bold fg:#1a1b26 bg:#7dcfff'
+
+[git_branch]
+symbol = '  '
+truncation_length = 4
+truncation_symbol = ''
+style = 'bold fg:#7dcfff bg:#24283b'
+format = """
+[](fg:#24283b)\
+[$symbol$branch(:$remote_branch)]($style)\
+"""
+
+[git_status]
+disabled = false
+style = 'bold fg:#f7768e bg:#24283b'
+conflicted = '='
+ahead = '⇡${count}'
+behind = '⇣${count}'
+diverged = '⇕'
+up_to_date = '✓'
+untracked = '?'
+stashed = '$'
+modified = '!${count}'
+renamed = '»'
+deleted = '✘'
+format = """
+[  ](fg:#7aa2f7 bg:#24283b)\
+[$all_status$ahead_behind]($style)\
+"""
+
+[git_metrics]
+disabled = false
+added_style = 'bold fg:#9ece6a bg:#24283b'
+deleted_style = 'bold fg:#7aa2f7 bg:#24283b'
+format = """
+[  ](fg:#7aa2f7 bg:#24283b)\
+[+$added]($added_style)[-$deleted]($deleted_style)[](fg:#24283b)\
+"""
+
+[fill]
+symbol = '─'
+style = 'fg:#3b4261 bg:none'
+
+[python]
+symbol = '[ ](fg:#e0af68 bg:#1a1b26)'
+format = '[](fg:#1a1b26)[ ${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)[](fg:#1a1b26)'
+style = 'bold fg:#e0af68 bg:#1a1b26'
+
+[c]
+symbol = '[ ](fg:#7dcfff bg:#1a1b26)'
+format = '[](fg:#1a1b26)[ $symbol($version) ]($style)[](fg:#1a1b26)'
+style = 'bold fg:#7dcfff bg:#1a1b26'
+
+[lua]
+symbol = "[ ](fg:#7aa2f7 bg:#1a1b26)"
+format = '[](fg:#1a1b26)[ ${symbol}(${version})]($style)[](fg:#1a1b26)'
+style = 'bold fg:#7aa2f7 bg:#1a1b26'
+
+[rust]
+symbol = "[󱘗 ](fg:#f7768e bg:#1a1b26)"
+format = '[](fg:#1a1b26)[ ${symbol}(${version})]($style)[](fg:#1a1b26)'
+style = 'bold fg:#f7768e bg:#1a1b26'
+
+[cmd_duration]
+show_milliseconds = true
+min_time = 500
+format = '[󰞌 $duration ](fg:#e0af68)'
+
+[time]
+disabled = false
+format = '[ $time](bold fg:#a9b1d6)'
+time_format = '%T'
+
+[character]
+success_symbol = "[❯](bold #7aa2f7)[❯](bold #bb9af7)[❯](bold #7dcfff)"
+error_symbol = "[❯](bold #f7768e)[❯](bold #bb9af7)[❯](bold #e0af68)"
