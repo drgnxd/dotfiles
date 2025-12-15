@@ -9,12 +9,9 @@ local target_browser = "Floorp"
 local function send_key_to_app(key, mods)
     local app = hs.application.get(target_browser)
     if not app then
-        print("[DEBUG] App not found: " .. target_browser)
         hs.alert.show(target_browser .. " not running")
         return
     end
-
-    print("[DEBUG] Sending " .. key .. " to " .. app:title())
 
     -- PageUp/PageDown 等のキーコードを取得
     local key_code = hs.keycodes.map[key]
@@ -53,8 +50,6 @@ function M.init()
     hs.hotkey.bind(mods, "l", "Browser Forward", function()
         send_key_to_app("]", {"cmd"})
     end)
-    
-    print("[DEBUG] browser_control (Direct Key Mode) loaded.")
 end
 
 return M

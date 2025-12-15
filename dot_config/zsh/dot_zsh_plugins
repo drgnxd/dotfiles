@@ -29,8 +29,8 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
                   source "$chroma_file"
                   # Register Chroma function with fast-syntax-highlighting
                   # Chroma関数を fast-syntax-highlighting に登録
-                  # Note: chroma_functions is provided by fast-syntax-highlighting
-                  chroma_functions[${cmd_name}]="chroma/${cmd_name}"
+                  # Note: FAST_HIGHLIGHT is provided by fast-syntax-highlighting
+                  FAST_HIGHLIGHT[chroma-${cmd_name}]="chroma/${cmd_name}"
               fi
           done
       fi

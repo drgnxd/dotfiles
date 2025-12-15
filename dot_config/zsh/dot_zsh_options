@@ -4,12 +4,8 @@
 # ------------------------------------------------------------------------------
 # 履歴 (History)
 # ------------------------------------------------------------------------------
-# 履歴ファイルの保存先設定
-# XDG_STATE_HOME (デフォルトは ~/.local/state)を使用
-XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+# 履歴ディレクトリの作成
 [ -d "$XDG_STATE_HOME/zsh" ] || mkdir -p "$XDG_STATE_HOME/zsh"
-# 履歴ファイルのパスを指定
-HISTFILE="$XDG_STATE_HOME/zsh/history"
 # メモリに保存する履歴の件数
 HISTSIZE=10000
 # 履歴ファイルに保存する件数
