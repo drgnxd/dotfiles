@@ -1,17 +1,17 @@
 # ~/.config/zsh/.exports
-# シェルが読み込む環境変数を定義
+# Environment variables for the shell
 
 # ------------------------------------------------------------------------------
 # XDG Base Directory Specification
 # ------------------------------------------------------------------------------
-# 標準的なXDG設定
+# Standard XDG locations
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
 
 # ------------------------------------------------------------------------------
-# アプリケーション固有のホームディレクトリ
+# Application-specific homes
 # ------------------------------------------------------------------------------
 # GnuPG
 export GNUPGHOME="$HOME/.config/gnupg"
@@ -45,11 +45,11 @@ export BAT_CACHE_DIR="$XDG_CACHE_HOME/bat"
 # Starship
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 
-# macOS Session
+# macOS Session state
 export SHELL_SESSION_DIR="$XDG_STATE_HOME/zsh/sessions"
 
 # ------------------------------------------------------------------------------
-# シェル履歴 (XDG準拠)
+# Shell history (XDG compliant)
 # ------------------------------------------------------------------------------
 export HISTFILE="$HOME/.local/state/zsh/history"
 export LESSHISTFILE="$HOME/.local/state/less/history"
@@ -57,27 +57,27 @@ export LESSHISTFILE="$HOME/.local/state/less/history"
 # ------------------------------------------------------------------------------
 # LLVM (Homebrew)
 # ------------------------------------------------------------------------------
-# PATH 以外 (LDFLAGS, CPPFLAGS) のみを設定
+# Only non-PATH flags (LDFLAGS, CPPFLAGS)
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
 # ------------------------------------------------------------------------------
-# ターミナル設定
+# Terminal settings
 # ------------------------------------------------------------------------------
-# 標準の terminfo 辞書(xterm-256color)を使うよう指定
+# Use standard terminfo entry
 export TERM="xterm-256color"
 
 # ------------------------------------------------------------------------------
-# デフォルトエディタ設定 (chezmoi edit など)
+# Default editor (e.g., chezmoi edit)
 # ------------------------------------------------------------------------------
-# ターミナル内でhxを使用する
+# Use hx in the terminal
 export EDITOR="hx"
 export VISUAL="$EDITOR"
 
 # ------------------------------------------------------------------------------
-# $PATH の設定
+# $PATH configuration
 # ------------------------------------------------------------------------------
-# 優先させたいPATHを定義
+# Preferred path order
 local -a my_paths
 my_paths=(
   "$HOME/.local/bin"
@@ -86,6 +86,6 @@ my_paths=(
   "/opt/homebrew/opt/llvm/bin"
 )
 
-# 既存のPATHの *前* に追加
+# Prepend to existing PATH
 export PATH="${(j|:|)my_paths}:$PATH"
 unset my_paths
