@@ -5,8 +5,7 @@
 # pyenv (Lazy Loading)
 # ------------------------------------------------------------------------------
 
-# Define env vars needed for pyenv to work
-export PYENV_ROOT="$HOME/.local/share/.pyenv"
+# Add pyenv bin to PATH if exists
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 
 # Lazy load function

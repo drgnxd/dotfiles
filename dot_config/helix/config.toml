@@ -23,4 +23,4 @@ C-w = "delete_word_backward"  # 単語削除 (超重要)
 C-u = "kill_to_line_start"    # 行頭まで削除 (Unix標準) !!追加!!
 
 # --- その他 ---
- C-k = "kill_to_line_end"    # シグネチャヘルプと被るならオフ、そうでなければオン[keys.insert]
+C-k = "kill_to_line_end"    # シグネチャヘルプと被るならオフ、そうでなければオン

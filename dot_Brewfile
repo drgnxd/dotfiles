@@ -46,7 +46,7 @@ brew "p7zip"
 # Python version management
 brew "pyenv"
 # Interpreted, interactive, object-oriented programming language
-brew "python@3.14"
+brew "python@3.13"
 # Software environment for statistical computing
 brew "r"
 # Search tool like grep and The Silver Searcher
