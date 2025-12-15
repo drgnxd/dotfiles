@@ -1,5 +1,6 @@
 # Taps
 tap "homebrew/autoupdate"
+tap "protonpass/homebrew-tap"
 
 # Brews
 # Clone of cat(1) with syntax highlighting and Git integration
@@ -38,6 +39,8 @@ brew "ncdu"
 brew "node"
 # AI coding agent, built for the terminal
 brew "opencode"
+# Proton Pass command-line interface
+brew "pass-cli"
 # 7-Zip (high compression file archiver) implementation
 brew "p7zip"
 # Python version management
