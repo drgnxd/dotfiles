@@ -25,6 +25,8 @@ brew "gh"
 brew "git-crypt"
 # Syntax-highlighting pager for git and diff output
 brew "git-delta"
+# Git Large File Storage
+brew "git-lfs"
 # GNU Pretty Good Privacy (PGP) package
 brew "gnupg"
 # Post-modern modal text editor
@@ -88,6 +90,8 @@ cask "font-hackgen-nerd"
 cask "gimp"
 # Web browser
 cask "google-chrome"
+# 3D parametric modeler
+cask "freecad"
 # Desktop automation application
 cask "hammerspoon"
 # Free cross-platform office suite, fresh version
@@ -96,6 +100,8 @@ cask "libreoffice"
 cask "logi-options+"
 # Clipboard manager
 cask "maccy"
+# App cleaner
+cask "pearcleaner"
 # Client for Proton Drive
 cask "proton-drive"
 # Client for Proton Mail and Proton Calendar
@@ -110,3 +116,5 @@ cask "signal"
 cask "sol"
 # System monitor for the menu bar
 cask "stats"
+# Open-source slicer for 3D printers
+cask "prusaslicer"
