@@ -16,7 +16,7 @@
 *   **パッケージマネージャ:** Homebrew (macOS), ネイティブパッケージマネージャ (Linux)
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
-*   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode
+*   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **ユーティリティ:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **バージョンマネージャ:** pyenv、node、rust
 *   **3D/CAD・3Dプリント:** FreeCAD, PrusaSlicer
