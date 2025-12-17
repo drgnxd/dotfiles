@@ -26,7 +26,10 @@ command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
 command -v task >/dev/null 2>&1 && alias t='task'
 
 # opencode
-command -v opencode >/dev/null 2>&1 && alias oc='opencode'
+if command -v opencode >/dev/null 2>&1; then
+    alias oc='opencode'
+    alias ocd='opencode --continue'
+fi
 
 # chezmoi helpers
 if command -v chezmoi >/dev/null 2>&1; then
