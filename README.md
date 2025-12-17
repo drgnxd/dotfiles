@@ -16,9 +16,10 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Package Manager:** Homebrew (macOS), Native Package Manager (Linux)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta), lazygit, gh, opencode
-*   **Utilities:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv
+*   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode
+*   **Utilities:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **Version Managers:** pyenv, node, rust
+*   **3D/CAD & Printing:** FreeCAD, PrusaSlicer
 
 ## Installation
 
