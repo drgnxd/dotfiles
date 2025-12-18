@@ -8,6 +8,7 @@ padding = { x = 10, y = 10 }
 # ~0.95 recommended
 opacity = 0.8
 
+# Left Option acts as Alt; Right Option is used as Meta
 option_as_alt = "OnlyLeft"
 
 [font]
