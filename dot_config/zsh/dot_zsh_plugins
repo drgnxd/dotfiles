@@ -34,7 +34,31 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
               fi
           done
       fi
+
+      if typeset -A FAST_HIGHLIGHT >/dev/null 2>&1; then
+          register_chroma_alias() {
+              local alias_name="$1" target_command="$2" target_key="chroma-${target_command}"
+              local target_value="${FAST_HIGHLIGHT[$target_key]}"
+
+              [[ -n "$alias_name" && -n "$target_value" ]] || return 0
+              FAST_HIGHLIGHT["chroma-${alias_name}"]="$target_value"
+          }
+
+          register_chroma_alias ls eza
+          register_chroma_alias ll eza
+          register_chroma_alias la eza
+          register_chroma_alias lt eza
+          register_chroma_alias g rg
+          register_chroma_alias lg lazygit
+          register_chroma_alias f fd
+          register_chroma_alias cat bat
+          register_chroma_alias t task
+          register_chroma_alias c chezmoi
+          register_chroma_alias ca chezmoi
+          register_chroma_alias ce chezmoi
+      fi
   fi
+
 fi
 
 # Starship(プロンプト)の起動
