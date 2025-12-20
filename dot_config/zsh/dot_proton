@@ -1,8 +1,13 @@
 # ~/.config/zsh/.proton
 # Proton Pass configuration
 
-# Proton Passの鍵をSSHエージェントにロード
+# Load Proton Pass keys into SSH agent only when empty
 # Background execution to avoid blocking shell startup
 if command -v pass-cli >/dev/null 2>&1; then
-    pass-cli ssh-agent load >/dev/null 2>&1 &!
+    if ! ssh-add -l >/dev/null 2>&1; then
+        pass-cli ssh-agent load >/dev/null 2>&1 &!
+    fi
 fi
+
+# Manual load helper
+alias pload="pass-cli ssh-agent load"
