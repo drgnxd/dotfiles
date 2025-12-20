@@ -45,3 +45,22 @@ function save_stats() {
 
 	echo "Saved to $dest"
 }
+
+# --- Proton Pass Wrapper ---
+# Usage: export API_KEY=$(ppget "Service Name" password)
+function ppget() {
+    local query="$1"
+    local field="${2:-password}"
+    if [ -z "$query" ]; then
+        echo "Usage: ppget <query> [field]" >&2
+        return 1
+    fi
+    # Search and get field (requires jq)
+    local item_id
+    item_id=$(pass-cli search "$query" --json | jq -r '.[0].id')
+    if [ -z "$item_id" ] || [ "$item_id" = "null" ]; then
+        echo "Error: Secret '$query' not found." >&2
+        return 1
+    fi
+    pass-cli get "$item_id" --field "$field" --output text
+}

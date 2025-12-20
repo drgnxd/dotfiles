@@ -1,42 +1,42 @@
 # ~/.config/git/config
 
-# --- Core: 基本設定 ---
+# --- Core: basics ---
 [core]
-    editor = hx                  # エディタはHelix
-    pager = delta                # ページャーはDelta
-    ignorecase = false           # 大文字小文字を区別する (トラブル防止)
-    quotepath = false            # 日本語ファイル名を化けさせない
-    precomposeunicode = true     # macOSの濁点分離問題を防ぐ
+    editor = hx                  # Editor: Helix
+    pager = delta                # Pager: Delta
+    ignorecase = false           # Case sensitive (prevent surprises)
+    quotepath = false            # Preserve multibyte filenames
+    precomposeunicode = true     # Prevent macOS decomposed Unicode issues
 
 [init]
     defaultBranch = main
 
-# --- Delta: 見た目のカスタマイズ ---
+# --- Delta: UI tweaks ---
 [delta]
     navigate = true
     light = false
     line-numbers = true
     side-by-side = true
-    syntax-theme = TwoDark       # Helixのテーマに合わせてもOK
+    syntax-theme = TwoDark       # Align with Helix theme
 
 [interactive]
     diffFilter = delta --color-only
 
 [merge]
-    conflictstyle = diff3        # 競合時に「共通の祖先」も表示 (解決しやすい)
+    conflictstyle = diff3        # Show common ancestor for easier resolution
 
-# --- Push/Pull: 運用を楽にする設定 ---
+# --- Push/Pull: convenience ---
 [pull]
-    rebase = false               # 初心者はマージコミットを作る方が安全
+    rebase = false               # Safer for beginners (keeps merge commits)
 
 [push]
-    autoSetupRemote = true       # 超便利: 初回push時に -u を打たなくて良くなる
+    autoSetupRemote = true       # Add -u on first push automatically
     default = simple
 
 [fetch]
-    prune = true                 # リモートで消えたブランチをローカル情報からも消す
+    prune = true                 # Drop local refs removed on remote
 
-# --- Alias: 爆速操作 ---
+# --- Alias: speed helpers ---
 [alias]
     st = status -s
     co = checkout
@@ -47,14 +47,28 @@
     d  = diff
     ds = diff --staged
     
-    # 便利系
+    # Convenience
     amend = commit --amend --no-edit
     undo  = reset --soft HEAD^
     lg    = !lazygit
     
-    # ログ (グラフ表示)
+    # Log (graph view)
     hist = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
 
-# --- ★重要: ローカル設定の読み込み ---
+# --- Important: load local overrides ---
 [include]
     path = config.local
+
+# --- Signing: SSH-based signatures via Proton Pass ---
+[gpg]
+    format = ssh
+
+[commit]
+    gpgsign = true
+
+[tag]
+    gpgsign = true
+
+# TODO: Set your SSH public key from Proton Pass
+[user]
+    signingkey = ssh-ed25519 AAAA...
