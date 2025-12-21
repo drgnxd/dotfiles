@@ -1,11 +1,11 @@
 -- ==========================================
--- バックグラウンドブラウザ操作 (Direct Key Event Mode)
+-- Background Browser Control (Direct Key Event Mode)
 -- ==========================================
 
 local M = {}
 local target_browser = "Floorp"
 
--- キーイベントを作成して特定のアプリに送信する関数
+-- Function to create key event and send to specific app
 local function send_key_to_app(key, mods)
     local app = hs.application.get(target_browser)
     if not app then
@@ -13,11 +13,11 @@ local function send_key_to_app(key, mods)
         return
     end
 
-    -- PageUp/PageDown 等のキーコードを取得
+    -- Get keycode for PageUp/PageDown etc.
     local key_code = hs.keycodes.map[key]
     
-    -- keyStroke はアクティブウィンドウに影響されやすいため、
-    -- event.newKeyEvent を使用してターゲットプロセスへ直接 post する
+    -- keyStroke is easily affected by active window, so
+    -- use event.newKeyEvent to post directly to target process
     
     -- 1. Key Down
     local event_down = hs.eventtap.event.newKeyEvent(mods or {}, key_code, true)

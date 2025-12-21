@@ -1,19 +1,19 @@
 -- ==========================================
--- 設定リロード機能
+-- Config Reload Function
 -- ==========================================
 
 local M = {}
 
 function M.init()
-  -- リロード完了時に通知
+  -- Notify when reload completes
   hs.alert.show("Config Loaded")
 
-  -- 手動リロード (Ctrl + Shift + R)
-  hs.hotkey.bind({"ctrl", "shift"}, "r", "設定をリロード", function()
+  -- Manual Reload (Ctrl + Shift + R)
+  hs.hotkey.bind({"ctrl", "shift"}, "r", "Reload Config", function()
     hs.reload()
   end)
 
-  -- 自動リロード (設定ファイルの変更を監視)
+  -- Auto Reload (Watch for changes in config files)
   hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", function()
     hs.reload()
   end):start()

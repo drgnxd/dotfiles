@@ -2,12 +2,12 @@
 
 # hash: {{ include "dot_config/stats/eu.exelban.Stats.plist" | sha256sum }}
 
-echo "Stats (eu.exelban.Stats) の設定変更を検出。システムにインポート中..."
+echo "Detected changes in Stats (eu.exelban.Stats) configuration. Importing to system..."
 
-# XMLファイルから設定をインポート
+# Import settings from XML file
 defaults import eu.exelban.Stats "{{ .chezmoi.homeDir }}/.config/stats/eu.exelban.Stats.plist"
 
-# キャッシュの整合性を保つため再読み込みを促す
+# Prompt reload to maintain cache consistency
 killall cfprefsd 2>/dev/null
-# Statsアプリを再起動
+# Restart Stats app
 killall Stats && open -a Stats

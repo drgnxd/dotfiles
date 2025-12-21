@@ -4,18 +4,18 @@ set -e
 
 echo "Setting macOS defaults..."
 
-# システム環境設定が開いていると上書きされる可能性があるため終了させる
+# Quit System Preferences to avoid overwriting settings
 osascript -e 'tell application "System Preferences" to quit'
 
 ###############################################################################
 # General UI/UX                                                               #
 ###############################################################################
 
-# 保存ダイアログを常に詳細表示にする
+# Always show expanded save dialog
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
 
-# 印刷ダイアログを常に詳細表示にする
+# Always show expanded print dialog
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
@@ -32,7 +32,7 @@ defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dic
 # Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
 ###############################################################################
 
-# タップでクリックを有効化
+# Enable tap to click
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
 defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -48,22 +48,22 @@ defaults write -g com.apple.mouse.scaling -int 7
 # Finder                                                                      #
 ###############################################################################
 
-# 拡張子を常に表示する
+# Always show all extensions
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
-# ステータスバーを表示
+# Show status bar
 defaults write com.apple.finder ShowStatusBar -bool true
 
-# パスバーを表示
+# Show path bar
 defaults write com.apple.finder ShowPathbar -bool true
 
-# 名前で並べ替え時にフォルダを先頭に表示
+# Keep folders on top when sorting by name
 defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
-# 検索実行時は現在のフォルダをデフォルトにする
+# Search current folder by default
 defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
 
-# USBやネットワークストレージに .DS_Store ファイルを作成しない
+# Avoid creating .DS_Store files on USB and network storage
 defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
@@ -71,20 +71,20 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 # Dock, Dashboard, and hot corners                                            #
 ###############################################################################
 
-# Dockを自動的に隠す
+# Automatically hide and show the Dock
 defaults write com.apple.dock autohide -bool true
 
-# 最近使ったアプリケーションをDockに表示しない
+# Don't show recent applications in Dock
 defaults write com.apple.dock show-recents -bool false
 
-# Dockのアイコンサイズを設定 (ピクセル)
+# Set Dock icon size (pixels)
 defaults write com.apple.dock tilesize -int 48
 
 ###############################################################################
 # Screenshots                                                                 #
 ###############################################################################
 
-# スクリーンショットの影を無効化
+# Disable shadow in screenshots
 defaults write com.apple.screencapture disable-shadow -bool true
 
 ###############################################################################

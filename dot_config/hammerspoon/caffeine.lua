@@ -1,23 +1,23 @@
 -- ==========================================
--- スリープ防止機能 (Caffeine)
+-- Prevent Sleep Function (Caffeine)
 -- ==========================================
 
 local M = {}
 
 local caffeine = nil
 
--- アイコンの表示を切り替える関数
+-- Function to toggle icon display
 local function set_caffeine_display(state)
   if state then
-    caffeine:setTitle("☕️") -- ON: スリープしない
+    caffeine:setTitle("☕️") -- ON: Do not sleep
   else
-    caffeine:setTitle("💤") -- OFF: 通常通りスリープする
+    caffeine:setTitle("💤") -- OFF: Sleep normally
   end
 end
 
--- クリック時の動作
+-- Action on click
 local function caffeine_clicked()
-  -- displayIdle（ディスプレイのスリープ）を防ぐ設定をトグルする
+  -- Toggle setting to prevent displayIdle (display sleep)
   set_caffeine_display(hs.caffeinate.toggle("displayIdle"))
 end
 
@@ -26,7 +26,7 @@ function M.init()
   
   if caffeine then
     caffeine:setClickCallback(caffeine_clicked)
-    -- 起動時の状態を取得して表示
+    -- Get and display state on startup
     set_caffeine_display(hs.caffeinate.get("displayIdle"))
   end
 end

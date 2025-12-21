@@ -33,7 +33,7 @@ report.waiting.filter=status:waiting or +wait
 # ------------------------------------------------------------------------------
 # List Report Customization
 # ------------------------------------------------------------------------------
-# タグを表示するようにカラムを再定義
-# (id, プロジェクト, タグ, 優先度, 期限, 説明 の順で表示)
+# Redefine columns to show tags
+# (Display order: id, project, tags, priority, due, description)
 report.list.columns=id,project,tags,priority,due,description
 report.list.labels=ID,Proj,Tags,Pri,Due,Desc

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Library/CloudStorageが存在しない場合は何もしない
+# Do nothing if Library/CloudStorage does not exist
 CLOUD_DIR="{{ .chezmoi.homeDir }}/Library/CloudStorage"
 if [ ! -d "$CLOUD_DIR" ]; then
     exit 0
@@ -8,12 +8,12 @@ fi
 
 echo "☁️  Checking CloudStorage directories..."
 
-# CloudStorage内のディレクトリを走査
+# Iterate through directories in CloudStorage
 for target in "$CLOUD_DIR"/*; do
     if [ -d "$target" ]; then
         default_name=$(basename "$target")
         
-        # ユーザー入力の取得 (TTY経由)
+        # Get user input (via TTY)
         if [ -c /dev/tty ]; then
             echo "---------------------------------------------------"
             echo "Found: $default_name"
@@ -22,11 +22,11 @@ for target in "$CLOUD_DIR"/*; do
             
             case "$answer" in
                 [yY]*)
-                    # リンク名の入力
+                    # Input link name
                     echo -n "📝 Enter link name [default: $default_name]: "
                     read input_name < /dev/tty
                     
-                    # 入力が空ならデフォルト名を使用
+                    # Use default name if input is empty
                     link_name="${input_name:-$default_name}"
                     link_path="{{ .chezmoi.homeDir }}/$link_name"
                     

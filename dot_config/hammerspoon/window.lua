@@ -1,13 +1,13 @@
 -- ==========================================
--- ウィンドウ管理 (Rectangle代替機能)
+-- Window Management (Rectangle Alternative)
 -- ==========================================
 
 local M = {}
 
--- アニメーション時間を0に設定（瞬時に移動）
+-- Set animation duration to 0 (instant move)
 hs.window.animationDuration = 0
 
--- 画面上の位置を計算して移動させる関数
+-- Function to calculate position and move window
 local function move_window(x, y, w, h)
   local win = hs.window.focusedWindow()
   if not win then return end
@@ -24,57 +24,57 @@ local function move_window(x, y, w, h)
 end
 
 function M.init()
-  -- モディファイアキー設定 (Ctrl + Alt)
-  -- Rectangleのデフォルトに寄せていますが、必要に応じて {"cmd", "alt"} などに変更してください
+  -- Modifier keys (Ctrl + Alt)
+  -- Mimics Rectangle defaults, change to {"cmd", "alt"} etc. if needed
   local mash = {"ctrl", "alt"}
 
-  -- 左半分 (Left Arrow)
-  hs.hotkey.bind(mash, "Left", "ウィンドウを左半分に配置", function()
+  -- Left Half (Left Arrow)
+  hs.hotkey.bind(mash, "Left", "Move Window to Left Half", function()
     move_window(0, 0, 0.5, 1)
   end)
 
-  -- 右半分 (Right Arrow)
-  hs.hotkey.bind(mash, "Right", "ウィンドウを右半分に配置", function()
+  -- Right Half (Right Arrow)
+  hs.hotkey.bind(mash, "Right", "Move Window to Right Half", function()
     move_window(0.5, 0, 0.5, 1)
   end)
 
-  -- 最大化 (Enter)
-  hs.hotkey.bind(mash, "Return", "ウィンドウを最大化", function()
+  -- Maximize (Enter)
+  hs.hotkey.bind(mash, "Return", "Maximize Window", function()
     move_window(0, 0, 1, 1)
   end)
 
-  -- 上半分 (Up Arrow)
-  hs.hotkey.bind(mash, "Up", "ウィンドウを上半分に配置", function()
+  -- Top Half (Up Arrow)
+  hs.hotkey.bind(mash, "Up", "Move Window to Top Half", function()
     move_window(0, 0, 1, 0.5)
   end)
 
-  -- 下半分 (Down Arrow)
-  hs.hotkey.bind(mash, "Down", "ウィンドウを下半分に配置", function()
+  -- Bottom Half (Down Arrow)
+  hs.hotkey.bind(mash, "Down", "Move Window to Bottom Half", function()
     move_window(0, 0.5, 1, 0.5)
   end)
 
-  -- 左上 1/4 (U)
-  hs.hotkey.bind(mash, "U", "ウィンドウを左上1/4に配置", function()
+  -- Top Left 1/4 (U)
+  hs.hotkey.bind(mash, "U", "Move Window to Top-Left 1/4", function()
     move_window(0, 0, 0.5, 0.5)
   end)
 
-  -- 右上 1/4 (I)
-  hs.hotkey.bind(mash, "I", "ウィンドウを右上1/4に配置", function()
+  -- Top Right 1/4 (I)
+  hs.hotkey.bind(mash, "I", "Move Window to Top-Right 1/4", function()
     move_window(0.5, 0, 0.5, 0.5)
   end)
 
-  -- 左下 1/4 (J)
-  hs.hotkey.bind(mash, "J", "ウィンドウを左下1/4に配置", function()
+  -- Bottom Left 1/4 (J)
+  hs.hotkey.bind(mash, "J", "Move Window to Bottom-Left 1/4", function()
     move_window(0, 0.5, 0.5, 0.5)
   end)
 
-  -- 右下 1/4 (K)
-  hs.hotkey.bind(mash, "K", "ウィンドウを右下1/4に配置", function()
+  -- Bottom Right 1/4 (K)
+  hs.hotkey.bind(mash, "K", "Move Window to Bottom-Right 1/4", function()
     move_window(0.5, 0.5, 0.5, 0.5)
   end)
 
-  -- 中央配置 (C) - 幅80%, 高さ80%
-  hs.hotkey.bind(mash, "C", "ウィンドウを中央に配置 (80%)", function()
+  -- Center (C) - 80% width/height
+  hs.hotkey.bind(mash, "C", "Move Window to Center (80%)", function()
     move_window(0.1, 0.1, 0.8, 0.8)
   end)
 end

@@ -4,8 +4,8 @@ set -e
 
 echo "Setting up login items..."
 
-# ログイン項目に追加したいアプリケーションのリスト
-# アプリケーション名は .app の前の名前
+# List of applications to add to login items
+# Application name is the name before .app
 apps=(
     "Alacritty"
     "Floorp"
@@ -21,9 +21,9 @@ apps=(
 for app in "${apps[@]}"; do
     echo "Processing $app..."
     
-    # アプリケーションが存在するか確認
+    # Check if application exists
     if [ -d "/Applications/${app}.app" ]; then
-        # 既にログイン項目にあるか確認し、なければ追加
+        # Check if already in login items, if not add it
         osascript -e "tell application \"System Events\" to if not (exists login item \"${app}\") then make login item at end with properties {path:\"/Applications/${app}.app\", hidden:false}"
         echo "  Ensure $app is in login items."
     else

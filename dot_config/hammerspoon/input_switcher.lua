@@ -1,20 +1,20 @@
 -- ==========================================
--- 自動英語切り替え機能
+-- Auto English Input Switching Function
 -- ==========================================
 
 local M = {}
 
--- 英語入力ソースのID (環境に合わせて書き換えてください)
+-- English Input Source ID (Update this according to your environment)
 local english_input_id = "com.apple.keylayout.ABC"
 
--- 対象アプリ名リスト
+-- List of target apps
 local target_apps = {
   "Alacritty",
   "Sol",
 }
 
 function M.init()
-  -- 各アプリに対してウィンドウフィルターを作成
+  -- Create window filter for each app
   for _, appName in ipairs(target_apps) do
     local wf = hs.window.filter.new(appName)
     

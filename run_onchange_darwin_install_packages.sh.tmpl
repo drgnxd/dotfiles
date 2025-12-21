@@ -9,7 +9,7 @@ echo "Checking for Homebrew..."
 if command -v brew >/dev/null 2>&1; then
   echo "Homebrew found. Running 'brew bundle' using source Brewfile..."
   
-  # ソースディレクトリ内の dot_Brewfile を直接参照して bundle を実行
+  # Run bundle referencing dot_Brewfile directly in source directory
   if brew bundle --file="{{ .chezmoi.sourceDir }}/dot_Brewfile"; then
     echo "brew bundle completed successfully."
   else

@@ -1,4 +1,4 @@
 [[mgr.prepend_keymap]]
 on = "P"
 run = 'shell --orphan "qlmanage -p \"$1\" >/dev/null 2>&1"'
-desc = "Quick Lookでプレビュー"
+desc = "Preview with Quick Look"
