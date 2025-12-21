@@ -1,34 +1,34 @@
 -- ==========================================
--- Hammerspoon 設定ファイル
+-- Hammerspoon Configuration File
 -- ==========================================
 
--- ショートカット情報を保存するテーブルを準備
+-- Prepare table to store shortcut information
 hs.my_hotkeys = {}
 
--- 既存の bind 関数を保存
+-- Save existing bind function
 local original_bind = hs.hotkey.bind
 
--- bind 関数を上書き（ラップ）して、登録時に情報を記録するようにする
+-- Overwrite (wrap) bind function to record information upon registration
 hs.hotkey.bind = function(mods, key, param1, ...)
     local message = "No Description"
     
-    -- 第3引数(param1)が文字列なら、それを説明文とする
+    -- If the 3rd argument (param1) is a string, use it as the description
     if type(param1) == "string" then
         message = param1
     end
 
-    -- 記録テーブルに保存
+    -- Save to recording table
     table.insert(hs.my_hotkeys, {
         mods = mods,
         key = key,
         msg = message
     })
 
-    -- 本来の bind 関数を実行
+    -- Execute original bind function
     return original_bind(mods, key, param1, ...)
 end
 
--- モジュールの読み込み
+-- Load modules
 local reload = require("reload")
 local input_switcher = require("input_switcher")
 local caffeine = require("caffeine")
@@ -36,7 +36,7 @@ local window = require("window")
 local cheatsheet = require("cheatsheet")
 local browser_control = require("browser_control")
 
--- 各モジュールの初期化
+-- Initialize modules
 reload.init()
 input_switcher.init()
 caffeine.init()

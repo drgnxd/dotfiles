@@ -14,24 +14,19 @@ footer.border = { fg = "highlight" }
 manager.active = { bg = "highlight", fg = "fg" }
 manager.inactive = { fg = "white" }
 
-# ファイル名の色分け
+# File name coloring
 file.directory = { fg = "directory" }
-file.executable = { fg = "executable" }
-file.link = { fg = "accent" }
-file.symlink_target = { fg = "blue" }
-file.broken_link = { fg = "red" }
-file.current = { fg = "fg", modifiers = ["bold"] }
 
-# --- ステータスバー ---
+# --- Status Bar ---
 status.icon = { fg = "yellow" }
 status.progress = { bg = "blue" }
 status.info = { fg = "white" }
 status.separator = { fg = "highlight" }
 
-# 検索
+# Search
 filter.match = { fg = "search", modifiers = ["bold"] }
 
-# ヘルプ/ログ
+# Help/Log
 help.hover = { fg = "accent" }
 log.error = { fg = "error" }
 log.warn = { fg = "yellow" }

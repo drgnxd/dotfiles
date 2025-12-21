@@ -1,18 +1,18 @@
 # ~/.config/zsh/.zsh_options
-# Zshのオプションとシェル変数を設定
+# Configure Zsh options and shell variables
 
 # ------------------------------------------------------------------------------
-# 履歴 (History)
+# History
 # ------------------------------------------------------------------------------
-# 履歴ディレクトリの作成
+# Create history directory
 [ -d "$XDG_STATE_HOME/zsh" ] || mkdir -p "$XDG_STATE_HOME/zsh"
-# メモリに保存する履歴の件数
+# Number of history entries to keep in memory
 HISTSIZE=10000
-# 履歴ファイルに保存する件数
+# Number of history entries to save to file
 SAVEHIST=10000
-# 履歴を共有 (複数のターミナルで履歴を即時共有)
+# Share history (Share history immediately across multiple terminals)
 setopt share_history
-# 履歴をインクリメンタルに保存
+# Save history incrementally
 setopt inc_append_history
-# 重複する履歴を保存しない
+# Do not save duplicate history entries
 setopt hist_ignore_dups

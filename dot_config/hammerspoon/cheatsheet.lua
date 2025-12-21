@@ -1,11 +1,11 @@
 -- ==========================================
--- キーバインド一覧表示 (CheatSheet) - 修正版
+-- Keybind List Display (CheatSheet) - Fixed Version
 -- ==========================================
 
 local M = {}
 local chooser = nil
 
--- モディファイアキーの表示用記号
+-- Display symbols for modifier keys
 local mod_symbols = {
     cmd = "⌘",
     alt = "⌥",
@@ -13,7 +13,7 @@ local mod_symbols = {
     ctrl = "⌃",
 }
 
--- モディファイアを整形する関数
+-- Function to format modifiers
 local function format_mods(mods)
     if type(mods) ~= "table" then return "" end
     local order = {"ctrl", "alt", "shift", "cmd"}
@@ -28,25 +28,25 @@ local function format_mods(mods)
     return result
 end
 
--- 一覧を表示する関数
+-- Function to display list
 local function show_cheatsheet()
     local choices = {}
     
-    -- init.lua で記録した hs.my_hotkeys を使用
-    -- (hs.my_hotkeys が無い場合のガードも追加)
+    -- Use hs.my_hotkeys recorded in init.lua
+    -- (Add guard in case hs.my_hotkeys is missing)
     local keys = hs.my_hotkeys or {}
 
     for i, hk in ipairs(keys) do
         local sub_text = format_mods(hk.mods) .. " " .. string.upper(hk.key)
         
         table.insert(choices, {
-            text = hk.msg,       -- 説明文
-            subText = sub_text,   -- キー (例: ⌃⌥ C)
+            text = hk.msg,       -- Description
+            subText = sub_text,   -- Key (e.g., ⌃⌥ C)
             uuid = i
         })
     end
 
-    -- キー順で見やすくソート
+    -- Sort by key for better readability
     table.sort(choices, function(a, b) return a.subText < b.subText end)
 
     chooser:choices(choices)
@@ -54,13 +54,13 @@ local function show_cheatsheet()
 end
 
 function M.init()
-    -- 選択時は何もしない設定
+    -- Setting to do nothing on selection
     chooser = hs.chooser.new(function(choice) end)
     chooser:placeholderText("Keybinds List")
-    chooser:bgDark(true) -- ダークモード対応
+    chooser:bgDark(true) -- Dark mode support
     
-    -- 呼び出しキー設定 (第3引数のメッセージを削除して、自動アラートが出ないようにする)
-    hs.hotkey.bind({"ctrl", "alt"}, "/", "キーバインド一覧を表示", function()
+    -- Call key setting (Remove message in 3rd argument to prevent auto alert)
+    hs.hotkey.bind({"ctrl", "alt"}, "/", "Show Keybind List", function()
         show_cheatsheet()
     end)
 end

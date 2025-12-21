@@ -1,37 +1,37 @@
 # ~/.config/zsh/.zsh_completion
 
 # ------------------------------------------------------------------------------
-# 1. zsh-completions のパス設定 (compinitより前に行う必要あり)
+# 1. zsh-completions path setting (must be done before compinit)
 # ------------------------------------------------------------------------------
-# .homebrew で設定された HOMEBREW_PREFIX を利用
+# Use HOMEBREW_PREFIX set in .homebrew
 if [ -n "$HOMEBREW_PREFIX" ] && [ -d "$HOMEBREW_PREFIX/share/zsh-completions" ]; then
   fpath=("$HOMEBREW_PREFIX/share/zsh-completions" $fpath)
 fi
 
 # ------------------------------------------------------------------------------
-# 2. 補完システムの初期化
+# 2. Initialize completion system
 # ------------------------------------------------------------------------------
 autoload -U compinit
-# セキュリティチェックをスキップして高速化 (-C: キャッシュ利用)
+# Skip security check for speed (-C: use cache)
 compinit -C
 
 # ------------------------------------------------------------------------------
-# 3. スタイル設定 (視認性の向上)
+# 3. Style settings (Improve visibility)
 # ------------------------------------------------------------------------------
-# 補完候補をメニュー形式で選択可能にする
+# Enable menu selection for completion candidates
 zstyle ':completion:*' menu select
 
-# 補完候補に「説明（Description）」を表示する (例: --help  -- display usage information)
+# Show descriptions for completion candidates (e.g., --help  -- display usage information)
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*:descriptions' format '%F{green}-- %d --%f'
 zstyle ':completion:*:messages' format '%F{yellow}%d%f'
 zstyle ':completion:*:warnings' format '%F{red}No matches for: %d%f'
 
-# 補完候補をグループ化する（コマンド、エイリアス、ファイルなどを区別）
+# Group completion candidates (Distinguish commands, aliases, files, etc.)
 zstyle ':completion:*' group-name ''
 
-# 大文字小文字を区別しない
+# Case insensitive matching
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-# ls コマンド等の補完時に色を付ける
+# Colorize completion list for ls command etc.
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"

@@ -1,8 +1,8 @@
 # ~/.config/zsh/.zsh_plugins
 
-# Homebrewでインストールしたプラグインの読み込み
+# Load plugins installed via Homebrew
 
-# 前段の .homebrew で HOMEBREW_PREFIX が設定されていることを前提とする
+# Assumes HOMEBREW_PREFIX is set in the preceding .homebrew file
 if [ -n "$HOMEBREW_PREFIX" ]; then
   # zsh-autosuggestions
   if [ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
@@ -13,22 +13,20 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
   if [ -f "$HOMEBREW_PREFIX/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]; then
       source "$HOMEBREW_PREFIX/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
       
-      # Load custom Chroma definitions / カスタムChroma定義の読み込み
-      # Configuration directory / 設定ディレクトリの定義
+      # Load custom Chroma definitions
+      # Define configuration directory
       local fsh_config_dir="${ZDOTDIR:-$HOME/.config/zsh}/fsh"
       
-      # Load Chroma definition files / Chroma定義ファイルを読み込む
+      # Load Chroma definition files
       if [ -d "$fsh_config_dir" ]; then
           for chroma_file in "$fsh_config_dir"/chroma-*.ch(N); do
               # Extract command name from filename (chroma-eza.ch -> eza)
-              # ファイル名からコマンド名を抽出 (chroma-eza.ch -> eza)
               local cmd_name="${chroma_file:t:r:s/chroma-//}"
               
-              # Source and register Chroma function / Chroma関数をソースして登録
+              # Source and register Chroma function
               if [ -f "$chroma_file" ]; then
                   source "$chroma_file"
                   # Register Chroma function with fast-syntax-highlighting
-                  # Chroma関数を fast-syntax-highlighting に登録
                   # Note: FAST_HIGHLIGHT is provided by fast-syntax-highlighting
                   FAST_HIGHLIGHT[chroma-${cmd_name}]="chroma/${cmd_name}"
               fi
@@ -61,7 +59,7 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
 
 fi
 
-# Starship(プロンプト)の起動
+# Start Starship (Prompt)
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init zsh)"
 fi
