@@ -25,6 +25,9 @@ command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
 # Taskwarrior
 command -v task >/dev/null 2>&1 && alias t='task'
 
+# Unified upgrades
+command -v upgrade_all >/dev/null 2>&1 && alias update='upgrade_all'
+
 # opencode
 if command -v opencode >/dev/null 2>&1; then
     alias oc='opencode'

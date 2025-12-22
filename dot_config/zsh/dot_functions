@@ -64,3 +64,47 @@ function ppget() {
     fi
     pass-cli get "$item_id" --field "$field" --output text
 }
+
+# Consolidate GUI app updates under brew/mas to avoid per-app prompts
+function upgrade_all() {
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "Homebrew not found; aborting unified upgrade" >&2
+        return 127
+    fi
+
+    echo "--- Homebrew Formulae ---"
+    brew update || return 1
+    brew upgrade || return 1
+
+    echo "--- Homebrew Casks (greedy) ---"
+    if brew tap-info buo/cask-upgrade >/dev/null 2>&1; then
+        # `brew cu` 自体に upgrade の意味が含まれており、--all で greedy (auto_updates) をカバー
+        brew cu --all --cleanup --yes || return 1
+    else
+        echo "Install buo/cask-upgrade to manage casks: brew tap buo/cask-upgrade" >&2
+    fi
+
+    echo "--- Mac App Store ---"
+    if command -v mas >/dev/null 2>&1; then
+        mas upgrade || return 1
+    else
+        echo "Install mas for App Store apps: brew install mas" >&2
+    fi
+
+    echo "--- Cleanup ---"
+    brew cleanup
+}
+
+# Derive defaults domain for Sparkle toggles to target SUEnableAutomaticChecks
+function bundle_id() {
+    local app_path="$1"
+    if [ -z "$app_path" ]; then
+        echo "Usage: bundle_id /Applications/App.app" >&2
+        return 1
+    fi
+    if [ ! -d "$app_path" ]; then
+        echo "App bundle not found: $app_path" >&2
+        return 1
+    fi
+    /usr/bin/mdls -name kMDItemCFBundleIdentifier -raw "$app_path"
+}
