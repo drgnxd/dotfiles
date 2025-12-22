@@ -35,3 +35,17 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
 # Colorize completion list for ls command etc.
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Taskwarrior: use cached IDs/descriptions for completion
+_task_ids_describe() {
+    # Ensure cache is loaded
+    typeset -ga TASK_CACHE_DESC
+    if (( ${#TASK_CACHE_DESC} )); then
+        _describe -t task-ids 'task IDs' TASK_CACHE_DESC
+    fi
+}
+
+# Prefer our task IDs tag when using task command
+zstyle ':completion:*:*:task:*' completer _oldlist _task_ids_describe _complete
+zstyle ':completion:*:*:task:*' group-name ''
+zstyle ':completion:*:*:task:*' tag-order 'task-ids' 'options' 'arguments'
