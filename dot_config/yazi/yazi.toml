@@ -1,0 +1,32 @@
+# Baseline, upstream-friendly Yazi config tuned for stable defaults.
+
+[manager]
+ratio = [1, 2, 3]            # Balanced pane widths
+show_hidden = false          # Avoid noise; toggle with '.' at runtime
+show_symlink = true          # Reveal symlink targets
+sort_by = "natural"          # Human-friendly ordering
+sort_dir = "asc"
+sort_sensitive = false       # Case-insensitive
+sort_translit = true         # Handle non-ASCII consistently
+linemode = "size"            # Show size/perm inline
+scrolloff = 5                # Keep context when scrolling
+
+[preview]
+wrap = "yes"
+                  # Better text readability
+max_width = 120
+max_height = 80
+
+[opener]
+# Text editing via $EDITOR (hx set in env)
+[[opener.edit]]
+run = '${EDITOR:-vi} "$@"'
+block = true
+
+# macOS system opener fallback
+[[opener.open]]
+run = 'open "$@"'
+block = false
+
+[log]
+level = "warn"              # Quiet unless something matters
