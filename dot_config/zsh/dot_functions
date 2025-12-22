@@ -97,8 +97,11 @@ try:
         if tid != 0:
             ids.append(str(tid))
             descs.append(f"{tid}:{t.get(\"description\", \"\")}")
-    print("\n".join(ids), file=open(sys.argv[1], "w"))
-    print("\n".join(descs), file=open(sys.argv[2], "w"))
+    if ids:
+        with open(sys.argv[1], "w") as f:
+            f.write("\n".join(ids))
+        with open(sys.argv[2], "w") as f:
+            f.write("\n".join(descs))
 except:
     pass
 ' "$ids_file" "$desc_file" 2>/dev/null
@@ -109,10 +112,27 @@ except:
 
 # --- Task cache helpers ---
 # Load IDs and descriptions from hook-generated cache for completions/highlight
+typeset -g _TASK_CACHE_LAST_LOAD=0
+
 function _task_cache_load() {
     local cache_dir="$HOME/.cache/taskwarrior"
     local ids_file="$cache_dir/ids.list"
     local desc_file="$cache_dir/desc.list"
+    
+    # Check if we actually need to reload
+    if [[ -f "$desc_file" ]]; then
+        local mtime
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            mtime=$(stat -f %m "$desc_file")
+        else
+            mtime=$(stat -c %Y "$desc_file")
+        fi
+        if (( mtime <= _TASK_CACHE_LAST_LOAD )); then
+            return 0
+        fi
+        _TASK_CACHE_LAST_LOAD=$mtime
+    fi
+
     typeset -ga TASK_CACHE_IDS
     typeset -ga TASK_CACHE_DESC
     typeset -gA TASK_CACHE_MAP  # ID -> description mapping

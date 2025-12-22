@@ -27,6 +27,9 @@ for file in $zsh_config_files; do
   [ -f "$file" ] && . "$file"
 done
 
+# Initialize Taskwarrior cache
+_task_cache_load
+
 unset zsh_config_files file
 
 # --- Local Settings ---
