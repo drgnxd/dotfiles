@@ -114,18 +114,49 @@ function _task_preview_widget() {
     fi
 
     # Find numeric tokens in the command and show their descriptions
-    local msg=""
+    local -a selected_ids
     local w
     for w in "${words[@]:1}"; do
         if [[ "$w" =~ '^[0-9]+$' ]]; then
-            local idx=${TASK_CACHE_IDS[(Ie)$w]}
-            if (( idx > 0 && idx <= ${#TASK_CACHE_DESC} )); then
-                local desc_line="${TASK_CACHE_DESC[$idx]}"
-                if [[ -n "$msg" ]]; then
-                    msg="$msg | $desc_line"
-                else
-                    msg="$desc_line"
-                fi
+            selected_ids+="$w"
+        elif [[ "$w" =~ '^([0-9]+)-([0-9]+)$' ]]; then
+            local start=${match[1]} end=${match[2]}
+            if (( start > end )); then
+                local tmp=$start; start=$end; end=$tmp
+            fi
+            local i
+            for (( i=start; i<=end; i++ )); do
+                selected_ids+="$i"
+            done
+        fi
+    done
+
+    if (( ! ${#selected_ids} )); then
+        zle -M ""
+        return 0
+    fi
+
+    # Unique and sort numerically
+    local -A seen_ids
+    local -a sorted_ids
+    local id
+    for id in ${selected_ids[@]}; do
+        if [[ -z ${seen_ids[$id]} ]]; then
+            seen_ids[$id]=1
+            sorted_ids+="$id"
+        fi
+    done
+    sorted_ids=(${(on)sorted_ids})
+
+    local msg=""
+    for id in ${sorted_ids[@]}; do
+        local idx=${TASK_CACHE_IDS[(Ie)$id]}
+        if (( idx > 0 && idx <= ${#TASK_CACHE_DESC} )); then
+            local desc_line="${TASK_CACHE_DESC[$idx]}"
+            if [[ -n "$msg" ]]; then
+                msg+=" | $desc_line"
+            else
+                msg="$desc_line"
             fi
         fi
     done
