@@ -19,7 +19,7 @@ def update_cache():
         for t in tasks:
             if "id" in t and t["id"] != 0:
                 ids.append(str(t["id"]))
-                descs.append(f"{t['id']}: {t['description']}")
+                descs.append(f"{t['id']}:{t['description']}")
         
         with open(os.path.join(cache_dir, "ids.list"), "w") as f:
             f.write("\n".join(ids))
@@ -29,10 +29,13 @@ def update_cache():
         pass
 
 if __name__ == "__main__":
-    # Pass through stdin to stdout unchanged (standard hook contract)
+    # Taskwarrior on-add receives 1 JSON; on-modify receives 2 (old, new).
+    # Output only the new task JSON (last object) to stdout, then refresh cache.
     stdin_data = sys.stdin.read()
-    if stdin_data:
-        sys.stdout.write(stdin_data)
+    lines = [l for l in stdin_data.split('\n') if l.strip()]
+
+    if lines:
+        sys.stdout.write(lines[-1].rstrip('\n') + "\n")
         sys.stdout.flush()
 
     update_cache()
