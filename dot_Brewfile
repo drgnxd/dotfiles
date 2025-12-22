@@ -39,6 +39,8 @@ brew "llvm"
 brew "ncdu"
 # Open-source, cross-platform JavaScript runtime environment
 brew "node"
+# Spice circuit simulator
+brew "ngspice"
 # AI coding agent, built for the terminal
 brew "opencode"
 # Proton Pass command-line interface

@@ -19,7 +19,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Utilities:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **Version Managers:** pyenv, node, rust
-*   **3D/CAD & Printing:** FreeCAD, PrusaSlicer
+*   **3D/CAD & Simulation:** FreeCAD, PrusaSlicer, ngspice
 
 ## Installation
 
@@ -98,6 +98,17 @@ Verify discrepancies between the definition file (`dot_Brewfile`) and the curren
     brew bundle cleanup --file="$(chezmoi source-path)/dot_Brewfile"
     ```
 
+#### Automatic Updates
+
+This configuration includes `homebrew/autoupdate` to keep packages fresh.
+To enable automatic updates (including GUI apps via `--greedy`), run:
+
+```sh
+brew autoupdate start 43200 --upgrade --cleanup --greedy
+```
+
+This will check for updates every 12 hours.
+
 <!-- end list -->
 
 ## Structure
@@ -112,6 +123,7 @@ Verify discrepancies between the definition file (`dot_Brewfile`) and the curren
     *   `hammerspoon/`: macOS automation (window management, input switching, caffeine mode)
     *   `helix/`: Post-modern modal text editor configuration
     *   `npm/`: Node.js package manager configuration
+    *   `opencode/`: Configuration for OpenCode (AI coding agent)
     *   `starship/`: Cross-shell prompt configuration
     *   `stats/`: Configuration for Stats (system monitor)
     *   `taskwarrior/`: Task management configuration
