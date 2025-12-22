@@ -65,6 +65,48 @@ function ppget() {
     pass-cli get "$item_id" --field "$field" --output text
 }
 
+# --- Taskwarrior wrapper ---
+# Updates cache after any task command that may change IDs
+function task() {
+    command task "$@"
+    local ret=$?
+    # Update cache in background to avoid slowing down the command
+    _task_cache_update &!
+    return $ret
+}
+
+# Update cache file from current pending tasks
+function _task_cache_update() {
+    local cache_dir="$HOME/.cache/taskwarrior"
+    mkdir -p "$cache_dir"
+    local output
+    output=$(command task status:pending export 2>/dev/null) || return
+    
+    local ids_file="$cache_dir/ids.list"
+    local desc_file="$cache_dir/desc.list"
+    
+    # Parse JSON and write cache files
+    echo "$output" | python3 -c '
+import sys, json
+try:
+    tasks = json.load(sys.stdin)
+    ids = []
+    descs = []
+    for t in tasks:
+        tid = t.get("id", 0)
+        if tid != 0:
+            ids.append(str(tid))
+            descs.append(f"{tid}:{t.get(\"description\", \"\")}")
+    print("\n".join(ids), file=open(sys.argv[1], "w"))
+    print("\n".join(descs), file=open(sys.argv[2], "w"))
+except:
+    pass
+' "$ids_file" "$desc_file" 2>/dev/null
+    
+    # Reload cache into current shell
+    _task_cache_load
+}
+
 # --- Task cache helpers ---
 # Load IDs and descriptions from hook-generated cache for completions/highlight
 function _task_cache_load() {
@@ -73,6 +115,8 @@ function _task_cache_load() {
     local desc_file="$cache_dir/desc.list"
     typeset -ga TASK_CACHE_IDS
     typeset -ga TASK_CACHE_DESC
+    typeset -gA TASK_CACHE_MAP  # ID -> description mapping
+    TASK_CACHE_MAP=()
     if [[ -f "$ids_file" ]]; then
         TASK_CACHE_IDS=( ${(f)"$(<"$ids_file")"} )
     else
@@ -80,6 +124,15 @@ function _task_cache_load() {
     fi
     if [[ -f "$desc_file" ]]; then
         TASK_CACHE_DESC=( ${(f)"$(<"$desc_file")"} )
+        # Build ID -> description map
+        local line id desc
+        for line in "${TASK_CACHE_DESC[@]}"; do
+            if [[ "$line" =~ '^([0-9]+):(.*)$' ]]; then
+                id="${match[1]}"
+                desc="${match[2]}"
+                TASK_CACHE_MAP[$id]="$desc"
+            fi
+        done
     else
         TASK_CACHE_DESC=()
     fi
@@ -105,11 +158,11 @@ function _task_preview_widget() {
     fi
 
     # Load cache if empty
-    if (( ! ${#TASK_CACHE_IDS} )); then
+    if (( ! ${#TASK_CACHE_MAP} )); then
         _task_cache_load
     fi
 
-    if (( ! ${#TASK_CACHE_IDS} )); then
+    if (( ! ${#TASK_CACHE_MAP} )); then
         return 0
     fi
 
@@ -148,15 +201,16 @@ function _task_preview_widget() {
     done
     sorted_ids=(${(on)sorted_ids})
 
+    # Build message using ID -> description map
     local msg=""
+    local desc
     for id in ${sorted_ids[@]}; do
-        local idx=${TASK_CACHE_IDS[(Ie)$id]}
-        if (( idx > 0 && idx <= ${#TASK_CACHE_DESC} )); then
-            local desc_line="${TASK_CACHE_DESC[$idx]}"
+        desc="${TASK_CACHE_MAP[$id]}"
+        if [[ -n "$desc" ]]; then
             if [[ -n "$msg" ]]; then
-                msg+=" | $desc_line"
+                msg+=" | ${id}:${desc}"
             else
-                msg="$desc_line"
+                msg="${id}:${desc}"
             fi
         fi
     done
