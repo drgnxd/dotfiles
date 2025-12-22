@@ -19,7 +19,7 @@
 *   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **ユーティリティ:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **バージョンマネージャ:** pyenv、node、rust
-*   **3D/CAD・3Dプリント:** FreeCAD, PrusaSlicer
+*   **3D/CAD・シミュレーション:** FreeCAD, PrusaSlicer, ngspice
 
 ## インストール
 
@@ -98,6 +98,17 @@ brew bundle dump --file="$(chezmoi source-path)/dot_Brewfile" --force --describe
     brew bundle cleanup --file="$(chezmoi source-path)/dot_Brewfile"
     ```
 
+#### 自動アップデート
+
+本設定では、パッケージを最新に保つために `homebrew/autoupdate` を導入しています。
+自動アップデート（`--greedy` によるGUIアプリを含む）を有効にするには、以下のコマンドを実行します：
+
+```sh
+brew autoupdate start 43200 --upgrade --cleanup --greedy
+```
+
+これにより、12時間ごとにアップデートがチェックされます。
+
 <!-- end list -->
 
 ## ディレクトリ構造
@@ -112,6 +123,7 @@ brew bundle dump --file="$(chezmoi source-path)/dot_Brewfile" --force --describe
     *   `hammerspoon/`: macOS自動化（ウィンドウ管理、入力切替、カフェインモード）
     *   `helix/`: ポストモダンなモーダルテキストエディタの設定
     *   `npm/`: Node.jsパッケージマネージャの設定
+    *   `opencode/`: OpenCode (AIコーディングエージェント) の設定
     *   `starship/`: クロスシェルプロンプトの設定
     *   `stats/`: Stats（システムモニター）の設定
     *   `taskwarrior/`: タスク管理の設定
