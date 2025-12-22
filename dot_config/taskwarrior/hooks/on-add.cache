@@ -29,23 +29,11 @@ def update_cache():
         pass
 
 if __name__ == "__main__":
-    # Taskwarrior on-modify hooks receive two JSON objects: original and modified.
-    # We must output the modified task JSON.
-    # Maybe I should use json.loads to ensure I'm getting valid objects.
-    
-    raw_input = sys.stdin.read().strip()
-    # Taskwarrior on-modify input is <old>\n<new>
-    # split by \n and parse
-    lines = [l for l in raw_input.split('\n') if l.strip()]
-    
-    if len(lines) >= 2:
-        # The modified task is the last one
-        modified_task = json.loads(lines[-1])
-        print(json.dumps(modified_task))
-    elif len(lines) == 1:
-        modified_task = json.loads(lines[0])
-        print(json.dumps(modified_task))
-        
-    sys.stdout.flush()
-    os._exit(0)
+    # Pass through stdin to stdout unchanged (standard hook contract)
+    stdin_data = sys.stdin.read()
+    if stdin_data:
+        sys.stdout.write(stdin_data)
+        sys.stdout.flush()
+
+    update_cache()
 
