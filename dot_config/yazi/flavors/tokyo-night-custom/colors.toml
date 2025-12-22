@@ -1,20 +1,19 @@
-## Tokyo Night Official Palette (Hex)
-
+# Tokyo Night official palette as provided by upstream flavor
 [base]
-bg = "#1a1b26"           # Main Background
-fg = "#c0caf5"           # Main Foreground
+bg = "#1a1b26"
+fg = "#c0caf5"
 
-# --- Terminal Standard Colors ---
+# Standard colors
 black = "#1a1b26"
-red = "#f7768e"          # Error/Danger
-green = "#9ece6a"        # Executable/Success
-yellow = "#e0af68"       # Warning/Variable
-blue = "#7aa2f7"         # Directory/Info
-magenta = "#bb9af7"      # Link/Syntax
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
 cyan = "#7dcfff"
 white = "#a9b1d6"
 
-# --- Terminal Bright Colors (Used for Highlighting) ---
+# Bright colors
 bright_black = "#414868"
 bright_red = "#f7768e"
 bright_green = "#9ece6a"
@@ -24,10 +23,10 @@ bright_magenta = "#bb9af7"
 bright_cyan = "#7dcfff"
 bright_white = "#c0caf5"
 
-# --- Semantic (UI) Colors ---
-accent = "#bb9af7"       # Primary Accent/Selection highlight
-highlight = "#414868"    # Selection Background (Subtle gray)
-search = "#e0af68"       # Search highlights
+# Semantic colors
+accent = "#bb9af7"
+highlight = "#414868"
+search = "#e0af68"
 error = "#f7768e"
 directory = "#7aa2f7"
 executable = "#9ece6a"
