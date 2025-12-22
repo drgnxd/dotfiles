@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+import sys
+import json
+import os
+
+def update_cache():
+    cache_dir = os.path.expanduser("~/.cache/taskwarrior")
+    os.makedirs(cache_dir, exist_ok=True)
+    
+    # Run task command to get pending IDs and descriptions
+    import subprocess
+    try:
+        # Get pending tasks in JSON format
+        output = subprocess.check_output(["task", "status:pending", "export"], stderr=subprocess.DEVNULL)
+        tasks = json.loads(output)
+        
+        ids = []
+        descs = []
+        for t in tasks:
+            if "id" in t and t["id"] != 0:
+                ids.append(str(t["id"]))
+                descs.append(f"{t['id']}: {t['description']}")
+        
+        with open(os.path.join(cache_dir, "ids.list"), "w") as f:
+            f.write("\n".join(ids))
+        with open(os.path.join(cache_dir, "desc.list"), "w") as f:
+            f.write("\n".join(descs))
+    except Exception:
+        pass
+
+if __name__ == "__main__":
+    # Taskwarrior hooks receive the task JSON on stdin and must return it to stdout
+    print(sys.stdin.read())
+    update_cache()

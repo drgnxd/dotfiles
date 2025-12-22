@@ -33,3 +33,10 @@ task projects           # Medium-to-long term inventory
 ## Tags Legend
 - Context: form(Admin), exam(Exam), quiz(Quiz), asgn(Assignment)
 - State:   next(Next Action), wait(Waiting), mit(Most Important Task), 5min(Gap time)
+
+---
+## Interactive Features
+The system includes custom Zsh integration:
+- **Validation**: Task IDs are highlighted if they exist.
+- **Preview**: Task descriptions appear in the mini-buffer as you type IDs.
+- **Completion**: `tab` completion shows descriptions for all pending tasks.

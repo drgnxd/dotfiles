@@ -4,12 +4,7 @@
 
 # Assumes HOMEBREW_PREFIX is set in the preceding .homebrew file
 if [ -n "$HOMEBREW_PREFIX" ]; then
-  # zsh-autosuggestions
-  if [ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
-      source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-  fi
-
-  # fast-syntax-highlighting
+  # fast-syntax-highlighting (load first)
   if [ -f "$HOMEBREW_PREFIX/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]; then
       source "$HOMEBREW_PREFIX/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
       
@@ -57,9 +52,24 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
       fi
   fi
 
+  # zsh-autosuggestions (load after fsh)
+  if [ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+      source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  fi
+
 fi
 
 # Start Starship (Prompt)
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init zsh)"
+fi
+
+# Task preview widget (must be after all plugins are loaded)
+if (( $+functions[_task_preview_widget] )); then
+    zle -N _task_preview_widget
+    # Use zle-line-pre-redraw to update preview on every keystroke
+    function _task_zle_line_pre_redraw() {
+        _task_preview_widget
+    }
+    zle -N zle-line-pre-redraw _task_zle_line_pre_redraw
 fi
