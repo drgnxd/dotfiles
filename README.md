@@ -134,6 +134,16 @@ This will check for updates every 12 hours.
 
 ## Features
 
+### Taskwarrior 
+
+Enhanced Zsh integration for better task management: 
+
+*   **Dynamic Syntax Highlighting**: Validates task IDs against the cache; valid IDs are highlighted, invalid ones are shown as subtle errors. 
+*   **Live Preview**: Displays task descriptions in the command-line mini-buffer as you type task IDs. 
+*   **Fast Completion**: Provides instantaneous completion candidates with task descriptions using a local cache. 
+*   **Automatic Cache**: Python hooks automatically refresh the task cache on every add or modify operation. 
+
+
 ### Hammerspoon
 
 Window management and automation features:
