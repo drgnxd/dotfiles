@@ -65,6 +65,200 @@ function ppget() {
     pass-cli get "$item_id" --field "$field" --output text
 }
 
+# --- Taskwarrior wrapper ---
+# Updates cache after any task command that may change IDs
+function task() {
+    command task "$@"
+    local ret=$?
+    # Update cache in background to avoid slowing down the command
+    _task_cache_update &!
+    return $ret
+}
+
+# Update cache file from current pending tasks
+function _task_cache_update() {
+    local cache_dir="$HOME/.cache/taskwarrior"
+    mkdir -p "$cache_dir"
+    local output
+    output=$(command task status:pending export 2>/dev/null) || return
+    
+    local ids_file="$cache_dir/ids.list"
+    local desc_file="$cache_dir/desc.list"
+    
+    # Parse JSON and write cache files
+    echo "$output" | python3 -c '
+import sys, json
+from pathlib import Path
+try:
+    tasks = json.load(sys.stdin)
+    ids = []
+    descs = []
+    for t in tasks:
+        tid = t.get("id", 0)
+        if tid != 0:
+            ids.append(str(tid))
+            descs.append(f"{tid}:{t.get(\"description\", \"\")}")
+    if ids:
+        Path(sys.argv[1]).write_text("\n".join(ids))
+        Path(sys.argv[2]).write_text("\n".join(descs))
+except Exception:
+    pass
+' "$ids_file" "$desc_file" 2>/dev/null
+    
+    # Reload cache into current shell
+    _task_cache_load
+}
+
+# --- Task cache helpers ---
+# Load IDs and descriptions from hook-generated cache for completions/highlight
+typeset -g _TASK_CACHE_LAST_LOAD=0
+typeset -g _TASK_CACHE_LOADING=0
+
+function _task_cache_load() {
+    # Prevent re-entrant loads while update writes files
+    if (( _TASK_CACHE_LOADING )); then
+        return 0
+    fi
+    _TASK_CACHE_LOADING=1
+
+    local cache_dir="$HOME/.cache/taskwarrior"
+    local ids_file="$cache_dir/ids.list"
+    local desc_file="$cache_dir/desc.list"
+    
+    # Check if we actually need to reload
+    if [[ -f "$desc_file" ]]; then
+        local mtime
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            mtime=$(stat -f %m "$desc_file")
+        else
+            mtime=$(stat -c %Y "$desc_file")
+        fi
+        if (( mtime <= _TASK_CACHE_LAST_LOAD )); then
+            _TASK_CACHE_LOADING=0
+            return 0
+        fi
+        _TASK_CACHE_LAST_LOAD=$mtime
+    fi
+
+    typeset -ga TASK_CACHE_IDS
+    typeset -ga TASK_CACHE_DESC
+    typeset -gA TASK_CACHE_MAP  # ID -> description mapping
+    TASK_CACHE_MAP=()
+    if [[ -f "$ids_file" ]]; then
+        TASK_CACHE_IDS=( ${(f)"$(<"$ids_file")"} )
+    else
+        TASK_CACHE_IDS=()
+    fi
+    if [[ -f "$desc_file" ]]; then
+        TASK_CACHE_DESC=( ${(f)"$(<"$desc_file")"} )
+        # Build ID -> description map
+        local line id desc
+        for line in "${TASK_CACHE_DESC[@]}"; do
+            if [[ "$line" =~ '^([0-9]+):(.*)$' ]]; then
+                id="${match[1]}"
+                desc="${match[2]}"
+                TASK_CACHE_MAP[$id]="$desc"
+            fi
+        done
+    else
+        TASK_CACHE_DESC=()
+    fi
+
+    _TASK_CACHE_LOADING=0
+}
+
+# Ensure cache exists; refresh from task if empty
+function _task_cache_ensure() {
+    _task_cache_load
+    if (( ${#TASK_CACHE_MAP} )); then
+        return 0
+    fi
+    _task_cache_update
+}
+
+# Preload cache at shell start
+_task_cache_ensure
+
+# --- Task preview in command line for task IDs ---
+# Shows task description in mini-buffer when word matches a cached ID
+function _task_preview_widget() {
+    # Only act if we're in a task/t command
+    local words=(${(z)BUFFER})
+    if [[ ${#words} -eq 0 ]]; then
+        zle -M ""
+        return 0
+    fi
+    
+    local cmd="${words[1]}"
+    if [[ "$cmd" != "task" && "$cmd" != "t" ]]; then
+        zle -M ""
+        return 0
+    fi
+
+    # Ensure cache present
+    _task_cache_ensure
+
+    if (( ! ${#TASK_CACHE_MAP} )); then
+        return 0
+    fi
+
+    # Find numeric tokens in the command and show their descriptions
+    local -a selected_ids
+    local w
+    for w in "${words[@]:1}"; do
+        if [[ "$w" =~ '^[0-9]+$' ]]; then
+            selected_ids+="$w"
+        elif [[ "$w" =~ '^([0-9]+)-([0-9]+)$' ]]; then
+            local start=${match[1]} end=${match[2]}
+            if (( start > end )); then
+                local tmp=$start; start=$end; end=$tmp
+            fi
+            local i
+            for (( i=start; i<=end; i++ )); do
+                selected_ids+="$i"
+            done
+        fi
+    done
+
+    if (( ! ${#selected_ids} )); then
+        zle -M ""
+        return 0
+    fi
+
+    # Unique and sort numerically
+    local -A seen_ids
+    local -a sorted_ids
+    local id
+    for id in ${selected_ids[@]}; do
+        if [[ -z ${seen_ids[$id]} ]]; then
+            seen_ids[$id]=1
+            sorted_ids+="$id"
+        fi
+    done
+    sorted_ids=(${(on)sorted_ids})
+
+    # Build message using ID -> description map
+    local msg=""
+    local desc
+    for id in ${sorted_ids[@]}; do
+        desc="${TASK_CACHE_MAP[$id]}"
+        if [[ -n "$desc" ]]; then
+            if [[ -n "$msg" ]]; then
+                msg+=" | ${id}:${desc}"
+            else
+                msg="${id}:${desc}"
+            fi
+        fi
+    done
+
+    if [[ -n "$msg" ]]; then
+        zle -M "$msg"
+    else
+        zle -M ""
+    fi
+    return 0
+}
+
 # Consolidate GUI app updates under brew/mas to avoid per-app prompts
 function upgrade_all() {
     if ! command -v brew >/dev/null 2>&1; then
