@@ -88,6 +88,7 @@ function _task_cache_update() {
     # Parse JSON and write cache files
     echo "$output" | python3 -c '
 import sys, json
+from pathlib import Path
 try:
     tasks = json.load(sys.stdin)
     ids = []
@@ -98,11 +99,9 @@ try:
             ids.append(str(tid))
             descs.append(f"{tid}:{t.get(\"description\", \"\")}")
     if ids:
-        with open(sys.argv[1], "w") as f:
-            f.write("\n".join(ids))
-        with open(sys.argv[2], "w") as f:
-            f.write("\n".join(descs))
-except:
+        Path(sys.argv[1]).write_text("\n".join(ids))
+        Path(sys.argv[2]).write_text("\n".join(descs))
+except Exception:
     pass
 ' "$ids_file" "$desc_file" 2>/dev/null
     
@@ -113,8 +112,15 @@ except:
 # --- Task cache helpers ---
 # Load IDs and descriptions from hook-generated cache for completions/highlight
 typeset -g _TASK_CACHE_LAST_LOAD=0
+typeset -g _TASK_CACHE_LOADING=0
 
 function _task_cache_load() {
+    # Prevent re-entrant loads while update writes files
+    if (( _TASK_CACHE_LOADING )); then
+        return 0
+    fi
+    _TASK_CACHE_LOADING=1
+
     local cache_dir="$HOME/.cache/taskwarrior"
     local ids_file="$cache_dir/ids.list"
     local desc_file="$cache_dir/desc.list"
@@ -128,6 +134,7 @@ function _task_cache_load() {
             mtime=$(stat -c %Y "$desc_file")
         fi
         if (( mtime <= _TASK_CACHE_LAST_LOAD )); then
+            _TASK_CACHE_LOADING=0
             return 0
         fi
         _TASK_CACHE_LAST_LOAD=$mtime
@@ -156,10 +163,21 @@ function _task_cache_load() {
     else
         TASK_CACHE_DESC=()
     fi
+
+    _TASK_CACHE_LOADING=0
+}
+
+# Ensure cache exists; refresh from task if empty
+function _task_cache_ensure() {
+    _task_cache_load
+    if (( ${#TASK_CACHE_MAP} )); then
+        return 0
+    fi
+    _task_cache_update
 }
 
 # Preload cache at shell start
-_task_cache_load
+_task_cache_ensure
 
 # --- Task preview in command line for task IDs ---
 # Shows task description in mini-buffer when word matches a cached ID
@@ -177,10 +195,8 @@ function _task_preview_widget() {
         return 0
     fi
 
-    # Load cache if empty
-    if (( ! ${#TASK_CACHE_MAP} )); then
-        _task_cache_load
-    fi
+    # Ensure cache present
+    _task_cache_ensure
 
     if (( ! ${#TASK_CACHE_MAP} )); then
         return 0
