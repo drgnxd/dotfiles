@@ -70,8 +70,8 @@ function ppget() {
 function task() {
     command task "$@"
     local ret=$?
-    # Update cache in background to avoid slowing down the command
-    _task_cache_update &!
+    # Update cache synchronously to ensure ID-description consistency
+    _task_cache_update
     return $ret
 }
 
@@ -195,8 +195,9 @@ function _task_preview_widget() {
         return 0
     fi
 
-    # Ensure cache present
-    _task_cache_ensure
+    # Force reload cache to ensure ID-description consistency
+    _TASK_CACHE_LAST_LOAD=0
+    _task_cache_load
 
     if (( ! ${#TASK_CACHE_MAP} )); then
         return 0
