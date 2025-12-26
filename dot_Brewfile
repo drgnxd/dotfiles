@@ -120,5 +120,5 @@ cask "signal"
 cask "sol"
 # System monitor for the menu bar
 cask "stats"
-# Open-source slicer for 3D printers
-cask "prusaslicer"
+# G-code generator for 3D printers
+cask "orcaslicer"

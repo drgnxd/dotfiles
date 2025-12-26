@@ -19,7 +19,7 @@
 *   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **ユーティリティ:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **バージョンマネージャ:** pyenv、node、rust
-*   **3D/CAD・シミュレーション:** FreeCAD, PrusaSlicer, ngspice
+*   **3D/CAD・シミュレーション:** FreeCAD, OrcaSlicer, ngspice
 
 ## インストール
 
