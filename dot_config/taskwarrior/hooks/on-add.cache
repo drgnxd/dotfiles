@@ -11,7 +11,10 @@ def update_cache():
     import subprocess
     try:
         # Get pending tasks in JSON format
-        output = subprocess.check_output(["task", "status:pending", "export"], stderr=subprocess.DEVNULL)
+        # Use -WAITING (virtual tag) to match 'task list' behavior
+        # -wait excludes tasks with wait attribute set (even if past)
+        # -WAITING excludes only currently waiting tasks
+        output = subprocess.check_output(["task", "status:pending", "-WAITING", "export"], stderr=subprocess.DEVNULL)
         tasks = json.loads(output)
         
         ids = []

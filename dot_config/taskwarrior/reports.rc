@@ -14,14 +14,15 @@ report.ready.description=Ready (Next Actions)
 report.ready.columns=id,project,tags,due,urgency,description
 report.ready.labels=ID,Proj,Tags,Due,Urg,Desc
 report.ready.sort=urgency-
-report.ready.filter=+READY -wait
+report.ready.filter=+READY -WAITING
 
 # ------------------------------------------------------------------------------
 # Report Filters (Focus)
 # ------------------------------------------------------------------------------
-# Hide 'wait' tasks from standard lists
-report.list.filter=status:pending -wait
-report.next.filter=+READY -wait limit:page
+# Use -WAITING (virtual tag) to hide only currently waiting tasks
+# -wait would also hide tasks with past wait dates that are now ready
+report.list.filter=status:pending -WAITING
+report.next.filter=+READY -WAITING limit:page
 
 # Waiting / Deferred
 report.waiting.description=Waiting/Deferred
