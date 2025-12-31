@@ -95,7 +95,7 @@ cask "gimp"
 # Web browser
 cask "google-chrome"
 # 3D parametric modeler
-cask "freecad"
+
 # Desktop automation application
 cask "hammerspoon"
 # Free cross-platform office suite, fresh version
