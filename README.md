@@ -19,7 +19,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Utilities:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **Version Managers:** pyenv, node, rust
-*   **3D/CAD & Simulation:** FreeCAD, OrcaSlicer, ngspice
+*   **3D/CAD & Simulation:** OrcaSlicer, ngspice
 
 ## Installation
 
