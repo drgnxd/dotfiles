@@ -39,6 +39,8 @@ brew "llvm"
 brew "ncdu"
 # Open-source, cross-platform JavaScript runtime environment
 brew "node"
+# GNU Ubiquitous Intelligent Language for Extensions (Scheme)
+brew "guile"
 # Spice circuit simulator
 brew "ngspice"
 # AI coding agent, built for the terminal
@@ -51,6 +53,8 @@ brew "p7zip"
 brew "pyenv"
 # Interpreted, interactive, object-oriented programming language
 brew "python@3.13"
+# Latest Python for compatibility
+brew "python@3.14"
 # Software environment for statistical computing
 brew "r"
 # Search tool like grep and The Silver Searcher

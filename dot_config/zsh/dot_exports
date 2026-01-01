@@ -77,15 +77,13 @@ export VISUAL="$EDITOR"
 # ------------------------------------------------------------------------------
 # $PATH configuration
 # ------------------------------------------------------------------------------
-# Preferred path order
-local -a my_paths
-my_paths=(
+# Deduplicate PATH and prepend preferred locations (Steel LSP is in cargo bin)
+typeset -U path PATH
+path=(
   "$HOME/.local/bin"
   "$CARGO_HOME/bin"
   "$NPM_CONFIG_PREFIX/bin"
   "/opt/homebrew/opt/llvm/bin"
+  $path
 )
-
-# Prepend to existing PATH
-export PATH="${(j|:|)my_paths}:$PATH"
-unset my_paths
+export PATH
