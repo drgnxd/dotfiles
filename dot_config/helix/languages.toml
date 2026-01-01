@@ -10,3 +10,19 @@ scope = "source.r"
 language-servers = [ "r" ]
 formatter = { command = "Rscript", args = ["-e", "styler::style_file(stdin(), output = stdout(), transformers = styler::tidyverse_style())"] }
 auto-format = true
+
+[[language]]
+name = "scheme"
+scope = "source.scheme"
+injection-regex = "scheme"
+file-types = ["scm", "scheme", "libfive"]
+comment-token = ";"
+indent = { tab-width = 2, unit = "  " }
+language-servers = [ "steel-lsp" ]
+
+[language-server.steel-lsp]
+command = "steel-language-server"
+
+[[grammar]]
+name = "scheme"
+source = { git = "https://github.com/6cdh/tree-sitter-scheme", rev = "af3af6c9356b936f8a515a1e449c32e804c2b1a8" }
