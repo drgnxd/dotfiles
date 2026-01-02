@@ -16,7 +16,7 @@
 *   **パッケージマネージャ:** Homebrew (macOS), ネイティブパッケージマネージャ (Linux)
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
-*   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
+*   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）、Guile（GNU Guile）
 *   **ユーティリティ:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **バージョンマネージャ:** pyenv、node、rust
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice
@@ -43,15 +43,20 @@ chezmoi init --apply drgnxd
 
 ## インストール後の設定
 
+
 ### Git設定
 
+
 インストール後、ローカルのgit設定ファイルを作成してユーザー情報を設定してください：
+
 
 ```sh
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 # ファイルを編集して名前とメールアドレスを設定
 hx ~/.config/git/config.local
 ```
+
+
 
 ## 運用・管理
 

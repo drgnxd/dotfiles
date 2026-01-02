@@ -16,7 +16,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Package Manager:** Homebrew (macOS), Native Package Manager (Linux)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases)
+*   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
 *   **Utilities:** bat, eza, fd, ripgrep, ncdu, smartmontools, direnv, pearcleaner
 *   **Version Managers:** pyenv, node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice
@@ -43,15 +43,20 @@ chezmoi init --apply drgnxd
 
 ## Post-Installation Setup
 
+
 ### Git Configuration
 
+
 After installation, create a local git configuration file to set your user details:
+
 
 ```sh
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 # Edit the file with your name and email
 hx ~/.config/git/config.local
 ```
+
+
 
 ## Management
 
