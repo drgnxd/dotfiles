@@ -64,8 +64,15 @@ export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 # ------------------------------------------------------------------------------
 # Terminal settings
 # ------------------------------------------------------------------------------
-# Use standard terminfo entry
-export TERM="xterm-256color"
+# Prefer native terminfo entries to expose undercurl/truecolor
+if [[ -n "$TMUX" ]]; then
+  export TERM="tmux-256color"
+elif [[ -n "$ALACRITTY_WINDOW_ID" ]]; then
+  export TERM="alacritty"
+else
+  export TERM="xterm-256color"
+fi
+export COLORTERM="truecolor"
 
 # ------------------------------------------------------------------------------
 # Default editor (e.g., chezmoi edit)

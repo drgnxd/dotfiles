@@ -12,10 +12,12 @@ linemode = "size"            # Show size/perm inline
 scrolloff = 5                # Keep context when scrolling
 
 [preview]
-wrap = "yes"
-                  # Better text readability
+wrap = "yes"                  # Better text readability
 max_width = 120
 max_height = 80
+preview_timeout = 50
+image_filter = "lanczos3"
+image_quality = 90
 
 [opener]
 # Text editing via $EDITOR (hx set in env)
