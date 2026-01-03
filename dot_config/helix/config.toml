@@ -5,6 +5,20 @@ theme = "tokyonight"
 # Enable true color in terminal
 true-color = true
 
+# Improve structure visibility
+[editor.indent-guides]
+render = true
+character = "╎"
+skip-levels = 1
+
+# Make whitespace explicit for review/debug sessions
+[editor.whitespace]
+render = { space = "all", tab = "all" }
+characters = { space = "·", tab = "→" }
+
+[editor.statusline]
+left = ["mode", "spinner", "file-name", "read-only", "file-modification-indicator"]
+
 [editor.inline-diagnostics]
 cursor-line = "hint"
 

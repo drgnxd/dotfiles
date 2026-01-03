@@ -36,6 +36,9 @@ local window = require("window")
 local cheatsheet = require("cheatsheet")
 local browser_control = require("browser_control")
 
+-- Hyper key (Cmd+Alt+Ctrl+Shift) for conflict-free bindings
+local hyper = {"cmd", "alt", "ctrl", "shift"}
+
 -- Initialize modules
 reload.init()
 input_switcher.init()
@@ -43,3 +46,8 @@ caffeine.init()
 window.init()
 cheatsheet.init()
 browser_control.init()
+
+-- Example: quick launcher using Hyper
+hs.hotkey.bind(hyper, "A", "Launch Alacritty", function()
+    hs.application.launchOrFocus("Alacritty")
+end)
