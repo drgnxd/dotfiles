@@ -125,4 +125,6 @@ cask "sol"
 # System monitor for the menu bar
 cask "stats"
 # G-code generator for 3D printers
-cask "orcaslicer"
+ cask "orcaslicer"
+ cask "kicad"
+ cask "qflipper"
