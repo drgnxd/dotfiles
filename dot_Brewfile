@@ -98,7 +98,6 @@ cask "font-hackgen-nerd"
 cask "gimp"
 # Web browser
 cask "google-chrome"
-# 3D parametric modeler
 
 # Desktop automation application
 cask "hammerspoon"
