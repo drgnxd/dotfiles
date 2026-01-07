@@ -41,6 +41,13 @@ defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 defaults write NSGlobalDomain KeyRepeat -int 2
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
+# Remap Caps Lock to Control (hidutil required)
+if ! command -v hidutil >/dev/null 2>&1; then
+  echo "hidutil not found; cannot remap Caps Lock to Control" >&2
+  exit 1
+fi
+/usr/bin/hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}'
+
 # Set trackpad/mouse tracking speed to fast (0-7, 7 is fastest)
 defaults write -g com.apple.mouse.scaling -int 7
 
