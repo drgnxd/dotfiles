@@ -3,127 +3,132 @@ tap "homebrew/autoupdate"
 tap "protonpass/homebrew-tap"
 
 # Brews
-# Clone of cat(1) with syntax highlighting and Git integration
+# Cat clone
 brew "bat"
-# Resource monitor. C++ version and continuation of bashtop and bpytop
+# Resource monitor
 brew "btop"
-# Manage your dotfiles across multiple diverse machines, securely
+# Dotfile manager
 brew "chezmoi"
-# Cross-platform make
+# Build system
 brew "cmake"
-# Load/unload environment variables based on $PWD
+# Directory environment switcher
 brew "direnv"
-# Modern, maintained replacement for ls
+# Modern ls replacement
 brew "eza"
-# Simple, fast and user-friendly alternative to find
+# Find alternative
 brew "fd"
-# Command-line fuzzy finder written in Go
+# Fuzzy finder
 brew "fzf"
-# GitHub command-line tool
+# GitHub CLI
 brew "gh"
-# Enable transparent encryption/decryption of files in a git repo
+# Transparent git encryption
 brew "git-crypt"
-# Syntax-highlighting pager for git and diff output
+# Git pager
 brew "git-delta"
-# Git Large File Storage
+# Git LFS
 brew "git-lfs"
-# GNU Pretty Good Privacy (PGP) package
+# PGP package
 brew "gnupg"
-# Post-modern modal text editor
+# Modal text editor
 brew "helix"
-# Simple terminal UI for git commands
+# Git terminal UI
 brew "lazygit"
-# Next-gen compiler infrastructure
+# Compiler infrastructure
 brew "llvm"
-# NCurses Disk Usage
+# Disk usage analyzer
 brew "ncdu"
-# Open-source, cross-platform JavaScript runtime environment
+# JavaScript runtime
 brew "node"
-# GNU Ubiquitous Intelligent Language for Extensions (Scheme)
+# GNU Scheme
 brew "guile"
-# Spice circuit simulator
+# Circuit simulator
 brew "ngspice"
-# AI coding agent, built for the terminal
+# AI coding agent
 brew "opencode"
-# Proton Pass command-line interface
+# Password manager CLI
 brew "pass-cli"
-# 7-Zip (high compression file archiver) implementation
+# File archiver
 brew "p7zip"
-# Python version management
+# Python version manager
 brew "pyenv"
-# Interpreted, interactive, object-oriented programming language
+# Python 3.13
 brew "python@3.13"
-# Latest Python for compatibility
+# Python 3.14
 brew "python@3.14"
-# Software environment for statistical computing
+# Statistical computing
 brew "r"
-# Search tool like grep and The Silver Searcher
+# Fast grep alternative
 brew "ripgrep"
-# Safe, concurrent, practical language
+# Rust language
 brew "rust"
-# 7-Zip is a file archiver with a high compression ratio
+# 7-Zip archiver
 brew "sevenzip"
-# Control and monitor storage systems using S.M.A.R.T.
+# SMART monitoring
 brew "smartmontools"
-# Cross-shell prompt for astronauts
+# Shell prompt
 brew "starship"
-# Feature-rich console based todo list manager
+# Todo manager
 brew "task"
 # Terminal multiplexer
 brew "tmux"
-# Display directories as trees (with optional color/HTML output)
+# Directory tree viewer
 brew "tree"
-# Internet file retriever
+# File downloader
 brew "wget"
-# Blazing fast terminal file manager written in Rust, based on async I/O
+# Terminal file manager
 brew "yazi"
-# Plain text note-taking assistant
+# Note-taking assistant
 brew "zk"
-# Shell extension to navigate your filesystem faster
+# Directory navigator
 brew "zoxide"
-# Fish-like fast/unobtrusive autosuggestions for zsh
+# Zsh autosuggestions
 brew "zsh-autosuggestions"
+# Zsh completions
 brew "zsh-completions"
-# Fish shell like syntax highlighting for zsh
+# Zsh syntax highlighting
 brew "zsh-fast-syntax-highlighting"
 
 # Casks
-# GPU-accelerated terminal emulator
+# Terminal emulator
 cask "alacritty"
-# Privacy-focused Firefox-based browser
+# Privacy browser
 cask "floorp"
 cask "font-hackgen"
 cask "font-hackgen-nerd"
-# Free and open-source image editor
+# Image editor
 cask "gimp"
 # Web browser
 cask "google-chrome"
 
-# Desktop automation application
+# macOS automation
 cask "hammerspoon"
-# Free cross-platform office suite, fresh version
+# Office suite
 cask "libreoffice"
-# Software for Logitech devices
+# Logitech software
 cask "logi-options+"
 # Clipboard manager
 cask "maccy"
 # App cleaner
 cask "pearcleaner"
-# Client for Proton Drive
+# Cloud storage
 cask "proton-drive"
-# Client for Proton Mail and Proton Calendar
+# Email client
 cask "proton-mail"
-# Desktop client for Proton Pass
+# Password manager
 cask "proton-pass"
-# VPN client focusing on security
+# VPN client
 cask "protonvpn"
-# Instant messaging application focusing on security
+# Secure messenger
 cask "signal"
-# Launcher & command palette
+# Launcher
 cask "sol"
-# System monitor for the menu bar
+# System monitor
 cask "stats"
-# G-code generator for 3D printers
- cask "orcaslicer"
- cask "kicad"
- cask "qflipper"
+# 3D slicer
+cask "orcaslicer"
+# PCB design
+cask "kicad"
+# Flipper Zero companion
+cask "qflipper"
+# Numerical computation
+cask "scilab"
