@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# dot_Brewfile hash: {{ include "dot_Brewfile" | sha256sum }}
+# dot_Brewfile hash: {{ include "dot_Brewfile.tmpl" | sha256sum }}
 
 set -e
 
@@ -9,8 +9,8 @@ echo "Checking for Homebrew..."
 if command -v brew >/dev/null 2>&1; then
   echo "Homebrew found. Running 'brew bundle' using source Brewfile..."
   
-  # Run bundle referencing dot_Brewfile directly in source directory
-  if brew bundle --file="{{ .chezmoi.sourceDir }}/dot_Brewfile"; then
+  # Run bundle referencing the managed .Brewfile in the home directory
+  if brew bundle --file="$HOME/.Brewfile"; then
     echo "brew bundle completed successfully."
   else
     echo "Error: brew bundle failed." >&2
