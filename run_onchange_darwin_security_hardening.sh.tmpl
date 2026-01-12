@@ -4,21 +4,15 @@ set -euo pipefail
 
 echo "\ud83d\udee1\ufe0f  Starting macOS Security Hardening..."
 
-# Ensure root privilege
-if [ "$EUID" -ne 0 ]; then
-  echo "\u274c  Please run as root (sudo)."
-  exit 1
-fi
-
-# Console user for user-scoped defaults
-target_user=${SUDO_USER:-$(stat -f %Su /dev/console)}
+# Ask for sudo upfront
+sudo -v
 
 ###############################################################################
 # 0. Login Window Message Removal                                              #
 ###############################################################################
 # Remove owner info from login window to avoid information disclosure
 if /usr/bin/defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText >/dev/null 2>&1; then
-  /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText || true
+  sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText || true
 fi
 
 ###############################################################################
@@ -27,16 +21,16 @@ fi
 echo "Configuring Application Firewall..."
 
 # Enable application firewall
-/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
 
 # Enable stealth mode (drop ICMP echo)
-/usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
 
 # Allow signed apps automatically (usability trade-off)
-/usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on
 
 # Restart agent to apply settings
-pkill -HUP socketfilterfw || true
+sudo pkill -HUP socketfilterfw || true
 
 ###############################################################################
 # 2. Service Hardening (Disable Remote Access)                                #
@@ -44,10 +38,10 @@ pkill -HUP socketfilterfw || true
 echo "Disabling Remote Services..."
 
 # Disable Remote Login (SSH)
-systemsetup -setremotelogin off
+sudo systemsetup -setremotelogin off
 
 # Disable Apple Remote Desktop
-/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off
 
 ###############################################################################
 # 3. Account Security                                                         #
@@ -55,7 +49,7 @@ systemsetup -setremotelogin off
 echo "Disabling Guest Account..."
 
 # Disable guest account
-sysadminctl -guestAccount off
+sudo sysadminctl -guestAccount off
 
 ###############################################################################
 # 4. File System Visibility                                                   #
@@ -63,7 +57,7 @@ sysadminctl -guestAccount off
 echo "Setting Finder preferences..."
 
 # Show all extensions (mitigate double-extension tricks)
-sudo -u "$target_user" defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
 # Restart Finder to apply
 killall Finder || true
