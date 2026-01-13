@@ -64,6 +64,15 @@ hx ~/.config/git/config.local
 
 本リポジトリでは、`dot_Brewfile` を `chezmoi` のソースディレクトリ内で直接管理しています。ホームディレクトリの `.Brewfile` は使用しません。
 
+**実行フラグ（安全性関連）**
+- `run_onchange_darwin_install_packages.sh.tmpl`: Brewfileをレンダリングして `brew bundle` を実行（追加フラグなし）。
+- `run_onchange_darwin_import_stats.sh.tmpl`: plistが無い場合は失敗で終了。
+- `run_onchange_darwin_setup_cloud_symlinks.sh.tmpl`: シンボリックリンク作成に `FORCE=1` が必須（対話式。非symlinkターゲットは上書きしない）。
+- `run_onchange_darwin_login_items.sh.tmpl`: ログイン項目変更に `ALLOW_GUI=1` が必須。
+- `run_onchange_darwin_security_hardening.sh.tmpl`: ハードニング実行に `ALLOW_HARDEN=1` が必須。失敗を集計して報告。
+- `run_onchange_darwin_system_defaults.sh.tmpl`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。
+- `run_onchange_darwin_keyboard.sh.tmpl`: キーボード設定適用に `ALLOW_KEYBOARD_APPLY=1` が必須（`--apply`時）。
+
 #### パッケージの追加・削除
 
 **推奨フロー (宣言的管理):**

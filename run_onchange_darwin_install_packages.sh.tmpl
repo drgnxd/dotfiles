@@ -2,7 +2,7 @@
 
 # dot_Brewfile hash: {{ include "dot_Brewfile.tmpl" | sha256sum }}
 
-set -e
+set -euo pipefail
 
 BREWFILE_TARGET="$HOME/.Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_Brewfile"
@@ -52,6 +52,7 @@ if command -v brew >/dev/null 2>&1; then
     echo "brew bundle completed successfully."
   else
     echo "Error: brew bundle failed." >&2
+    echo "Hint: run 'brew bundle --file=$brewfile_path --verbose' to inspect errors." >&2
     exit 1
   fi
 else

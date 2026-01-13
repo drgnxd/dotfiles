@@ -64,6 +64,15 @@ hx ~/.config/git/config.local
 
 This repository manages the `dot_Brewfile` directly within the `chezmoi` source directory, bypassing the home directory `.Brewfile`.
 
+**Execution flags (safety):**
+- `run_onchange_darwin_install_packages.sh.tmpl`: renders Brewfile and runs `brew bundle`. No extra flag.
+- `run_onchange_darwin_import_stats.sh.tmpl`: fails if plist missing; exits non-zero.
+- `run_onchange_darwin_setup_cloud_symlinks.sh.tmpl`: requires `FORCE=1` to create symlinks (interactive; non-symlink targets are skipped).
+- `run_onchange_darwin_login_items.sh.tmpl`: requires `ALLOW_GUI=1` to modify login items.
+- `run_onchange_darwin_security_hardening.sh.tmpl`: requires `ALLOW_HARDEN=1`; aggregates failures.
+- `run_onchange_darwin_system_defaults.sh.tmpl`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`.
+- `run_onchange_darwin_keyboard.sh.tmpl`: requires `ALLOW_KEYBOARD_APPLY=1` when using `--apply`.
+
 #### Adding/Removing Packages
 
 **Recommended Workflow (Declarative):**
