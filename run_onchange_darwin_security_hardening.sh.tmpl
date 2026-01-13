@@ -1,65 +1,65 @@
-#!/bin/bash
-
 set -euo pipefail
 
-echo "\ud83d\udee1\ufe0f  Starting macOS Security Hardening..."
+if [ "${ALLOW_HARDEN:-0}" != "1" ]; then
+  echo "Refusing to harden without ALLOW_HARDEN=1. Set ALLOW_HARDEN=1 to proceed." >&2
+  exit 1
+fi
 
-# Ask for sudo upfront
-sudo -v
+if ! sudo -v; then
+  echo "sudo unavailable. Aborting hardening." >&2
+  exit 1
+fi
+
+echo "🛡️  Starting macOS Security Hardening..."
+
+failures=()
+run_or_record() {
+  local msg=$1; shift
+  if "$@"; then
+    :
+  else
+    failures+=("$msg")
+  fi
+}
 
 ###############################################################################
 # 0. Login Window Message Removal                                              #
 ###############################################################################
-# Remove owner info from login window to avoid information disclosure
-if /usr/bin/defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText >/dev/null 2>&1; then
-  sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText || true
-fi
+run_or_record "LoginwindowText delete" /bin/sh -c '/usr/bin/defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText >/dev/null 2>&1 && sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText'
 
 ###############################################################################
 # 1. Network Security (Firewall & Stealth Mode)                               #
 ###############################################################################
 echo "Configuring Application Firewall..."
-
-# Enable application firewall
-sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
-
-# Enable stealth mode (drop ICMP echo)
-sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
-
-# Allow signed apps automatically (usability trade-off)
-sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on
-
-# Restart agent to apply settings
-sudo pkill -HUP socketfilterfw || true
+run_or_record "Enable firewall" sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+run_or_record "Enable stealth mode" sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+run_or_record "Allow signed apps" sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on
+run_or_record "Restart socketfilterfw" sudo pkill -HUP socketfilterfw
 
 ###############################################################################
 # 2. Service Hardening (Disable Remote Access)                                #
 ###############################################################################
 echo "Disabling Remote Services..."
-
-# Disable Remote Login (SSH)
-sudo systemsetup -setremotelogin off
-
-# Disable Apple Remote Desktop
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off
+run_or_record "Disable Remote Login" sudo systemsetup -setremotelogin off
+run_or_record "Disable ARD" sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off
 
 ###############################################################################
 # 3. Account Security                                                         #
 ###############################################################################
 echo "Disabling Guest Account..."
-
-# Disable guest account
-sudo sysadminctl -guestAccount off
+run_or_record "Disable guest account" sudo sysadminctl -guestAccount off
 
 ###############################################################################
 # 4. File System Visibility                                                   #
 ###############################################################################
 echo "Setting Finder preferences..."
+run_or_record "Show all extensions" defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+run_or_record "Restart Finder" killall Finder
 
-# Show all extensions (mitigate double-extension tricks)
-defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+echo "✅  Security hardening complete."
 
-# Restart Finder to apply
-killall Finder || true
-
-echo "\u2705  Security hardening complete."
+if [ "${#failures[@]}" -ne 0 ]; then
+  echo "The following steps failed:" >&2
+  printf ' - %s\n' "${failures[@]}" >&2
+  exit 1
+fi

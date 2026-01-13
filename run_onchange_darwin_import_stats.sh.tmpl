@@ -4,10 +4,21 @@
 
 echo "Detected changes in Stats (eu.exelban.Stats) configuration. Importing to system..."
 
+PLIST_PATH="{{ .chezmoi.homeDir }}/.config/stats/eu.exelban.Stats.plist"
+
+if [ ! -f "$PLIST_PATH" ]; then
+  echo "Stats plist not found at $PLIST_PATH" >&2
+  exit 1
+fi
+
 # Import settings from XML file
-defaults import eu.exelban.Stats "{{ .chezmoi.homeDir }}/.config/stats/eu.exelban.Stats.plist"
+if ! defaults import eu.exelban.Stats "$PLIST_PATH"; then
+  echo "Failed to import Stats plist." >&2
+  exit 1
+fi
 
 # Prompt reload to maintain cache consistency
-killall cfprefsd 2>/dev/null
+killall cfprefsd 2>/dev/null || true
 # Restart Stats app
-killall Stats && open -a Stats
+killall Stats 2>/dev/null || true
+open -a Stats || true

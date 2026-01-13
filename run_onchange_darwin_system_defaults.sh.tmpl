@@ -1,11 +1,17 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+
+if [ "${ALLOW_DEFAULTS:-0}" != "1" ]; then
+  echo "Refusing to change macOS defaults without ALLOW_DEFAULTS=1. Set ALLOW_DEFAULTS=1 to proceed." >&2
+  exit 1
+fi
 
 echo "Setting macOS defaults..."
 
-# Quit System Preferences to avoid overwriting settings
-osascript -e 'tell application "System Preferences" to quit'
+if command -v osascript >/dev/null 2>&1; then
+  osascript -e 'tell application "System Preferences" to quit' || true
+fi
 
 ###############################################################################
 # General UI/UX                                                               #
@@ -19,14 +25,20 @@ defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
-# Disable the “Are you sure you want to open this application?” dialog
-defaults write com.apple.LaunchServices LSQuarantine -bool false
+# Disable the “Are you sure you want to open this application?” dialog (opt-in)
+if [ "${ALLOW_LSQUARANTINE_OFF:-0}" = "1" ]; then
+  defaults write com.apple.LaunchServices LSQuarantine -bool false
+else
+  echo "Skipping LSQuarantine disable (set ALLOW_LSQUARANTINE_OFF=1 to apply)."
+fi
 
-# Disable Spotlight keyboard shortcuts (Command+Space and Command+Option+Space)
-# 64: Show Spotlight search
-defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
-# 65: Show Finder search window
-defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
+# Disable Spotlight keyboard shortcuts (opt-in; affects global UX)
+if [ "${ALLOW_SPOTLIGHT_DISABLE:-0}" = "1" ]; then
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
+else
+  echo "Skipping Spotlight hotkey disable (set ALLOW_SPOTLIGHT_DISABLE=1 to apply)."
+fi
 
 ###############################################################################
 # Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
@@ -42,11 +54,11 @@ defaults write NSGlobalDomain KeyRepeat -int 1
 defaults write NSGlobalDomain InitialKeyRepeat -int 10
 
 # Remap Caps Lock to Control (hidutil required)
-if ! command -v hidutil >/dev/null 2>&1; then
-  echo "hidutil not found; cannot remap Caps Lock to Control" >&2
-  exit 1
+if command -v hidutil >/dev/null 2>&1; then
+  /usr/bin/hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}' || true
+else
+  echo "hidutil not found; skipping Caps Lock remap." >&2
 fi
-/usr/bin/hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}'
 
 # Set trackpad/mouse/trackpad tracking speed to fastest (0-7, 7 is fastest)
 defaults write -g com.apple.mouse.scaling -int 7
@@ -100,7 +112,7 @@ defaults write com.apple.screencapture disable-shadow -bool true
 ###############################################################################
 
 for app in "Dock" "Finder" "SystemUIServer"; do
-	killall "${app}" > /dev/null 2>&1
-done
+  killall "${app}" > /dev/null 2>&1 || true
+ done
 
 echo "macOS defaults set successfully."

@@ -88,6 +88,11 @@ if ! command -v defaults >/dev/null 2>&1; then
   exit 1
 fi
 
+if [ "${ALLOW_KEYBOARD_APPLY:-0}" != "1" ]; then
+  echo "Refusing to apply keyboard defaults without ALLOW_KEYBOARD_APPLY=1. Set it and re-run with --apply." >&2
+  exit 1
+fi
+
 print_preview
 
 echo
