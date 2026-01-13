@@ -4,13 +4,51 @@
 
 set -e
 
+BREWFILE_TARGET="$HOME/.Brewfile"
+BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_Brewfile"
+BREWFILE_TEMPLATE="{{ .chezmoi.sourceDir }}/dot_Brewfile.tmpl"
+TMP_BREWFILE=""
+
+cleanup() {
+  if [ -n "$TMP_BREWFILE" ] && [ -f "$TMP_BREWFILE" ]; then
+    rm -f "$TMP_BREWFILE"
+  fi
+}
+
+trap cleanup EXIT
+
 echo "Checking for Homebrew..."
 
 if command -v brew >/dev/null 2>&1; then
-  echo "Homebrew found. Running 'brew bundle' using source Brewfile..."
-  
-  # Run bundle referencing the managed .Brewfile in the home directory
-  if brew bundle --file="$HOME/.Brewfile"; then
+  echo "Homebrew found. Preparing Brewfile..."
+
+  if [ -f "$BREWFILE_TARGET" ]; then
+    brewfile_path="$BREWFILE_TARGET"
+  elif [ -f "$BREWFILE_SOURCE" ]; then
+    echo "Brewfile missing at $BREWFILE_TARGET. Using source Brewfile."
+    brewfile_path="$BREWFILE_SOURCE"
+  elif [ -f "$BREWFILE_TEMPLATE" ]; then
+    TMP_BREWFILE="$(mktemp)"
+    if chezmoi execute-template < "$BREWFILE_TEMPLATE" > "$TMP_BREWFILE"; then
+      echo "Rendered Brewfile from template."
+      brewfile_path="$TMP_BREWFILE"
+    else
+      echo "Error: failed to render Brewfile template." >&2
+      exit 1
+    fi
+  else
+    echo "Error: Brewfile not found at $BREWFILE_TARGET, $BREWFILE_SOURCE, or template $BREWFILE_TEMPLATE." >&2
+    exit 1
+  fi
+
+  # Prevent chezmoi persistent state lock contention during brew bundle
+  if chezmoi state dump >/dev/null 2>&1; then
+    :
+  else
+    echo "Warning: unable to read chezmoi state; continuing" >&2
+  fi
+
+  if brew bundle --file="$brewfile_path"; then
     echo "brew bundle completed successfully."
   else
     echo "Error: brew bundle failed." >&2
