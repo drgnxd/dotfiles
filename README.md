@@ -7,11 +7,11 @@ My personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 This repository contains configurations for my macOS and Linux environments, including:
 
 *   **Shell:** Zsh (with Starship prompt, zoxide, fzf)
-*   **Terminal:** Alacritty with Tokyo Night theme
+*   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser)
-*   **Terminal Multiplexer:** Tmux with Vim-style keybindings
-*   **Editor:** Helix with Emacs hybrid bindings
-*   **File Manager:** Yazi with custom Tokyo Night flavor
+*   **Terminal Multiplexer:** Tmux with Solarized Dark theme and Vim-style keybindings
+*   **Editor:** Helix with Emacs hybrid bindings (Solarized Dark)
+*   **File Manager:** Yazi with Solarized Dark flavor
 *   **Window Manager:** Hammerspoon (macOS only)
 *   **Package Manager:** Homebrew (macOS), Native Package Manager (Linux)
 *   **Note Taking:** zk (Zettelkasten)
@@ -141,7 +141,7 @@ This will check for updates every 12 hours.
     *   `starship/`: Cross-shell prompt configuration
     *   `stats/`: Configuration for Stats (system monitor)
     *   `taskwarrior/`: Task management configuration
-    *   `tmux/`: Terminal multiplexer with Tokyo Night theme
+    *   `tmux/`: Terminal multiplexer with Solarized Dark theme
     *   `yazi/`: Blazing fast terminal file manager with custom theme
     *   `zsh/`: Zsh configuration with plugins and completions
 *   `run_onchange_darwin_install_packages.sh.tmpl`: Script that runs `brew bundle` after `chezmoi apply` (macOS only).

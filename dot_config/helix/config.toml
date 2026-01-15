@@ -1,5 +1,5 @@
 # Appearance
-theme = "tokyonight"
+theme = "solarized_dark_transparent"
 
 [editor]
 # Enable true color in terminal

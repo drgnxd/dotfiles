@@ -7,11 +7,9 @@
 このリポジトリには、私のmacOSおよびLinux環境の設定ファイルが含まれています：
 
 *   **シェル:** Zsh (Starshipプロンプト、zoxide、fzf)
-*   **ターミナル:** Alacritty (Tokyo Nightテーマ)
-*   **ブラウザ:** Floorp (プライバシー重視のFirefoxベースブラウザ)
-*   **ターミナルマルチプレクサ:** Tmux (Vimスタイルのキーバインド)
-*   **エディタ:** Helix (Emacsハイブリッドバインディング)
-*   **ファイルマネージャ:** Yazi (カスタムTokyo Nightテーマ)
+*   **ターミナル:** Alacritty (Solarized Darkテーマ)
+*   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
+
 *   **ウィンドウマネージャ:** Hammerspoon (macOSのみ)
 *   **パッケージマネージャ:** Homebrew (macOS), ネイティブパッケージマネージャ (Linux)
 *   **ノート管理:** zk (Zettelkasten)
@@ -141,7 +139,7 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
     *   `starship/`: クロスシェルプロンプトの設定
     *   `stats/`: Stats（システムモニター）の設定
     *   `taskwarrior/`: タスク管理の設定
-    *   `tmux/`: ターミナルマルチプレクサ（Tokyo Nightテーマ）
+    *   `tmux/`: ターミナルマルチプレクサ（Solarized Darkテーマ）
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
     *   `zsh/`: Zsh設定（プラグインと補完機能）
 *   `run_onchange_darwin_install_packages.sh.tmpl`: `chezmoi apply`後に`brew bundle`を実行するスクリプト（macOSのみ）
