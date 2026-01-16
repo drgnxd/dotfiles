@@ -27,11 +27,11 @@ $time\
 [os]
 disabled = false
 format = """
-[](fg:#7aa2f7)\
+[](fg:blue)\
 [$symbol]($style)\
-[](fg:#7aa2f7)\
+[](fg:blue)\
 """
-style = "bold fg:#1a1b26 bg:#7aa2f7"
+style = "bold fg:black bg:blue"
 
 [os.symbols]
 Macos = "  "
@@ -42,40 +42,40 @@ Windows = " 󰍲 "
 ssh_only = true
 ssh_symbol = " "
 format = """
-[](fg:#bb9af7)\
+[](fg:magenta)\
 [$ssh_symbol$hostname]($style)\
-[](fg:#bb9af7)\
+[](fg:magenta)\
 """
-style = "bold fg:#1a1b26 bg:#bb9af7"
+style = "bold fg:black bg:magenta"
 
 [sudo]
 disabled = false
 symbol = ' 󰿆 sudo'
 format = """
-[](fg:#f7768e)\
+[](fg:red)\
 [$symbol]($style)\
-[](fg:#f7768e)\
+[](fg:red)\
 """
-style = "bold fg:#1a1b26 bg:#f7768e"
+style = "bold fg:black bg:red"
 
 [custom.venv]
 command = "basename \"$VIRTUAL_ENV\""
 when = "test -n \"$VIRTUAL_ENV\""
 format = """
-[](fg:#bb9af7)\
+[](fg:magenta)\
 [$output]($style)\
-[](fg:#bb9af7)\
+[](fg:magenta)\
 """
-style = "bold fg:#1a1b26 bg:#bb9af7"
+style = "bold fg:black bg:magenta"
 
 [direnv]
 disabled = false
 format = """
-[](fg:#7dcfff)\
+[](fg:cyan)\
 [$symbol$allowed]($style)\
-[](fg:#7dcfff)\
+[](fg:cyan)\
 """
-style = "bold fg:#1a1b26 bg:#7dcfff"
+style = "bold fg:black bg:cyan"
 
 [directory]
 truncation_length = 5
@@ -84,27 +84,27 @@ truncate_to_repo = false
 home_symbol = '󰋞 ~'
 read_only = ' 󰌾 '
 format = """
-[](fg:#7dcfff)\
+[](fg:cyan)\
 [$path]($style)\
 [$read_only]($read_only_style)\
-[](fg:#7dcfff)\
+[](fg:cyan)\
 """
-style = 'bold fg:#1a1b26 bg:#7dcfff'
-read_only_style = 'bold fg:#1a1b26 bg:#7dcfff'
+style = 'bold fg:black bg:cyan'
+read_only_style = 'bold fg:black bg:cyan'
 
 [git_branch]
 symbol = '  '
 truncation_length = 4
 truncation_symbol = ''
-style = 'bold fg:#7dcfff bg:#24283b'
+style = 'bold fg:cyan bg:brblack'
 format = """
-[](fg:#24283b)\
+[](fg:brblack)\
 [$symbol$branch(:$remote_branch)]($style)\
 """
 
 [git_status]
 disabled = false
-style = 'bold fg:#f7768e bg:#24283b'
+style = 'bold fg:red bg:brblack'
 conflicted = '='
 ahead = '⇡${count}'
 behind = '⇣${count}'
@@ -116,53 +116,53 @@ modified = '!${count}'
 renamed = '»'
 deleted = '✘'
 format = """
-[  ](fg:#7aa2f7 bg:#24283b)\
+[  ](fg:blue bg:brblack)\
 [$all_status$ahead_behind]($style)\
 """
 
 [git_metrics]
 disabled = false
-added_style = 'bold fg:#9ece6a bg:#24283b'
-deleted_style = 'bold fg:#7aa2f7 bg:#24283b'
+added_style = 'bold fg:green bg:brblack'
+deleted_style = 'bold fg:blue bg:brblack'
 format = """
-[  ](fg:#7aa2f7 bg:#24283b)\
-[+$added]($added_style)[-$deleted]($deleted_style)[](fg:#24283b)\
+[  ](fg:blue bg:brblack)\
+[+$added]($added_style)[-$deleted]($deleted_style)[](fg:brblack)\
 """
 
 [fill]
 symbol = '─'
-style = 'fg:#3b4261 bg:none'
+style = 'fg:brblack bg:none'
 
 [python]
-symbol = '[ ](fg:#e0af68 bg:#1a1b26)'
-format = '[](fg:#1a1b26)[ ${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)[](fg:#1a1b26)'
-style = 'bold fg:#e0af68 bg:#1a1b26'
+symbol = '[ ](fg:yellow bg:black)'
+format = '[](fg:black)[ ${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style)[](fg:black)'
+style = 'bold fg:yellow bg:black'
 
 [c]
-symbol = '[ ](fg:#7dcfff bg:#1a1b26)'
-format = '[](fg:#1a1b26)[ $symbol($version) ]($style)[](fg:#1a1b26)'
-style = 'bold fg:#7dcfff bg:#1a1b26'
+symbol = '[ ](fg:cyan bg:black)'
+format = '[](fg:black)[ $symbol($version) ]($style)[](fg:black)'
+style = 'bold fg:cyan bg:black'
 
 [lua]
-symbol = "[ ](fg:#7aa2f7 bg:#1a1b26)"
-format = '[](fg:#1a1b26)[ ${symbol}(${version})]($style)[](fg:#1a1b26)'
-style = 'bold fg:#7aa2f7 bg:#1a1b26'
+symbol = "[ ](fg:blue bg:black)"
+format = '[](fg:black)[ ${symbol}(${version})]($style)[](fg:black)'
+style = 'bold fg:blue bg:black'
 
 [rust]
-symbol = "[󱘗 ](fg:#f7768e bg:#1a1b26)"
-format = '[](fg:#1a1b26)[ ${symbol}(${version})]($style)[](fg:#1a1b26)'
-style = 'bold fg:#f7768e bg:#1a1b26'
+symbol = "[󱘗 ](fg:red bg:black)"
+format = '[](fg:black)[ ${symbol}(${version})]($style)[](fg:black)'
+style = 'bold fg:red bg:black'
 
 [cmd_duration]
 show_milliseconds = true
 min_time = 500
-format = '[󰞌 $duration ](fg:#e0af68)'
+format = '[󰞌 $duration ](fg:yellow)'
 
 [time]
 disabled = false
-format = '[ $time](bold fg:#a9b1d6)'
+format = '[ $time](bold fg:white)'
 time_format = '%T'
 
 [character]
-success_symbol = "[❯](bold #7aa2f7)[❯](bold #bb9af7)[❯](bold #7dcfff)"
-error_symbol = "[❯](bold #f7768e)[❯](bold #bb9af7)[❯](bold #e0af68)"
+success_symbol = "[❯](bold blue)[❯](bold magenta)[❯](bold cyan)"
+error_symbol = "[❯](bold red)[❯](bold magenta)[❯](bold yellow)"
