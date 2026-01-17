@@ -1,5 +1,8 @@
 # Alacritty config (~/.config/alacritty/alacritty.toml)
 
+[general]
+import = ["blur.toml"]
+
 [window]
 # Window padding (pixels)
 padding = { x = 10, y = 10 }
@@ -38,6 +41,7 @@ magenta = "#d33682"
 cyan = "#2aa198"
 white = "#eee8d5"
 
+
 [colors.bright]
 black = "#002b36"
 red = "#cb4b16"
@@ -47,3 +51,8 @@ blue = "#839496"
 magenta = "#6c71c4"
 cyan = "#93a1a1"
 white = "#fdf6e3"
+
+[[keyboard.bindings]]
+key = "B"
+mods = "Command"
+command = { program = "/bin/sh", args = ["-c", "/Users/drgnxd/.config/alacritty/toggle_blur.sh"] }
