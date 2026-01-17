@@ -14,7 +14,7 @@ option_as_alt = "OnlyLeft"
 [font]
 # Set font family (Nerd Font recommended) and size
 # e.g. "HackGen Console NF", "PlemolJP Console NF"
-size = 14.0
+size = 13.0
 
 [font.normal]
 family = "HackGen35 Console NF"
