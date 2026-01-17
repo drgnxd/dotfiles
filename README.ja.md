@@ -60,7 +60,7 @@ hx ~/.config/git/config.local
 
 ### Homebrewパッケージの管理
 
-本リポジトリでは、`dot_Brewfile` を `chezmoi` のソースディレクトリ内で直接管理しています。ホームディレクトリの `.Brewfile` は使用しません。
+本リポジトリでは、`dot_Brewfile` を `chezmoi` のソースディレクトリ内で直接管理し、`~/.Brewfile`は使わず`$XDG_CONFIG_HOME/homebrew/Brewfile`（既定: `~/.config/homebrew/Brewfile`）を使用します。
 
 **実行フラグ（安全性関連）**
 - `run_onchange_darwin_install_packages.sh.tmpl`: Brewfileをレンダリングして `brew bundle` を実行（追加フラグなし）。

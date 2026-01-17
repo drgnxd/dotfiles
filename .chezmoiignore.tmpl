@@ -21,7 +21,7 @@ zsh_history
 .local/share/Trash/
 
 # GitHub CLI auth file
-.config/gh/hosts.yml
+dot_config/gh/hosts.yml
 
 # Repository metadata
 README.md
@@ -31,13 +31,13 @@ LICENSE
 .github
 
 # Local configuration files (machine-specific)
-.config/zsh/local.zsh
+dot_config/zsh/local.zsh
 .Brewfile
 private_Library/
 
 # Linux/Non-Darwin exclusions
 {{ if ne .chezmoi.os "darwin" }}
-.config/hammerspoon
-.config/zsh/.homebrew
-run_onchange_darwin_install_packages.sh.tmpl
+dot_config/hammerspoon
+dot_config/zsh/.homebrew
+.scripts/run_onchange_darwin_install_packages.sh.tmpl
 {{ end }}
