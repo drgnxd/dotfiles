@@ -78,7 +78,7 @@ function task() {
 # Update cache file from current pending tasks
 function _task_cache_update() {
     local cache_dir="$HOME/.cache/taskwarrior"
-    mkdir -p "$cache_dir"
+    [ -d "$cache_dir" ] || mkdir -p "$cache_dir"
     local output
     # Use -WAITING (virtual tag) to match 'task list' behavior
     # -wait excludes tasks with wait attribute set (even if past)
@@ -277,7 +277,7 @@ function upgrade_all() {
 
     echo "--- Homebrew Casks (greedy) ---"
     if brew tap-info buo/cask-upgrade >/dev/null 2>&1; then
-        # `brew cu` 自体に upgrade の意味が含まれており、--all で greedy (auto_updates) をカバー
+        # `brew cu` implies upgrade, --all covers greedy (auto_updates)
         brew cu --all --cleanup --yes || return 1
     else
         echo "Install buo/cask-upgrade to manage casks: brew tap buo/cask-upgrade" >&2
