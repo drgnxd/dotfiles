@@ -62,7 +62,7 @@ hx ~/.config/git/config.local
 
 ### Managing Homebrew Packages
 
-This repository manages `dot_Brewfile` within the `chezmoi` source directory and uses `$XDG_CONFIG_HOME/homebrew/Brewfile` (default `~/.config/homebrew/Brewfile`) instead of `~/.Brewfile`.
+This repository manages `dot_config/homebrew/Brewfile` within the `chezmoi` source directory and uses `$XDG_CONFIG_HOME/homebrew/Brewfile` (default `~/.config/homebrew/Brewfile`) instead of `~/.Brewfile`.
 
 **Execution flags (safety):**
 - `run_onchange_darwin_install_packages.sh.tmpl`: renders Brewfile and runs `brew bundle`. No extra flag.
@@ -79,7 +79,7 @@ This repository manages `dot_Brewfile` within the `chezmoi` source directory and
 
 1. Edit the source file to add or remove packages:
     ```sh
-    chezmoi edit dot_Brewfile
+    chezmoi edit dot_config/homebrew/Brewfile
     ```
 2. Apply changes to the system:
     ```sh
@@ -91,25 +91,25 @@ This repository manages `dot_Brewfile` within the `chezmoi` source directory and
 To reflect manually installed packages into the configuration file:
 
 ```sh
-# Overwrite dot_Brewfile with current system state (with descriptions)
-brew bundle dump --file="$(chezmoi source-path)/dot_Brewfile" --force --describe
+# Overwrite Brewfile with current system state (with descriptions)
+brew bundle dump --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --force --describe
 ```
 
 #### Checking Consistency
 
-Verify discrepancies between the definition file (`dot_Brewfile`) and the current system state.
+Verify discrepancies between the definition file (`dot_config/homebrew/Brewfile`) and the current system state.
 
   * **Check for missing packages** (listed in Brewfile but not installed):
 
     ```sh
-    brew bundle check --file="$(chezmoi source-path)/dot_Brewfile" --verbose
+    brew bundle check --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --verbose
     ```
 
   * **Check for unmanaged packages** (installed but not listed in Brewfile):
 
     ```sh
     # List unmanaged packages without uninstalling (Dry Run)
-    brew bundle cleanup --file="$(chezmoi source-path)/dot_Brewfile"
+    brew bundle cleanup --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile"
     ```
 
 #### Automatic Updates
@@ -128,7 +128,7 @@ This will check for updates every 12 hours.
 ## Structure
 
 *   `.chezmoiignore.tmpl`: Template to ignore files based on OS (e.g. ignore macOS apps on Linux).
-*   `dot_Brewfile`: List of Homebrew packages to install (macOS only).
+*   `dot_config/homebrew/Brewfile`: List of Homebrew packages to install (macOS only).
 *   `dot_config/`: Configuration files for various tools (XDG Base Directory compliant).
     *   `alacritty/`: GPU-accelerated terminal emulator configuration
     *   `fsh/`: Custom themes for Zsh Fast Syntax Highlighting
