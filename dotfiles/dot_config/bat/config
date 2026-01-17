@@ -1,13 +1,14 @@
-[bat]
-# Use Solarized Dark theme for syntax highlighting
-theme = "Solarized (dark)"
-# Enable true color if terminal supports it
-true_color = true
-# Use pager only when output is long
-paging = "auto"
-# Show line numbers by default
-line_numbers = true
-# Wrap long lines
-wrap_lines = false
-# Set tab width to 4 spaces
-tab_width = 4
+# Set the theme to Solarized (dark)
+--theme="Solarized (dark)"
+
+# Enable true color support
+--italic-text=always
+
+# Show line numbers, git changes and file header
+--style="numbers,changes,header"
+
+# Use pager sensibly (quit if less than screen height)
+--paging=auto
+
+# Use 4 spaces for tabs
+--tabs=4
