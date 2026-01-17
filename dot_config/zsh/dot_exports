@@ -45,6 +45,13 @@ export BAT_CACHE_DIR="$XDG_CACHE_HOME/bat"
 # Starship
 export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
 
+# Terminfo
+export TERMINFO_DIRS="$XDG_DATA_HOME/terminfo:/usr/share/terminfo"
+export TERMINFO="$XDG_DATA_HOME/terminfo"
+
+# Scilab
+export SCIHOME="$XDG_CONFIG_HOME/scilab"
+
 # macOS Session state
 export SHELL_SESSION_DIR="$XDG_STATE_HOME/zsh/sessions"
 
@@ -67,10 +74,9 @@ export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 # Prefer native terminfo entries to expose undercurl/truecolor
 if [[ -n "$TMUX" ]]; then
   export TERM="tmux-256color"
-elif [[ -n "$ALACRITTY_WINDOW_ID" ]]; then
-  export TERM="alacritty"
 else
-  export TERM="xterm-256color"
+  # Respect terminal-provided TERM; only set a safe default when missing
+  export TERM="${TERM:-xterm-256color}"
 fi
 export COLORTERM="truecolor"
 
