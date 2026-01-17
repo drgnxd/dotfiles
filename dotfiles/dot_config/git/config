@@ -17,7 +17,19 @@
     light = false
     line-numbers = true
     side-by-side = true
-    syntax-theme = TwoDark       # Align with Helix theme
+    syntax-theme = Solarized (dark) # Align with Helix theme
+    # Solarized Dark Palette
+    minus-style                   = syntax "#3e2329"
+    minus-emph-style              = syntax "#5a2d34"
+    plus-style                    = syntax "#18322c"
+    plus-emph-style               = syntax "#1f453a"
+    file-style                    = "#839496" bold
+    file-decoration-style         = "#586e75" box
+    hunk-header-style             = file line-number syntax
+    hunk-header-decoration-style  = "#073642" box
+    line-numbers-minus-style      = "#dc322f"
+    line-numbers-plus-style       = "#859900"
+    line-numbers-zero-style       = "#586e75"
 
 [interactive]
     diffFilter = delta --color-only
