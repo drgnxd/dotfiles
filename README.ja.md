@@ -60,7 +60,7 @@ hx ~/.config/git/config.local
 
 ### Homebrewパッケージの管理
 
-本リポジトリでは、`dot_Brewfile` を `chezmoi` のソースディレクトリ内で直接管理し、`~/.Brewfile`は使わず`$XDG_CONFIG_HOME/homebrew/Brewfile`（既定: `~/.config/homebrew/Brewfile`）を使用します。
+本リポジトリでは、`dot_config/homebrew/Brewfile` を `chezmoi` のソースディレクトリ内で直接管理し、`~/.Brewfile`は使わず`$XDG_CONFIG_HOME/homebrew/Brewfile`（既定: `~/.config/homebrew/Brewfile`）を使用します。
 
 **実行フラグ（安全性関連）**
 - `run_onchange_darwin_install_packages.sh.tmpl`: Brewfileをレンダリングして `brew bundle` を実行（追加フラグなし）。
@@ -77,7 +77,7 @@ hx ~/.config/git/config.local
 
 1. ソースファイルを編集してパッケージを追記・削除します：
     ```sh
-    chezmoi edit dot_Brewfile
+    chezmoi edit dot_config/homebrew/Brewfile
     ```
 2. 変更をシステムに適用（インストール）します：
     ```sh
@@ -89,25 +89,25 @@ hx ~/.config/git/config.local
 手動で `brew install` したパッケージを管理ファイルに反映させる場合：
 
 ```sh
-# 現在の環境で dot_Brewfile を上書き更新（説明文付き）
-brew bundle dump --file="$(chezmoi source-path)/dot_Brewfile" --force --describe
+# 現在の環境で Brewfile を上書き更新（説明文付き）
+brew bundle dump --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --force --describe
 ```
 
 #### 同期状態の確認
 
-定義ファイル（`dot_Brewfile`）と現在のシステム状態の差異を確認します。
+定義ファイル（`dot_config/homebrew/Brewfile`）と現在のシステム状態の差異を確認します。
 
   * **不足パッケージの確認** (定義にあるがインストールされていないもの):
 
     ```sh
-    brew bundle check --file="$(chezmoi source-path)/dot_Brewfile" --verbose
+    brew bundle check --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --verbose
     ```
 
   * **管理外パッケージの確認** (インストールされているが定義にないもの):
 
     ```sh
     # 削除はせず、削除対象リストを表示 (Dry Run)
-    brew bundle cleanup --file="$(chezmoi source-path)/dot_Brewfile"
+    brew bundle cleanup --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile"
     ```
 
 #### 自動アップデート
@@ -126,7 +126,7 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 ## ディレクトリ構造
 
 *   `.chezmoiignore.tmpl`: OSに基づいてファイルを無視するためのテンプレート（例：LinuxでmacOSアプリを無視）
-*   `dot_Brewfile`: インストールするHomebrewパッケージのリスト（macOSのみ）
+*   `dot_config/homebrew/Brewfile`: インストールするHomebrewパッケージのリスト（macOSのみ）
 *   `dot_config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
     *   `fsh/`: Zsh Fast Syntax Highlightingのカスタムテーマ

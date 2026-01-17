@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# dot_Brewfile hash: {{ include "dot_Brewfile.tmpl" | sha256sum }}
+# Brewfile hash: {{ include "dot_config/homebrew/Brewfile.tmpl" | sha256sum }}
 
 set -euo pipefail
 
 BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
-BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_Brewfile"
-BREWFILE_TEMPLATE="{{ .chezmoi.sourceDir }}/dot_Brewfile.tmpl"
+BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile"
+BREWFILE_TEMPLATE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile.tmpl"
 TMP_BREWFILE=""
 
 cleanup() {
@@ -30,7 +30,7 @@ if command -v brew >/dev/null 2>&1; then
   elif [ -f "$BREWFILE_TEMPLATE" ]; then
     TMP_BREWFILE="$(mktemp)"
     if chezmoi execute-template < "$BREWFILE_TEMPLATE" > "$TMP_BREWFILE"; then
-      echo "Rendered Brewfile from template."
+      echo "Rendered Brewfile from template (no file written to $BREWFILE_TARGET)."
       brewfile_path="$TMP_BREWFILE"
     else
       echo "Error: failed to render Brewfile template." >&2
