@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-BREWFILE_TARGET="$HOME/.Brewfile"
+BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_Brewfile"
 BREWFILE_TEMPLATE="{{ .chezmoi.sourceDir }}/dot_Brewfile.tmpl"
 TMP_BREWFILE=""

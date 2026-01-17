@@ -62,7 +62,7 @@ hx ~/.config/git/config.local
 
 ### Managing Homebrew Packages
 
-This repository manages the `dot_Brewfile` directly within the `chezmoi` source directory, bypassing the home directory `.Brewfile`.
+This repository manages `dot_Brewfile` within the `chezmoi` source directory and uses `$XDG_CONFIG_HOME/homebrew/Brewfile` (default `~/.config/homebrew/Brewfile`) instead of `~/.Brewfile`.
 
 **Execution flags (safety):**
 - `run_onchange_darwin_install_packages.sh.tmpl`: renders Brewfile and runs `brew bundle`. No extra flag.
