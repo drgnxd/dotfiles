@@ -1,40 +1,46 @@
-# Inbox Report
+# ------------------------------------------------------------------------------
+# GTD Report Definitions
+# ------------------------------------------------------------------------------
+
+# Inbox - Capture
+# The landing zone for all new, unprocessed tasks.
 report.inbox.description=Inbox (Unprocessed)
-report.inbox.columns=id,entry,description
-report.inbox.labels=ID,Added,Description
+report.inbox.columns=id,description,entry
+report.inbox.labels=ID,Desc,Added
 report.inbox.sort=entry+
 report.inbox.filter=status:pending project:Inbox
 
-# Urgency Coefficients (GTD)
-urgency.user.tag.next.coefficient=15.0
-urgency.user.tag.wait.coefficient=-10.0
-
-# Ready (Next Actions)
+# Ready - Next Actions
+# High priority actionable items available NOW.
 report.ready.description=Ready (Next Actions)
-report.ready.columns=id,project,tags,due,urgency,description
-report.ready.labels=ID,Proj,Tags,Due,Urg,Desc
+report.ready.columns=id,description,project,tags,due,urgency
+report.ready.labels=ID,Desc,Proj,Tags,Due,Urg
 report.ready.sort=urgency-
 report.ready.filter=+READY -WAITING
 
-# ------------------------------------------------------------------------------
-# Report Filters (Focus)
-# ------------------------------------------------------------------------------
-# Use -WAITING (virtual tag) to hide only currently waiting tasks
-# -wait would also hide tasks with past wait dates that are now ready
-report.list.filter=status:pending -WAITING
-report.next.filter=+READY -WAITING limit:page
-
-# Waiting / Deferred
+# Waiting - Deferred / Delegated
+# Tasks that are waiting on something or someone.
 report.waiting.description=Waiting/Deferred
-report.waiting.columns=id,project,due,wait,description
-report.waiting.labels=ID,Proj,Due,Wait,Desc
+report.waiting.columns=id,description,project,due,wait
+report.waiting.labels=ID,Desc,Proj,Due,Wait
 report.waiting.sort=wait+,due+
 report.waiting.filter=status:waiting or +wait
 
-# ------------------------------------------------------------------------------
-# List Report Customization
-# ------------------------------------------------------------------------------
-# Redefine columns to show tags
-# (Display order: id, project, tags, priority, due, description)
-report.list.columns=id,project,tags,priority,due,description
-report.list.labels=ID,Proj,Tags,Pri,Due,Desc
+# Next - Context View
+# A broader view of actionable items, often used for context filtering.
+report.next.description=Next Actions (Context View)
+report.next.columns=id,description,project,tags,due,urgency
+report.next.labels=ID,Desc,Proj,Tags,Due,Urg
+report.next.filter=status:pending -WAITING limit:page
+
+# List - Master List
+# The default view, optimized for readability.
+report.list.description=Master List
+report.list.columns=id,description,project,tags,due,priority
+report.list.labels=ID,Desc,Proj,Tags,Due,Pri
+report.list.filter=status:pending -WAITING
+report.list.sort=due+,priority-,urgency-
+
+# Urgency Coefficients (GTD Tweaks)
+urgency.user.tag.next.coefficient=15.0
+urgency.user.tag.wait.coefficient=-10.0

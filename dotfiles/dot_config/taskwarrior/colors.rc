@@ -1,31 +1,34 @@
 # Precedence
-rule.precedence.color=deleted,completed,active,keyword.,tag.,project.,overdue,scheduled,due.today,due,blocked,blocking,recurring,tagged,uda.
+# Adjusted for GTD: Deadlines (Overdue/Due) are more critical than Scheduled status.
+# Active tasks take highest priority (if you are doing it, that's what matters).
+rule.precedence.color=deleted,completed,active,overdue,due.today,due,keyword.,tag.,project.,scheduled,blocked,blocking,recurring,tagged,uda.
 
-# Task State Colors
-color.active=black on green
-color.blocked=black on yellow
+# Task State Colors - Terminal Theme Compliant
+color.active=bold green
+color.blocked=bold black
 color.completed=gray6
 color.deleted=gray4
 
 # Urgency / Due Dates
-color.overdue=bold white on red
+color.overdue=bold red
 color.due.today=bold red
 color.due=bold yellow
 
 # Priority
-color.pri.H=bold white on blue
-color.pri.M=bold blue
-color.pri.L=green
+color.pri.H=bold blue
+color.pri.M=blue
+color.pri.L=cyan
 
 # UI Elements
-color.header=bold yellow
-color.footnote=cyan
-color.warning=bold red
-color.error=bold white on red
-color.debug=gray
-color.alternate=on gray2
+color.header=gray10
+color.footnote=gray6
+color.warning=bold yellow
+color.error=bold red
+color.debug=gray6
+# Disable alternating row colors
+color.alternate=
 
 # GTD Context Colors
 color.tag.next=bold yellow
-color.tag.wait=on gray4
-color.tag.mit=bold white on red
+color.tag.wait=gray8
+color.tag.mit=bold red
