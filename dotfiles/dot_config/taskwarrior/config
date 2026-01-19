@@ -3,6 +3,12 @@ news.version=3.4.2
 verbose=quiet
 confirmation=no
 
+# UI / Layout - Modern & Unix Philosophy
+row.padding=1
+column.padding=3
+active.indicator=●
+bulk=0
+
 # Date Formats
 report.list.dateformat=Y-M-D H:N
 report.all.dateformat=Y-M-D H:N
