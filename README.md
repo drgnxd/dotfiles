@@ -17,7 +17,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
 *   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
-*   **Utilities:** bat, eza, fd, ripgrep, moreutils, ncdu, smartmontools, direnv, pearcleaner
+*   **Utilities:** bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, pearcleaner
 *   **Version Managers:** pyenv, node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
