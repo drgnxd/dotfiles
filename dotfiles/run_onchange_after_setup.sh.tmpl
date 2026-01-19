@@ -1,0 +1,63 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+
+# .internal_scripts/darwin/install_packages.sh.tmpl hash: {{ include ".internal_scripts/darwin/install_packages.sh.tmpl" | sha256sum }}
+# .internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl hash: {{ include ".internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl" | sha256sum }}
+# .internal_scripts/darwin/import_stats.sh.tmpl hash: {{ include ".internal_scripts/darwin/import_stats.sh.tmpl" | sha256sum }}
+
+set -euo pipefail
+
+# Define script directory relative to the source directory
+SCRIPT_DIR="{{ .chezmoi.sourceDir }}/.internal_scripts/darwin"
+
+echo "Starting macOS setup..."
+
+# 1. Install Packages (Homebrew)
+echo "Running install_packages.sh..."
+# We need to execute the template content directly or render it to a temporary file
+# primarily because it contains template logic itself.
+bash <(cat << 'EOF'
+{{ include ".internal_scripts/darwin/install_packages.sh.tmpl" }}
+EOF
+)
+
+# 2. System Defaults
+echo "Running system_defaults.sh..."
+bash "${SCRIPT_DIR}/system_defaults.sh"
+
+# 3. Security Hardening
+echo "Running security_hardening.sh..."
+bash "${SCRIPT_DIR}/security_hardening.sh"
+
+# 4. Audit Security
+echo "Running audit_security.sh..."
+bash "${SCRIPT_DIR}/audit_security.sh"
+
+# 5. Keyboard Setup
+echo "Running keyboard.sh..."
+bash "${SCRIPT_DIR}/keyboard.sh"
+
+# 6. Menubar Setup
+echo "Running menubar.sh..."
+bash "${SCRIPT_DIR}/menubar.sh"
+
+# 7. Login Items
+echo "Running login_items.sh..."
+bash "${SCRIPT_DIR}/login_items.sh"
+
+# 8. Setup Cloud Symlinks
+echo "Running setup_cloud_symlinks.sh..."
+bash <(cat << 'EOF'
+{{ include ".internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl" }}
+EOF
+)
+
+# 9. Import Stats
+echo "Running import_stats.sh..."
+bash <(cat << 'EOF'
+{{ include ".internal_scripts/darwin/import_stats.sh.tmpl" }}
+EOF
+)
+
+echo "macOS setup completed successfully."
+{{- end -}}

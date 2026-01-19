@@ -1,0 +1,3 @@
+.internal_scripts/
+.scripts.tmpl/
+dot_config/taskwarrior/local.rc
