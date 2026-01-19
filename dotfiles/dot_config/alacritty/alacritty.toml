@@ -4,12 +4,13 @@
 import = ["blur.toml"]
 
 [window]
+decorations = "buttonless"
 # Window padding (pixels)
 padding = { x = 10, y = 10 }
 
 # Background opacity (0.0-1.0)
 # ~0.95 recommended
-opacity = 0.8
+opacity = 0.75
 
 # Left Option acts as Alt; Right Option is used as Meta
 option_as_alt = "OnlyLeft"
