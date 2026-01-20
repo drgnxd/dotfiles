@@ -32,8 +32,13 @@ LICENSE
 
 # Local configuration files (machine-specific)
 dot_config/zsh/local.zsh
+dot_config/taskwarrior/local.rc
 .Brewfile
 private_Library/
+
+# Internal or template-only paths
+.internal_scripts/
+.scripts.tmpl/
 
 # Linux/Non-Darwin exclusions
 {{ if ne .chezmoi.os "darwin" }}
