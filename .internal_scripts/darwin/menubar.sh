@@ -1,8 +1,10 @@
 #!/bin/bash
 
-set -e
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
 
-echo "Setting up Menu Bar and Control Center preferences..."
+log_info "Setting up Menu Bar and Control Center preferences..."
 
 ###############################################################################
 # Control Center & Menu Bar Items                                             #
@@ -45,7 +47,7 @@ defaults write com.apple.menuextra.clock ShowDayOfWeek -bool true
 defaults write com.apple.menuextra.clock ShowSeconds -bool true
 
 # Apply changes (SystemUIServer handles the menu bar clock, Control Center handles the rest)
-killall SystemUIServer || true
-killall ControlCenter || true
+kill_process "SystemUIServer"
+kill_process "ControlCenter"
 
-echo "Menu Bar settings applied."
+log_success "Menu Bar settings applied"

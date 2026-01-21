@@ -2,7 +2,9 @@
 
 # Brewfile hash: {{ include "dot_config/homebrew/Brewfile.tmpl" | sha256sum }}
 
-set -euo pipefail
+# Source common library
+LIB_DIR="$(cd "$(dirname "$0")/../lib" && pwd)"
+. "${LIB_DIR}/common.sh"
 
 BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile"
@@ -17,10 +19,10 @@ cleanup() {
 
 trap cleanup EXIT
 
-echo "Checking for Homebrew..."
+log_info "Checking for Homebrew..."
 
 if command -v brew >/dev/null 2>&1; then
-  echo "Homebrew found. Preparing Brewfile..."
+  log_info "Homebrew found. Preparing Brewfile..."
 
   if [ -f "$BREWFILE_TARGET" ]; then
     brewfile_path="$BREWFILE_TARGET"
@@ -49,14 +51,14 @@ if command -v brew >/dev/null 2>&1; then
   fi
 
   if brew bundle --file="$brewfile_path"; then
-    echo "brew bundle completed successfully."
+    log_success "brew bundle completed successfully"
   else
-    echo "Error: brew bundle failed." >&2
+    log_error "brew bundle failed"
     echo "Hint: run 'brew bundle --file=$brewfile_path --verbose' to inspect errors." >&2
     exit 1
   fi
 else
-  echo "Homebrew not found. Skipping brew bundle."
+  log_error "Homebrew not found. Skipping brew bundle"
   echo "Please install Homebrew manually or ensure it is in your PATH." >&2
   exit 1
 fi

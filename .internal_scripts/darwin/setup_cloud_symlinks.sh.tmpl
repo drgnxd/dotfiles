@@ -1,22 +1,21 @@
 #!/bin/bash
 
-set -euo pipefail
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
 
 FORCE=${FORCE:-0}
 CLOUD_DIR="{{ .chezmoi.homeDir }}/Library/CloudStorage"
 HOME_DIR="{{ .chezmoi.homeDir }}"
 
 if [ ! -d "$CLOUD_DIR" ]; then
-    echo "No CloudStorage directory. Skipping."
+    log_warning "No CloudStorage directory. Skipping"
     exit 0
 fi
 
-if [ "$FORCE" != "1" ]; then
-    echo "Refusing to create symlinks without FORCE=1. Set FORCE=1 to proceed."
-    exit 1
-fi
+require_flag "FORCE" "クラウドストレージシンボリックリンク作成"
 
-echo "☁️  Checking CloudStorage directories..."
+log_info "☁️  Checking CloudStorage directories..."
 
 cleanup() {
     :

@@ -81,6 +81,7 @@
 [tag]
     gpgsign = true
 
-# TODO: Set your SSH public key from Proton Pass
 [user]
+    # SSH signing key for commits (configured in config.local)
+    # See config.local.example for setup instructions
     signingkey = ssh-ed25519 AAAA...
