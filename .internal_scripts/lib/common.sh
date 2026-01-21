@@ -1,0 +1,205 @@
+#!/bin/bash
+# common.sh - Shared functions for macOS setup scripts
+#
+# This library provides common functionality used across all Darwin setup scripts,
+# including environment variable guards, logging, and error handling.
+#
+# Usage:
+#   source "$(dirname "$0")/../lib/common.sh"
+
+set -euo pipefail
+
+# ANSI color codes for terminal output
+readonly COLOR_RESET='\033[0m'
+readonly COLOR_RED='\033[0;31m'
+readonly COLOR_GREEN='\033[0;32m'
+readonly COLOR_YELLOW='\033[0;33m'
+readonly COLOR_BLUE='\033[0;34m'
+
+# Global array to track failures (used by security_hardening.sh)
+declare -a FAILURES=()
+
+#######################################
+# Check if a command exists in PATH.
+# Arguments:
+#   $1: Command name
+# Returns:
+#   0 if command exists, 1 otherwise
+#######################################
+check_command() {
+    local cmd=$1
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        log_error "Required command '$cmd' not found in PATH"
+        return 1
+    fi
+    return 0
+}
+
+#######################################
+# Require an environment variable flag to be set.
+# Exits with status 1 if the flag is not set to "1".
+# Arguments:
+#   $1: Environment variable name (e.g., "ALLOW_DEFAULTS")
+#   $2: Description of what the flag controls (e.g., "macOS defaults変更")
+# Outputs:
+#   Error message to stderr if flag is not set
+#######################################
+require_flag() {
+    local flag_name=$1
+    local description=$2
+    local flag_value="${!flag_name:-0}"
+    
+    if [ "$flag_value" != "1" ]; then
+        log_error "Refusing to proceed without ${flag_name}=1"
+        echo "  Set ${flag_name}=1 to allow: ${description}" >&2
+        exit 1
+    fi
+    
+    log_info "Flag ${flag_name} is set - proceeding with: ${description}"
+}
+
+#######################################
+# Execute macOS defaults write with error handling.
+# Arguments:
+#   $@: All arguments passed to 'defaults write'
+# Returns:
+#   0 on success, 1 on failure
+#######################################
+safe_defaults_write() {
+    if ! check_command defaults; then
+        return 1
+    fi
+    
+    if ! defaults write "$@"; then
+        log_error "Failed to execute: defaults write $*"
+        return 1
+    fi
+    return 0
+}
+
+#######################################
+# Record a failure for later reporting.
+# Appends the failure message to the global FAILURES array.
+# Arguments:
+#   $1: Failure description
+#######################################
+record_failure() {
+    local message=$1
+    FAILURES+=("$message")
+    log_error "$message"
+}
+
+#######################################
+# Report all recorded failures.
+# Prints a summary of all failures and exits if any exist.
+# Returns:
+#   1 if failures exist, 0 otherwise
+#######################################
+report_failures() {
+    if [ ${#FAILURES[@]} -eq 0 ]; then
+        log_success "All operations completed successfully"
+        return 0
+    fi
+    
+    echo ""
+    log_error "The following operations failed:"
+    for failure in "${FAILURES[@]}"; do
+        echo "  - $failure" >&2
+    done
+    echo ""
+    return 1
+}
+
+#######################################
+# Log an informational message.
+# Arguments:
+#   $1: Message to log
+#######################################
+log_info() {
+    echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $1"
+}
+
+#######################################
+# Log a success message.
+# Arguments:
+#   $1: Message to log
+#######################################
+log_success() {
+    echo -e "${COLOR_GREEN}[SUCCESS]${COLOR_RESET} $1"
+}
+
+#######################################
+# Log a warning message.
+# Arguments:
+#   $1: Message to log
+#######################################
+log_warning() {
+    echo -e "${COLOR_YELLOW}[WARNING]${COLOR_RESET} $1" >&2
+}
+
+#######################################
+# Log an error message.
+# Arguments:
+#   $1: Message to log
+#######################################
+log_error() {
+    echo -e "${COLOR_RED}[ERROR]${COLOR_RESET} $1" >&2
+}
+
+#######################################
+# Quit a macOS application if it's running.
+# Arguments:
+#   $1: Application name
+#######################################
+quit_app() {
+    local app_name=$1
+    
+    if command -v osascript >/dev/null 2>&1; then
+        osascript -e "tell application \"$app_name\" to quit" 2>/dev/null || true
+    fi
+}
+
+#######################################
+# Kill a macOS process by name (for applying changes).
+# Arguments:
+#   $1: Process name
+#######################################
+kill_process() {
+    local process_name=$1
+    killall "$process_name" >/dev/null 2>&1 || true
+}
+
+#######################################
+# Get the current console user.
+# Returns:
+#   Username of the console user
+#######################################
+get_console_user() {
+    stat -f %Su /dev/console
+}
+
+#######################################
+# Check if running on macOS.
+# Returns:
+#   0 if macOS, 1 otherwise
+#######################################
+is_macos() {
+    [[ "$(uname -s)" == "Darwin" ]]
+}
+
+#######################################
+# Execute a command as a specific user.
+# Arguments:
+#   $1: Username
+#   $@: Command and arguments to execute
+#######################################
+run_as_user() {
+    local target_user=$1
+    shift
+    
+    if [ "$(whoami)" != "$target_user" ]; then
+        sudo -u "$target_user" "$@"
+    else
+        "$@"
+    fi
+}

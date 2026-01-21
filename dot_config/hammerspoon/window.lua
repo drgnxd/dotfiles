@@ -8,6 +8,17 @@ local M = {}
 hs.window.animationDuration = 0
 
 -- Function to calculate position and move window
+-- 
+-- Window Position Calculation:
+-- x, y, w, h are fractional values (0.0-1.0) relative to screen dimensions
+-- 
+-- Examples (1920x1080 screen):
+--   Left Half:   x=0,    y=0,   w=0.5, h=1   → (0, 0, 960, 1080)
+--   Right Half:  x=0.5,  y=0,   w=0.5, h=1   → (960, 0, 960, 1080)
+--   Top Half:    x=0,    y=0,   w=1,   h=0.5 → (0, 0, 1920, 540)
+--   Bottom Half: x=0,    y=0.5, w=1,   h=0.5 → (0, 540, 1920, 540)
+--   Centered 80%: x=0.1, y=0.1, w=0.8, h=0.8 → (192, 108, 1536, 864)
+--   Top Left:    x=0,    y=0,   w=0.5, h=0.5 → (0, 0, 960, 540)
 local function move_window(x, y, w, h)
   local win = hs.window.focusedWindow()
   if not win then return end
@@ -16,10 +27,10 @@ local function move_window(x, y, w, h)
   local screen = win:screen()
   local max = screen:frame()
 
-  f.x = max.x + (max.w * x)
-  f.y = max.y + (max.h * y)
-  f.w = max.w * w
-  f.h = max.h * h
+  f.x = max.x + (max.w * x)  -- Absolute X = screen.x + (screen.width * fraction)
+  f.y = max.y + (max.h * y)  -- Absolute Y = screen.y + (screen.height * fraction)
+  f.w = max.w * w            -- Width = screen.width * fraction
+  f.h = max.h * h            -- Height = screen.height * fraction
   win:setFrame(f)
 end
 

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-set -euo pipefail
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
 
-if [ "${ALLOW_GUI:-0}" != "1" ]; then
-    echo "Refusing to modify login items without ALLOW_GUI=1. Set ALLOW_GUI=1 to proceed." >&2
-    exit 1
-fi
+# Check guard flag
+require_flag "ALLOW_GUI" "ログイン項目の変更"
 
-echo "Setting up login items..."
+log_info "Setting up login items..."
 
 apps=(
     "Alacritty"
@@ -22,20 +22,20 @@ apps=(
 )
 
 for app in "${apps[@]}"; do
-    echo "Processing $app..."
+    log_info "Processing $app..."
 
     if [ ! -d "/Applications/${app}.app" ]; then
-        echo "  Warning: /Applications/${app}.app not found. Skipping."
+        log_warning "/Applications/${app}.app not found. Skipping"
         continue
     fi
 
     if ! osascript -e "tell application \"System Events\" to if not (exists login item \"${app}\") then make login item at end with properties {path:\"/Applications/${app}.app\", hidden:false}"; then
-        echo "  Error: failed to ensure $app login item." >&2
+        log_error "Failed to ensure $app login item"
         continue
     fi
 
-    echo "  Ensure $app is in login items."
+    log_success "Ensured $app is in login items"
  done
 
-echo "Login items setup complete."
+log_success "Login items setup complete"
 

@@ -1,17 +1,16 @@
 #!/bin/bash
 
-set -euo pipefail
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
 
-if [ "${ALLOW_DEFAULTS:-0}" != "1" ]; then
-  echo "Refusing to change macOS defaults without ALLOW_DEFAULTS=1. Set ALLOW_DEFAULTS=1 to proceed." >&2
-  exit 1
-fi
+# Check guard flag
+require_flag "ALLOW_DEFAULTS" "macOS defaults変更"
 
-echo "Setting macOS defaults..."
+log_info "Setting macOS defaults..."
 
-if command -v osascript >/dev/null 2>&1; then
-  osascript -e 'tell application "System Preferences" to quit' || true
-fi
+# Quit System Preferences to prevent conflicts
+quit_app "System Preferences"
 
 ###############################################################################
 # General UI/UX                                                               #
@@ -54,10 +53,10 @@ defaults write NSGlobalDomain KeyRepeat -int 1
 defaults write NSGlobalDomain InitialKeyRepeat -int 10
 
 # Remap Caps Lock to Control (hidutil required)
-if command -v hidutil >/dev/null 2>&1; then
+if check_command hidutil; then
   /usr/bin/hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}' || true
 else
-  echo "hidutil not found; skipping Caps Lock remap." >&2
+  log_warning "hidutil not found; skipping Caps Lock remap"
 fi
 
 # Set trackpad/mouse/trackpad tracking speed to fastest (0-7, 7 is fastest)
@@ -112,7 +111,7 @@ defaults write com.apple.screencapture disable-shadow -bool true
 ###############################################################################
 
 for app in "Dock" "Finder" "SystemUIServer"; do
-  killall "${app}" > /dev/null 2>&1 || true
+  kill_process "${app}"
  done
 
-echo "macOS defaults set successfully."
+log_success "macOS defaults set successfully"

@@ -3,7 +3,9 @@
 # run_onchange_darwin_keyboard.sh.tmpl
 # Apply or preview the recommended keyboard preset for macOS.
 
-set -euo pipefail
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
 
 usage() {
   cat <<'EOF'
@@ -23,7 +25,7 @@ EOF
 }
 
 apply=0
-target_user=${SUDO_USER:-$(stat -f %Su /dev/console)}
+target_user=${SUDO_USER:-$(get_console_user)}
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -48,7 +50,7 @@ while [ $# -gt 0 ]; do
 done
 
 if ! id "$target_user" >/dev/null 2>&1; then
-  echo "Target user '$target_user' does not exist" >&2
+  log_error "Target user '$target_user' does not exist"
   exit 1
 fi
 
@@ -83,34 +85,30 @@ if [ "$apply" -eq 0 ]; then
   exit 0
 fi
 
-if ! command -v defaults >/dev/null 2>&1; then
-  echo "defaults command not found" >&2
+if ! check_command defaults; then
   exit 1
 fi
 
-if [ "${ALLOW_KEYBOARD_APPLY:-0}" != "1" ]; then
-  echo "Refusing to apply keyboard defaults without ALLOW_KEYBOARD_APPLY=1. Set it and re-run with --apply." >&2
-  exit 1
-fi
+require_flag "ALLOW_KEYBOARD_APPLY" "キーボード設定変更"
 
 print_preview
 
 echo
 "${cmd_prefix[@]}" defaults write -g KeyRepeat -int "$PR_KeyRepeat"
-echo "  - Set KeyRepeat = $PR_KeyRepeat"
+log_success "Set KeyRepeat = $PR_KeyRepeat"
 
 "${cmd_prefix[@]}" defaults write -g InitialKeyRepeat -int "$PR_InitialKeyRepeat"
-echo "  - Set InitialKeyRepeat = $PR_InitialKeyRepeat"
+log_success "Set InitialKeyRepeat = $PR_InitialKeyRepeat"
 
 if [ "$PR_ApplePressAndHoldEnabled" = "false" ]; then
   "${cmd_prefix[@]}" defaults write -g ApplePressAndHoldEnabled -bool false
-  echo "  - Set ApplePressAndHoldEnabled = false"
+  log_success "Set ApplePressAndHoldEnabled = false"
 else
   "${cmd_prefix[@]}" defaults write -g ApplePressAndHoldEnabled -bool true
-  echo "  - Set ApplePressAndHoldEnabled = true"
+  log_success "Set ApplePressAndHoldEnabled = true"
 fi
 
 "${cmd_prefix[@]}" defaults write -g com.apple.keyboard.fnState -int "$PR_fnState"
-echo "  - Set com.apple.keyboard.fnState = $PR_fnState"
+log_success "Set com.apple.keyboard.fnState = $PR_fnState"
 
-echo "Done. Logout or restart affected apps if changes do not apply immediately."
+log_info "Done. Logout or restart affected apps if changes do not apply immediately."

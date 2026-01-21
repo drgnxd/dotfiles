@@ -2,23 +2,28 @@
 
 # hash: {{ include "dot_config/stats/eu.exelban.Stats.plist" | sha256sum }}
 
-echo "Detected changes in Stats (eu.exelban.Stats) configuration. Importing to system..."
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
+
+log_info "Detected changes in Stats (eu.exelban.Stats) configuration. Importing to system..."
 
 PLIST_PATH="{{ .chezmoi.homeDir }}/.config/stats/eu.exelban.Stats.plist"
 
 if [ ! -f "$PLIST_PATH" ]; then
-  echo "Stats plist not found at $PLIST_PATH" >&2
+  log_error "Stats plist not found at $PLIST_PATH"
   exit 1
 fi
 
 # Import settings from XML file
 if ! defaults import eu.exelban.Stats "$PLIST_PATH"; then
-  echo "Failed to import Stats plist." >&2
+  log_error "Failed to import Stats plist"
   exit 1
 fi
 
+log_success "Stats plist imported successfully"
+
 # Prompt reload to maintain cache consistency
-killall cfprefsd 2>/dev/null || true
-# Restart Stats app
-killall Stats 2>/dev/null || true
+kill_process "cfprefsd"
+kill_process "Stats"
 open -a Stats || true

@@ -1,11 +1,13 @@
 #!/bin/bash
 
-set -euo pipefail
+# Source common library
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+source "${LIB_DIR}/common.sh"
 
-echo "\ud83d\dd0d  Auditing macOS security posture..."
+log_info "🔍  Auditing macOS security posture..."
 
 # Console user for user-scoped defaults
-target_user=${SUDO_USER:-$(stat -f %Su /dev/console)}
+target_user=${SUDO_USER:-$(get_console_user)}
 
 read_defaults() {
   local domain=$1 key=$2
