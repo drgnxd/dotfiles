@@ -15,6 +15,7 @@
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
 *   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）、Guile（GNU Guile）
+*   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
 *   **ユーティリティ:** bat, eza, fd, ripgrep, moreutils, ncdu, smartmontools, direnv, pearcleaner
 *   **バージョンマネージャ:** pyenv、node、rust
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）, qFlipper（デバイス書き込みツール）
