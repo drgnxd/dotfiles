@@ -40,7 +40,7 @@ check_command() {
 # Exits with status 1 if the flag is not set to "1".
 # Arguments:
 #   $1: Environment variable name (e.g., "ALLOW_DEFAULTS")
-#   $2: Description of what the flag controls (e.g., "macOS defaults変更")
+#   $2: Description of what the flag controls (e.g., "macOS defaults modification")
 # Outputs:
 #   Error message to stderr if flag is not set
 #######################################
@@ -150,23 +150,53 @@ log_error() {
 # Quit a macOS application if it's running.
 # Arguments:
 #   $1: Application name
+# Outputs:
+#   Warning if osascript unavailable or app fails to quit
 #######################################
 quit_app() {
     local app_name=$1
     
-    if command -v osascript >/dev/null 2>&1; then
-        osascript -e "tell application \"$app_name\" to quit" 2>/dev/null || true
+    if ! command -v osascript >/dev/null 2>&1; then
+        log_warning "osascript not available, cannot quit $app_name"
+        return 1
     fi
+    
+    if ! osascript -e "tell application \"$app_name\" to quit" 2>/dev/null; then
+        log_info "App '$app_name' not running or already quit"
+        return 0
+    fi
+    
+    log_info "Quit application: $app_name"
+    return 0
 }
 
 #######################################
 # Kill a macOS process by name (for applying changes).
 # Arguments:
 #   $1: Process name
+# Outputs:
+#   Info message on success or if process not found
 #######################################
 kill_process() {
     local process_name=$1
-    killall "$process_name" >/dev/null 2>&1 || true
+    
+    if ! command -v killall >/dev/null 2>&1; then
+        log_warning "killall not available, cannot kill $process_name"
+        return 1
+    fi
+    
+    if pgrep -x "$process_name" >/dev/null 2>&1; then
+        if killall "$process_name" 2>/dev/null; then
+            log_info "Restarted process: $process_name"
+            return 0
+        else
+            log_warning "Failed to kill process: $process_name"
+            return 1
+        fi
+    else
+        log_info "Process '$process_name' not running"
+        return 0
+    fi
 }
 
 #######################################

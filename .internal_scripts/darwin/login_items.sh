@@ -6,7 +6,14 @@ LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
 source "${LIB_DIR}/common.sh"
 
 # Check guard flag
-require_flag "ALLOW_GUI" "ログイン項目の変更"
+require_flag "ALLOW_GUI" "login items modification"
+
+# Verify osascript is available
+if ! check_command osascript; then
+    log_error "osascript command not found (required for managing login items)"
+    log_info "This command is part of macOS and should be available by default"
+    exit 1
+fi
 
 log_info "Setting up login items..."
 
