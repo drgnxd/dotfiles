@@ -28,9 +28,12 @@
     <string>Interactive</string>
     
     <key>StandardOutPath</key>
-    <string>/tmp/maccy.out.log</string>
+    <string>/Users/drgnxd/.local/state/launchagents/maccy/stdout.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/tmp/maccy.err.log</string>
+    <string>/Users/drgnxd/.local/state/launchagents/maccy/stderr.log</string>
+    
+    <key>Umask</key>
+    <integer>77</integer>
 </dict>
 </plist>

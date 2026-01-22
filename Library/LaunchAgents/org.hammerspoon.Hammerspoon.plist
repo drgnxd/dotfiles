@@ -28,9 +28,12 @@
     <string>Interactive</string>
     
     <key>StandardOutPath</key>
-    <string>/tmp/hammerspoon.out.log</string>
+    <string>/Users/drgnxd/.local/state/launchagents/hammerspoon/stdout.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/tmp/hammerspoon.err.log</string>
+    <string>/Users/drgnxd/.local/state/launchagents/hammerspoon/stderr.log</string>
+    
+    <key>Umask</key>
+    <integer>77</integer>
 </dict>
 </plist>
