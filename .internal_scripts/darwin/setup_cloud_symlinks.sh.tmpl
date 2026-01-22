@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Source common library
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
@@ -46,8 +47,11 @@ for target in "$CLOUD_DIR"/*; do
                         continue
                     fi
 
-                    ln -sFn "$target" "$link_path"
-                    echo "✅ Created: $link_path -> $target"
+                    if ln -sFn "$target" "$link_path"; then
+                        log_success "Created: $link_path -> $target"
+                    else
+                        log_error "Failed to create symlink: $link_path"
+                    fi
                     ;;
                 *)
                     echo "⏭️  Skipped: $default_name"

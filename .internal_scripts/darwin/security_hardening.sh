@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Source common library
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
@@ -38,15 +39,10 @@ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resourc
 ###############################################################################
 # 3. Account Security                                                         #
 ###############################################################################
+# 3. Guest Account                                                            #
+###############################################################################
 log_info "Disabling Guest Account..."
 sudo sysadminctl -guestAccount off || record_failure "Disable guest account"
-
-###############################################################################
-# 4. File System Visibility                                                   #
-###############################################################################
-log_info "Setting Finder preferences..."
-safe_defaults_write NSGlobalDomain AppleShowAllExtensions -bool true || record_failure "Show all extensions"
-kill_process "Finder"
 
 log_success "✅  Security hardening complete"
 

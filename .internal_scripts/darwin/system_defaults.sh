@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Source common library
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
@@ -43,23 +44,9 @@ fi
 # Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
 ###############################################################################
 
+# Note: Keyboard settings are managed by keyboard.sh script
+
 # Enable tap to click
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-
-# Fastest key repeat
-defaults write NSGlobalDomain KeyRepeat -int 1
-defaults write NSGlobalDomain InitialKeyRepeat -int 10
-
-# Remap Caps Lock to Control (hidutil required)
-if check_command hidutil; then
-  /usr/bin/hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}' || true
-else
-  log_warning "hidutil not found; skipping Caps Lock remap"
-fi
-
-# Set trackpad/mouse/trackpad tracking speed to fastest (0-7, 7 is fastest)
 defaults write -g com.apple.mouse.scaling -int 7
 defaults write -g com.apple.trackpad.scaling -int 7
 
