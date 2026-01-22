@@ -1,14 +1,23 @@
 # Bootstrap for XDG Base Directory compliance
 # This file is placed as $HOME/.zshenv
 
-# 1. Define XDG_CONFIG_HOME (with fallback if undefined)
-export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+# 1. Set UTF-8 locale for all processes (prevents mojibake in GUI apps like Stats)
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
-# 2. Change Zsh configuration directory to under XDG ($HOME/.config/zsh)
+# 2. Define XDG Base Directories (with fallbacks if undefined)
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# 3. Lima VM data directory (XDG-compliant)
+export LIMA_HOME="${XDG_DATA_HOME}/lima"
+
+# 4. Change Zsh configuration directory to under XDG ($HOME/.config/zsh)
 #    This ensures subsequent files like .zshrc are loaded from here
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
-# 3. Source the actual .zshenv if it exists (for environment variable definitions etc.)
+# 5. Source the actual .zshenv if it exists (for environment variable definitions etc.)
 if [[ -f "$ZDOTDIR/.zshenv" ]]; then
     source "$ZDOTDIR/.zshenv"
 fi

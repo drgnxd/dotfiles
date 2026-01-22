@@ -224,6 +224,73 @@ run_onchange_after_setup.sh.tmpl
   → Conditional platform execution
 ```
 
+### 4. Container & Virtualization (Docker + Lima)
+
+**Architecture**: XDG-compliant container environment without symlinks
+
+**Configuration** (`dot_config/zsh/.exports`):
+```bash
+export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"    # ~/.config/docker
+export LIMA_HOME="$XDG_DATA_HOME/lima"            # ~/.local/share/lima
+```
+
+**Directory Structure**:
+```
+~/.config/docker/
+  ├── config.json           # Docker CLI config (contexts, auth)
+  └── contexts/             # Docker context definitions
+      └── meta/*/meta.json  # Context metadata (endpoints)
+
+~/.local/share/lima/
+  ├── _config/              # Lima global config
+  └── <vm-name>/            # VM instances (e.g., myvm, dev, prod)
+      ├── lima.yaml         # VM configuration (CPUs, memory, mounts)
+      ├── sock/docker.sock  # Docker socket (if Docker enabled in VM)
+      ├── diffdisk          # VM disk image
+      └── ...               # VM runtime data
+```
+
+**Management Functions** (`dot_config/zsh/.lima`):
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `lima-start <vm>` | Start VM and auto-switch Docker context | `lima-start dev` |
+| `lima-stop <vm>` | Stop VM gracefully | `lima-stop dev` |
+| `lima-status` (alias: `lls`) | List all VMs with status | `lls` |
+| `lima-shell <vm>` | Open shell inside VM | `lima-shell dev` |
+| `lima-delete <vm>` | Delete VM with confirmation | `lima-delete old-vm` |
+| `docker-ctx <name>` (alias: `dctx`) | Switch Docker context | `dctx dev-context` |
+| `docker-ctx-reset` | Reset to default context | `docker-ctx-reset` |
+| `lima-docker-context <vm>` | Create/update Docker context for VM | `lima-docker-context dev` |
+
+**Typical Workflow**:
+```bash
+# 1. Create Lima VM with Docker
+limactl create --name=dev template://docker
+
+# 2. Start VM (automatically switches Docker context if it exists)
+lima-start dev
+
+# 3. Create Docker context for the VM
+lima-docker-context dev
+
+# 4. Verify Docker connection
+docker ps
+docker info
+
+# 5. Use Docker normally
+docker run -d --name nginx nginx:alpine
+
+# 6. Stop VM when done
+lima-stop dev
+```
+
+**Design Benefits**:
+- **XDG Compliance**: All configs in `~/.config/` and `~/.local/share/`
+- **No Symlinks**: Pure environment variable approach
+- **Multi-VM Support**: Each VM has its own Docker context
+- **Portable**: Works across machines with consistent paths
+
 ---
 
 ## Key Technical Decisions
@@ -247,6 +314,12 @@ run_onchange_after_setup.sh.tmpl
 - **Performance**: `task export` takes 100-500ms
 - **Responsiveness**: Cache read takes <1ms
 - **User Experience**: Instant feedback vs. noticeable lag
+
+### 5. Why No Symlinks for Docker/Lima?
+- **Pure XDG**: Environment variables (`$DOCKER_CONFIG`, `$LIMA_HOME`) fully supported
+- **Clean Home**: No legacy `~/.docker` or `~/.lima` directories
+- **Tool Compatibility**: Modern tools respect XDG environment variables
+- **Simplicity**: Less indirection, easier to debug
 
 ---
 
