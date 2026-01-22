@@ -12,13 +12,10 @@ log_info "Setting up login items..."
 apps=(
     "Alacritty"
     "Floorp"
-    "Hammerspoon"
-    "Maccy"
     "Proton Mail"
     "Proton Pass"
     "ProtonVPN"
     "Sol"
-    "Stats"
 )
 
 for app in "${apps[@]}"; do
