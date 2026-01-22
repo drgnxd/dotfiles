@@ -1,0 +1,10 @@
+# ShellCheck configuration for dotfiles repository
+# https://github.com/koalaman/shellcheck/wiki/SC1090
+
+# SC1090: Can't follow non-constant source. Use a directive to specify location.
+# Reason: We dynamically construct paths to source common.sh
+disable=SC1090
+
+# SC2312: Consider invoking this command separately to avoid masking its return value.
+# Reason: We use strict mode (set -euo pipefail) which fails on command substitution errors
+disable=SC2312
