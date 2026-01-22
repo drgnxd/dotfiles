@@ -1,11 +1,11 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Brewfile hash: {{ include "dot_config/homebrew/Brewfile.tmpl" | sha256sum }}
 
 # Source common library
 LIB_DIR="$(cd "$(dirname "$0")/../lib" && pwd)"
-. "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/common.sh"
 
 BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile"
