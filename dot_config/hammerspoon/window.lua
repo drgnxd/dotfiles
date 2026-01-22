@@ -20,6 +20,18 @@ hs.window.animationDuration = 0
 --   Centered 80%: x=0.1, y=0.1, w=0.8, h=0.8 → (192, 108, 1536, 864)
 --   Top Left:    x=0,    y=0,   w=0.5, h=0.5 → (0, 0, 960, 540)
 local function move_window(x, y, w, h)
+  -- Validate parameters are in range [0, 1]
+  if x < 0 or x > 1 or y < 0 or y > 1 or w < 0 or w > 1 or h < 0 or h > 1 then
+    hs.alert.show("Window position parameters must be between 0 and 1")
+    return
+  end
+  
+  -- Validate position + size doesn't exceed screen bounds
+  if x + w > 1 or y + h > 1 then
+    hs.alert.show("Window position + size exceeds screen bounds")
+    return
+  end
+  
   local win = hs.window.focusedWindow()
   if not win then return end
 

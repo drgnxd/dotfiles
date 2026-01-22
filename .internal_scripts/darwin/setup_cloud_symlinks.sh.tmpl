@@ -10,11 +10,13 @@ CLOUD_DIR="{{ .chezmoi.homeDir }}/Library/CloudStorage"
 HOME_DIR="{{ .chezmoi.homeDir }}"
 
 if [ ! -d "$CLOUD_DIR" ]; then
-    log_warning "No CloudStorage directory. Skipping"
+    log_info "CloudStorage directory not found at: $CLOUD_DIR"
+    log_info "This is normal if cloud services (iCloud, Dropbox, etc.) are not configured"
+    log_info "Skipping cloud symlink setup"
     exit 0
 fi
 
-require_flag "FORCE" "クラウドストレージシンボリックリンク作成"
+require_flag "FORCE" "cloud storage symlink creation"
 
 log_info "☁️  Checking CloudStorage directories..."
 
@@ -43,14 +45,17 @@ for target in "$CLOUD_DIR"/*; do
                     link_path="$HOME_DIR/$link_name"
 
                     if [ -e "$link_path" ] && [ ! -L "$link_path" ]; then
-                        echo "❌ $link_path exists and is not a symlink. Skipping to avoid overwrite." >&2
+                        log_error "Cannot create symlink: $link_path already exists and is not a symlink"
+                        log_info "To fix: Move or remove the existing file/directory first"
+                        log_info "  mv \"$link_path\" \"$link_path.backup\""
                         continue
                     fi
 
                     if ln -sFn "$target" "$link_path"; then
                         log_success "Created: $link_path -> $target"
                     else
-                        log_error "Failed to create symlink: $link_path"
+                        log_error "Failed to create symlink: $link_path -> $target"
+                        log_info "Check permissions: ls -la \"$(dirname "$link_path")\""
                     fi
                     ;;
                 *)
@@ -58,7 +63,8 @@ for target in "$CLOUD_DIR"/*; do
                     ;;
             esac
         else
-            echo "Warning: No TTY available. Skipping '$default_name'."
+            log_warning "No TTY available, cannot prompt for '$default_name'"
+            log_info "Run this script in an interactive terminal to create symlinks"
         fi
     fi
  done

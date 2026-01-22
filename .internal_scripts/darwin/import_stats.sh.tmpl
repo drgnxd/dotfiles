@@ -12,7 +12,17 @@ log_info "Detected changes in Stats (eu.exelban.Stats) configuration. Importing 
 PLIST_PATH="{{ .chezmoi.homeDir }}/.config/stats/eu.exelban.Stats.plist"
 
 if [ ! -f "$PLIST_PATH" ]; then
-  log_error "Stats plist not found at $PLIST_PATH"
+  log_error "Stats configuration file not found: $PLIST_PATH"
+  log_info "Expected location: ~/.config/stats/eu.exelban.Stats.plist"
+  log_info "This file should be created by chezmoi when applying the configuration"
+  log_info "Try running: chezmoi apply ~/.config/stats/eu.exelban.Stats.plist"
+  exit 1
+fi
+
+# Validate plist format
+if ! plutil -lint "$PLIST_PATH" >/dev/null 2>&1; then
+  log_error "Stats plist file is corrupted or invalid: $PLIST_PATH"
+  log_info "Check file format: plutil -lint \"$PLIST_PATH\""
   exit 1
 fi
 
