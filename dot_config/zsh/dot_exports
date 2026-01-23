@@ -117,3 +117,4 @@ path=(
   $path
 )
 export PATH
+export SHELLCHECK_OPTS="--rcfile=$XDG_CONFIG_HOME/shellcheck/shellcheckrc"

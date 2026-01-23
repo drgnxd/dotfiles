@@ -4,3 +4,30 @@
 # Cache and temporary files
 dot_cache/
 dot_local/share/Trash/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Compiled files
+*.zwc
+*.pyc
+__pycache__/
+
+# Temporary/cache directories
+dot_cache/
+dot_local/share/Trash/
+dot_local/state/
+
+# Secret/local configs (already in .chezmoiignore but good to have)
+**/*local*
+**/hosts.yml
