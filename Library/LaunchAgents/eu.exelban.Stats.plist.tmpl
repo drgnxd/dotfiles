@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>org.hammerspoon.Hammerspoon</string>
+    <string>eu.exelban.Stats</string>
     
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/Hammerspoon.app/Contents/MacOS/Hammerspoon</string>
+        <string>/Applications/Stats.app/Contents/MacOS/Stats</string>
     </array>
     
     <key>EnvironmentVariables</key>
@@ -28,10 +28,10 @@
     <string>Interactive</string>
     
     <key>StandardOutPath</key>
-    <string>/Users/author/.local/state/launchagents/hammerspoon/stdout.log</string>
+    <string>{{ .chezmoi.homeDir }}/.local/state/launchagents/stats/stdout.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/Users/author/.local/state/launchagents/hammerspoon/stderr.log</string>
+    <string>{{ .chezmoi.homeDir }}/.local/state/launchagents/stats/stderr.log</string>
     
     <key>Umask</key>
     <integer>77</integer>

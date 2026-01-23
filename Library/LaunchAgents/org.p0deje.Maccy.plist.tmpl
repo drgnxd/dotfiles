@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>eu.exelban.Stats</string>
+    <string>org.p0deje.Maccy</string>
     
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/Stats.app/Contents/MacOS/Stats</string>
+        <string>/Applications/Maccy.app/Contents/MacOS/Maccy</string>
     </array>
     
     <key>EnvironmentVariables</key>
@@ -28,10 +28,10 @@
     <string>Interactive</string>
     
     <key>StandardOutPath</key>
-    <string>/Users/author/.local/state/launchagents/stats/stdout.log</string>
+    <string>{{ .chezmoi.homeDir }}/.local/state/launchagents/maccy/stdout.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/Users/author/.local/state/launchagents/stats/stderr.log</string>
+    <string>{{ .chezmoi.homeDir }}/.local/state/launchagents/maccy/stderr.log</string>
     
     <key>Umask</key>
     <integer>77</integer>

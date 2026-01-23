@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>org.p0deje.Maccy</string>
+    <string>org.hammerspoon.Hammerspoon</string>
     
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/Maccy.app/Contents/MacOS/Maccy</string>
+        <string>/Applications/Hammerspoon.app/Contents/MacOS/Hammerspoon</string>
     </array>
     
     <key>EnvironmentVariables</key>
@@ -28,10 +28,10 @@
     <string>Interactive</string>
     
     <key>StandardOutPath</key>
-    <string>/Users/author/.local/state/launchagents/maccy/stdout.log</string>
+    <string>{{ .chezmoi.homeDir }}/.local/state/launchagents/hammerspoon/stdout.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/Users/author/.local/state/launchagents/maccy/stderr.log</string>
+    <string>{{ .chezmoi.homeDir }}/.local/state/launchagents/hammerspoon/stderr.log</string>
     
     <key>Umask</key>
     <integer>77</integer>
