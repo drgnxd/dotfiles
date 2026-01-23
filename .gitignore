@@ -1,6 +1,26 @@
-# macOS specific files
+# macOS system files
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 
-# Cache and temporary files
+# Editor artifacts
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Compiled files
+*.zwc
+*.pyc
+__pycache__/
+
+# Temporary/cache directories
 dot_cache/
 dot_local/share/Trash/
+dot_local/state/
+
+# Secret/local configs
+**/*local*
+**/hosts.yml
