@@ -61,6 +61,13 @@ export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 # Lima
 export LIMA_HOME="$XDG_DATA_HOME/lima"
 
+# Ollama
+export OLLAMA_MODELS="${XDG_DATA_HOME:-$HOME/.local/share}/ollama/models"
+export OLLAMA_FLASH_ATTENTION="1"
+export OLLAMA_KV_CACHE_TYPE="q8_0"
+export OLLAMA_KEEP_ALIVE="5m"
+export OLLAMA_ORIGINS="moz-extension://*"
+
 # macOS Session state
 export SHELL_SESSION_DIR="$XDG_STATE_HOME/zsh/sessions"
 
