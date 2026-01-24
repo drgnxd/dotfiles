@@ -42,6 +42,17 @@ chezmoi テンプレートロジックを含み、実行時にレンダリング
 | `ALLOW_LSQUARANTINE_OFF=1` | `system_defaults.sh` | Gatekeeper 隔離警告の無効化 |
 | `ALLOW_SPOTLIGHT_DISABLE=1` | `system_defaults.sh` | Spotlight キーボードショートカットの無効化 |
 
+## システムデフォルト適用内容
+
+`system_defaults.sh` は以下の開発者向け設定を適用します。
+
+- 言語/地域: 英語UI（日本）、`en_JP` ロケール、メートル法、摂氏
+- 日付形式（短い形式）: `yyyy/MM/dd`
+- 入力補正: 自動スペル/大文字化/スマート引用符/ダッシュ/ピリオドを無効化
+- Finder: 隠しファイル表示、フルパス表示、拡張子/ステータス/パスバー表示
+- Dock: 自動表示ディレイ/アニメーション無効化、スペース切替アニメーション無効化
+- スクリーンショット: PNG/影なし/`~/Desktop/Screenshots` 保存
+
 ## 使用例
 
 ### すべてのセットアップスクリプトを実行
@@ -51,6 +62,9 @@ chezmoi apply
 
 # または手動でオーケストレーターを実行
 bash ~/.local/share/chezmoi/run_onchange_after_setup.sh.tmpl
+
+# 失敗しても続行する場合
+CONTINUE_ON_ERROR=1 bash ~/.local/share/chezmoi/run_onchange_after_setup.sh.tmpl
 ```
 
 ### 個別スクリプトの実行
@@ -84,6 +98,7 @@ ALLOW_KEYBOARD_APPLY=1 bash .internal_scripts/darwin/keyboard.sh --apply --user 
 
 ### macOS 関数
 - `safe_defaults_write <args>` - エラーチェック付き `defaults write` のラッパー
+- `safe_defaults_write_current_host <args>` - `defaults -currentHost write` のラッパー
 - `quit_app "App Name"` - osascript 経由でアプリケーションを終了
 - `kill_process "ProcessName"` - プロセス名でプロセスを終了（System UI 再起動用）
 - `get_console_user` - 現在の GUI コンソールユーザーを取得

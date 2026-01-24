@@ -18,7 +18,7 @@
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
     *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
-*   **ユーティリティ:** bat, eza, fd, ripgrep, moreutils, ncdu, smartmontools, direnv, pearcleaner
+*   **ユーティリティ:** bat, eza, fd, ripgrep, moreutils, ncdu, smartmontools, direnv, pearcleaner, mas
 *   **バージョンマネージャ:** pyenv、node、rust
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）, qFlipper（デバイス書き込みツール）
 
@@ -73,6 +73,7 @@ hx ~/.config/git/config.local
 - `run_onchange_darwin_security_hardening.sh.tmpl`: ハードニング実行に `ALLOW_HARDEN=1` が必須。失敗を集計して報告。
 - `run_onchange_darwin_system_defaults.sh.tmpl`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。
 - `run_onchange_darwin_keyboard.sh.tmpl`: キーボード設定適用に `ALLOW_KEYBOARD_APPLY=1` が必須（`--apply`時）。
+- `run_onchange_after_setup.sh.tmpl`: `CONTINUE_ON_ERROR=1` で失敗しても継続。
 
 #### パッケージの追加・削除
 

@@ -20,7 +20,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, pearcleaner
+*   **Utilities:** bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, pearcleaner, mas
 *   **Version Managers:** pyenv, node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
@@ -75,6 +75,7 @@ This repository manages `dot_config/homebrew/Brewfile` within the `chezmoi` sour
 - `run_onchange_darwin_security_hardening.sh.tmpl`: requires `ALLOW_HARDEN=1`; aggregates failures.
 - `run_onchange_darwin_system_defaults.sh.tmpl`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`.
 - `run_onchange_darwin_keyboard.sh.tmpl`: requires `ALLOW_KEYBOARD_APPLY=1` when using `--apply`.
+- `run_onchange_after_setup.sh.tmpl`: optional `CONTINUE_ON_ERROR=1` to continue after a failed step.
 
 #### Adding/Removing Packages
 
