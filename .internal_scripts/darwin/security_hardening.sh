@@ -20,7 +20,11 @@ log_info "🛡️  Starting macOS Security Hardening..."
 ###############################################################################
 # Remove custom login window text banner if present
 # This prevents information disclosure at the login screen
-/bin/sh -c '/usr/bin/defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText >/dev/null 2>&1 && sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText' || record_failure "LoginwindowText delete"
+if sudo /usr/bin/defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText >/dev/null 2>&1; then
+  sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText || record_failure "LoginwindowText delete"
+else
+  log_info "LoginwindowText not set; skipping"
+fi
 
 ###############################################################################
 # 1. Network Security (Firewall & Stealth Mode)                             #

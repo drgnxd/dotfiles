@@ -4,13 +4,18 @@ set -euo pipefail
 # Brewfile hash: {{ include "dot_config/homebrew/Brewfile.tmpl" | sha256sum }}
 
 # Source common library
-LIB_DIR="$(cd "$(dirname "$0")/../lib" && pwd)"
+if [ -n "${CHEZMOI_SOURCE_DIR:-}" ]; then
+  LIB_DIR="${CHEZMOI_SOURCE_DIR}/.internal_scripts/lib"
+else
+  LIB_DIR="$(cd "$(dirname "$0")/../lib" && pwd)"
+fi
 source "${LIB_DIR}/common.sh"
 
 BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile"
 BREWFILE_TEMPLATE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile.tmpl"
 TMP_BREWFILE=""
+BUNDLE_OPTIONS=("--no-upgrade")
 
 cleanup() {
   if [ -n "$TMP_BREWFILE" ] && [ -f "$TMP_BREWFILE" ]; then
@@ -25,24 +30,8 @@ log_info "Checking for Homebrew..."
 if command -v brew >/dev/null 2>&1; then
   log_info "Homebrew found. Preparing Brewfile..."
 
-  if [ -f "$BREWFILE_TARGET" ]; then
-    brewfile_path="$BREWFILE_TARGET"
-  elif [ -f "$BREWFILE_SOURCE" ]; then
-    echo "Brewfile missing at $BREWFILE_TARGET. Using source Brewfile."
-    brewfile_path="$BREWFILE_SOURCE"
-  elif [ -f "$BREWFILE_TEMPLATE" ]; then
-    TMP_BREWFILE="$(mktemp)"
-    if chezmoi execute-template < "$BREWFILE_TEMPLATE" > "$TMP_BREWFILE"; then
-      echo "Rendered Brewfile from template (no file written to $BREWFILE_TARGET)."
-      brewfile_path="$TMP_BREWFILE"
-    else
-      echo "Error: failed to render Brewfile template." >&2
-      exit 1
-    fi
-  else
-    echo "Error: Brewfile not found at $BREWFILE_TARGET, $BREWFILE_SOURCE, or template $BREWFILE_TEMPLATE." >&2
-    exit 1
-  fi
+  brewfile_path=$(resolve_brewfile "$BREWFILE_SOURCE") || exit 1
+  TMP_BREWFILE=${RESOLVED_BREWFILE_TMP:-""}
 
   # Prevent chezmoi persistent state lock contention during brew bundle
   if chezmoi state dump >/dev/null 2>&1; then
@@ -51,7 +40,7 @@ if command -v brew >/dev/null 2>&1; then
     echo "Warning: unable to read chezmoi state; continuing" >&2
   fi
 
-  if brew bundle --file="$brewfile_path"; then
+  if brew bundle --file="$brewfile_path" "${BUNDLE_OPTIONS[@]}"; then
     log_success "brew bundle completed successfully"
   else
     log_error "brew bundle failed"

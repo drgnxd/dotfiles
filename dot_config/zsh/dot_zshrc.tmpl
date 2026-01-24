@@ -39,3 +39,14 @@ unset zsh_config_files file
 if [ -f "$HOME/.config/zsh/local.zsh" ]; then
     source "$HOME/.config/zsh/local.zsh"
 fi
+
+# --- Compile .zshrc for faster startup (best-effort) ---
+if [[ -f "$ZDOTDIR/.zshrc" ]]; then
+  if [[ ! -f "$ZDOTDIR/.zshrc.zwc" || "$ZDOTDIR/.zshrc" -nt "$ZDOTDIR/.zshrc.zwc" ]]; then
+    {
+      if ! zcompile "$ZDOTDIR/.zshrc" 2>/dev/null; then
+        print -u2 "Warning: failed to compile $ZDOTDIR/.zshrc"
+      fi
+    } &!
+  fi
+fi
