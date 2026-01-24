@@ -1,8 +1,12 @@
 # ~/.config/zsh/.aliases
 
+has_cmd() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 # Modernize core commands
 # ls -> eza (icons, git status, tree, grouping)
-if command -v eza >/dev/null 2>&1; then
+if has_cmd eza; then
     alias ls='eza --icons --git'
     alias ll='eza --icons --git -l'
     alias la='eza --icons --git -la'
@@ -10,33 +14,35 @@ if command -v eza >/dev/null 2>&1; then
 fi
 
 # grep -> rg (1-char shortcut)
-command -v rg >/dev/null 2>&1 && alias g='rg'
+has_cmd rg && alias g='rg'
 
 # Application shortcuts
 # LazyGit
-command -v lazygit >/dev/null 2>&1 && alias lg='lazygit'
+has_cmd lazygit && alias lg='lazygit'
 
 # fd (find replacement)
-command -v fd >/dev/null 2>&1 && alias f='fd'
+has_cmd fd && alias f='fd'
 
 # bat (cat replacement)
-command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
+has_cmd bat && alias cat='bat --paging=never'
 
 # Taskwarrior (t alias points to wrapper function in .functions)
 alias t='task'
 
 # Unified upgrades
-command -v upgrade_all >/dev/null 2>&1 && alias update='upgrade_all'
+alias update='upgrade_all'
 
 # opencode
-if command -v opencode >/dev/null 2>&1; then
+if has_cmd opencode; then
     alias oc='opencode'
     alias ocd='opencode --continue'
 fi
 
 # chezmoi helpers
-if command -v chezmoi >/dev/null 2>&1; then
+if has_cmd chezmoi; then
     alias c='chezmoi'
     alias ca='chezmoi apply'
     alias ce='chezmoi edit'
 fi
+
+unset -f has_cmd

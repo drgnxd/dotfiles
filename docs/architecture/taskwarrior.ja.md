@@ -8,7 +8,7 @@
 ```
 
 ## コンポーネント
-- Python フックが `~/.cache/taskwarrior/ids.list` と `desc.list` を更新
+- Python フックが `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` と `desc.list` を更新
 - Zsh 関数がキャッシュを読み込み補完/プレビューに利用
 - Fast Syntax Highlighting がIDの妥当性を検証
 

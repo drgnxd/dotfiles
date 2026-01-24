@@ -9,16 +9,16 @@
     
     # SSH Signing Key Setup (Optional):
     # 1. Generate or retrieve your SSH public key:
-    #    ppget show "SSH Key Name" --field public_key > ~/.ssh/id_ed25519.pub
+    #    ppget "SSH Key Name" public_key > ~/.ssh/id_ed25519.pub
     # 2. Set the signing key:
     #    signingkey = ~/.ssh/id_ed25519.pub
     # 3. Create allowed_signers file:
-    #    echo "your.email@example.com $(cat ~/.ssh/id_ed25519.pub)" > ~/.config/git/allowed_signers
+    #    echo "your.email@example.com $(cat ~/.ssh/id_ed25519.pub)" > ${XDG_CONFIG_HOME:-~/.config}/git/allowed_signers
     # 4. Uncomment the lines below:
     # signingkey = ~/.ssh/id_ed25519.pub
 
 # [gpg "ssh"]
-#     allowedSignersFile = ~/.config/git/allowed_signers
+#     allowedSignersFile = ${XDG_CONFIG_HOME:-~/.config}/git/allowed_signers
 
 # [credential]
 #     helper = osxkeychain

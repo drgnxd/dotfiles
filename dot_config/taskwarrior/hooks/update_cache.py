@@ -5,9 +5,11 @@ Taskwarrior cache update module.
 This module provides functionality to update the local cache of task IDs and descriptions
 for use by Zsh integration (syntax highlighting, completion, preview).
 
-Cache files:
-    ~/.cache/taskwarrior/ids.list: Task IDs (one per line)
-    ~/.cache/taskwarrior/desc.list: Task descriptions (format: ID:description)
+Run this script directly to refresh the cache or via Taskwarrior hooks for automatic updates.
+
+Cache files (default under XDG_CACHE_HOME):
+    ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list: Task IDs (one per line)
+    ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/desc.list: Task descriptions (format: ID:description)
 """
 
 import json
@@ -18,7 +20,10 @@ import time
 from typing import List
 
 
-CACHE_DIR = os.path.expanduser("~/.cache/taskwarrior")
+CACHE_DIR = os.path.join(
+    os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
+    "taskwarrior",
+)
 IDS_CACHE_PATH = os.path.join(CACHE_DIR, "ids.list")
 DESC_CACHE_PATH = os.path.join(CACHE_DIR, "desc.list")
 LAST_UPDATE_PATH = os.path.join(CACHE_DIR, ".last_update")
@@ -141,5 +146,17 @@ def process_hook_input() -> None:
     update_cache()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    if "--update-only" in sys.argv[1:]:
+        update_cache()
+        return
+
+    if sys.stdin.isatty():
+        update_cache()
+        return
+
     process_hook_input()
+
+
+if __name__ == "__main__":
+    main()

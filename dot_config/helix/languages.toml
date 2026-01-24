@@ -4,6 +4,9 @@
 command = "R"
 args = ["--slave", "-e", "languageserver::run()"]
 
+[language-server.steel-lsp]
+command = "steel-language-server"
+
 [[language]]
 name = "r"
 scope = "source.r"
@@ -19,9 +22,6 @@ file-types = ["scm", "scheme", "libfive"]
 comment-token = ";"
 indent = { tab-width = 2, unit = "  " }
 language-servers = [ "steel-lsp" ]
-
-[language-server.steel-lsp]
-command = "steel-language-server"
 
 [[grammar]]
 name = "scheme"

@@ -5,15 +5,31 @@
 # Lima VM Management
 # ------------------------------------------------------------------------------
 
-# Start Lima VM and optionally switch Docker context
-lima-start() {
-    if [ -z "$1" ]; then
-        echo "Usage: lima-start <vm-name>"
-        echo "Example: lima-start myvm"
+_lima_require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "Error: $cmd not found" >&2
+        return 127
+    fi
+}
+
+_lima_require_vm() {
+    local action="$1"
+    local vm_name="$2"
+
+    if [ -z "$vm_name" ]; then
+        echo "Usage: ${action} <vm-name>"
+        echo "Example: ${action} myvm"
         return 1
     fi
-    
+}
+
+# Start Lima VM and optionally switch Docker context
+lima-start() {
     local vm_name="$1"
+    _lima_require_vm "lima-start" "$vm_name" || return 1
+    _lima_require_command limactl || return $?
+
     echo "Starting Lima VM: $vm_name..."
     
     if ! limactl start "$vm_name"; then
@@ -23,60 +39,88 @@ lima-start() {
     
     # Switch Docker context if it exists
     local ctx_name="${vm_name}-context"
-    if docker context inspect "$ctx_name" &>/dev/null; then
-        echo "Switching to Docker context: $ctx_name"
-        docker context use "$ctx_name"
+    if command -v docker >/dev/null 2>&1; then
+        if docker context inspect "$ctx_name" &>/dev/null; then
+            echo "Switching to Docker context: $ctx_name"
+            docker context use "$ctx_name"
+        else
+            echo "Note: Docker context '$ctx_name' not found. Use 'lima-docker-context $vm_name' to create it."
+        fi
     else
-        echo "Note: Docker context '$ctx_name' not found. Use 'lima-docker-context $vm_name' to create it."
+        echo "Note: Docker not found; skipping context switch."
     fi
 }
 
 # Stop Lima VM
 lima-stop() {
-    if [ -z "$1" ]; then
-        echo "Usage: lima-stop <vm-name>"
-        echo "Example: lima-stop myvm"
-        return 1
-    fi
-    
     local vm_name="$1"
+    _lima_require_vm "lima-stop" "$vm_name" || return 1
+    _lima_require_command limactl || return $?
+
     echo "Stopping Lima VM: $vm_name..."
     limactl stop "$vm_name"
 }
 
 # List all Lima VMs
 lima-status() {
+    _lima_require_command limactl || return $?
     limactl list
 }
 
 # Open shell in Lima VM
 lima-shell() {
-    if [ -z "$1" ]; then
-        echo "Usage: lima-shell <vm-name>"
-        echo "Example: lima-shell myvm"
-        return 1
-    fi
-    limactl shell "$1"
+    local vm_name="$1"
+    _lima_require_vm "lima-shell" "$vm_name" || return 1
+    _lima_require_command limactl || return $?
+    limactl shell "$vm_name"
 }
 
 # Delete Lima VM
 lima-delete() {
-    if [ -z "$1" ]; then
-        echo "Usage: lima-delete <vm-name>"
+    local force=0
+    local vm_name=""
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -f|--force)
+                force=1
+                ;;
+            -h|--help)
+                echo "Usage: lima-delete [--force] <vm-name>"
+                echo "Example: lima-delete myvm"
+                return 0
+                ;;
+            *)
+                if [ -z "$vm_name" ]; then
+                    vm_name="$1"
+                else
+                    echo "Error: unexpected argument '$1'" >&2
+                    return 1
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    if [ -z "$vm_name" ]; then
+        echo "Usage: lima-delete [--force] <vm-name>"
         echo "Example: lima-delete myvm"
         return 1
     fi
-    
-    local vm_name="$1"
-    echo "Warning: This will permanently delete VM '$vm_name' and all its data."
-    echo -n "Are you sure? (yes/no): "
-    read -r confirm
-    
-    if [ "$confirm" = "yes" ]; then
-        limactl delete "$vm_name"
-    else
-        echo "Deletion cancelled."
+
+    _lima_require_command limactl || return $?
+
+    if [ "$force" -ne 1 ]; then
+        echo "Warning: This will permanently delete VM '$vm_name' and all its data."
+        echo -n "Are you sure? (yes/no): "
+        read -r confirm
+        if [ "$confirm" != "yes" ]; then
+            echo "Deletion cancelled."
+            return 0
+        fi
     fi
+
+    limactl delete "$vm_name"
 }
 
 # ------------------------------------------------------------------------------
@@ -85,6 +129,7 @@ lima-delete() {
 
 # List or switch Docker context
 docker-ctx() {
+    _lima_require_command docker || return $?
     if [ -z "$1" ]; then
         echo "Current Docker contexts:"
         docker context ls
@@ -96,18 +141,16 @@ docker-ctx() {
 
 # Reset Docker context to default
 docker-ctx-reset() {
+    _lima_require_command docker || return $?
     docker context use default
 }
 
 # Create or update Docker context for Lima VM
 lima-docker-context() {
-    if [ -z "$1" ]; then
-        echo "Usage: lima-docker-context <vm-name>"
-        echo "Example: lima-docker-context myvm"
-        return 1
-    fi
-    
     local vm_name="$1"
+    _lima_require_vm "lima-docker-context" "$vm_name" || return 1
+    _lima_require_command docker || return $?
+
     local ctx_name="${vm_name}-context"
     local socket_path="$LIMA_HOME/$vm_name/sock/docker.sock"
     

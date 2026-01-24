@@ -66,14 +66,16 @@ hx ~/.config/git/config.local
 本リポジトリでは、`dot_config/homebrew/Brewfile` を `chezmoi` のソースディレクトリ内で直接管理し、`~/.Brewfile`は使わず`$XDG_CONFIG_HOME/homebrew/Brewfile`（既定: `~/.config/homebrew/Brewfile`）を使用します。
 
 **実行フラグ（安全性関連）**
-- `run_onchange_darwin_install_packages.sh.tmpl`: Brewfileをレンダリングして `brew bundle` を実行（追加フラグなし）。
-- `run_onchange_darwin_import_stats.sh.tmpl`: plistが無い場合は失敗で終了。
-- `run_onchange_darwin_setup_cloud_symlinks.sh.tmpl`: シンボリックリンク作成に `FORCE=1` が必須（対話式。非symlinkターゲットは上書きしない）。
-- `run_onchange_darwin_login_items.sh.tmpl`: ログイン項目変更に `ALLOW_GUI=1` が必須。
-- `run_onchange_darwin_security_hardening.sh.tmpl`: ハードニング実行に `ALLOW_HARDEN=1` が必須。失敗を集計して報告。
-- `run_onchange_darwin_system_defaults.sh.tmpl`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。
-- `run_onchange_darwin_keyboard.sh.tmpl`: キーボード設定適用に `ALLOW_KEYBOARD_APPLY=1` が必須（`--apply`時）。
-- `run_onchange_after_setup.sh.tmpl`: `CONTINUE_ON_ERROR=1` で失敗しても継続。
+- `run_onchange_after_setup.sh.tmpl`: macOSセットアップ手順をまとめて実行。`CONTINUE_ON_ERROR=1` で失敗しても継続。
+- `.internal_scripts/darwin/install_packages.sh.tmpl`: Brewfileをレンダリングして `brew bundle` を実行（追加フラグなし）。
+- `.internal_scripts/darwin/import_stats.sh.tmpl`: plistが無い場合は失敗で終了。
+- `.internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl`: シンボリックリンク作成に `FORCE=1` が必須（対話式。非symlinkターゲットは上書きしない）。
+- `.internal_scripts/darwin/login_items.sh`: ログイン項目変更に `ALLOW_GUI=1` が必須。
+- `.internal_scripts/darwin/security_hardening.sh`: ハードニング実行に `ALLOW_HARDEN=1` が必須。失敗を集計して報告。
+- `.internal_scripts/darwin/system_defaults.sh`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。
+- `.internal_scripts/darwin/keyboard.sh`: キーボード設定適用に `ALLOW_KEYBOARD_APPLY=1` が必須（`--apply`時）。
+- `.internal_scripts/darwin/menubar.sh`: 追加フラグなし。
+- `.internal_scripts/darwin/audit_security.sh`: 追加フラグなし。
 
 #### パッケージの追加・削除
 
@@ -131,6 +133,7 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 
 *   `.chezmoiignore.tmpl`: OSに基づいてファイルを無視するためのテンプレート（例：LinuxでmacOSアプリを無視）
 *   `dot_config/homebrew/Brewfile`: インストールするHomebrewパッケージのリスト（macOSのみ）
+*   `.internal_scripts/`: macOSセットアップ用の内部スクリプト（`run_onchange_after_setup.sh.tmpl` から実行）
 *   `dot_config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
     *   `fsh/`: Zsh Fast Syntax Highlightingのカスタムテーマ
@@ -146,7 +149,7 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
     *   `tmux/`: ターミナルマルチプレクサ（Solarized Darkテーマ）
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
     *   `zsh/`: Zsh設定（プラグインと補完機能）
-*   `run_onchange_darwin_install_packages.sh.tmpl`: `chezmoi apply`後に`brew bundle`を実行するスクリプト（macOSのみ）
+*   `run_onchange_after_setup.sh.tmpl`: `chezmoi apply`後のmacOSセットアップをまとめて実行
 
 ## 機能
 

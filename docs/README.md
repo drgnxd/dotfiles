@@ -68,14 +68,16 @@ hx ~/.config/git/config.local
 This repository manages `dot_config/homebrew/Brewfile` within the `chezmoi` source directory and uses `$XDG_CONFIG_HOME/homebrew/Brewfile` (default `~/.config/homebrew/Brewfile`) instead of `~/.Brewfile`.
 
 **Execution flags (safety):**
-- `run_onchange_darwin_install_packages.sh.tmpl`: renders Brewfile and runs `brew bundle`. No extra flag.
-- `run_onchange_darwin_import_stats.sh.tmpl`: fails if plist missing; exits non-zero.
-- `run_onchange_darwin_setup_cloud_symlinks.sh.tmpl`: requires `FORCE=1` to create symlinks (interactive; non-symlink targets are skipped).
-- `run_onchange_darwin_login_items.sh.tmpl`: requires `ALLOW_GUI=1` to modify login items.
-- `run_onchange_darwin_security_hardening.sh.tmpl`: requires `ALLOW_HARDEN=1`; aggregates failures.
-- `run_onchange_darwin_system_defaults.sh.tmpl`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`.
-- `run_onchange_darwin_keyboard.sh.tmpl`: requires `ALLOW_KEYBOARD_APPLY=1` when using `--apply`.
-- `run_onchange_after_setup.sh.tmpl`: optional `CONTINUE_ON_ERROR=1` to continue after a failed step.
+- `run_onchange_after_setup.sh.tmpl`: orchestrates macOS setup steps; optional `CONTINUE_ON_ERROR=1` to continue after a failed step.
+- `.internal_scripts/darwin/install_packages.sh.tmpl`: renders Brewfile and runs `brew bundle`. No extra flag.
+- `.internal_scripts/darwin/import_stats.sh.tmpl`: fails if plist missing; exits non-zero.
+- `.internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl`: requires `FORCE=1` to create symlinks (interactive; non-symlink targets are skipped).
+- `.internal_scripts/darwin/login_items.sh`: requires `ALLOW_GUI=1` to modify login items.
+- `.internal_scripts/darwin/security_hardening.sh`: requires `ALLOW_HARDEN=1`; aggregates failures.
+- `.internal_scripts/darwin/system_defaults.sh`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`.
+- `.internal_scripts/darwin/keyboard.sh`: requires `ALLOW_KEYBOARD_APPLY=1` when using `--apply`.
+- `.internal_scripts/darwin/menubar.sh`: no extra flag.
+- `.internal_scripts/darwin/audit_security.sh`: no extra flag.
 
 #### Adding/Removing Packages
 
@@ -133,6 +135,7 @@ This will check for updates every 12 hours.
 
 *   `.chezmoiignore.tmpl`: Template to ignore files based on OS (e.g. ignore macOS apps on Linux).
 *   `dot_config/homebrew/Brewfile`: List of Homebrew packages to install (macOS only).
+*   `.internal_scripts/`: Internal macOS setup scripts (invoked by `run_onchange_after_setup.sh.tmpl`).
 *   `dot_config/`: Configuration files for various tools (XDG Base Directory compliant).
     *   `alacritty/`: GPU-accelerated terminal emulator configuration
     *   `fsh/`: Custom themes for Zsh Fast Syntax Highlighting
@@ -148,7 +151,7 @@ This will check for updates every 12 hours.
     *   `tmux/`: Terminal multiplexer with Solarized Dark theme
     *   `yazi/`: Blazing fast terminal file manager with custom theme
     *   `zsh/`: Zsh configuration with plugins and completions
-*   `run_onchange_darwin_install_packages.sh.tmpl`: Script that runs `brew bundle` after `chezmoi apply` (macOS only).
+*   `run_onchange_after_setup.sh.tmpl`: Orchestrates macOS setup steps after `chezmoi apply`.
 
 ## Features
 

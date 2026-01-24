@@ -8,7 +8,7 @@
 ```
 
 ## Components
-- Python hooks update `~/.cache/taskwarrior/ids.list` and `desc.list`.
+- Python hooks update `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` and `desc.list`.
 - Zsh functions load cache data for completion and inline previews.
 - Fast Syntax Highlighting validates IDs using cached lists.
 

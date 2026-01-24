@@ -141,6 +141,62 @@ safe_defaults_write_current_host() {
 }
 
 #######################################
+# Execute macOS defaults write as a specific user.
+# Arguments:
+#   $1: Username
+#   $@: All arguments passed to 'defaults write'
+# Returns:
+#   0 on success, 1 on failure
+#######################################
+safe_defaults_write_as_user() {
+    local target_user=$1
+    shift
+
+    if [ -z "$target_user" ]; then
+        log_error "safe_defaults_write_as_user requires a target user"
+        return 1
+    fi
+
+    if ! check_command defaults; then
+        return 1
+    fi
+
+    if ! run_as_user "$target_user" defaults write "$@"; then
+        log_error "Failed to execute: defaults write $* (user: $target_user)"
+        return 1
+    fi
+    return 0
+}
+
+#######################################
+# Execute macOS defaults write with -currentHost as a specific user.
+# Arguments:
+#   $1: Username
+#   $@: All arguments passed to 'defaults write'
+# Returns:
+#   0 on success, 1 on failure
+#######################################
+safe_defaults_write_current_host_as_user() {
+    local target_user=$1
+    shift
+
+    if [ -z "$target_user" ]; then
+        log_error "safe_defaults_write_current_host_as_user requires a target user"
+        return 1
+    fi
+
+    if ! check_command defaults; then
+        return 1
+    fi
+
+    if ! run_as_user "$target_user" defaults -currentHost write "$@"; then
+        log_error "Failed to execute: defaults -currentHost write $* (user: $target_user)"
+        return 1
+    fi
+    return 0
+}
+
+#######################################
 # Record a failure for later reporting.
 # Appends the failure message to the global FAILURES array.
 # Arguments:
