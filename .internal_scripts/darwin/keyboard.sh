@@ -11,7 +11,7 @@ Usage: ./run_onchange_darwin_keyboard.sh.tmpl [--apply] [--user <name>] [--help]
 
 Preset (recommended):
   KeyRepeat = 1 (fastest)
-  InitialKeyRepeat = 10 (minimal delay)
+  InitialKeyRepeat = 15 (short delay)
   ApplePressAndHoldEnabled = false (prefer repeat over accent popup)
   com.apple.keyboard.fnState = 1 (Fn behaves as standard function keys)
 
@@ -24,6 +24,7 @@ EOF
 
 apply=0
 target_user=${SUDO_USER:-$(get_console_user)}
+preview_prefix=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -54,7 +55,7 @@ fi
 
 cmd_prefix=()
 if [ "$(whoami)" != "$target_user" ]; then
-  cmd_prefix=(sudo -u "$target_user")
+  preview_prefix="sudo -u ${target_user} "
 fi
 
 PR_KeyRepeat=1
@@ -93,10 +94,22 @@ print_preview() {
   printf "com.apple.keyboard.fnState: %s\n" "$PR_fnState"
   echo
   echo "Commands to apply:"
-  echo "  ${cmd_prefix[*]:-} defaults write -g KeyRepeat -int $PR_KeyRepeat"
-  echo "  ${cmd_prefix[*]:-} defaults write -g InitialKeyRepeat -int $PR_InitialKeyRepeat"
-  echo "  ${cmd_prefix[*]:-} defaults write -g ApplePressAndHoldEnabled -bool ${PR_ApplePressAndHoldEnabled}" 
-  echo "  ${cmd_prefix[*]:-} defaults write -g com.apple.keyboard.fnState -int $PR_fnState"
+  printf "  %sdefaults write -g KeyRepeat -int %s\n" "$preview_prefix" "$PR_KeyRepeat"
+  printf "  %sdefaults write -g InitialKeyRepeat -int %s\n" "$preview_prefix" "$PR_InitialKeyRepeat"
+  printf "  %sdefaults write -g ApplePressAndHoldEnabled -bool %s\n" "$preview_prefix" "$PR_ApplePressAndHoldEnabled"
+  printf "  %sdefaults write -g com.apple.keyboard.fnState -int %s\n" "$preview_prefix" "$PR_fnState"
+}
+
+apply_defaults() {
+  local label=$1
+  shift
+
+  if ! safe_defaults_write_as_user "$target_user" "$@"; then
+    log_error "Failed to set ${label}"
+    exit 1
+  fi
+
+  log_success "Set ${label}"
 }
 
 if [ "$apply" -eq 0 ]; then
@@ -121,21 +134,15 @@ fi
 print_preview
 
 echo
-"${cmd_prefix[@]}" safe_defaults_write -g KeyRepeat -int "$PR_KeyRepeat"
-log_success "Set KeyRepeat = $PR_KeyRepeat"
-
-"${cmd_prefix[@]}" safe_defaults_write -g InitialKeyRepeat -int "$PR_InitialKeyRepeat"
-log_success "Set InitialKeyRepeat = $PR_InitialKeyRepeat"
+apply_defaults "KeyRepeat = $PR_KeyRepeat" -g KeyRepeat -int "$PR_KeyRepeat"
+apply_defaults "InitialKeyRepeat = $PR_InitialKeyRepeat" -g InitialKeyRepeat -int "$PR_InitialKeyRepeat"
 
 if [ "$PR_ApplePressAndHoldEnabled" = "false" ]; then
-  "${cmd_prefix[@]}" safe_defaults_write -g ApplePressAndHoldEnabled -bool false
-  log_success "Set ApplePressAndHoldEnabled = false"
+  apply_defaults "ApplePressAndHoldEnabled = false" -g ApplePressAndHoldEnabled -bool false
 else
-  "${cmd_prefix[@]}" safe_defaults_write -g ApplePressAndHoldEnabled -bool true
-  log_success "Set ApplePressAndHoldEnabled = true"
+  apply_defaults "ApplePressAndHoldEnabled = true" -g ApplePressAndHoldEnabled -bool true
 fi
 
-"${cmd_prefix[@]}" safe_defaults_write -g com.apple.keyboard.fnState -int "$PR_fnState"
-log_success "Set com.apple.keyboard.fnState = $PR_fnState"
+apply_defaults "com.apple.keyboard.fnState = $PR_fnState" -g com.apple.keyboard.fnState -int "$PR_fnState"
 
 log_info "Done. Logout or restart affected apps if changes do not apply immediately."

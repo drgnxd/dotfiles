@@ -73,7 +73,7 @@ Fast Syntax Highlightingは以下のスタイルを提供：
 ### 1. テンプレートをコピー
 
 ```bash
-cd ~/.config/zsh/fsh
+cd ${XDG_CONFIG_HOME:-~/.config}/zsh/fsh
 cp chroma-template.ch chroma-mycmd.ch
 ```
 
@@ -129,7 +129,7 @@ chroma/mycmd() {
 
 ### 3. Zshに登録
 
-Chromaファイルは`~/.config/zsh/fsh/`に配置するだけで、Fast Syntax Highlightingが自動的に検出します。
+Chromaファイルは`${XDG_CONFIG_HOME:-~/.config}/zsh/fsh/`に配置するだけで、Fast Syntax Highlightingが自動的に検出します。
 
 ### 4. テスト
 
@@ -151,7 +151,7 @@ Taskwarriorの`chroma-task.ch`は、キャッシュファイルを使用した�
 
 1. **キャッシュファイルの読み込み**
    ```zsh
-   local cache_file="$HOME/.cache/taskwarrior/ids.list"
+   local cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/taskwarrior/ids.list"
    if [[ -f "$cache_file" ]]; then
        CHROMA_TASK_IDS=( ${(f)"$(<"$cache_file")"} )
    fi
@@ -187,7 +187,7 @@ Taskwarriorの`chroma-task.ch`は、キャッシュファイルを使用した�
 zplug list | grep fast-syntax-highlighting
 
 # インストール（zplugの場合）
-echo 'zplug "zdharma-continuum/fast-syntax-highlighting"' >> ~/.config/zsh/.zsh_plugins
+echo 'zplug "zdharma-continuum/fast-syntax-highlighting"' >> ${XDG_CONFIG_HOME:-~/.config}/zsh/.zsh_plugins
 zplug install
 ```
 

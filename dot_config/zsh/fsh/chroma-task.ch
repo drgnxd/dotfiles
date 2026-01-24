@@ -15,7 +15,7 @@ chroma/task() {
     if (( __first_call )); then
         FAST_HIGHLIGHT[chroma-task-subcommand-seen]=0
         # Load IDs from cache file
-        local cache_file="$HOME/.cache/taskwarrior/ids.list"
+        local cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/taskwarrior/ids.list"
         if [[ -f "$cache_file" ]]; then
             CHROMA_TASK_IDS=( ${(f)"$(<"$cache_file")"} )
         else

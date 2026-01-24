@@ -137,6 +137,6 @@ safe_defaults_write com.apple.screencapture location -string "$SCREENSHOT_DIR"
 
 for app in "Dock" "Finder" "SystemUIServer"; do
   kill_process "${app}"
- done
+done
 
 log_success "macOS defaults set successfully"

@@ -81,13 +81,26 @@ function save_stats() {
 function ppget() {
     local query="$1"
     local field="${2:-password}"
+    local json_parser=""
     if [ -z "$query" ]; then
         echo "Usage: ppget <query> [field]" >&2
         return 1
     fi
+    if command -v jq >/dev/null 2>&1; then
+        json_parser="jq"
+    elif command -v jaq >/dev/null 2>&1; then
+        json_parser="jaq"
+    else
+        echo "Error: jq or jaq is required." >&2
+        return 127
+    fi
+    if ! command -v pass-cli >/dev/null 2>&1; then
+        echo "Error: pass-cli not found." >&2
+        return 127
+    fi
     # Search and get field (requires jq)
     local item_id
-    item_id=$(pass-cli search "$query" --json | jq -r '.[0].id')
+    item_id=$(pass-cli search "$query" --json | "$json_parser" -r '.[0].id')
     if [ -z "$item_id" ] || [ "$item_id" = "null" ]; then
         echo "Error: Secret '$query' not found." >&2
         return 1
@@ -107,39 +120,25 @@ function task() {
 
 # Update cache file from current pending tasks
 function _task_cache_update() {
-    local cache_dir="$HOME/.cache/taskwarrior"
-    [ -d "$cache_dir" ] || mkdir -p "$cache_dir"
-    local output
-    # Use -WAITING (virtual tag) to match 'task list' behavior
-    # -wait excludes tasks with wait attribute set (even if past)
-    # -WAITING excludes only currently waiting tasks
-    output=$(command task status:pending -WAITING export 2>/dev/null) || return
-    
-    local ids_file="$cache_dir/ids.list"
-    local desc_file="$cache_dir/desc.list"
-    
-    # Parse JSON and write cache files
-    echo "$output" | python3 -c '
-import sys, json
-from pathlib import Path
-try:
-    tasks = json.load(sys.stdin)
-    ids = []
-    descs = []
-    for t in tasks:
-        tid = t.get("id", 0)
-        if tid != 0:
-            ids.append(str(tid))
-            desc = t.get("description", "")
-            descs.append(f"{tid}:{desc}")
-    if ids:
-        Path(sys.argv[1]).write_text("\n".join(ids))
-        Path(sys.argv[2]).write_text("\n".join(descs))
-except Exception:
-    pass
-' "$ids_file" "$desc_file" 2>/dev/null
-    
-    # Reload cache into current shell
+    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/taskwarrior"
+    local update_script="${XDG_CONFIG_HOME:-$HOME/.config}/taskwarrior/hooks/update_cache.py"
+
+    if [ ! -d "$cache_dir" ] && ! mkdir -p "$cache_dir"; then
+        return 1
+    fi
+
+    if [ ! -f "$update_script" ]; then
+        return 0
+    fi
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if ! python3 "$update_script" --update-only >/dev/null 2>&1; then
+        return 0
+    fi
+
     _task_cache_load
 }
 
@@ -155,7 +154,7 @@ function _task_cache_load() {
     fi
     _TASK_CACHE_LOADING=1
 
-    local cache_dir="$HOME/.cache/taskwarrior"
+    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/taskwarrior"
     local ids_file="$cache_dir/ids.list"
     local desc_file="$cache_dir/desc.list"
     

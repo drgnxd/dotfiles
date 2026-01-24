@@ -3,168 +3,123 @@ tap "buo/cask-upgrade"
 tap "homebrew/autoupdate"
 tap "protonpass/homebrew-tap"
 
-# Brews
-# Cat clone
+# Formulae
+# Core utilities
 brew "bat"
-# Resource monitor
 brew "btop"
-# C++ libraries
-brew "boost"
-# Dotfile manager
-brew "chezmoi"
-# Build system
-brew "cmake"
-# Directory environment switcher
-brew "direnv"
-# Modern ls replacement
-brew "eza"
-# Find alternative
-brew "fd"
-# Fuzzy finder
-brew "fzf"
-# GitHub CLI
-brew "gh"
-# Transparent git encryption
-brew "git-crypt"
-# Git pager
-brew "git-delta"
-# Git LFS
-brew "git-lfs"
-# PGP package
-brew "gnupg"
-# Modal text editor
-brew "helix"
-# Git terminal UI
-brew "lazygit"
-# PNG library
-brew "libpng"
-# Compiler infrastructure
-brew "llvm"
-# Human-friendly cut (field selector)
 brew "choose-rust"
-# Intuitive find & replace CLI (sed alternative)
-brew "sd"
-# Du alternative written in Rust
 brew "dust"
-# Disk usage/free utility (better df)
 brew "duf"
-# Friendly and fast tool for sending HTTP requests
-brew "xh"
-# JSON data processing tool (jq clone)
-brew "jaq"
-# Command-line tool for generating regular expressions
+brew "eza"
+brew "fd"
+brew "fzf"
 brew "grex"
-# Disk usage analyzer
-brew "mas"
+brew "jaq"
 brew "ncdu"
-# JavaScript runtime
-brew "node"
-# GNU Scheme
-brew "guile"
-# Circuit simulator
-brew "ngspice"
-# AI coding agent
-brew "opencode"
-# Local LLM runtime
-brew "ollama"
-# Document converter
-brew "pandoc"
-# Password manager CLI
-brew "pass-cli"
-# File archiver
-brew "p7zip"
-# Python version manager
-brew "pyenv"
-# Python 3.13
-brew "python@3.13"
-# Python 3.14
-brew "python@3.14"
-# Statistical computing
-brew "r"
-# Fast grep alternative
 brew "ripgrep"
-# Rust language
-brew "rust"
-# 7-Zip archiver
-brew "sevenzip"
-# SMART monitoring
-brew "smartmontools"
-# Shell prompt
-brew "starship"
-# Todo manager
-brew "task"
-# Terminal multiplexer
-brew "tmux"
-# Modern typesetting system
-brew "tectonic"
-# Directory tree viewer
+brew "sd"
 brew "tree"
-# File downloader
 brew "wget"
-# Modern typesetting system
-brew "typst"
-# Terminal file manager
+brew "xh"
+
+# Shell and terminal
+brew "direnv"
+brew "starship"
+brew "task"
+brew "tmux"
 brew "yazi"
-# Note-taking assistant
-brew "zk"
-# Directory navigator
 brew "zoxide"
-# Linux virtual machine
-brew "lima"
-# Container runtime
-brew "docker"
-# Container orchestration
-brew "docker-compose"
-# Zsh autosuggestions
 brew "zsh-autosuggestions"
-# Zsh completions
 brew "zsh-completions"
-# Zsh syntax highlighting
 brew "zsh-fast-syntax-highlighting"
 
+# Editors
+brew "helix"
+
+# Git and VCS
+brew "gh"
+brew "git-crypt"
+brew "git-delta"
+brew "git-lfs"
+brew "lazygit"
+
+# Build and libraries
+brew "boost"
+brew "cmake"
+brew "libpng"
+brew "llvm"
+
+# Languages and runtimes
+brew "guile"
+brew "node"
+brew "pyenv"
+brew "python@3.13"
+brew "python@3.14"
+brew "r"
+brew "rust"
+
+# Docs and typesetting
+brew "pandoc"
+brew "tectonic"
+brew "typst"
+
+# Security and secrets
+brew "gnupg"
+brew "pass-cli"
+
+# Compression and storage
+brew "p7zip"
+brew "sevenzip"
+brew "smartmontools"
+
+# Virtualization and containers
+brew "docker"
+brew "docker-compose"
+brew "lima"
+
+# Apps and other tools
+brew "chezmoi"
+brew "mas"
+brew "ngspice"
+brew "opencode"
+brew "ollama"
+brew "zk"
+
 # Casks
-# Terminal emulator
+# Terminal and utilities
 cask "alacritty"
-# Privacy browser
+cask "hammerspoon"
+cask "maccy"
+cask "pearcleaner"
+cask "sol"
+cask "stats"
+
+# Browsers
 cask "floorp"
-cask "font-hackgen"
-cask "font-hackgen-nerd"
-# Image editor
-cask "gimp"
-# Web browser
 cask "google-chrome"
 
-# macOS automation
-cask "hammerspoon"
-# Office suite
+# Fonts
+cask "font-hackgen"
+cask "font-hackgen-nerd"
+
+# Creative and office
+cask "gimp"
 cask "libreoffice"
-# Logitech software
+
+# Hardware
 cask "logi-options+"
-# Clipboard manager
-cask "maccy"
-# App cleaner
-cask "pearcleaner"
-# Cloud storage
+
+# Security and comms
 cask "proton-drive"
-# Email client
 cask "proton-mail"
-# Password manager
 cask "proton-pass"
-# VPN client
 cask "protonvpn"
-# Secure messenger
 cask "signal"
-# Launcher
-cask "sol"
-# System monitor
-cask "stats"
-# 3D slicer
-cask "orcaslicer"
-# PCB design
+
+# Engineering tools
 cask "kicad"
-# Flipper Zero companion
+cask "orcaslicer"
 cask "qflipper"
-# Numerical computation
 cask "scilab"
 
 # MAS

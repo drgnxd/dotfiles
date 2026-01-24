@@ -30,6 +30,10 @@ end
 
 -- Function to display list
 local function show_cheatsheet()
+    if not chooser then
+        return
+    end
+
     local choices = {}
     
     -- Use hs.my_hotkeys recorded in init.lua

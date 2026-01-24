@@ -11,9 +11,14 @@ fi
 # ------------------------------------------------------------------------------
 # 2. Initialize completion system
 # ------------------------------------------------------------------------------
+ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
+if [ ! -d "${ZSH_COMPDUMP%/*}" ]; then
+  mkdir -p "${ZSH_COMPDUMP%/*}"
+fi
+
 autoload -U compinit
 # Skip security check for speed (-C: use cache)
-compinit -C
+compinit -C -d "$ZSH_COMPDUMP"
 
 # ------------------------------------------------------------------------------
 # 3. Style settings (Improve visibility)

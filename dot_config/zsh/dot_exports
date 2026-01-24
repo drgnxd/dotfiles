@@ -5,31 +5,32 @@
 # XDG Base Directory Specification
 # ------------------------------------------------------------------------------
 # Standard XDG locations
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_CACHE_HOME="$HOME/.cache"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_STATE_HOME="$HOME/.local/state"
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
+: "${XDG_CACHE_HOME:=$HOME/.cache}"
+: "${XDG_DATA_HOME:=$HOME/.local/share}"
+: "${XDG_STATE_HOME:=$HOME/.local/state}"
+export XDG_CONFIG_HOME XDG_CACHE_HOME XDG_DATA_HOME XDG_STATE_HOME
 
 # ------------------------------------------------------------------------------
 # Application-specific homes
 # ------------------------------------------------------------------------------
 # GnuPG
-export GNUPGHOME="$HOME/.config/gnupg"
+export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
 
 # Cargo (Rust)
 export CARGO_HOME="$XDG_DATA_HOME/cargo"
 
 # npm (Node.js)
-export NPM_CONFIG_PREFIX="$HOME/.config/npm/global"
-export NPM_CONFIG_CACHE="$HOME/.cache/npm"
-export NPM_CONFIG_USERCONFIG="$HOME/.config/npm/npmrc"
+export NPM_CONFIG_PREFIX="$XDG_CONFIG_HOME/npm/global"
+export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
+export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
 
 # Pyenv
-export PYENV_ROOT="$HOME/.local/share/.pyenv"
+export PYENV_ROOT="$XDG_DATA_HOME/.pyenv"
 
 # Taskwarrior
-export TASKRC="${HOME}/.config/taskwarrior/config"
-export TASKDATA="${HOME}/.local/share/taskwarrior"
+export TASKRC="$XDG_CONFIG_HOME/taskwarrior/config"
+export TASKDATA="$XDG_DATA_HOME/taskwarrior"
 
 # zk
 export ZK_NOTEBOOK_DIR="$HOME/dev/zettel"
@@ -74,8 +75,8 @@ export SHELL_SESSION_DIR="$XDG_STATE_HOME/zsh/sessions"
 # ------------------------------------------------------------------------------
 # Shell history (XDG compliant)
 # ------------------------------------------------------------------------------
-export HISTFILE="$HOME/.local/state/zsh/history"
-export LESSHISTFILE="$HOME/.local/state/less/history"
+export HISTFILE="$XDG_STATE_HOME/zsh/history"
+export LESSHISTFILE="$XDG_STATE_HOME/less/history"
 
 # ------------------------------------------------------------------------------
 # LLVM (Homebrew)

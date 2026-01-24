@@ -25,7 +25,7 @@ zsh_config_files=(
 )
 
 # Source each file if it exists
-for file in $zsh_config_files; do
+for file in "${zsh_config_files[@]}"; do
   [ -f "$file" ] && . "$file"
 done
 

@@ -14,9 +14,10 @@ function M.init()
   end)
 
   -- Auto Reload (Watch for changes in config files)
-  hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", function()
+  M.watcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", function()
     hs.reload()
-  end):start()
+  end)
+  M.watcher:start()
 end
 
 return M

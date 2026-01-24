@@ -27,8 +27,6 @@ style = "Regular"
 [env]
 # Tell apps this is a 256-color terminal (ok if duplicated)
 TERM = "xterm-256color"
-LANG = "en_US.UTF-8"
-LC_ALL = "en_US.UTF-8"
 
 # Solarized Dark color theme
 [colors]
@@ -58,4 +56,4 @@ white = "#fdf6e3"
 [[keyboard.bindings]]
 key = "B"
 mods = "Command"
-command = { program = "/bin/sh", args = ["-c", "/Users/drgnxd/.config/alacritty/toggle_blur.sh"] }
+command = { program = "/bin/sh", args = ["-c", "${XDG_CONFIG_HOME:-$HOME/.config}/alacritty/toggle_blur.sh"] }

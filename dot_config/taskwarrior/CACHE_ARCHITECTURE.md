@@ -16,7 +16,7 @@
 ## キャッシュディレクトリ構造
 
 ```
-~/.cache/taskwarrior/
+${XDG_CACHE_HOME:-~/.cache}/taskwarrior/
 ├── ids.list       # タスクIDのリスト（1行1ID）
 └── desc.list      # タスク説明（ID:description形式）
 ```
@@ -63,7 +63,7 @@ task add "New task"  または  task 1 done
     ├─ task status:pending -WAITING export
     ├─ JSON解析
     ├─ ids.listとdesc.listを生成
-    └─ ~/.cache/taskwarrior/へ書き込み
+    └─ ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/へ書き込み
 ```
 
 ### 2. Zsh統合読み込みフロー
@@ -186,11 +186,11 @@ task add "New task"  または  task 1 done
 1. **Pythonフックが実行されていない**
    ```bash
    # フックファイルを確認
-   ls -la ~/.config/taskwarrior/hooks/
+   ls -la ${XDG_CONFIG_HOME:-~/.config}/taskwarrior/hooks/
    # 実行権限があることを確認（-rwxr-xr-x）
    
    # 権限付与
-   chmod +x ~/.config/taskwarrior/hooks/*.py
+   chmod +x ${XDG_CONFIG_HOME:-~/.config}/taskwarrior/hooks/*.py
    ```
 
 2. **taskコマンドがフックをスキップ**
@@ -201,12 +201,12 @@ task add "New task"  または  task 1 done
 
 3. **キャッシュディレクトリが存在しない**
    ```bash
-   mkdir -p ~/.cache/taskwarrior
+   mkdir -p ${XDG_CACHE_HOME:-~/.cache}/taskwarrior
    ```
 
 4. **手動でキャッシュを再構築**
    ```bash
-   python3 ~/.config/taskwarrior/hooks/update_cache.py < /dev/null
+   python3 ${XDG_CONFIG_HOME:-~/.config}/taskwarrior/hooks/update_cache.py --update-only
    ```
 
 ### プレビューが表示されない
@@ -216,7 +216,7 @@ task add "New task"  または  task 1 done
 **原因と対処**:
 1. **desc.listが空または壊れている**
    ```bash
-   cat ~/.cache/taskwarrior/desc.list
+   cat ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/desc.list
    # 各行が "ID:description" 形式か確認
    ```
 
@@ -226,7 +226,7 @@ task add "New task"  または  task 1 done
    type _task_preview_widget
    
    # ソースファイルを再読み込み
-   source ~/.config/zsh/.functions
+   source ${XDG_CONFIG_HOME:-~/.config}/zsh/.functions
    ```
 
 3. **キーバインドが設定されていない**
@@ -243,7 +243,7 @@ task add "New task"  または  task 1 done
 1. **Fast Syntax Highlighting未インストール**
    ```bash
    # プラグインリストを確認
-   cat ~/.config/zsh/.zsh_plugins
+   cat ${XDG_CONFIG_HOME:-~/.config}/zsh/.zsh_plugins
    
    # 手動インストール（zplugの場合）
    zplug "zdharma-continuum/fast-syntax-highlighting"
@@ -253,12 +253,12 @@ task add "New task"  または  task 1 done
    ```bash
    # chromaパスを確認
    echo $FAST_WORK_DIR
-   ls -la ~/.config/zsh/fsh/
+   ls -la ${XDG_CONFIG_HOME:-~/.config}/zsh/fsh/
    ```
 
 3. **IDs.listが空**
    ```bash
-   cat ~/.cache/taskwarrior/ids.list
+   cat ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list
    # 空なら手動再構築（上記参照）
    ```
 
@@ -308,8 +308,8 @@ with open(os.path.join(cache_dir, "projects.list"), "w") as f:
 | `dot_config/taskwarrior/hooks/on-modify.py` | タスク変更時のフック |
 | `dot_config/zsh/fsh/chroma-task.ch` | Syntax Highlighting定義 |
 | `dot_config/zsh/.functions` | Zshヘルパー関数 |
-| `~/.cache/taskwarrior/ids.list` | キャッシュ（IDリスト） |
-| `~/.cache/taskwarrior/desc.list` | キャッシュ（説明付き） |
+| `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` | キャッシュ（IDリスト） |
+| `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/desc.list` | キャッシュ（説明付き） |
 
 ---
 
