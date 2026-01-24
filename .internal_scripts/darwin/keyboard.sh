@@ -58,7 +58,7 @@ if [ "$(whoami)" != "$target_user" ]; then
 fi
 
 PR_KeyRepeat=1
-PR_InitialKeyRepeat=10
+PR_InitialKeyRepeat=15
 PR_ApplePressAndHoldEnabled=false
 PR_fnState=1
 
