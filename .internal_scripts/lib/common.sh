@@ -36,6 +36,50 @@ check_command() {
 }
 
 #######################################
+# Resolve a Brewfile path, rendering template when needed.
+# Arguments:
+#   $1: Brewfile source path (chezmoi source)
+# Outputs:
+#   Prints resolved Brewfile path to stdout
+# Returns:
+#   0 on success, 1 on failure
+# Notes:
+#   When a template is rendered, RESOLVED_BREWFILE_TMP is set
+#######################################
+resolve_brewfile() {
+    local brewfile_source=$1
+    local brewfile_target="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
+    local brewfile_template="${brewfile_source}.tmpl"
+    local tmp_file=""
+
+    if [ -f "$brewfile_target" ]; then
+        echo "$brewfile_target"
+        return 0
+    fi
+
+    if [ -f "$brewfile_source" ]; then
+        echo "$brewfile_source"
+        return 0
+    fi
+
+    if [ -f "$brewfile_template" ]; then
+        tmp_file=$(mktemp)
+        if chezmoi execute-template < "$brewfile_template" > "$tmp_file"; then
+            RESOLVED_BREWFILE_TMP="$tmp_file"
+            echo "$tmp_file"
+            return 0
+        fi
+
+        log_error "Failed to render Brewfile template"
+        rm -f "$tmp_file"
+        return 1
+    fi
+
+    log_error "Brewfile not found at $brewfile_target, $brewfile_source, or $brewfile_template"
+    return 1
+}
+
+#######################################
 # Require an environment variable flag to be set.
 # Exits with status 1 if the flag is not set to "1".
 # Arguments:
@@ -72,6 +116,25 @@ safe_defaults_write() {
     
     if ! defaults write "$@"; then
         log_error "Failed to execute: defaults write $*"
+        return 1
+    fi
+    return 0
+}
+
+#######################################
+# Execute macOS defaults write with -currentHost.
+# Arguments:
+#   $@: All arguments passed to 'defaults write'
+# Returns:
+#   0 on success, 1 on failure
+#######################################
+safe_defaults_write_current_host() {
+    if ! check_command defaults; then
+        return 1
+    fi
+
+    if ! defaults -currentHost write "$@"; then
+        log_error "Failed to execute: defaults -currentHost write $*"
         return 1
     fi
     return 0

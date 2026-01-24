@@ -29,7 +29,7 @@ safe_defaults_write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 if [ "${ALLOW_LSQUARANTINE_OFF:-0}" = "1" ]; then
   safe_defaults_write com.apple.LaunchServices LSQuarantine -bool false
 else
-  echo "Skipping LSQuarantine disable (set ALLOW_LSQUARANTINE_OFF=1 to apply)."
+  log_info "Skipping LSQuarantine disable (set ALLOW_LSQUARANTINE_OFF=1 to apply)."
 fi
 
 # Disable Spotlight keyboard shortcuts (opt-in; affects global UX)
@@ -37,7 +37,7 @@ if [ "${ALLOW_SPOTLIGHT_DISABLE:-0}" = "1" ]; then
   safe_defaults_write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
   safe_defaults_write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
 else
-  echo "Skipping Spotlight hotkey disable (set ALLOW_SPOTLIGHT_DISABLE=1 to apply)."
+  log_info "Skipping Spotlight hotkey disable (set ALLOW_SPOTLIGHT_DISABLE=1 to apply)."
 fi
 
 ###############################################################################

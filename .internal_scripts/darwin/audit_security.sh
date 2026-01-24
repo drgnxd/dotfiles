@@ -43,4 +43,4 @@ else
 fi
 [ -n "$ext_value" ] && printf "[Finder] AppleShowAllExtensions: %s\n" "$ext_value" || printf "[Finder] AppleShowAllExtensions: unavailable\n"
 
-echo "\u2705  Audit complete."
+log_success "Audit complete."

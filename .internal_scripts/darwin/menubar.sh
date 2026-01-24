@@ -18,11 +18,15 @@ safe_defaults_write com.apple.controlcenter "NSStatusItem Visible Battery" -bool
 safe_defaults_write com.apple.controlcenter "NSStatusItem Visible BentoBox" -bool true
 
 # Set physical spacing between menu bar icons to 10px
-safe_defaults_write -currentHost -globalDomain NSStatusItemSpacing -int 10
+if ! safe_defaults_write_current_host -globalDomain NSStatusItemSpacing -int 10; then
+  log_warning "Skipping currentHost NSStatusItemSpacing update"
+fi
 safe_defaults_write -globalDomain NSStatusItemSpacing -int 10
 
 # Set padding around icons to 6px (makes the button itself smaller)
-safe_defaults_write -currentHost -globalDomain NSStatusItemSelectionPadding -int 6
+if ! safe_defaults_write_current_host -globalDomain NSStatusItemSelectionPadding -int 6; then
+  log_warning "Skipping currentHost NSStatusItemSelectionPadding update"
+fi
 safe_defaults_write -globalDomain NSStatusItemSelectionPadding -int 6
 
 # Now Playing

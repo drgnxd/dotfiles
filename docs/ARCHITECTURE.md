@@ -1,36 +1,16 @@
 # Architecture Overview
 
+## Quick Links
+- [XDG Base Directory Compliance](architecture/xdg-compliance.md)
+- [Security Model and Guard Flags](architecture/security-model.md)
+- [Platform Support](architecture/platform-support.md)
+- [Taskwarrior Integration](architecture/taskwarrior.md)
+
 ## Design Principles
-
-### 1. **XDG Base Directory Compliance**
-All configuration files follow the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html):
-
-```
-$XDG_CONFIG_HOME (~/.config)  → Application configuration
-$XDG_CACHE_HOME (~/.cache)    → Non-essential cached data
-$XDG_DATA_HOME (~/.local/share) → User-specific data files
-```
-
-**Benefits**:
-- Clean home directory
-- Predictable file locations
-- Easy backup/sync
-
-### 2. **Security-First Design**
-- **Guard Flags**: Destructive operations require explicit environment variables
-- **Fail-Safe**: Scripts exit on error (`set -euo pipefail`)
-- **Secrets Exclusion**: `.chezmoiignore.tmpl` prevents sensitive files from being tracked
-
-### 3. **Platform Independence**
-- Conditional inclusion via chezmoi templates
-- Platform-specific scripts in `.internal_scripts/darwin/`
-- Shared tools configured for both macOS and Linux
-
-### 4. **Idempotency**
-All scripts can run multiple times safely:
-- Checks before modifications
-- Non-destructive defaults
-- State-based execution (`run_onchange_` scripts)
+- XDG compliance for predictable config locations
+- Security-first guard flags for destructive operations
+- Platform-aware configuration via chezmoi templates
+- Idempotent scripts safe to re-run with state checks
 
 ---
 
@@ -52,7 +32,7 @@ All scripts can run multiple times safely:
 │   │   └── setup_cloud_symlinks.sh.tmpl # iCloud/Dropbox links
 │   └── lib/
 │       └── common.sh           # Shared bash functions
-├── dot_config/                 # → ~/.config/
+├── dot_config/                 # -> ~/.config/
 │   ├── alacritty/              # Terminal emulator
 │   ├── bat/                    # Syntax-highlighted cat
 │   ├── gh/                     # GitHub CLI
@@ -78,88 +58,12 @@ All scripts can run multiple times safely:
 │       ├── .aliases            # Command shortcuts
 │       ├── .exports            # Environment variables
 │       └── fsh/                # Syntax highlighting chromas
-├── dot_zshenv                  # → ~/.zshenv (XDG setup)
+├── dot_zshenv                  # -> ~/.zshenv (XDG setup)
 ├── run_onchange_after_setup.sh.tmpl # Post-apply orchestrator
 ├── README.md / README.ja.md    # Bilingual documentation
 ├── CONTRIBUTING.md             # Development guide
 └── ARCHITECTURE.md             # This file
 ```
-
----
-
-## Security Model
-
-### Guard Flag System
-
-**Purpose**: Prevent accidental execution of system-modifying scripts
-
-**Implementation**:
-```bash
-# In script
-require_flag "ALLOW_DEFAULTS" "macOS defaults変更"
-
-# User execution
-ALLOW_DEFAULTS=1 ./script.sh
-```
-
-**Flags**:
-| Flag | Script | Risk Level |
-|------|--------|-----------|
-| `ALLOW_DEFAULTS` | system_defaults.sh | Medium |
-| `ALLOW_HARDEN` | security_hardening.sh | High |
-| `ALLOW_GUI` | login_items.sh | Low |
-| `ALLOW_KEYBOARD_APPLY` | keyboard.sh | Low |
-| `FORCE` | setup_cloud_symlinks.sh | Medium |
-
-### Secrets Management
-
-**Exclusions** (`.chezmoiignore.tmpl`):
-```
-# User-specific configs
-**config.local
-**hosts.yml
-
-# macOS-specific files (on Linux)
-{{ if ne .chezmoi.os "darwin" }}
-.internal_scripts/darwin
-{{ end }}
-```
-
-**Proton Pass Integration**:
-- SSH keys retrieved via `ppget` command
-- Git signing configured in `config.local`
-- Credentials never committed
-
----
-
-## Platform Support
-
-### macOS (darwin)
-
-**Package Manager**: Homebrew (`Brewfile.tmpl`)
-
-**System Integration**:
-- `system_defaults.sh`: NSUserDefaults modifications
-- `Hammerspoon`: Window management, input switching
-- `Stats`: System monitor (plist-based config)
-
-**Automation**:
-- Login items managed via AppleScript
-- Menu bar configuration via `defaults` command
-
-### Linux
-
-**Package Manager**: Native (apt/dnf/pacman)
-
-**Shared Tools**:
-- Alacritty, Zsh, Tmux, Helix
-- Taskwarrior, Yazi, Starship
-- All CLI tools (bat, eza, fd, ripgrep)
-
-**Exclusions**:
-- Hammerspoon (macOS-only)
-- Homebrew (macOS-centric)
-- `.internal_scripts/darwin/`
 
 ---
 
@@ -187,25 +91,7 @@ source ~/.config/zsh/.zsh_plugins # Plugin management
 - `.proton`: Proton Pass CLI wrapper
 
 ### 2. Taskwarrior Integration
-
-**Architecture**: See `dot_config/taskwarrior/CACHE_ARCHITECTURE.md`
-
-**Components**:
-```
-[Task add/modify]
-      ↓
-[Python Hooks] → update_cache.py → [Cache Files]
-      ↓                                    ↓
-[Zsh Functions] ← [Fast Syntax Highlighting]
-      ↓
-[Live Preview + Validation]
-```
-
-**Features**:
-- Real-time ID validation
-- Mini-buffer preview
-- Smart completion
-- 1-second TTL cache
+See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 ### 3. chezmoi Integration
 
@@ -216,15 +102,15 @@ source ~/.config/zsh/.zsh_plugins # Plugin management
 **Templates**:
 ```
 dot_config/homebrew/Brewfile.tmpl
-  → Rendered during brew bundle
-  → Hash-based change detection
+  -> Rendered during brew bundle
+  -> Hash-based change detection
 
 run_onchange_after_setup.sh.tmpl
-  → Orchestrates all setup scripts
-  → Conditional platform execution
+  -> Orchestrates all setup scripts
+  -> Conditional platform execution
 ```
 
-### 4. Container & Virtualization (Docker + Lima)
+### 4. Container and Virtualization (Docker + Lima)
 
 **Architecture**: XDG-compliant container environment without symlinks
 
@@ -286,40 +172,30 @@ lima-stop dev
 ```
 
 **Design Benefits**:
-- **XDG Compliance**: All configs in `~/.config/` and `~/.local/share/`
-- **No Symlinks**: Pure environment variable approach
-- **Multi-VM Support**: Each VM has its own Docker context
-- **Portable**: Works across machines with consistent paths
+- XDG compliance keeps paths portable
+- No symlinks needed for Docker/Lima
+- Multi-VM support with per-VM contexts
 
 ---
 
 ## Key Technical Decisions
 
-### 1. Why XDG Base Directory?
-- **Standard**: Widely adopted across Linux/Unix tools
-- **Clean**: Keeps `~` clutter-free
-- **Portable**: Easy to sync dotfiles
+### 1. XDG Base Directory
+See [XDG Base Directory Compliance](architecture/xdg-compliance.md).
 
-### 2. Why Guard Flags over Prompts?
-- **Non-Interactive**: Scripts run without user input
-- **Explicit**: User must consciously enable dangerous operations
-- **Automation-Friendly**: CI/CD compatible
+### 2. Guard Flags Over Prompts
+See [Security Model and Guard Flags](architecture/security-model.md).
 
-### 3. Why Separate Common Library?
-- **DRY Principle**: 9 scripts shared 200+ lines of code
-- **Consistency**: Unified error messages and logging
-- **Maintainability**: Bug fixes propagate to all scripts
+### 3. Separate Common Library
+- Shared helpers reduce duplication across scripts
+- Unified logging and guard behavior
 
-### 4. Why Taskwarrior Cache System?
-- **Performance**: `task export` takes 100-500ms
-- **Responsiveness**: Cache read takes <1ms
-- **User Experience**: Instant feedback vs. noticeable lag
+### 4. Taskwarrior Cache System
+See [Taskwarrior Integration](architecture/taskwarrior.md).
 
-### 5. Why No Symlinks for Docker/Lima?
-- **Pure XDG**: Environment variables (`$DOCKER_CONFIG`, `$LIMA_HOME`) fully supported
-- **Clean Home**: No legacy `~/.docker` or `~/.lima` directories
-- **Tool Compatibility**: Modern tools respect XDG environment variables
-- **Simplicity**: Less indirection, easier to debug
+### 5. No Symlinks for Docker/Lima
+- Pure environment variable approach
+- Less indirection and easier debugging
 
 ---
 
@@ -331,13 +207,10 @@ lima-stop dev
 - Compiled `.zshrc.zwc` via zcompile
 
 ### 2. Taskwarrior
-- Cache TTL (1 second) prevents redundant reads
-- Python hooks use `subprocess.DEVNULL` for silent operation
-- Non-blocking cache updates
+- Cache refresh is throttled and asynchronous (see taskwarrior doc)
 
 ### 3. Homebrew
 - `run_onchange` executes only when Brewfile changes
-- Parallel installation where possible
 - Auto-update via `homebrew-autoupdate`
 
 ---

@@ -14,7 +14,42 @@ import json
 import os
 import subprocess
 import sys
-from typing import List, Tuple
+import time
+from typing import List
+
+
+CACHE_DIR = os.path.expanduser("~/.cache/taskwarrior")
+IDS_CACHE_PATH = os.path.join(CACHE_DIR, "ids.list")
+DESC_CACHE_PATH = os.path.join(CACHE_DIR, "desc.list")
+LAST_UPDATE_PATH = os.path.join(CACHE_DIR, ".last_update")
+MIN_UPDATE_INTERVAL_SECONDS = 5
+
+
+def should_skip_update(now: float) -> bool:
+    try:
+        last_update = os.path.getmtime(LAST_UPDATE_PATH)
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return False
+    return now - last_update < MIN_UPDATE_INTERVAL_SECONDS
+
+
+def touch_update_marker(now: float) -> None:
+    with open(LAST_UPDATE_PATH, "a"):
+        os.utime(LAST_UPDATE_PATH, (now, now))
+
+
+def write_if_changed(path: str, content: str) -> None:
+    try:
+        with open(path, "r") as existing_file:
+            if existing_file.read() == content:
+                return
+    except FileNotFoundError:
+        pass
+
+    with open(path, "w") as target_file:
+        target_file.write(content)
 
 
 def update_cache() -> None:
@@ -32,9 +67,13 @@ def update_cache() -> None:
     Note:
         Uses -WAITING filter to match 'task list' behavior (excludes currently waiting tasks).
         Silently fails if task command fails to prevent blocking task operations.
+        Skips refresh if the last update was recent to reduce hook latency.
     """
-    cache_dir = os.path.expanduser("~/.cache/taskwarrior")
-    os.makedirs(cache_dir, exist_ok=True)
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    now = time.time()
+
+    if should_skip_update(now):
+        return
     
     try:
         # Get pending tasks in JSON format
@@ -57,11 +96,12 @@ def update_cache() -> None:
                 descs.append(f"{task_id}:{task['description']}")
         
         # Write cache files
-        with open(os.path.join(cache_dir, "ids.list"), "w") as f:
-            f.write("\n".join(ids))
-        
-        with open(os.path.join(cache_dir, "desc.list"), "w") as f:
-            f.write("\n".join(descs))
+        ids_content = "\n".join(ids)
+        descs_content = "\n".join(descs)
+
+        write_if_changed(IDS_CACHE_PATH, ids_content)
+        write_if_changed(DESC_CACHE_PATH, descs_content)
+        touch_update_marker(now)
             
     except subprocess.CalledProcessError:
         # Task command failed - silently ignore to prevent blocking task operations

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Taskwarrior on-modify hook.
+Taskwarrior on-add hook.
 
-This hook is triggered when a task is modified.
-It forwards the modified task JSON to Taskwarrior and updates the cache.
+This hook is triggered when a task is added.
+It forwards the new task JSON to Taskwarrior and updates the cache.
 """
 
 import sys
@@ -17,4 +17,3 @@ from update_cache import process_hook_input
 
 if __name__ == "__main__":
     process_hook_input()
-

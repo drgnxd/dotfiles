@@ -98,10 +98,11 @@ task add "New task"  または  task 1 done
   - `task status:pending -WAITING export`でJSON取得
   - IDとdescriptionを抽出
   - 2つのキャッシュファイルに書き込み
+  - 直近5秒以内の更新はスキップ（連続フックの負荷軽減）
 - `process_hook_input()`: フック入力を処理
   - stdinからJSON読み込み
   - 最後のJSONオブジェクトをstdoutに出力（Taskwarrior要求）
-  - `update_cache()`を非同期的に呼び出し
+  - 出力後に`update_cache()`を実行
 
 **エラーハンドリング**:
 - すべての例外を`pass`で吸収（Taskwarrior操作をブロックしないため）
@@ -167,10 +168,11 @@ task add "New task"  または  task 1 done
 
 ### パフォーマンス最適化
 
-1. **非同期更新**: フックはTaskwarrior操作完了後に実行
+1. **フック後更新**: Taskwarrior操作完了後に実行
 2. **ローカルファイル**: ネットワークアクセス不要
 3. **差分更新なし**: 全再構築（平均10ms以下）
 4. **Zsh側TTL**: 1秒間のメモリキャッシュで連続読み込みを回避
+5. **更新スロットリング**: 5秒以内の重複更新を抑制
 
 ---
 
