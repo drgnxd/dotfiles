@@ -42,6 +42,17 @@ Several scripts require explicit environment variables to prevent accidental exe
 | `ALLOW_LSQUARANTINE_OFF=1` | `system_defaults.sh` | Disable Gatekeeper quarantine warnings |
 | `ALLOW_SPOTLIGHT_DISABLE=1` | `system_defaults.sh` | Disable Spotlight keyboard shortcuts |
 
+## System Defaults Profile
+
+`system_defaults.sh` applies a developer-friendly defaults profile:
+
+- Language/region: English UI (Japan), locale `en_JP`, metric units, Celsius
+- Date format (short): `yyyy/MM/dd`
+- Text input: disable autocorrect, capitalization, smart quotes/dashes/periods
+- Finder: show hidden files and POSIX path, show extensions/status/path bars
+- Dock: remove autohide delay/animation, disable Spaces animation
+- Screenshots: PNG, no shadow, save to `~/Desktop/Screenshots`
+
 ## Usage Examples
 
 ### Run all setup scripts
@@ -51,6 +62,9 @@ chezmoi apply
 
 # Or manually execute the orchestrator
 bash ~/.local/share/chezmoi/run_onchange_after_setup.sh.tmpl
+
+# Continue even if a step fails
+CONTINUE_ON_ERROR=1 bash ~/.local/share/chezmoi/run_onchange_after_setup.sh.tmpl
 ```
 
 ### Run individual scripts
@@ -84,6 +98,7 @@ All scripts source `../lib/common.sh` which provides:
 
 ### macOS Functions
 - `safe_defaults_write <args>` - Wrapper for `defaults write` with error checking
+- `safe_defaults_write_current_host <args>` - Wrapper for `defaults -currentHost write`
 - `quit_app "App Name"` - Quit application gracefully via osascript
 - `kill_process "ProcessName"` - Kill process by name (used for System UI restarts)
 - `get_console_user` - Get the current GUI console user
