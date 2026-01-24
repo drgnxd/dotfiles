@@ -25,6 +25,16 @@ safe_defaults_write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool tru
 safe_defaults_write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 safe_defaults_write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
+# Language and region (English UI, Japan region)
+safe_defaults_write NSGlobalDomain AppleLanguages -array "en-JP" "ja-JP"
+safe_defaults_write NSGlobalDomain AppleLocale -string "en_JP"
+safe_defaults_write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
+safe_defaults_write NSGlobalDomain AppleMetricUnits -bool true
+safe_defaults_write NSGlobalDomain AppleTemperatureUnit -string "Celsius"
+
+# Date format (short): yyyy/MM/dd
+safe_defaults_write NSGlobalDomain AppleICUDateFormatStrings -dict-add 1 "yyyy/MM/dd"
+
 # Disable the "Are you sure you want to open this application?" dialog (opt-in)
 if [ "${ALLOW_LSQUARANTINE_OFF:-0}" = "1" ]; then
   safe_defaults_write com.apple.LaunchServices LSQuarantine -bool false
@@ -39,6 +49,13 @@ if [ "${ALLOW_SPOTLIGHT_DISABLE:-0}" = "1" ]; then
 else
   log_info "Skipping Spotlight hotkey disable (set ALLOW_SPOTLIGHT_DISABLE=1 to apply)."
 fi
+
+# Disable smart text substitutions (developer-friendly)
+safe_defaults_write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+safe_defaults_write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+safe_defaults_write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+safe_defaults_write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+safe_defaults_write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
 
 ###############################################################################
 # Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
@@ -56,6 +73,12 @@ safe_defaults_write -g com.apple.trackpad.scaling -int 7
 
 # Always show all extensions
 safe_defaults_write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# Show hidden files in Finder
+safe_defaults_write com.apple.finder AppleShowAllFiles -bool true
+
+# Show POSIX path in Finder title bar
+safe_defaults_write com.apple.finder _FXShowPosixPathInTitle -bool true
 
 # Show status bar
 safe_defaults_write com.apple.finder ShowStatusBar -bool true
@@ -80,6 +103,13 @@ safe_defaults_write com.apple.desktopservices DSDontWriteUSBStores -bool true
 # Automatically hide and show the Dock
 safe_defaults_write com.apple.dock autohide -bool true
 
+# Remove Dock autohide delay and animation
+safe_defaults_write com.apple.dock autohide-delay -float 0
+safe_defaults_write com.apple.dock autohide-time-modifier -float 0
+
+# Disable Spaces animation
+safe_defaults_write com.apple.dock workspaces-swoosh-animation-off -bool true
+
 # Don't show recent applications in Dock
 safe_defaults_write com.apple.dock show-recents -bool false
 
@@ -92,6 +122,14 @@ safe_defaults_write com.apple.dock tilesize -int 48
 
 # Disable shadow in screenshots
 safe_defaults_write com.apple.screencapture disable-shadow -bool true
+
+# Save screenshots as PNG
+safe_defaults_write com.apple.screencapture type -string "png"
+
+# Save screenshots to a dedicated folder
+SCREENSHOT_DIR="$HOME/Desktop/Screenshots"
+mkdir -p "$SCREENSHOT_DIR"
+safe_defaults_write com.apple.screencapture location -string "$SCREENSHOT_DIR"
 
 ###############################################################################
 # Kill affected applications                                                  #
