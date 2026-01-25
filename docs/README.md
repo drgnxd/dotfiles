@@ -74,7 +74,7 @@ This repository manages `dot_config/homebrew/Brewfile` within the `chezmoi` sour
 - `.internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl`: requires `FORCE=1` to create symlinks (interactive; non-symlink targets are skipped).
 - `.internal_scripts/darwin/login_items.sh`: requires `ALLOW_GUI=1` to modify login items.
 - `.internal_scripts/darwin/security_hardening.sh`: requires `ALLOW_HARDEN=1`; aggregates failures.
-- `.internal_scripts/darwin/system_defaults.sh`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`.
+- `.internal_scripts/darwin/system_defaults.sh`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`. Applies Dock running-apps-only (`static-only`).
 - `.internal_scripts/darwin/keyboard.sh`: requires `ALLOW_KEYBOARD_APPLY=1` when using `--apply`.
 - `.internal_scripts/darwin/menubar.sh`: no extra flag.
 - `.internal_scripts/darwin/audit_security.sh`: no extra flag.

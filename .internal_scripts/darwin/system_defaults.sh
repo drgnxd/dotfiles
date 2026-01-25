@@ -115,6 +115,9 @@ safe_defaults_write com.apple.dock workspaces-swoosh-animation-off -bool true
 # Don't show recent applications in Dock
 safe_defaults_write com.apple.dock show-recents -bool false
 
+# Show only running applications in Dock
+safe_defaults_write com.apple.dock static-only -bool true
+
 # Set Dock icon size (pixels)
 safe_defaults_write com.apple.dock tilesize -int 48
 
