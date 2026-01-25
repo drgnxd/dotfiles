@@ -141,6 +141,8 @@ Default:
 
 ## References
 
+Last accessed: YYYY-MM-DD
+
 ### Official Documentation
 - [Name of Standard/Framework](https://example.com)
 

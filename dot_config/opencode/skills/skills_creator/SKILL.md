@@ -109,6 +109,10 @@ metadata:
 - Write all newly created skills in English.
 - Apply this to `SKILL.md`, `doc/`, and any examples or inline text.
 
+### Reference Formatting
+
+- When listing URL references, add `Last accessed: YYYY-MM-DD` above the list.
+
 
 ## Naming Conventions
 
