@@ -1,11 +1,6 @@
 ---
 name: code_review
 description: Code review focus areas and quality checklist
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Code Review

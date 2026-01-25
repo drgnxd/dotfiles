@@ -1,11 +1,6 @@
 ---
 name: coding
 description: Baseline coding standards grounded in Unix philosophy and clean design.
-license: Apache-2.0
-metadata:
-  author: drgnxd
-  version: "1.0.0"
-  category: coding
 ---
 
 # Coding Skill - Unix Philosophy

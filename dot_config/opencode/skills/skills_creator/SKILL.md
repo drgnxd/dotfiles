@@ -1,11 +1,6 @@
 ---
 name: skills_creator
 description: Meta-skill for creating new Agent Skills following agentskills.io specification. Use when user requests creation of a new skill or asks how to structure skills.
-license: Apache-2.0
-metadata:
-  author: drgnxd
-  version: "1.0.0"
-  category: meta
 ---
 
 # Skills Creator
@@ -87,11 +82,6 @@ Use the template from `doc/tpl.md` to create SKILL.md.
 ---
 name: skill_name                    # snake_case, max 64 chars
 description: Brief description      # When to use this skill (1-2 lines)
-license: Apache-2.0                 # Or appropriate license
-metadata:
-  author: organization-name
-  version: "1.0.0"                  # Semantic versioning
-  category: coding|writing|meta     # Optional but recommended
 ---
 ```
 

@@ -1,11 +1,6 @@
 ---
 name: documentation
 description: Documentation standards for clear and useful docs
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: writing
 ---
 
 # Documentation

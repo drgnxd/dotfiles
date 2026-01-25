@@ -1,0 +1,2 @@
+Identify the highest-uncertainty topics and perform citation chaining and triangulation.
+Record contradictions, opposing views, and confidence updates.

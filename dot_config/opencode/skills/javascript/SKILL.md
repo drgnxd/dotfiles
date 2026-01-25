@@ -1,11 +1,6 @@
 ---
 name: javascript
 description: JavaScript and TypeScript conventions for consistent code
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # JavaScript

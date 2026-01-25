@@ -18,11 +18,6 @@ naming_conventions/
 ---
 name: naming_conventions
 description: File and code naming standards for consistency across projects. Use when creating new files, variables, functions, or classes.
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Naming Conventions
@@ -126,11 +121,6 @@ api_design/
 ---
 name: api_design
 description: RESTful API design standards and conventions. Use when designing new APIs or reviewing API specifications.
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # API Design Standards
@@ -304,11 +294,6 @@ csv_validator/
 ---
 name: csv_validator
 description: CSV file validation rules and automated checking. Use when processing or validating CSV data files.
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: analysis
 ---
 
 # CSV Validator
@@ -453,11 +438,6 @@ code_review/
 ---
 name: code_review
 description: Code review checklist and process guidelines. Use when reviewing pull requests or conducting peer reviews.
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Code Review Process
@@ -605,7 +585,7 @@ PR Size > 800 lines:
 
 ### Common Success Factors
 
-- **Clear YAML metadata**: Makes skill discoverable
+- **Clear YAML front matter**: Makes skill discoverable
 - **Focused purpose**: Single responsibility
 - **Practical examples**: Real ✅/❌ patterns
 - **Progressive detail**: Essential first, details in doc/

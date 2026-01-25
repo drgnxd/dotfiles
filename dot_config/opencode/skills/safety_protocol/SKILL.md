@@ -1,11 +1,6 @@
 ---
 name: safety_protocol
 description: Safety rules for potentially destructive commands and changes
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: meta
 ---
 
 # Safety Protocol

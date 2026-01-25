@@ -1,11 +1,6 @@
 ---
 name: linux_sysadmin
 description: Linux administration guidance for safe system operations
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Linux Sysadmin

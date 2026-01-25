@@ -1,11 +1,6 @@
 ---
 name: default_naming_conventions
 description: Default filename and directory rules using the UNIX-Modern Snake Protocol
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.1.0"
-  category: coding
 ---
 
 ## Purpose

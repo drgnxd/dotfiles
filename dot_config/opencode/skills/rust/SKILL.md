@@ -1,11 +1,6 @@
 ---
 name: rust
 description: Rust conventions for idiomatic and safe code
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Rust

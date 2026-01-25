@@ -1,11 +1,6 @@
 ---
 name: docker_experts
 description: Best practices for Docker builds and container operations
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Docker Experts
