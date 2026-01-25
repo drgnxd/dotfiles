@@ -1,5 +1,5 @@
 ---
-name: skills-creator
+name: skills_creator
 description: Meta-skill for creating new Agent Skills following agentskills.io specification. Use when user requests creation of a new skill or asks how to structure skills.
 license: Apache-2.0
 metadata:

@@ -46,7 +46,10 @@ local function move_window(x, y, w, h)
   end
   
   local win = hs.window.focusedWindow()
-  if not win then return end
+  if not win then
+    hs.alert.show("No focused window")
+    return
+  end
 
   local f = win:frame()
   local screen = win:screen()
