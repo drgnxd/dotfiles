@@ -10,11 +10,6 @@ Language note: Write all content in English, including headings, examples, and i
 ---
 name: your_skill_name
 description: Brief description of when and why to use this skill (1-2 lines)
-license: Apache-2.0
-metadata:
-  author: your_organization
-  version: "1.0.0"
-  category: coding|writing|analysis|meta|finance|other
 ---
 
 # [Skill Display Name]

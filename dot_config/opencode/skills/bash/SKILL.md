@@ -1,11 +1,6 @@
 ---
 name: bash
 description: Bash scripting standards for safe automation
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Bash

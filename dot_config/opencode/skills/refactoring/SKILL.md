@@ -1,11 +1,6 @@
 ---
 name: refactoring
 description: Refactoring strategies for safe and incremental improvements
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Refactoring

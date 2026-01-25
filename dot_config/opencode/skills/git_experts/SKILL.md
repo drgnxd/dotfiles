@@ -1,11 +1,6 @@
 ---
 name: git_experts
 description: Git workflow and collaboration best practices
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Git Experts

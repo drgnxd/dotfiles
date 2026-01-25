@@ -1,11 +1,6 @@
 ---
 name: testing
 description: Testing strategy and coverage guidelines
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Testing

@@ -1,11 +1,6 @@
 ---
 name: python
 description: Python conventions for readable and reliable code
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Python

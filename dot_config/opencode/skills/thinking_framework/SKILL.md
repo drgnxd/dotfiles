@@ -1,11 +1,6 @@
 ---
 name: thinking_framework
 description: Structured reasoning workflow for planning, verification, and robustness
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: meta
 ---
 
 # Thinking Framework

@@ -1,11 +1,6 @@
 ---
 name: database_experts
 description: Database design and query optimization guidance
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Database Experts

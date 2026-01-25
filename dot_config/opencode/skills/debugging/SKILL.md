@@ -1,11 +1,6 @@
 ---
 name: debugging
 description: Debugging techniques for isolating issues efficiently
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: coding
 ---
 
 # Debugging

@@ -1,11 +1,6 @@
 ---
 name: japanese_communication
 description: Standards for Japanese responses, tone, and technical clarity
-license: Apache-2.0
-metadata:
-  author: opencode
-  version: "1.0.0"
-  category: writing
 ---
 
 # Japanese Communication
