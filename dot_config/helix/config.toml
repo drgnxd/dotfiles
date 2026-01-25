@@ -42,6 +42,8 @@ C-w = "delete_word_backward"   # Word erase
 "A-d" = "delete_word_forward"  # Kill word
 C-k = "kill_to_line_end"       # Kill line end
 C-u = "kill_to_line_start"     # Kill line start
+# Integration
+C-y = "paste_after"
 
 # Mode control
 C-g = "normal_mode"            # Abort/escape
