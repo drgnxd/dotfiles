@@ -3,6 +3,8 @@ set -euo pipefail
 
 # Source common library
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+# shellcheck source=../lib/common.sh
+# shellcheck disable=SC1091
 source "${LIB_DIR}/common.sh"
 
 log_info "Setting up Menu Bar and Control Center preferences..."

@@ -65,7 +65,7 @@ resolve_brewfile() {
     if [ -f "$brewfile_template" ]; then
         tmp_file=$(mktemp)
         if chezmoi execute-template < "$brewfile_template" > "$tmp_file"; then
-            RESOLVED_BREWFILE_TMP="$tmp_file"
+            export RESOLVED_BREWFILE_TMP="$tmp_file"
             echo "$tmp_file"
             return 0
         fi
