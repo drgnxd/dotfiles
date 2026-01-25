@@ -58,8 +58,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://git-scm.com/docs/git-commit
-- https://git-scm.com/docs/git-rebase
-- https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project
+- https://git-scm.com/docs/git-commit (Last accessed: 2026-01-26)
+- https://git-scm.com/docs/git-rebase (Last accessed: 2026-01-26)
+- https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project (Last accessed: 2026-01-26)

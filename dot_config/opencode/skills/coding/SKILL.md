@@ -150,7 +150,6 @@ For detailed examples, see:
 
 ## References
 
-Last accessed: 2026-01-26
 
-- https://agentskills.io/specification
-- https://en.wikipedia.org/wiki/Unix_philosophy
+- https://agentskills.io/specification (Last accessed: 2026-01-26)
+- https://en.wikipedia.org/wiki/Unix_philosophy (Last accessed: 2026-01-26)

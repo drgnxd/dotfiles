@@ -141,13 +141,11 @@ Default:
 
 ## References
 
-Last accessed: YYYY-MM-DD
-
 ### Official Documentation
-- [Name of Standard/Framework](https://example.com)
+- [Name of Standard/Framework](https://example.com) (Last accessed: YYYY-MM-DD)
 
 ### Industry Best Practices
-- [Authority/Organization](https://example.com)
+- [Authority/Organization](https://example.com) (Last accessed: YYYY-MM-DD)
 
 ### Internal Resources
 - See [detailed_guide](doc/detailed_guide.md) for advanced usage

@@ -68,8 +68,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://google.github.io/styleguide/
-- https://developer.mozilla.org/en-US/docs/Glossary/Snake_case
-- https://peps.python.org/pep-0008/
+- https://google.github.io/styleguide/ (Last accessed: 2026-01-26)
+- https://developer.mozilla.org/en-US/docs/Glossary/Snake_case (Last accessed: 2026-01-26)
+- https://peps.python.org/pep-0008/ (Last accessed: 2026-01-26)

@@ -55,8 +55,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://google.github.io/eng-practices/review/reviewer/
-- https://google.github.io/eng-practices/review/reviewer/standard.html
-- https://google.github.io/eng-practices/review/
+- https://google.github.io/eng-practices/review/reviewer/ (Last accessed: 2026-01-26)
+- https://google.github.io/eng-practices/review/reviewer/standard.html (Last accessed: 2026-01-26)
+- https://google.github.io/eng-practices/review/ (Last accessed: 2026-01-26)

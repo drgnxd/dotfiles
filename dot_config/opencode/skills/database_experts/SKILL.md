@@ -58,8 +58,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://www.postgresql.org/docs/current/indexes.html
-- https://www.postgresql.org/docs/current/using-explain.html
-- https://www.postgresql.org/docs/current/performance-tips.html
+- https://www.postgresql.org/docs/current/indexes.html (Last accessed: 2026-01-26)
+- https://www.postgresql.org/docs/current/using-explain.html (Last accessed: 2026-01-26)
+- https://www.postgresql.org/docs/current/performance-tips.html (Last accessed: 2026-01-26)

@@ -57,8 +57,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://docs.docker.com/build/building/best-practices/
-- https://docs.docker.com/reference/dockerfile/
-- https://docs.docker.com/build/concepts/dockerfile/
+- https://docs.docker.com/build/building/best-practices/ (Last accessed: 2026-01-26)
+- https://docs.docker.com/reference/dockerfile/ (Last accessed: 2026-01-26)
+- https://docs.docker.com/build/concepts/dockerfile/ (Last accessed: 2026-01-26)

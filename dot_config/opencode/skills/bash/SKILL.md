@@ -57,7 +57,6 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://tiswww.case.edu/php/chet/bash/bashref.html#The-Set-Builtin
-- https://man7.org/linux/man-pages/man1/bash.1.html
+- https://tiswww.case.edu/php/chet/bash/bashref.html#The-Set-Builtin (Last accessed: 2026-01-26)
+- https://man7.org/linux/man-pages/man1/bash.1.html (Last accessed: 2026-01-26)
