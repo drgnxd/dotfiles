@@ -72,7 +72,7 @@ hx ~/.config/git/config.local
 - `.internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl`: シンボリックリンク作成に `FORCE=1` が必須（対話式。非symlinkターゲットは上書きしない）。
 - `.internal_scripts/darwin/login_items.sh`: ログイン項目変更に `ALLOW_GUI=1` が必須。
 - `.internal_scripts/darwin/security_hardening.sh`: ハードニング実行に `ALLOW_HARDEN=1` が必須。失敗を集計して報告。
-- `.internal_scripts/darwin/system_defaults.sh`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。
+- `.internal_scripts/darwin/system_defaults.sh`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。Dockを実行中アプリのみ表示する設定（`static-only`）も適用。
 - `.internal_scripts/darwin/keyboard.sh`: キーボード設定適用に `ALLOW_KEYBOARD_APPLY=1` が必須（`--apply`時）。
 - `.internal_scripts/darwin/menubar.sh`: 追加フラグなし。
 - `.internal_scripts/darwin/audit_security.sh`: 追加フラグなし。
