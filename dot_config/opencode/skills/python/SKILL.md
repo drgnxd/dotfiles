@@ -57,8 +57,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://peps.python.org/pep-0008/
-- https://peps.python.org/pep-0484/
-- https://docs.python.org/3/library/pathlib.html
+- https://peps.python.org/pep-0008/ (Last accessed: 2026-01-26)
+- https://peps.python.org/pep-0484/ (Last accessed: 2026-01-26)
+- https://docs.python.org/3/library/pathlib.html (Last accessed: 2026-01-26)

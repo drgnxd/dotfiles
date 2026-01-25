@@ -58,9 +58,8 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://www.jtf.jp/pdf/jtf_style_guide_e.pdf
-- https://www.jtf.jp/pdf/jtf_style_guide.pdf
-- https://jat.org/news/e_to_j_style_guide
-- https://docslib.org/doc/6172140/jtf-style-guide-for-translators-working-into-japanese
+- https://www.jtf.jp/pdf/jtf_style_guide_e.pdf (Last accessed: 2026-01-26)
+- https://www.jtf.jp/pdf/jtf_style_guide.pdf (Last accessed: 2026-01-26)
+- https://jat.org/news/e_to_j_style_guide (Last accessed: 2026-01-26)
+- https://docslib.org/doc/6172140/jtf-style-guide-for-translators-working-into-japanese (Last accessed: 2026-01-26)

@@ -56,8 +56,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://owasp.org/www-project-top-ten/
-- https://cheatsheetseries.owasp.org/
-- https://owasp.org/www-project-cheat-sheets/
+- https://owasp.org/www-project-top-ten/ (Last accessed: 2026-01-26)
+- https://cheatsheetseries.owasp.org/ (Last accessed: 2026-01-26)
+- https://owasp.org/www-project-cheat-sheets/ (Last accessed: 2026-01-26)

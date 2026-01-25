@@ -56,8 +56,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://man7.org/linux/man-pages/man1/systemctl.1.html
-- https://man7.org/linux/man-pages/man5/systemd.service.5.html
-- https://man7.org/linux/man-pages/man1/systemd.1.html
+- https://man7.org/linux/man-pages/man1/systemctl.1.html (Last accessed: 2026-01-26)
+- https://man7.org/linux/man-pages/man5/systemd.service.5.html (Last accessed: 2026-01-26)
+- https://man7.org/linux/man-pages/man1/systemd.1.html (Last accessed: 2026-01-26)

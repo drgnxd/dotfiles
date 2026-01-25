@@ -56,9 +56,8 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://man7.org/linux/man-pages/man1/rm.1.html
-- https://man7.org/linux/man-pages/man1/dd.1.html
-- https://man7.org/linux/man-pages/man8/mkfs.8.html
-- https://git-scm.com/docs/git-reset
+- https://man7.org/linux/man-pages/man1/rm.1.html (Last accessed: 2026-01-26)
+- https://man7.org/linux/man-pages/man1/dd.1.html (Last accessed: 2026-01-26)
+- https://man7.org/linux/man-pages/man8/mkfs.8.html (Last accessed: 2026-01-26)
+- https://git-scm.com/docs/git-reset (Last accessed: 2026-01-26)

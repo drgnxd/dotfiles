@@ -52,8 +52,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://google.github.io/styleguide/docguide/best_practices.html
-- https://developers.google.com/style
-- https://developers.google.com/style/prescriptive-documentation
+- https://google.github.io/styleguide/docguide/best_practices.html (Last accessed: 2026-01-26)
+- https://developers.google.com/style (Last accessed: 2026-01-26)
+- https://developers.google.com/style/prescriptive-documentation (Last accessed: 2026-01-26)

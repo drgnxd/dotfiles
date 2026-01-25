@@ -57,9 +57,8 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
-- https://www.typescriptlang.org/docs/handbook/intro.html
+- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality (Last accessed: 2026-01-26)
+- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const (Last accessed: 2026-01-26)
+- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let (Last accessed: 2026-01-26)
+- https://www.typescriptlang.org/docs/handbook/intro.html (Last accessed: 2026-01-26)

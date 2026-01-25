@@ -63,6 +63,5 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://strategicmanagementinsight.com/tools/pdca-plan-do-check-act/
+- https://strategicmanagementinsight.com/tools/pdca-plan-do-check-act/ (Last accessed: 2026-01-26)

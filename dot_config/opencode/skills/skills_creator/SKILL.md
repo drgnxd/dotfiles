@@ -111,7 +111,8 @@ metadata:
 
 ### Reference Formatting
 
-- When listing URL references, add `Last accessed: YYYY-MM-DD` above the list.
+- When listing URL references, append `Last accessed: YYYY-MM-DD` to each entry.
+- Do not use a single shared access date line.
 
 
 ## Naming Conventions
@@ -343,9 +344,8 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://agentskills.io/specification
-- https://github.com/agentskills/agentskills
-- https://agentskills.io/home
-- https://raw.githubusercontent.com/agentskills/agentskills/main/README.md
+- https://agentskills.io/specification (Last accessed: 2026-01-26)
+- https://github.com/agentskills/agentskills (Last accessed: 2026-01-26)
+- https://agentskills.io/home (Last accessed: 2026-01-26)
+- https://raw.githubusercontent.com/agentskills/agentskills/main/README.md (Last accessed: 2026-01-26)

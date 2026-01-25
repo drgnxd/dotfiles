@@ -56,8 +56,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://doc.rust-lang.org/stable/book/
-- https://doc.rust-lang.org/book/appendix-04-useful-development-tools.html
-- https://doc.rust-lang.org/clippy/
+- https://doc.rust-lang.org/stable/book/ (Last accessed: 2026-01-26)
+- https://doc.rust-lang.org/book/appendix-04-useful-development-tools.html (Last accessed: 2026-01-26)
+- https://doc.rust-lang.org/clippy/ (Last accessed: 2026-01-26)

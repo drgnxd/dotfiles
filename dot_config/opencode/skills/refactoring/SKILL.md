@@ -51,8 +51,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://martinfowler.com/books/refactoring.html
-- https://refactoring.com/catalog/
-- https://refactoring.guru/refactoring
+- https://martinfowler.com/books/refactoring.html (Last accessed: 2026-01-26)
+- https://refactoring.com/catalog/ (Last accessed: 2026-01-26)
+- https://refactoring.guru/refactoring (Last accessed: 2026-01-26)

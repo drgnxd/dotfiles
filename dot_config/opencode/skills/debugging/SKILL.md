@@ -56,8 +56,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://sre.google/sre-book/effective-troubleshooting/
-- https://sre.google/resources/book-update/effective-troubleshooting/
-- https://komodor.com/blog/troubleshooting-vs-debugging/
+- https://sre.google/sre-book/effective-troubleshooting/ (Last accessed: 2026-01-26)
+- https://sre.google/resources/book-update/effective-troubleshooting/ (Last accessed: 2026-01-26)
+- https://komodor.com/blog/troubleshooting-vs-debugging/ (Last accessed: 2026-01-26)

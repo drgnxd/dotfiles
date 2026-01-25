@@ -51,8 +51,7 @@ Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/fra
 
 ## References
 
-Last accessed: 2026-01-25
 
-- https://martinfowler.com/articles/practical-test-pyramid.html
-- https://martinfowler.com/bliki/TestPyramid.html
-- https://web.dev/articles/ta-strategies
+- https://martinfowler.com/articles/practical-test-pyramid.html (Last accessed: 2026-01-26)
+- https://martinfowler.com/bliki/TestPyramid.html (Last accessed: 2026-01-26)
+- https://web.dev/articles/ta-strategies (Last accessed: 2026-01-26)
