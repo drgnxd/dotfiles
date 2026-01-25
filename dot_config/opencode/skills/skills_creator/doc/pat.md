@@ -2,6 +2,8 @@
 
 Reusable patterns for different types of Agent Skills.
 
+Language note: Write all skill content in English, including any new templates and examples.
+
 ---
 
 ## Pattern 1: Standards & Conventions
@@ -112,7 +114,7 @@ Else if condition B:
 ```
 skill_name/
 ├── SKILL.md
-└── refs/
+└── doc/
     ├── tpl_basic.md
     ├── tpl_adv.md
     └── ex/
@@ -120,7 +122,7 @@ skill_name/
 ```
 
 ### Key Characteristics
-- Core template in refs/
+- Core template in doc/
 - Customization instructions in SKILL.md
 - Multiple template variants for different needs
 - Filled examples showing usage
@@ -131,11 +133,11 @@ skill_name/
 
 ### Basic Template
 For: [use case]
-See: [refs/tpl_basic.md](refs/tpl_basic.md)
+See: [doc/tpl_basic.md](doc/tpl_basic.md)
 
 ### Advanced Template
 For: [use case]
-See: [refs/tpl_adv.md](refs/tpl_adv.md)
+See: [doc/tpl_adv.md](doc/tpl_adv.md)
 
 ## Customization Guide
 
@@ -144,7 +146,7 @@ See: [refs/tpl_adv.md](refs/tpl_adv.md)
 - Optional: Can be removed if [condition]
 
 ## Example Usage
-See [refs/ex/filled_ex.md](refs/ex/filled_ex.md)
+See [doc/ex/filled_ex.md](doc/ex/filled_ex.md)
 ```
 
 ### Example Skills
@@ -154,7 +156,7 @@ See [refs/ex/filled_ex.md](refs/ex/filled_ex.md)
 - `test_plan_tpl`
 
 ### Anti-Patterns to Avoid
-- ❌ Templates in SKILL.md body (use refs/)
+- ❌ Templates in SKILL.md body (use doc/)
 - ❌ No placeholder explanations
 - ❌ No filled examples
 
@@ -168,7 +170,7 @@ See [refs/ex/filled_ex.md](refs/ex/filled_ex.md)
 ```
 skill_name/
 ├── SKILL.md
-└── refs/
+└── doc/
     └── eval_matrix.md
 ```
 
@@ -236,10 +238,10 @@ If score < 60%:
 ```
 skill_name/
 ├── SKILL.md
-├── scripts/
+├── bin/
 │   ├── generator.py
 │   └── validator.sh
-└── refs/
+└── doc/
     ├── usage_ex.md
     └── config.md
 ```
@@ -270,7 +272,7 @@ pip install -r requirements.txt
 
 Basic usage:
 ```bash
-python scripts/generator.py --input data.csv --output result.json
+python bin/generator.py --input data.csv --output result.json
 ```
 
 Options:
@@ -280,11 +282,11 @@ Options:
 
 ## Configuration
 
-See [refs/config.md](refs/config.md)
+See [doc/config.md](doc/config.md)
 
 ## Examples
 
-See [refs/usage_ex.md](refs/usage_ex.md)
+See [doc/usage_ex.md](doc/usage_ex.md)
 
 ## Troubleshooting
 
@@ -313,7 +315,7 @@ Common errors and solutions
 ```
 skill_name/
 ├── SKILL.md
-└── refs/
+└── doc/
     ├── pat.md
     └── anti_pat.md
 ```
@@ -377,7 +379,7 @@ When: [scenario]
 ```
 skill_name/
 ├── SKILL.md
-└── refs/
+└── doc/
     ├── terms.md
     ├── regs.md
     └── formulas.md
@@ -482,7 +484,7 @@ Skills can combine patterns. Examples:
 ```
 skill_name/
 ├── SKILL.md (standards)
-└── refs/
+└── doc/
     └── tpl.md (template)
 ```
 
@@ -490,9 +492,9 @@ skill_name/
 ```
 skill_name/
 ├── SKILL.md (workflow)
-├── scripts/
+├── bin/
 │   └── automate.py (automation)
-└── refs/
+└── doc/
     └── ex.md
 ```
 
@@ -500,7 +502,7 @@ skill_name/
 ```
 skill_name/
 ├── SKILL.md (decision framework)
-└── refs/
+└── doc/
     ├── domain_concepts.md (domain knowledge)
     └── eval_criteria.md
 ```
@@ -512,9 +514,9 @@ skill_name/
 As skills mature:
 
 1. **Start Simple**: Begin with Pattern 1 (Standards)
-2. **Add Examples**: Move to refs/ when > 500 lines
-3. **Add Automation**: Introduce scripts/ if repetitive tasks emerge
-4. **Add Templates**: Create refs/tpls/ for boilerplate
+2. **Add Examples**: Move to doc/ when > 500 lines
+3. **Add Automation**: Introduce bin/ if repetitive tasks emerge
+4. **Add Templates**: Create doc/tpls/ for boilerplate
 5. **Refine Decision Logic**: Develop into Pattern 4 if needed
 
 ---

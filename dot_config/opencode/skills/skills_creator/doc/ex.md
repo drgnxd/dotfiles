@@ -47,7 +47,7 @@ Ensures consistency and readability across projects by enforcing uniform naming 
 ## File Naming
 
 ### Rule
-Use lowercase with underscores (snake_case)
+Use lowercase with underscores (snake_case) unless a language or framework mandates a different file naming convention.
 
 **Examples**:
 ```
@@ -55,10 +55,11 @@ Use lowercase with underscores (snake_case)
 user_profile.ts
 calculate_total.py
 api_client.go
+UserProfile.ts (allowed when a framework expects PascalCase filenames)
 
 ❌ Bad:
-UserProfile.ts
-user-profile.ts (kebab-case discouraged for files)
+user-profile.ts (unless a framework mandates kebab-case)
+user profile.ts (spaces)
 ```
 
 ---
@@ -114,7 +115,7 @@ MAX_RETRY = 3
 ```
 api_design/
 ├── SKILL.md
-└── refs/
+└── doc/
     ├── rest_ex.md
     └── openapi_tpl.yaml
 ```
@@ -241,9 +242,9 @@ DELETE /users/123
 
 ## Examples
 
-For comprehensive REST API examples, see [refs/rest_ex.md](refs/rest_ex.md)
+For comprehensive REST API examples, see [doc/rest_ex.md](doc/rest_ex.md)
 
-For OpenAPI specification template, see [refs/openapi_tpl.yaml](refs/openapi_tpl.yaml)
+For OpenAPI specification template, see [doc/openapi_tpl.yaml](doc/openapi_tpl.yaml)
 
 ---
 
@@ -257,7 +258,7 @@ For OpenAPI specification template, see [refs/openapi_tpl.yaml](refs/openapi_tpl
 **Created**: 2024-01-25
 ```
 
-**refs/rest_ex.md**:
+**doc/rest_ex.md**:
 ```markdown
 # REST API Examples
 
@@ -291,9 +292,9 @@ Response:
 ```
 csv_validator/
 ├── SKILL.md
-├── scripts/
+├── bin/
 │   └── validate.py
-└── refs/
+└── doc/
     └── validation_rules.md
 ```
 
@@ -352,7 +353,7 @@ Ensures CSV files meet quality standards before processing, preventing data issu
 Run the validation script:
 
 ```bash
-python scripts/validate.py --input data.csv --rules refs/validation_rules.md
+python bin/validate.py --input data.csv --rules doc/validation_rules.md
 ```
 
 **Options**:
@@ -387,14 +388,14 @@ Error: `Duplicate column name: name`
 
 ## References
 
-For detailed validation rules, see [refs/validation_rules.md](refs/validation_rules.md)
+For detailed validation rules, see [doc/validation_rules.md](doc/validation_rules.md)
 
 ---
 
 **Created**: 2024-01-25
 ```
 
-**scripts/validate.py**:
+**bin/validate.py**:
 ```python
 #!/usr/bin/env python3
 """
@@ -607,5 +608,5 @@ PR Size > 800 lines:
 - **Clear YAML metadata**: Makes skill discoverable
 - **Focused purpose**: Single responsibility
 - **Practical examples**: Real ✅/❌ patterns
-- **Progressive detail**: Essential first, details in refs/
+- **Progressive detail**: Essential first, details in doc/
 - **Under 500 lines**: Main SKILL.md stays concise

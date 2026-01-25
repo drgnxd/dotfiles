@@ -2,6 +2,8 @@
 
 Use this template when creating new Agent Skills.
 
+Language note: Write all content in English, including headings, examples, and inline text.
+
 ---
 
 ```markdown
@@ -146,22 +148,8 @@ Default:
 - [Authority/Organization](https://example.com)
 
 ### Internal Resources
-- See [detailed_guide](refs/detailed_guide.md) for advanced usage
-- Template available at [tpl_file](refs/tpl.txt)
-
----
-
-## Changelog
-
-### [1.0.0] - YYYY-MM-DD
-- Initial release
-- Core rules established
-
----
-
-**Created**: YYYY-MM-DD  
-**Last Updated**: YYYY-MM-DD
-```
+- See [detailed_guide](doc/detailed_guide.md) for advanced usage
+- Template available at [tpl_file](doc/tpl.txt)
 
 ---
 
@@ -181,17 +169,16 @@ Default:
 
 ### Optional Sections
 - References (external links)
-- Changelog (for versioned skills)
 
 ### Size Management
 
 If content exceeds 500 lines:
 1. Keep core rules in SKILL.md
-2. Move detailed examples to `refs/ex.md`
-3. Move templates to `refs/tpls/`
+2. Move detailed examples to `doc/ex.md`
+3. Move templates to `doc/tpls/`
 4. Reference them using relative paths
 
 Example:
 ```markdown
-For comprehensive examples, see [refs/detailed_ex.md](refs/detailed_ex.md)
+For comprehensive examples, see [doc/detailed_ex.md](doc/detailed_ex.md)
 ```
