@@ -181,6 +181,10 @@ Window management and automation features:
 *   **Auto Reload**: Configuration reloads automatically on file changes
 *   **Manual Reload**: Ctrl+Shift+R to reload configuration
 
+### Helix language-server (LSP) support
+
+This configuration enables additional language-server integrations for the Helix editor and documents the matching Homebrew packages. The repository now includes recommended LSPs such as `pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, and `texlab`. See `dot_config/helix/` for editor settings and `dot_config/homebrew/Brewfile` for package declarations.
+
 ## License
 
 MIT License

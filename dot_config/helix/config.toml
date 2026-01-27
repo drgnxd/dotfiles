@@ -2,8 +2,15 @@
 theme = "solarized_dark_transparent"
 
 [editor]
+auto-completion = true
+idle-timeout = 50
+completion-trigger-len = 1
 # Enable true color in terminal
 true-color = true
+
+[editor.lsp]
+display-messages = true
+auto-signature-help = true
 
 # Improve structure visibility
 [editor.indent-guides]

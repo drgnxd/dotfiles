@@ -179,6 +179,10 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 *   **自動リロード**: 設定ファイルの変更時に自動的にリロード
 *   **手動リロード**: Ctrl+Shift+Rで設定をリロード
 
+### Helix の Language Server (LSP) サポート
+
+この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Homebrew パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPが含まれます。エディタ設定は `dot_config/helix/`、パッケージ定義は `dot_config/homebrew/Brewfile` を参照してください。
+
 ## ライセンス
 
 MIT License
