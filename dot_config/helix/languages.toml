@@ -7,10 +7,28 @@ args = ["--slave", "-e", "languageserver::run()"]
 [language-server.steel-lsp]
 command = "steel-language-server"
 
+[language-server.copilot]
+command = "copilot-language-server"
+args = ["--stdio"]
+
+[language-server.bash-lsp]
+command = "bash-language-server"
+args = ["start"]
+
+[language-server.docker-lsp]
+command = "docker-langserver"
+args = ["--stdio"]
+
+[[language]]
+name = "bash"
+scope = "source.bash"
+language-servers = [ "bash-lsp", "copilot" ]
+auto-format = true
+
 [[language]]
 name = "r"
 scope = "source.r"
-language-servers = [ "r" ]
+language-servers = [ "r", "copilot" ]
 formatter = { command = "Rscript", args = ["-e", "styler::style_file(stdin(), output = stdout(), transformers = styler::tidyverse_style())"] }
 auto-format = true
 
@@ -21,7 +39,48 @@ injection-regex = "scheme"
 file-types = ["scm", "scheme", "libfive"]
 comment-token = ";"
 indent = { tab-width = 2, unit = "  " }
-language-servers = [ "steel-lsp" ]
+language-servers = [ "steel-lsp", "copilot" ]
+
+[[language]]
+name = "c"
+language-servers = [ "clangd", "copilot" ]
+
+[[language]]
+name = "python"
+language-servers = [ "pyright", "ruff", "copilot" ]
+
+[[language]]
+name = "markdown"
+language-servers = [ "marksman", "copilot" ]
+
+[[language]]
+name = "toml"
+language-servers = [ "taplo" ]
+
+[[language]]
+name = "rust"
+language-servers = [ "rust-analyzer", "copilot" ]
+
+[[language]]
+name = "lua"
+language-servers = [ "lua-language-server", "copilot" ]
+
+[[language]]
+name = "typst"
+language-servers = [ "tinymist", "copilot" ]
+
+[[language]]
+name = "latex"
+language-servers = [ "texlab", "copilot" ]
+
+[[language]]
+name = "yaml"
+language-servers = [ "yaml-language-server" ]
+
+[[language]]
+name = "dockerfile"
+language-servers = [ "docker-lsp", "copilot" ]
+auto-format = true
 
 [[grammar]]
 name = "scheme"
