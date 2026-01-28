@@ -13,6 +13,24 @@ jobs:
         run: |
           shellcheck --version
           find .internal_scripts -name "*.sh" -print0 | xargs -0 shellcheck
+      - name: Install shfmt
+        run: |
+          # Install shfmt binary for Linux runners (x86_64)
+          curl -sSLo shfmt "https://github.com/mvdan/sh/releases/download/v3.12.0/shfmt_v3.12.0_linux_amd64"
+          chmod +x shfmt
+          sudo mv shfmt /usr/local/bin/shfmt
+
+      - name: Check shell formatting with shfmt
+        run: |
+          echo "Running shfmt format check..."
+          # List any files that are not formatted; fail the job if any are found
+          find .internal_scripts -type f -name "*.sh" -print0 | xargs -0 shfmt -l | tee /tmp/shfmt_unformatted || true
+          if [ -s /tmp/shfmt_unformatted ]; then
+            echo "shfmt detected unformatted files:" >&2
+            cat /tmp/shfmt_unformatted >&2
+            echo "Run: shfmt -w <files> to format them" >&2
+            exit 1
+          fi
 
   python:
     runs-on: ubuntu-latest
