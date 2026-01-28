@@ -11,6 +11,10 @@ command = "steel-language-server"
 command = "copilot-language-server"
 args = ["--stdio"]
 
+[language-server.copilot.config]
+editorInfo = { name = "Helix", version = "25.07" }
+editorPluginInfo = { name = "helix-copilot", version = "0.1.0" }
+
 [language-server.bash-lsp]
 command = "bash-language-server"
 args = ["start"]
