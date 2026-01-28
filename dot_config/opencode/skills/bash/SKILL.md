@@ -1,57 +1,43 @@
 ---
 name: bash
-description: Bash scripting standards for safe automation
+description: Safe bash scripting for automation
 ---
 
 # Bash
 
 ## Purpose
-
-Establish consistent and safe shell scripting practices for automation tasks.
+Consistent, safe shell scripting practices.
 
 ## Core Principles
+1. Predictable execution, fail fast
+2. Quote to prevent word splitting
+3. Explicit checks over assumptions
 
-1. Make scripts predictable and fail fast.
-2. Quote variables to prevent word splitting.
-3. Prefer explicit checks over assumptions.
-
-## Rules/Standards
+## Rules
 
 ### Safety
-
-- Use `set -euo pipefail` unless the script requires different behavior.
-- Quote all variable expansions.
-- Validate inputs and required commands.
+- `set -euo pipefail` unless different needed
+- Quote all variable expansions: `"${var}"`
+- Validate inputs and required commands
 
 ### Structure
-
-- Group logic into functions with clear names.
-- Use `readonly` for constants.
-- Log key steps and errors.
+- Functions w/ clear names
+- `readonly` for constants
+- Log key steps/errors
 
 ### Portability
-
-- Avoid non-portable flags unless the environment is fixed.
-- Document required shell version and dependencies.
+- Avoid non-portable flags unless env fixed
+- Doc shell version & dependencies
 
 ## Examples
 
-Good:
-- "Quote paths and check exit codes for critical steps."
-
-Bad:
-- "Use unquoted variables and ignore failures."
+✅ Quote paths, check exit codes for critical steps
+❌ Unquoted vars, ignore failures
 
 ## Edge Cases
+- Destructive ops: dry-run flags or confirmation prompts
+- Long tasks: timeouts, progress logs
 
-- For destructive operations, add dry-run flags or confirmation prompts.
-- For long-running tasks, add timeouts and progress logs.
+See `COMMON.md` for naming/refs.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://tiswww.case.edu/php/chet/bash/bashref.html#The-Set-Builtin (Last accessed: 2026-01-26)
-- https://man7.org/linux/man-pages/man1/bash.1.html (Last accessed: 2026-01-26)
+Refs: [bashref](https://tiswww.case.edu/php/chet/bash/bashref.html), [man](https://man7.org/linux/man-pages/man1/bash.1.html) (2026-01-26)

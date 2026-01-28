@@ -1,56 +1,41 @@
 ---
 name: code_review
-description: Code review focus areas and quality checklist
+description: Code review focus & quality checklist
 ---
 
 # Code Review
 
 ## Purpose
-
-Provide a consistent checklist for reviewing code changes effectively and fairly.
+Consistent checklist for effective, fair code reviews.
 
 ## Core Principles
+1. Focus: correctness, clarity, maintainability
+2. Be specific & actionable
+3. Prioritize risks & user impact
 
-1. Focus on correctness, clarity, and maintainability.
-2. Be specific and actionable in feedback.
-3. Prioritize risks and user impact.
-
-## Rules/Standards
+## Rules
 
 ### Correctness
-
-- Validate edge cases and error handling.
-- Confirm data validation and security concerns.
+- Validate edge cases & error handling
+- Confirm data validation & security
 
 ### Readability
-
-- Ensure naming is clear and consistent.
-- Prefer simple control flow over deeply nested logic.
+- Clear, consistent naming
+- Simple control flow > deeply nested logic
 
 ### Tests
-
-- Verify new behavior is covered by tests.
-- Confirm tests are deterministic and scoped.
+- New behavior covered by tests
+- Tests deterministic & scoped
 
 ## Examples
 
-Good:
-- "This function can return null; add a guard or update the type."
-
-Bad:
-- "Looks bad." (no actionable detail)
+✅ "This can return null; add guard or update type"
+❌ "Looks bad" (no actionable detail)
 
 ## Edge Cases
+- Large changes: suggest splitting into smaller PRs
+- Performance-critical: ask for benchmarks
 
-- For large changes, suggest splitting into smaller PRs.
-- For performance-critical paths, ask for benchmarks.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://google.github.io/eng-practices/review/reviewer/ (Last accessed: 2026-01-26)
-- https://google.github.io/eng-practices/review/reviewer/standard.html (Last accessed: 2026-01-26)
-- https://google.github.io/eng-practices/review/ (Last accessed: 2026-01-26)
+Refs: [Google review guide](https://google.github.io/eng-practices/review/) (2026-01-26)

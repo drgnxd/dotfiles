@@ -1,59 +1,44 @@
 ---
 name: git_experts
-description: Git workflow and collaboration best practices
+description: Git workflow & collaboration best practices
 ---
 
 # Git Experts
 
 ## Purpose
-
-Establish safe, consistent Git practices for collaboration, review, and history hygiene.
+Safe, consistent Git practices for collaboration, review, history hygiene.
 
 ## Core Principles
+1. Understandable, traceable history
+2. Minimize risk on shared branches
+3. Small, reviewable commits
 
-1. Keep history understandable and traceable.
-2. Minimize risk when changing shared branches.
-3. Prefer small, reviewable commits.
-
-## Rules/Standards
+## Rules
 
 ### Branching
-
-- Use feature branches for work in progress.
-- Avoid direct commits to protected branches.
-- Rebase only on private branches.
+- Feature branches for WIP
+- Avoid direct commits to protected branches
+- Rebase only on private branches
 
 ### Commits
+- Each commit = single logical change
+- Messages explain intent, not only actions
+- Never commit secrets or generated artifacts
 
-- Ensure each commit is scoped to a single logical change.
-- Write messages that explain intent, not only actions.
-- Do not commit secrets or generated artifacts.
-
-### Review and Sync
-
-- Run `git status` and `git diff` before staging.
-- Pull or fetch before pushing to avoid conflicts.
-- Resolve conflicts locally and run tests after merges.
+### Review & Sync
+- `git status` & `git diff` before staging
+- Pull/fetch before push to avoid conflicts
+- Resolve conflicts locally, run tests after merges
 
 ## Examples
 
-Good:
-- "Use a feature branch and open a PR with a concise summary."
-
-Bad:
-- "Force-push to main to overwrite history."
+✅ "Feature branch + PR w/ concise summary"
+❌ "Force-push to main to overwrite history"
 
 ## Edge Cases
+- History rewrite needed: confirm no one depends on branch
+- Sensitive data committed: rotate secrets, purge history carefully
 
-- If history rewrite is required, confirm no one else depends on the branch.
-- If sensitive data was committed, rotate secrets and purge history carefully.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://git-scm.com/docs/git-commit (Last accessed: 2026-01-26)
-- https://git-scm.com/docs/git-rebase (Last accessed: 2026-01-26)
-- https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project (Last accessed: 2026-01-26)
+Refs: [git-commit](https://git-scm.com/docs/git-commit), [git-rebase](https://git-scm.com/docs/git-rebase), [contributing](https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project) (2026-01-26)

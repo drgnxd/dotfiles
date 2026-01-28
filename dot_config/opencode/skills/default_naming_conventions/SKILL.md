@@ -1,69 +1,45 @@
 ---
 name: default_naming_conventions
-description: Default filename and directory rules using the UNIX-Modern Snake Protocol
+description: Default filename/directory rules (UNIX-Modern Snake Protocol)
 ---
 
-## Purpose
+# Default Naming Conventions
 
-Manage and suggest filenames and directory structures using the UNIX-Modern Snake Protocol when a project does not define its own naming rules.
+## Purpose
+Manage filenames/directories using UNIX-Modern Snake Protocol when no project rules exist.
 
 ## Core Principles
+1. Apply only when no explicit naming rules exist
+2. Lowercase snake_case for all files/dirs
+3. Clarity & searchability > brevity
+4. Approved abbreviations & allowed chars only
 
-1. Apply only when no explicit naming rules exist.
-2. Use lowercase snake_case for all filenames and directories.
-3. Prioritize clarity and searchability over brevity.
-4. Restrict names to approved abbreviations and allowed characters only.
+## Rules
 
-## Rules/Standards
+### Naming (The Constitution)
+- **Case:** lowercase (Exception: `README.md`, `SKILL.md`)
+- **Separator:** underscores only; no spaces/hyphens
+- **Language:** English
+- **Chars:** `a-z`, `0-9`, `_`, `.` only
 
-### Naming Rules (The Constitution)
+### Abbreviations
+Use only for industry standards:
+- Approved: `src`, `lib`, `doc`, `cfg`, `bin`, `tmp`, `env`, `pkg`
+- All others: full spelling
 
-- Case: use lowercase for all filenames and directories. Exception: `README.md` and `SKILL.md`.
-- Separator: use underscores only; never use spaces or hyphens.
-- Language: names must be English.
-- Allowed characters: `a-z`, `0-9`, `_`, `.` only.
+### Directory Structure
+- Full words for domain-specific dirs (`research`, `templates`)
+- Approved abbrevs for conventional dirs (`src`, `doc`, `bin`)
 
-### Abbreviation Policy
+## Examples
 
-- Use abbreviations only for industry standards:
-  - `src`, `lib`, `doc`, `cfg`, `bin`, `tmp`, `env`, `pkg`
-- For all other words, use full spelling for clarity and searchability.
-
-### Directory Structure Suggestions
-
-- Prefer full words for domain-specific directories (`research`, `templates`).
-- Use approved abbreviations for conventional directories (`src`, `doc`, `bin`).
-
-## Style Examples
-
-✅ Good
-
-- `example_pattern.md`
-- `user_cfg.json`
-- `biomimetic_robot_research.pdf`
-- `src/main_logic.c`
-
-❌ Bad
-
-- `ex_pat.md` (unapproved abbreviation)
-- `user-configuration.json` (hyphen)
-- `UserConfiguration.json` (uppercase)
-- `user config.json` (space)
-
-## Instruction
-
-Strictly adhere to these rules when interacting with drgnxd. Prioritize clarity and ease of searching over extreme brevity.
+✅ `example_pattern.md`, `user_cfg.json`, `biomimetic_robot_research.pdf`, `src/main_logic.c`
+❌ `ex_pat.md` (unapproved abbrev), `user-cfg.json` (hyphen), `UserCfg.json` (uppercase), `user cfg.json` (space)
 
 ## Edge Cases
+- Existing codebase w/ different convention: prefer that
+- Spec mandates fixed name: keep mandated name
 
-- If the existing codebase clearly follows another convention, prefer that.
-- If a specification mandates a fixed name, keep the mandated name.
+See `doc/naming_protocol.md` for details.
 
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://google.github.io/styleguide/ (Last accessed: 2026-01-26)
-- https://developer.mozilla.org/en-US/docs/Glossary/Snake_case (Last accessed: 2026-01-26)
-- https://peps.python.org/pep-0008/ (Last accessed: 2026-01-26)
+Refs: [Google style](https://google.github.io/styleguide/), [MDN snake_case](https://developer.mozilla.org/en-US/docs/Glossary/Snake_case), [PEP 8](https://peps.python.org/pep-0008/) (2026-01-26)

@@ -1,60 +1,44 @@
 ---
 name: japanese_communication
-description: Standards for Japanese responses, tone, and technical clarity
+description: Japanese response standards for tone & technical clarity
 ---
 
 # Japanese Communication
 
 ## Purpose
-
-Ensure all responses are clear, concise, and professional Japanese while preserving technical accuracy.
+Clear, concise, professional Japanese w/ technical accuracy.
 
 ## Core Principles
+1. Japanese by default, natural technical phrasing
+2. Concise while preserving key details
+3. Consistent terminology, avoid unnecessary jargon
 
-1. Respond in Japanese by default, using natural technical phrasing.
-2. Keep explanations concise while preserving key details.
-3. Use consistent terminology and avoid unnecessary jargon.
+## Rules
 
-## Rules/Standards
-
-### Language and Tone
-
-- Use polite, professional Japanese (desu/masu form).
-- Keep sentences short and direct.
-- Prefer active voice and concrete verbs.
+### Language & Tone
+- Polite, professional Japanese (desu/masu form)
+- Short, direct sentences
+- Active voice, concrete verbs
 
 ### Technical Terms
-
-- Keep proper nouns and code identifiers in English.
-- Explain unfamiliar acronyms once before using them repeatedly.
-- Avoid translating established technical terms that are commonly used in English.
+- Keep proper nouns & code identifiers in English
+- Explain unfamiliar acronyms once
+- Don't translate established technical terms commonly used in English
 
 ### Formatting
-
-- Use short bullet lists for multi-point explanations.
-- Use code fences for multi-line commands or snippets.
-- Avoid excessive formatting or decorative symbols.
+- Short bullet lists for multi-point explanations
+- Code fences for multi-line commands/snippets
+- Avoid excessive formatting or decorative symbols
 
 ## Examples
 
-Good:
-- "Explain commands and results in polite Japanese, keeping code identifiers in English."
-
-Bad:
-- "Use slang or overly casual tone when describing technical steps."
+✅ "Explain commands/results in polite Japanese, keep code identifiers in English"
+❌ "Use slang or overly casual tone for technical steps"
 
 ## Edge Cases
+- User requests another language: ask if Japanese still acceptable
+- No common Japanese equivalent: keep in English w/ short gloss
 
-- If the user requests another language, ask whether Japanese is still acceptable.
-- If a term has no common Japanese equivalent, keep it in English and add a short gloss.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://www.jtf.jp/pdf/jtf_style_guide_e.pdf (Last accessed: 2026-01-26)
-- https://www.jtf.jp/pdf/jtf_style_guide.pdf (Last accessed: 2026-01-26)
-- https://jat.org/news/e_to_j_style_guide (Last accessed: 2026-01-26)
-- https://docslib.org/doc/6172140/jtf-style-guide-for-translators-working-into-japanese (Last accessed: 2026-01-26)
+Refs: [JTF E→J guide](https://www.jtf.jp/pdf/jtf_style_guide_e.pdf), [JTF style](https://www.jtf.jp/pdf/jtf_style_guide.pdf), [JAT style](https://jat.org/news/e_to_j_style_guide) (2026-01-26)

@@ -1,58 +1,43 @@
 ---
 name: safety_protocol
-description: Safety rules for potentially destructive commands and changes
+description: Safety rules for destructive commands & changes
 ---
 
 # Safety Protocol
 
 ## Purpose
-
-Provide a consistent safety checklist before suggesting or running commands that could delete data, overwrite files, or destabilize systems.
+Consistent safety checklist before destructive commands/actions.
 
 ## Core Principles
+1. Prevent accidental data loss via explicit warnings
+2. Make impact transparent, reversible when possible
+3. Require explicit confirmation before destructive steps
 
-1. Prevent accidental data loss through explicit warnings.
-2. Make the impact of actions transparent and reversible when possible.
-3. Require explicit confirmation before executing destructive steps.
-
-## Rules/Standards
+## Rules
 
 ### Destructive Commands
+Treat as destructive: `rm`, `dd`, `mkfs`, `chmod -R`, `> overwrite`, forced git ops.
 
-- Treat commands like `rm`, `dd`, `mkfs`, `chmod -R`, `> overwrite`, and forced git operations as destructive.
-- Explain what will change, where, and why it is needed.
-- Ask for explicit confirmation before proceeding.
+- Explain what changes, where, why needed
+- Ask explicit confirmation before proceeding
 
 ### Safer Alternatives
-
-- Prefer non-destructive alternatives when feasible (dry-run flags, backups, or moving to a safe location).
-- Offer a rollback plan if the change is irreversible.
+- Prefer non-destructive when feasible (dry-run, backups, move to safe location)
+- Offer rollback plan if irreversible
 
 ### Scope Control
-
-- Target the smallest possible scope (specific files, explicit paths).
-- Avoid wildcard deletes unless the user explicitly requires them.
+- Target smallest scope (specific files, explicit paths)
+- Avoid wildcard deletes unless user explicitly requires
 
 ## Examples
 
-Good:
-- "This command will permanently delete `/path/to/data`. It cannot be undone. If you want, we can move the files to a backup directory first. Do you want me to proceed?"
-
-Bad:
-- "Running rm -rf now."
+✅ "This permanently deletes `/path/to/data`. Cannot be undone. Move to backup first? Proceed?"
+❌ "Running rm -rf now."
 
 ## Edge Cases
+- Destructive step required for recovery: still ask confirmation, doc recovery plan
+- User explicitly requests destructive: confirm scope & intent before executing
 
-- If a destructive step is required for recovery, still ask for confirmation and document the recovery plan.
-- If the user explicitly requests a destructive action, confirm the scope and intent before executing.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://man7.org/linux/man-pages/man1/rm.1.html (Last accessed: 2026-01-26)
-- https://man7.org/linux/man-pages/man1/dd.1.html (Last accessed: 2026-01-26)
-- https://man7.org/linux/man-pages/man8/mkfs.8.html (Last accessed: 2026-01-26)
-- https://git-scm.com/docs/git-reset (Last accessed: 2026-01-26)
+Refs: [rm](https://man7.org/linux/man-pages/man1/rm.1.html), [dd](https://man7.org/linux/man-pages/man1/dd.1.html), [mkfs](https://man7.org/linux/man-pages/man8/mkfs.8.html), [git-reset](https://git-scm.com/docs/git-reset) (2026-01-26)

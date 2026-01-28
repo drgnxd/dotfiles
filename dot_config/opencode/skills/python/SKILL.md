@@ -1,58 +1,43 @@
 ---
 name: python
-description: Python conventions for readable and reliable code
+description: Python conventions for readable, reliable code
 ---
 
 # Python
 
 ## Purpose
-
-Define Python-specific conventions that improve readability, correctness, and maintainability.
+Python-specific conventions for readability, correctness, maintainability.
 
 ## Core Principles
+1. Idiomatic Python style & stdlib practices
+2. Explicitness > cleverness
+3. Typing & tests reduce regressions
 
-1. Follow idiomatic Python style and standard library practices.
-2. Prefer explicitness over cleverness.
-3. Use typing and tests to reduce regressions.
-
-## Rules/Standards
+## Rules
 
 ### Style
+- PEP 8 naming & formatting
+- Use `black` or project formatter if specified
+- Small, focused functions
 
-- Follow PEP 8 naming and formatting conventions.
-- Use `black` or the project formatter if specified.
-- Keep functions focused and small.
-
-### Types and Errors
-
-- Add type hints for public APIs and complex functions.
-- Use exceptions for exceptional conditions, not control flow.
-- Prefer `pathlib` over string paths.
+### Types & Errors
+- Type hints for public APIs & complex functions
+- Exceptions for exceptional conditions, not control flow
+- Prefer `pathlib` over string paths
 
 ### Structure
-
-- Group imports: standard library, third-party, local.
-- Avoid mutable default arguments.
+- Group imports: stdlib → third-party → local
+- Avoid mutable default arguments
 
 ## Examples
 
-Good:
-- "Use `pathlib.Path` and type hints for file utilities."
-
-Bad:
-- "Use global state and implicit side effects."
+✅ "Use `pathlib.Path` & type hints for file utilities"
+❌ "Use global state & implicit side effects"
 
 ## Edge Cases
+- Performance hotspots: measure before optimizing
+- Legacy code: prioritize consistency w/ existing patterns
 
-- For performance hotspots, measure before optimizing.
-- For legacy code, prioritize consistency with existing patterns.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://peps.python.org/pep-0008/ (Last accessed: 2026-01-26)
-- https://peps.python.org/pep-0484/ (Last accessed: 2026-01-26)
-- https://docs.python.org/3/library/pathlib.html (Last accessed: 2026-01-26)
+Refs: [PEP 8](https://peps.python.org/pep-0008/), [PEP 484](https://peps.python.org/pep-0484/), [pathlib](https://docs.python.org/3/library/pathlib.html) (2026-01-26)

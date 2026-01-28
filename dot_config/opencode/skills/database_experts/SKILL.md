@@ -1,59 +1,44 @@
 ---
 name: database_experts
-description: Database design and query optimization guidance
+description: DB design & query optimization
 ---
 
 # Database Experts
 
 ## Purpose
-
-Provide standards for schema design, query performance, and safe database changes.
+Standards for schema, query perf, safe migrations.
 
 ## Core Principles
+1. Model clearly, normalize appropriately
+2. Optimize for common access patterns
+3. Safe migrations w/ backward compatibility
 
-1. Model data clearly and normalize where appropriate.
-2. Optimize for the most common access patterns.
-3. Apply migrations safely with backward compatibility in mind.
+## Rules
 
-## Rules/Standards
-
-### Schema Design
-
-- Use consistent naming for tables and columns.
-- Define primary keys and indexes explicitly.
-- Document relationships and constraints.
+### Schema
+- Consistent naming for tables/columns
+- Explicit PKs & indexes
+- Doc relationships & constraints
 
 ### Query Optimization
-
-- Use indexes for frequent filters and joins.
-- Avoid full table scans in latency-sensitive paths.
-- Review query plans for hotspots.
+- Index frequent filters/joins
+- Avoid full table scans in latency-sensitive paths
+- Review query plans for hotspots
 
 ### Migrations
-
-- Make additive changes first (new columns, new tables).
-- Backfill data in controlled batches.
-- Remove deprecated fields only after consumers are updated.
+- Additive changes first (new cols/tables)
+- Backfill in batches
+- Remove deprecated only after consumers updated
 
 ## Examples
 
-Good:
-- "Add a new column, backfill in batches, then switch reads."
-
-Bad:
-- "Drop a column immediately without coordinating consumers."
+✅ "Add col, backfill batches, switch reads"
+❌ "Drop col immediately w/o coordinating consumers"
 
 ## Edge Cases
+- Large tables: online migration strategies
+- Multi-tenant: verify isolation & indexing
 
-- For large tables, use online migration strategies.
-- For multi-tenant data, verify isolation and indexing.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://www.postgresql.org/docs/current/indexes.html (Last accessed: 2026-01-26)
-- https://www.postgresql.org/docs/current/using-explain.html (Last accessed: 2026-01-26)
-- https://www.postgresql.org/docs/current/performance-tips.html (Last accessed: 2026-01-26)
+Refs: [PG indexes](https://postgresql.org/docs/current/indexes.html), [EXPLAIN](https://postgresql.org/docs/current/using-explain.html), [perf tips](https://postgresql.org/docs/current/performance-tips.html) (2026-01-26)
