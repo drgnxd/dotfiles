@@ -13,13 +13,13 @@ Apply these rules when naming files or directories.
 
 ## Examples
 
-Good:
+- Good:
 - `example_pattern.md`
 - `user_cfg.json`
 - `biomimetic_robot_research.pdf`
 - `src/main_logic.c`
 
-Bad:
+- Bad:
 - `ex_pat.md` (unapproved abbreviation)
 - `user-configuration.json` (hyphen)
 - `UserConfiguration.json` (uppercase)

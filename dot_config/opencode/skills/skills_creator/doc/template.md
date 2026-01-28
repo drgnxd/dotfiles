@@ -169,7 +169,7 @@ Default:
 
 If content exceeds 500 lines:
 1. Keep core rules in SKILL.md
-2. Move detailed examples to `doc/ex.md`
+2. Move detailed examples to `doc/examples.md`
 3. Move templates to `doc/tpls/`
 4. Reference them using relative paths
 

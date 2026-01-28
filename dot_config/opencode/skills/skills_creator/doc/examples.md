@@ -380,48 +380,6 @@ For detailed validation rules, see [doc/validation_rules.md](doc/validation_rule
 **Created**: 2024-01-25
 ```
 
-**bin/validate.py**:
-```python
-#!/usr/bin/env python3
-"""
-CSV Validator Script
-Usage: python validate.py --input data.csv
-"""
-
-import pandas as pd
-import argparse
-import sys
-
-def validate_csv(filepath):
-    """Validate CSV file structure and content."""
-    try:
-        df = pd.read_csv(filepath)
-        
-        # Check for duplicate headers
-        if df.columns.duplicated().any():
-            print("ERROR: Duplicate column names found")
-            return False
-        
-        # Check for empty rows
-        if df.isnull().all(axis=1).any():
-            print("WARNING: Empty rows detected")
-        
-        print("✓ CSV validation passed")
-        return True
-        
-    except Exception as e:
-        print(f"ERROR: {e}")
-        return False
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    args = parser.parse_args()
-    
-    success = validate_csv(args.input)
-    sys.exit(0 if success else 1)
-```
-
 ---
 
 ## Example 4: Process/Workflow Skill

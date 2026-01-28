@@ -40,8 +40,9 @@ Use when: Simple rules, standards, processes
 skill_name/
 ├── SKILL.md
 └── doc/
-    ├── ex.md
-    └── tpl.md
+    ├── examples.md    # examples and filled examples
+    ├── patterns.md    # common patterns (renamed from pat.md)
+    └── template.md    # templates and tpl references
 ```
 Use when: Detailed examples or templates needed
 
@@ -59,7 +60,7 @@ skill_name/
 Use when: Executable code or automation required
 
 ### Phase 3: Content
-Use template from `doc/tpl.md`.
+Use template from `doc/template.md`.
 
 ## SKILL.md Structure
 
@@ -100,8 +101,8 @@ Append `Last accessed: YYYY-MM-DD` to each URL (not shared date line).
 - **Length:** Short & clear (ex, pat, tpl)
 - **Exception:** `SKILL.md` fixed by spec
 
-✅ `doc/ex.md`, `doc/tpl.md`, `doc/pat.md`
-❌ `doc/examples.md`, `doc/template-basic.md`, `doc/Template.md`
+✅ `doc/examples.md`, `doc/template.md`, `doc/patterns.md`
+❌ `doc/example-long.md`, `doc/template-basic.md`, `doc/Template.md`
 
 ### Optional Category Prefixes
 For large skill sets:
@@ -141,13 +142,13 @@ Reference: `For detailed examples, see [doc/detailed_ex.md](doc/detailed_ex.md)`
 ### Relative Paths
 Always use skill-root relative:
 
-✅ `See [template](doc/tpl.md)`, `Run: bin/validator.py`
+✅ `See [template](doc/template.md)`, `Run: bin/validator.py`
 ❌ `See [template](/absolute/path/tpl.md)`, `See [template](../other-skill/file.md)`
 
 ### Nesting Depth
 Keep doc refs 1 level from SKILL.md:
 
-✅ `doc/ex.md`, `bin/helper.py`
+✅ `doc/examples.md`, `bin/helper.py`
 ❌ `doc/sub_dir/deep/file.md`
 
 ## Bin Directory
@@ -232,6 +233,6 @@ See `COMMON.md`.
 
 Related: `thinking_framework`, `documentation`, `security_experts`
 
-See `doc/ex.md`, `doc/pat.md`, `doc/tpl.md` for details.
+See `doc/examples.md`, `doc/patterns.md`, `doc/template.md` for details.
 
 Refs: [agentskills.io](https://agentskills.io/specification), [repo](https://github.com/agentskills/agentskills) (2026-01-26)
