@@ -1,13 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Source common library
-if [ -n "${CHEZMOI_SOURCE_DIR:-}" ]; then
-    LIB_DIR="${CHEZMOI_SOURCE_DIR}/.internal_scripts/lib"
-else
-    LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
-fi
-source "${LIB_DIR}/common.sh"
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
+# shellcheck disable=SC1091
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 FORCE=${FORCE:-0}
 CLOUD_DIR="{{ .chezmoi.homeDir }}/Library/CloudStorage"
@@ -38,12 +35,12 @@ for target in "$CLOUD_DIR"/*; do
             echo "---------------------------------------------------"
             echo "Found: $default_name"
             echo -n "🔗 Create symlink for '$default_name'? [y/N]: "
-            read answer < /dev/tty
+            read -r answer < /dev/tty
 
             case "$answer" in
                 [yY]*)
                     echo -n "📝 Enter link name [default: $default_name]: "
-                    read input_name < /dev/tty
+                    read -r input_name < /dev/tty
 
                     link_name="${input_name:-$default_name}"
                     link_path="$HOME_DIR/$link_name"

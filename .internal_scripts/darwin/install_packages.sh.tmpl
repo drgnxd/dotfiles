@@ -3,19 +3,21 @@ set -euo pipefail
 
 # Brewfile hash: {{ include "dot_config/homebrew/Brewfile.tmpl" | sha256sum }}
 
-# Source common library
-if [ -n "${CHEZMOI_SOURCE_DIR:-}" ]; then
-  LIB_DIR="${CHEZMOI_SOURCE_DIR}/.internal_scripts/lib"
-else
-  LIB_DIR="$(cd "$(dirname "$0")/../lib" && pwd)"
-fi
-source "${LIB_DIR}/common.sh"
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
+# shellcheck disable=SC1091
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile"
 BREWFILE_TEMPLATE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile.tmpl"
 TMP_BREWFILE=""
 BUNDLE_OPTIONS=("--no-upgrade")
+
+# Silence shellcheck warnings for template variables that may be referenced
+# by templates or external invocation paths.
+: "${BREWFILE_TARGET:-}"
+: "${BREWFILE_TEMPLATE:-}"
 
 cleanup() {
   if [ -n "$TMP_BREWFILE" ] && [ -f "$TMP_BREWFILE" ]; then
