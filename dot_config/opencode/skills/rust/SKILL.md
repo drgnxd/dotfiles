@@ -1,57 +1,42 @@
 ---
 name: rust
-description: Rust conventions for idiomatic and safe code
+description: Rust conventions for idiomatic, safe code
 ---
 
 # Rust
 
 ## Purpose
-
-Define Rust-specific guidelines for writing safe, idiomatic, and maintainable code.
+Rust-specific guidelines for safe, idiomatic, maintainable code.
 
 ## Core Principles
+1. Leverage ownership & borrowing for safety
+2. Explicit error handling > panics
+3. Use standard tooling for formatting & linting
 
-1. Leverage ownership and borrowing to enforce safety.
-2. Prefer explicit error handling over panics.
-3. Use standard tooling for formatting and linting.
+## Rules
 
-## Rules/Standards
-
-### Style and Tooling
-
-- Format code with `rustfmt`.
-- Run `clippy` and address warnings that impact correctness.
-- Use modules to keep scope and visibility clear.
+### Style & Tooling
+- Format w/ `rustfmt`
+- Run `clippy`, address correctness warnings
+- Use modules for clear scope & visibility
 
 ### Error Handling
-
-- Prefer `Result` and `Option` over `unwrap` in production code.
-- Add context to errors using `thiserror` or `anyhow` when appropriate.
+- Prefer `Result` & `Option` over `unwrap` in production
+- Add context w/ `thiserror` or `anyhow` when appropriate
 
 ### Performance
-
-- Avoid premature optimization; measure with benchmarks.
-- Use iterators and slices instead of manual indexing when possible.
+- Avoid premature optimization; measure w/ benchmarks
+- Use iterators & slices vs manual indexing when possible
 
 ## Examples
 
-Good:
-- "Return `Result` and propagate errors with `?`."
-
-Bad:
-- "Call `unwrap()` in code paths that can fail."
+✅ "Return `Result`, propagate errors w/ `?`"
+❌ "Call `unwrap()` in code paths that can fail"
 
 ## Edge Cases
+- Tests or prototypes: `unwrap` acceptable w/ comment
+- Unsafe code: doc invariants & required conditions
 
-- In tests or prototypes, `unwrap` can be acceptable with a comment.
-- For unsafe code, document invariants and required conditions.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://doc.rust-lang.org/stable/book/ (Last accessed: 2026-01-26)
-- https://doc.rust-lang.org/book/appendix-04-useful-development-tools.html (Last accessed: 2026-01-26)
-- https://doc.rust-lang.org/clippy/ (Last accessed: 2026-01-26)
+Refs: [Rust book](https://doc.rust-lang.org/stable/book/), [dev tools](https://doc.rust-lang.org/book/appendix-04-useful-development-tools.html), [clippy](https://doc.rust-lang.org/clippy/) (2026-01-26)

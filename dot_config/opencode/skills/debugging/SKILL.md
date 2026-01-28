@@ -1,57 +1,42 @@
 ---
 name: debugging
-description: Debugging techniques for isolating issues efficiently
+description: Efficient issue isolation techniques
 ---
 
 # Debugging
 
 ## Purpose
-
-Provide a structured approach to reproduce, isolate, and fix defects.
+Structured approach to reproduce, isolate, fix defects.
 
 ## Core Principles
+1. Reproduce reliably before changes
+2. Isolate minimal failing case
+3. Validate fix, guard against regressions
 
-1. Reproduce the issue reliably before making changes.
-2. Isolate the minimal failing case.
-3. Validate the fix and guard against regressions.
-
-## Rules/Standards
+## Rules
 
 ### Reproduction
-
-- Capture inputs, environment, and steps to reproduce.
-- Reduce the case to the smallest example.
+- Capture inputs, env, steps
+- Reduce to smallest example
 
 ### Investigation
+- Inspect logs, metrics, traces
+- Add temp instrumentation if needed
+- Verify assumptions w/ experiments
 
-- Inspect logs, metrics, and traces.
-- Add temporary instrumentation if needed.
-- Verify assumptions with targeted experiments.
-
-### Fix and Verify
-
-- Implement the smallest fix that addresses the root cause.
-- Add or update tests to cover the bug.
+### Fix & Verify
+- Smallest fix addressing root cause
+- Add/update tests covering bug
 
 ## Examples
 
-Good:
-- "Create a minimal failing test case and fix the underlying logic."
-
-Bad:
-- "Guess a change and hope it works."
+✅ "Create minimal failing test, fix underlying logic"
+❌ "Guess a change, hope it works"
 
 ## Edge Cases
+- Nondeterministic: add logging, time-based guards
+- Production-only: simulate env when possible
 
-- For nondeterministic issues, add logging and time-based guards.
-- For production-only failures, simulate the environment when possible.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://sre.google/sre-book/effective-troubleshooting/ (Last accessed: 2026-01-26)
-- https://sre.google/resources/book-update/effective-troubleshooting/ (Last accessed: 2026-01-26)
-- https://komodor.com/blog/troubleshooting-vs-debugging/ (Last accessed: 2026-01-26)
+Refs: [SRE troubleshooting](https://sre.google/sre-book/effective-troubleshooting/) (2026-01-26)

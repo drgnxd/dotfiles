@@ -1,52 +1,38 @@
 ---
 name: testing
-description: Testing strategy and coverage guidelines
+description: Testing strategy & coverage guidelines
 ---
 
 # Testing
 
 ## Purpose
-
-Define a balanced testing strategy that improves confidence without excessive cost.
+Balanced testing strategy for confidence w/o excessive cost.
 
 ## Core Principles
+1. Fast, deterministic tests for core logic
+2. Cover critical paths & failure modes
+3. Readable, maintainable tests
 
-1. Favor fast, deterministic tests for core logic.
-2. Cover critical paths and failure modes.
-3. Keep tests readable and maintainable.
-
-## Rules/Standards
+## Rules
 
 ### Test Types
-
-- Use unit tests for isolated logic.
-- Use integration tests for cross-component behavior.
-- Keep end-to-end tests limited to high-value flows.
+- Unit tests for isolated logic
+- Integration tests for cross-component behavior
+- E2E tests limited to high-value flows
 
 ### Quality
-
-- Avoid flaky tests; fix or quarantine them quickly.
-- Assert outcomes, not implementation details.
+- Avoid flaky tests; fix or quarantine quickly
+- Assert outcomes, not implementation details
 
 ## Examples
 
-Good:
-- "Add unit tests for input validation and error paths."
-
-Bad:
-- "Only test the happy path and ignore failures."
+✅ "Add unit tests for input validation & error paths"
+❌ "Only test happy path, ignore failures"
 
 ## Edge Cases
+- External services required: use mocks or test doubles
+- Time-dependent logic: control clock in tests
 
-- If external services are required, use mocks or test doubles.
-- For time-dependent logic, control the clock in tests.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://martinfowler.com/articles/practical-test-pyramid.html (Last accessed: 2026-01-26)
-- https://martinfowler.com/bliki/TestPyramid.html (Last accessed: 2026-01-26)
-- https://web.dev/articles/ta-strategies (Last accessed: 2026-01-26)
+Refs: [Test pyramid](https://martinfowler.com/articles/practical-test-pyramid.html), [bliki](https://martinfowler.com/bliki/TestPyramid.html), [strategies](https://web.dev/articles/ta-strategies) (2026-01-26)

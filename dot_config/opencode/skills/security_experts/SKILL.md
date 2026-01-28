@@ -1,57 +1,42 @@
 ---
 name: security_experts
-description: Security best practices for software and infrastructure
+description: Security best practices for software & infrastructure
 ---
 
 # Security Experts
 
 ## Purpose
-
-Provide baseline security practices for protecting data, systems, and users.
+Baseline security practices for protecting data, systems, users.
 
 ## Core Principles
+1. Least privilege & defense in depth
+2. Protect secrets & sensitive data (at rest & in transit)
+3. Validate inputs, reduce attack surface
 
-1. Apply least privilege and defense in depth.
-2. Protect secrets and sensitive data at rest and in transit.
-3. Validate inputs and reduce attack surface.
-
-## Rules/Standards
+## Rules
 
 ### Secrets
+- Never hardcode secrets in source control
+- Use secret managers or env vars
+- Rotate secrets if exposure suspected
 
-- Never hardcode secrets in source control.
-- Use secret managers or environment variables.
-- Rotate secrets if exposure is suspected.
-
-### Input and Output
-
-- Validate and sanitize all external input.
-- Encode outputs to prevent injection vulnerabilities.
+### Input & Output
+- Validate & sanitize all external input
+- Encode outputs to prevent injection vulnerabilities
 
 ### Dependencies
-
-- Track third-party dependencies and update regularly.
-- Avoid unmaintained or high-risk packages.
+- Track third-party deps, update regularly
+- Avoid unmaintained or high-risk packages
 
 ## Examples
 
-Good:
-- "Store API keys in a secret manager and load them at runtime."
-
-Bad:
-- "Commit credentials in a config file for convenience."
+✅ "Store API keys in secret manager, load at runtime"
+❌ "Commit credentials in config for convenience"
 
 ## Edge Cases
+- Legacy systems: doc compensating controls
+- Security incidents: prioritize containment & logging
 
-- For legacy systems, document compensating controls.
-- For security incidents, prioritize containment and logging.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://owasp.org/www-project-top-ten/ (Last accessed: 2026-01-26)
-- https://cheatsheetseries.owasp.org/ (Last accessed: 2026-01-26)
-- https://owasp.org/www-project-cheat-sheets/ (Last accessed: 2026-01-26)
+Refs: [OWASP Top 10](https://owasp.org/www-project-top-ten/), [cheat sheets](https://cheatsheetseries.owasp.org/) (2026-01-26)

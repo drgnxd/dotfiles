@@ -1,58 +1,43 @@
 ---
 name: docker_experts
-description: Best practices for Docker builds and container operations
+description: Docker builds & container ops best practices
 ---
 
 # Docker Experts
 
 ## Purpose
-
-Provide guidance for building secure, efficient container images and operating them safely.
+Secure, efficient container images & safe ops.
 
 ## Core Principles
+1. Minimal, reproducible images
+2. Non-root execution when possible
+3. Explicit, auditable runtime config
 
-1. Keep images minimal and reproducible.
-2. Prefer non-root execution where possible.
-3. Make runtime configuration explicit and auditable.
-
-## Rules/Standards
+## Rules
 
 ### Dockerfile
-
-- Use slim base images and pin versions.
-- Leverage multi-stage builds to reduce final size.
-- Avoid copying secrets into images.
+- Slim base images, pin versions
+- Multi-stage builds to reduce size
+- Never copy secrets into images
 
 ### Runtime
+- Explicit env vars & volumes
+- Read-only mounts for immutable data
+- Health checks for long-running services
 
-- Define environment variables and volumes explicitly.
-- Prefer read-only mounts for immutable data.
-- Use health checks for long-running services.
-
-### Compose and Orchestration
-
-- Document service dependencies clearly.
-- Separate local development settings from production.
+### Compose & Orchestration
+- Doc service dependencies clearly
+- Separate dev settings from production
 
 ## Examples
 
-Good:
-- "Use a multi-stage build and drop build tools from the final image."
-
-Bad:
-- "Run everything as root and bake credentials into the image."
+✅ "Multi-stage build, drop build tools from final image"
+❌ "Run as root, bake credentials into image"
 
 ## Edge Cases
+- Root required: doc why, reduce capabilities
+- Large images: explain tradeoff, monitor pull times
 
-- If root is required, document why and reduce capabilities.
-- If images must be large, explain the tradeoff and monitor pull times.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://docs.docker.com/build/building/best-practices/ (Last accessed: 2026-01-26)
-- https://docs.docker.com/reference/dockerfile/ (Last accessed: 2026-01-26)
-- https://docs.docker.com/build/concepts/dockerfile/ (Last accessed: 2026-01-26)
+Refs: [Best practices](https://docs.docker.com/build/building/best-practices/), [Dockerfile ref](https://docs.docker.com/reference/dockerfile/) (2026-01-26)

@@ -1,59 +1,43 @@
 ---
 name: javascript
-description: JavaScript and TypeScript conventions for consistent code
+description: JavaScript & TypeScript conventions
 ---
 
 # JavaScript
 
 ## Purpose
-
-Provide language-specific guidelines for reliable JavaScript and TypeScript codebases.
+Language-specific guidelines for reliable JS/TS codebases.
 
 ## Core Principles
+1. Clarity > terseness
+2. Modern features, avoid deprecated patterns
+3. Explicit, predictable async code
 
-1. Prefer clarity over terseness.
-2. Use modern language features and avoid deprecated patterns.
-3. Keep asynchronous code explicit and predictable.
+## Rules
 
-## Rules/Standards
+### Syntax & Style
+- Prefer `const` & `let` over `var`
+- Strict equality: `===`, `!==`
+- Small, descriptive functions
 
-### Syntax and Style
-
-- Prefer `const` and `let` over `var`.
-- Use strict equality (`===`, `!==`).
-- Keep functions small and descriptive.
-
-### Types and Safety
-
-- Use TypeScript types for public APIs when available.
-- Avoid `any` unless absolutely necessary.
-- Validate external data before use.
+### Types & Safety
+- Use TS types for public APIs when available
+- Avoid `any` unless absolutely necessary
+- Validate external data before use
 
 ### Async Code
-
-- Prefer `async/await` over nested callbacks.
-- Handle rejected promises explicitly.
+- Prefer `async/await` over nested callbacks
+- Handle rejected promises explicitly
 
 ## Examples
 
-Good:
-- "Use `async/await` with explicit error handling."
-
-Bad:
-- "Chain promises without handling rejections."
+✅ "`async/await` w/ explicit error handling"
+❌ "Chain promises w/o handling rejections"
 
 ## Edge Cases
+- Legacy code: match existing patterns, migrate gradually
+- Runtime constraints: doc any polyfills required
 
-- For legacy code, match existing patterns and migrate gradually.
-- For runtime constraints, document any polyfills required.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality (Last accessed: 2026-01-26)
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const (Last accessed: 2026-01-26)
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let (Last accessed: 2026-01-26)
-- https://www.typescriptlang.org/docs/handbook/intro.html (Last accessed: 2026-01-26)
+Refs: [Strict equality](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality), [const](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const), [let](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let), [TS handbook](https://www.typescriptlang.org/docs/handbook/intro.html) (2026-01-26)

@@ -1,53 +1,39 @@
 ---
 name: documentation
-description: Documentation standards for clear and useful docs
+description: Clear, useful docs standards
 ---
 
 # Documentation
 
 ## Purpose
-
-Provide guidelines for writing accurate, user-focused documentation.
+Accurate, user-focused documentation.
 
 ## Core Principles
+1. Write for target audience & their goals
+2. Sync docs w/ code changes
+3. Use examples to reduce ambiguity
 
-1. Write for the target audience and their goals.
-2. Keep docs synchronized with code changes.
-3. Use examples to reduce ambiguity.
-
-## Rules/Standards
+## Rules
 
 ### Structure
-
-- Start with a short overview and prerequisites.
-- Provide step-by-step instructions for tasks.
-- Include troubleshooting for common failures.
+- Short overview & prerequisites
+- Step-by-step for tasks
+- Troubleshooting for common failures
 
 ### Clarity
-
-- Use consistent terminology and naming.
-- Avoid unnecessary jargon.
-- Keep examples runnable and up to date.
+- Consistent terminology & naming
+- Avoid unnecessary jargon
+- Runnable, up-to-date examples
 
 ## Examples
 
-Good:
-- "Include a minimal example and a short explanation of expected output."
-
-Bad:
-- "List configuration options without context or examples."
+✅ "Include minimal example + explanation of expected output"
+❌ "List config options w/o context or examples"
 
 ## Edge Cases
+- Breaking changes: add migration guide
+- Complex systems: diagrams or architecture summaries
 
-- For breaking changes, add a migration guide.
-- For complex systems, include diagrams or architecture summaries.
+See `COMMON.md`.
 
-
-Naming follows `default_naming_conventions/doc/naming_protocol.md` (language/framework conventions take precedence).
-
-## References
-
-
-- https://google.github.io/styleguide/docguide/best_practices.html (Last accessed: 2026-01-26)
-- https://developers.google.com/style (Last accessed: 2026-01-26)
-- https://developers.google.com/style/prescriptive-documentation (Last accessed: 2026-01-26)
+Refs: [Google doc guide](https://google.github.io/styleguide/docguide/best_practices.html), [Dev style](https://developers.google.com/style) (2026-01-26)
