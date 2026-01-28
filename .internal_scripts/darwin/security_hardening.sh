@@ -1,18 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
-# Source common library
-LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
-# shellcheck source=../lib/common.sh
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
 # shellcheck disable=SC1091
-source "${LIB_DIR}/common.sh"
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 # Check guard flag
 require_flag "ALLOW_HARDEN" "security hardening"
 
 if ! sudo -v; then
-  log_error "sudo unavailable. Aborting hardening."
-  exit 1
+	log_error "sudo unavailable. Aborting hardening."
+	exit 1
 fi
 
 log_info "🛡️  Starting macOS Security Hardening..."
@@ -23,9 +22,9 @@ log_info "🛡️  Starting macOS Security Hardening..."
 # Remove custom login window text banner if present
 # This prevents information disclosure at the login screen
 if sudo /usr/bin/defaults read /Library/Preferences/com.apple.loginwindow LoginwindowText >/dev/null 2>&1; then
-  sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText || record_failure "LoginwindowText delete"
+	sudo /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText || record_failure "LoginwindowText delete"
 else
-  log_info "LoginwindowText not set; skipping"
+	log_info "LoginwindowText not set; skipping"
 fi
 
 ###############################################################################

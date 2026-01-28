@@ -1,11 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Source common library
-LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
-# shellcheck source=../lib/common.sh
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
 # shellcheck disable=SC1091
-source "${LIB_DIR}/common.sh"
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 log_info "🔍  Auditing macOS security posture..."
 
@@ -13,8 +12,8 @@ log_info "🔍  Auditing macOS security posture..."
 target_user=${SUDO_USER:-$(get_console_user)}
 
 read_defaults() {
-  local domain=$1 key=$2
-  /usr/bin/defaults read "$domain" "$key" 2>/dev/null || echo "not set"
+	local domain=$1 key=$2
+	/usr/bin/defaults read "$domain" "$key" 2>/dev/null || echo "not set"
 }
 
 printf "[Firewall] State: %s\n" "$({ /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate || true; } | awk 'NF{print $NF}' | tail -n1)"
@@ -27,9 +26,9 @@ ssh_state=$({ systemsetup -getremotelogin 2>/dev/null || true; })
 
 ard_state=$({ /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -status -verbose 2>/dev/null || true; })
 if [ -n "$ard_state" ]; then
-  printf "[ARD] %s\n" "$ard_state" | head -n 1
+	printf "[ARD] %s\n" "$ard_state" | head -n 1
 else
-  printf "[ARD] status unavailable (may require sudo)\n"
+	printf "[ARD] status unavailable (may require sudo)\n"
 fi
 
 guest_enabled=$(read_defaults /Library/Preferences/com.apple.loginwindow GuestEnabled)
@@ -39,9 +38,9 @@ login_msg=$(read_defaults /Library/Preferences/com.apple.loginwindow Loginwindow
 printf "[LoginMessage] %s\n" "$login_msg"
 
 if [ "$EUID" -eq 0 ]; then
-  ext_value=$({ sudo -u "$target_user" defaults read NSGlobalDomain AppleShowAllExtensions 2>/dev/null || true; })
+	ext_value=$({ sudo -u "$target_user" defaults read NSGlobalDomain AppleShowAllExtensions 2>/dev/null || true; })
 else
-  ext_value=$({ defaults read NSGlobalDomain AppleShowAllExtensions 2>/dev/null || true; })
+	ext_value=$({ defaults read NSGlobalDomain AppleShowAllExtensions 2>/dev/null || true; })
 fi
 [ -n "$ext_value" ] && printf "[Finder] AppleShowAllExtensions: %s\n" "$ext_value" || printf "[Finder] AppleShowAllExtensions: unavailable\n"
 

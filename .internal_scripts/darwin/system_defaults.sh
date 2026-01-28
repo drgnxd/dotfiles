@@ -1,11 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Source common library
-LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
-# shellcheck source=../lib/common.sh
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
 # shellcheck disable=SC1091
-source "${LIB_DIR}/common.sh"
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 # Check guard flag
 require_flag "ALLOW_DEFAULTS" "macOS defaults modification"
@@ -39,17 +38,17 @@ safe_defaults_write NSGlobalDomain AppleICUDateFormatStrings -dict-add 1 "yyyy/M
 
 # Disable the "Are you sure you want to open this application?" dialog (opt-in)
 if [ "${ALLOW_LSQUARANTINE_OFF:-0}" = "1" ]; then
-  safe_defaults_write com.apple.LaunchServices LSQuarantine -bool false
+	safe_defaults_write com.apple.LaunchServices LSQuarantine -bool false
 else
-  log_info "Skipping LSQuarantine disable (set ALLOW_LSQUARANTINE_OFF=1 to apply)."
+	log_info "Skipping LSQuarantine disable (set ALLOW_LSQUARANTINE_OFF=1 to apply)."
 fi
 
 # Disable Spotlight keyboard shortcuts (opt-in; affects global UX)
 if [ "${ALLOW_SPOTLIGHT_DISABLE:-0}" = "1" ]; then
-  safe_defaults_write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
-  safe_defaults_write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
+	safe_defaults_write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
+	safe_defaults_write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 65 '<dict><key>enabled</key><false/></dict>'
 else
-  log_info "Skipping Spotlight hotkey disable (set ALLOW_SPOTLIGHT_DISABLE=1 to apply)."
+	log_info "Skipping Spotlight hotkey disable (set ALLOW_SPOTLIGHT_DISABLE=1 to apply)."
 fi
 
 # Disable smart text substitutions (developer-friendly)
@@ -131,17 +130,21 @@ safe_defaults_write com.apple.screencapture disable-shadow -bool true
 # Save screenshots as PNG
 safe_defaults_write com.apple.screencapture type -string "png"
 
-# Save screenshots to a dedicated folder
+# Save screenshots to a dedicated folder (do NOT create it automatically)
 SCREENSHOT_DIR="$HOME/Desktop/Screenshots"
-mkdir -p "$SCREENSHOT_DIR"
-safe_defaults_write com.apple.screencapture location -string "$SCREENSHOT_DIR"
+if [ -d "$SCREENSHOT_DIR" ]; then
+	safe_defaults_write com.apple.screencapture location -string "$SCREENSHOT_DIR"
+else
+	log_warning "Screenshot directory does not exist: $SCREENSHOT_DIR — skipping 'com.apple.screencapture location' (will not create it)"
+	log_info "Create the directory manually and run: defaults write com.apple.screencapture location -string \"$SCREENSHOT_DIR\"; killall SystemUIServer"
+fi
 
 ###############################################################################
 # Kill affected applications                                                  #
 ###############################################################################
 
 for app in "Dock" "Finder" "SystemUIServer"; do
-  kill_process "${app}"
+	kill_process "${app}"
 done
 
 log_success "macOS defaults set successfully"

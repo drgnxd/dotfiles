@@ -51,7 +51,6 @@ Several scripts require explicit environment variables to prevent accidental exe
 - Text input: disable autocorrect, capitalization, smart quotes/dashes/periods
 - Finder: show hidden files and POSIX path, show extensions/status/path bars
 - Dock: remove autohide delay/animation, disable Spaces animation
-- Screenshots: PNG, no shadow, save to `~/Desktop/Screenshots`
 
 ## Usage Examples
 

@@ -5,7 +5,7 @@
 # including environment variable guards, logging, and error handling.
 #
 # Usage:
-#   source "$(dirname "$0")/../lib/common.sh"
+#   source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 set -euo pipefail
 
@@ -27,12 +27,12 @@ declare -a FAILURES=()
 #   0 if command exists, 1 otherwise
 #######################################
 check_command() {
-    local cmd=$1
-    if ! command -v "$cmd" >/dev/null 2>&1; then
-        log_error "Required command '$cmd' not found in PATH"
-        return 1
-    fi
-    return 0
+	local cmd=$1
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		log_error "Required command '$cmd' not found in PATH"
+		return 1
+	fi
+	return 0
 }
 
 #######################################
@@ -47,36 +47,36 @@ check_command() {
 #   When a template is rendered, RESOLVED_BREWFILE_TMP is set
 #######################################
 resolve_brewfile() {
-    local brewfile_source=$1
-    local brewfile_target="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
-    local brewfile_template="${brewfile_source}.tmpl"
-    local tmp_file=""
+	local brewfile_source=$1
+	local brewfile_target="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
+	local brewfile_template="${brewfile_source}.tmpl"
+	local tmp_file=""
 
-    if [ -f "$brewfile_target" ]; then
-        echo "$brewfile_target"
-        return 0
-    fi
+	if [ -f "$brewfile_target" ]; then
+		echo "$brewfile_target"
+		return 0
+	fi
 
-    if [ -f "$brewfile_source" ]; then
-        echo "$brewfile_source"
-        return 0
-    fi
+	if [ -f "$brewfile_source" ]; then
+		echo "$brewfile_source"
+		return 0
+	fi
 
-    if [ -f "$brewfile_template" ]; then
-        tmp_file=$(mktemp)
-        if chezmoi execute-template < "$brewfile_template" > "$tmp_file"; then
-            export RESOLVED_BREWFILE_TMP="$tmp_file"
-            echo "$tmp_file"
-            return 0
-        fi
+	if [ -f "$brewfile_template" ]; then
+		tmp_file=$(mktemp)
+		if chezmoi execute-template <"$brewfile_template" >"$tmp_file"; then
+			export RESOLVED_BREWFILE_TMP="$tmp_file"
+			echo "$tmp_file"
+			return 0
+		fi
 
-        log_error "Failed to render Brewfile template"
-        rm -f "$tmp_file"
-        return 1
-    fi
+		log_error "Failed to render Brewfile template"
+		rm -f "$tmp_file"
+		return 1
+	fi
 
-    log_error "Brewfile not found at $brewfile_target, $brewfile_source, or $brewfile_template"
-    return 1
+	log_error "Brewfile not found at $brewfile_target, $brewfile_source, or $brewfile_template"
+	return 1
 }
 
 #######################################
@@ -89,17 +89,17 @@ resolve_brewfile() {
 #   Error message to stderr if flag is not set
 #######################################
 require_flag() {
-    local flag_name=$1
-    local description=$2
-    local flag_value="${!flag_name:-0}"
-    
-    if [ "$flag_value" != "1" ]; then
-        log_error "Refusing to proceed without ${flag_name}=1"
-        echo "  Set ${flag_name}=1 to allow: ${description}" >&2
-        exit 1
-    fi
-    
-    log_info "Flag ${flag_name} is set - proceeding with: ${description}"
+	local flag_name=$1
+	local description=$2
+	local flag_value="${!flag_name:-0}"
+
+	if [ "$flag_value" != "1" ]; then
+		log_error "Refusing to proceed without ${flag_name}=1"
+		echo "  Set ${flag_name}=1 to allow: ${description}" >&2
+		exit 1
+	fi
+
+	log_info "Flag ${flag_name} is set - proceeding with: ${description}"
 }
 
 #######################################
@@ -110,15 +110,15 @@ require_flag() {
 #   0 on success, 1 on failure
 #######################################
 safe_defaults_write() {
-    if ! check_command defaults; then
-        return 1
-    fi
-    
-    if ! defaults write "$@"; then
-        log_error "Failed to execute: defaults write $*"
-        return 1
-    fi
-    return 0
+	if ! check_command defaults; then
+		return 1
+	fi
+
+	if ! defaults write "$@"; then
+		log_error "Failed to execute: defaults write $*"
+		return 1
+	fi
+	return 0
 }
 
 #######################################
@@ -129,15 +129,15 @@ safe_defaults_write() {
 #   0 on success, 1 on failure
 #######################################
 safe_defaults_write_current_host() {
-    if ! check_command defaults; then
-        return 1
-    fi
+	if ! check_command defaults; then
+		return 1
+	fi
 
-    if ! defaults -currentHost write "$@"; then
-        log_error "Failed to execute: defaults -currentHost write $*"
-        return 1
-    fi
-    return 0
+	if ! defaults -currentHost write "$@"; then
+		log_error "Failed to execute: defaults -currentHost write $*"
+		return 1
+	fi
+	return 0
 }
 
 #######################################
@@ -149,23 +149,23 @@ safe_defaults_write_current_host() {
 #   0 on success, 1 on failure
 #######################################
 safe_defaults_write_as_user() {
-    local target_user=$1
-    shift
+	local target_user=$1
+	shift
 
-    if [ -z "$target_user" ]; then
-        log_error "safe_defaults_write_as_user requires a target user"
-        return 1
-    fi
+	if [ -z "$target_user" ]; then
+		log_error "safe_defaults_write_as_user requires a target user"
+		return 1
+	fi
 
-    if ! check_command defaults; then
-        return 1
-    fi
+	if ! check_command defaults; then
+		return 1
+	fi
 
-    if ! run_as_user "$target_user" defaults write "$@"; then
-        log_error "Failed to execute: defaults write $* (user: $target_user)"
-        return 1
-    fi
-    return 0
+	if ! run_as_user "$target_user" defaults write "$@"; then
+		log_error "Failed to execute: defaults write $* (user: $target_user)"
+		return 1
+	fi
+	return 0
 }
 
 #######################################
@@ -177,23 +177,23 @@ safe_defaults_write_as_user() {
 #   0 on success, 1 on failure
 #######################################
 safe_defaults_write_current_host_as_user() {
-    local target_user=$1
-    shift
+	local target_user=$1
+	shift
 
-    if [ -z "$target_user" ]; then
-        log_error "safe_defaults_write_current_host_as_user requires a target user"
-        return 1
-    fi
+	if [ -z "$target_user" ]; then
+		log_error "safe_defaults_write_current_host_as_user requires a target user"
+		return 1
+	fi
 
-    if ! check_command defaults; then
-        return 1
-    fi
+	if ! check_command defaults; then
+		return 1
+	fi
 
-    if ! run_as_user "$target_user" defaults -currentHost write "$@"; then
-        log_error "Failed to execute: defaults -currentHost write $* (user: $target_user)"
-        return 1
-    fi
-    return 0
+	if ! run_as_user "$target_user" defaults -currentHost write "$@"; then
+		log_error "Failed to execute: defaults -currentHost write $* (user: $target_user)"
+		return 1
+	fi
+	return 0
 }
 
 #######################################
@@ -203,9 +203,9 @@ safe_defaults_write_current_host_as_user() {
 #   $1: Failure description
 #######################################
 record_failure() {
-    local message=$1
-    FAILURES+=("$message")
-    log_error "$message"
+	local message=$1
+	FAILURES+=("$message")
+	log_error "$message"
 }
 
 #######################################
@@ -215,18 +215,18 @@ record_failure() {
 #   1 if failures exist, 0 otherwise
 #######################################
 report_failures() {
-    if [ ${#FAILURES[@]} -eq 0 ]; then
-        log_success "All operations completed successfully"
-        return 0
-    fi
-    
-    echo ""
-    log_error "The following operations failed:"
-    for failure in "${FAILURES[@]}"; do
-        echo "  - $failure" >&2
-    done
-    echo ""
-    return 1
+	if [ ${#FAILURES[@]} -eq 0 ]; then
+		log_success "All operations completed successfully"
+		return 0
+	fi
+
+	echo ""
+	log_error "The following operations failed:"
+	for failure in "${FAILURES[@]}"; do
+		echo "  - $failure" >&2
+	done
+	echo ""
+	return 1
 }
 
 #######################################
@@ -235,7 +235,7 @@ report_failures() {
 #   $1: Message to log
 #######################################
 log_info() {
-    echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $1"
+	echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $1"
 }
 
 #######################################
@@ -244,7 +244,7 @@ log_info() {
 #   $1: Message to log
 #######################################
 log_success() {
-    echo -e "${COLOR_GREEN}[SUCCESS]${COLOR_RESET} $1"
+	echo -e "${COLOR_GREEN}[SUCCESS]${COLOR_RESET} $1"
 }
 
 #######################################
@@ -253,7 +253,7 @@ log_success() {
 #   $1: Message to log
 #######################################
 log_warning() {
-    echo -e "${COLOR_YELLOW}[WARNING]${COLOR_RESET} $1" >&2
+	echo -e "${COLOR_YELLOW}[WARNING]${COLOR_RESET} $1" >&2
 }
 
 #######################################
@@ -262,7 +262,7 @@ log_warning() {
 #   $1: Message to log
 #######################################
 log_error() {
-    echo -e "${COLOR_RED}[ERROR]${COLOR_RESET} $1" >&2
+	echo -e "${COLOR_RED}[ERROR]${COLOR_RESET} $1" >&2
 }
 
 #######################################
@@ -273,20 +273,20 @@ log_error() {
 #   Warning if osascript unavailable or app fails to quit
 #######################################
 quit_app() {
-    local app_name=$1
-    
-    if ! command -v osascript >/dev/null 2>&1; then
-        log_warning "osascript not available, cannot quit $app_name"
-        return 1
-    fi
-    
-    if ! osascript -e "tell application \"$app_name\" to quit" 2>/dev/null; then
-        log_info "App '$app_name' not running or already quit"
-        return 0
-    fi
-    
-    log_info "Quit application: $app_name"
-    return 0
+	local app_name=$1
+
+	if ! command -v osascript >/dev/null 2>&1; then
+		log_warning "osascript not available, cannot quit $app_name"
+		return 1
+	fi
+
+	if ! osascript -e "tell application \"$app_name\" to quit" 2>/dev/null; then
+		log_info "App '$app_name' not running or already quit"
+		return 0
+	fi
+
+	log_info "Quit application: $app_name"
+	return 0
 }
 
 #######################################
@@ -297,25 +297,25 @@ quit_app() {
 #   Info message on success or if process not found
 #######################################
 kill_process() {
-    local process_name=$1
-    
-    if ! command -v killall >/dev/null 2>&1; then
-        log_warning "killall not available, cannot kill $process_name"
-        return 1
-    fi
-    
-    if pgrep -x "$process_name" >/dev/null 2>&1; then
-        if killall "$process_name" 2>/dev/null; then
-            log_info "Restarted process: $process_name"
-            return 0
-        else
-            log_warning "Failed to kill process: $process_name"
-            return 1
-        fi
-    else
-        log_info "Process '$process_name' not running"
-        return 0
-    fi
+	local process_name=$1
+
+	if ! command -v killall >/dev/null 2>&1; then
+		log_warning "killall not available, cannot kill $process_name"
+		return 1
+	fi
+
+	if pgrep -x "$process_name" >/dev/null 2>&1; then
+		if killall "$process_name" 2>/dev/null; then
+			log_info "Restarted process: $process_name"
+			return 0
+		else
+			log_warning "Failed to kill process: $process_name"
+			return 1
+		fi
+	else
+		log_info "Process '$process_name' not running"
+		return 0
+	fi
 }
 
 #######################################
@@ -324,7 +324,7 @@ kill_process() {
 #   Username of the console user
 #######################################
 get_console_user() {
-    stat -f %Su /dev/console
+	stat -f %Su /dev/console
 }
 
 #######################################
@@ -333,7 +333,7 @@ get_console_user() {
 #   0 if macOS, 1 otherwise
 #######################################
 is_macos() {
-    [[ "$(uname -s)" == "Darwin" ]]
+	[[ "$(uname -s)" == "Darwin" ]]
 }
 
 #######################################
@@ -343,12 +343,12 @@ is_macos() {
 #   $@: Command and arguments to execute
 #######################################
 run_as_user() {
-    local target_user=$1
-    shift
-    
-    if [ "$(whoami)" != "$target_user" ]; then
-        sudo -u "$target_user" "$@"
-    else
-        "$@"
-    fi
+	local target_user=$1
+	shift
+
+	if [ "$(whoami)" != "$target_user" ]; then
+		sudo -u "$target_user" "$@"
+	else
+		"$@"
+	fi
 }

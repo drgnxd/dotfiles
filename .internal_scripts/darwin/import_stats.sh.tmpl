@@ -3,13 +3,10 @@ set -euo pipefail
 
 # hash: {{ include "dot_config/stats/eu.exelban.Stats.plist" | sha256sum }}
 
-# Source common library
-if [ -n "${CHEZMOI_SOURCE_DIR:-}" ]; then
-  LIB_DIR="${CHEZMOI_SOURCE_DIR}/.internal_scripts/lib"
-else
-  LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
-fi
-source "${LIB_DIR}/common.sh"
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
+# shellcheck disable=SC1091
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 log_info "Detected changes in Stats (eu.exelban.Stats) configuration. Importing to system..."
 

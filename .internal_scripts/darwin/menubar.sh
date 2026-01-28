@@ -1,11 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Source common library
-LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
-# shellcheck source=../lib/common.sh
+# Source shared bootstrap
+# shellcheck source=../lib/bootstrap.sh
 # shellcheck disable=SC1091
-source "${LIB_DIR}/common.sh"
+source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
 
 log_info "Setting up Menu Bar and Control Center preferences..."
 
@@ -21,13 +20,13 @@ safe_defaults_write com.apple.controlcenter "NSStatusItem Visible BentoBox" -boo
 
 # Set physical spacing between menu bar icons to 10px
 if ! safe_defaults_write_current_host -globalDomain NSStatusItemSpacing -int 10; then
-  log_warning "Skipping currentHost NSStatusItemSpacing update"
+	log_warning "Skipping currentHost NSStatusItemSpacing update"
 fi
 safe_defaults_write -globalDomain NSStatusItemSpacing -int 10
 
 # Set padding around icons to 6px (makes the button itself smaller)
 if ! safe_defaults_write_current_host -globalDomain NSStatusItemSelectionPadding -int 6; then
-  log_warning "Skipping currentHost NSStatusItemSelectionPadding update"
+	log_warning "Skipping currentHost NSStatusItemSelectionPadding update"
 fi
 safe_defaults_write -globalDomain NSStatusItemSelectionPadding -int 6
 
