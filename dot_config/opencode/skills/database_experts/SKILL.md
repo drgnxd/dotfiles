@@ -5,15 +5,15 @@ description: DB design & query optimization
 
 # Database Experts
 
-## Purpose
+Aim:
 Standards for schema, query perf, safe migrations.
 
-## Core Principles
+Core:
 1. Model clearly, normalize appropriately
 2. Optimize for common access patterns
 3. Safe migrations w/ backward compatibility
 
-## Rules
+Do:
 
 ### Schema
 - Consistent naming for tables/columns
@@ -39,6 +39,4 @@ Standards for schema, query perf, safe migrations.
 - Large tables: online migration strategies
 - Multi-tenant: verify isolation & indexing
 
-See `COMMON.md`.
-
-Refs: [PG indexes](https://postgresql.org/docs/current/indexes.html), [EXPLAIN](https://postgresql.org/docs/current/using-explain.html), [perf tips](https://postgresql.org/docs/current/performance-tips.html) (2026-01-26)
+Refs: See doc/refs.md

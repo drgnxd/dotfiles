@@ -5,15 +5,15 @@ description: Python conventions for readable, reliable code
 
 # Python
 
-## Purpose
-Python-specific conventions for readability, correctness, maintainability.
+Aim:
+- Readability, correctness, maintainability
 
-## Core Principles
-1. Idiomatic Python style & stdlib practices
-2. Explicitness > cleverness
-3. Typing & tests reduce regressions
+Core:
+- Idiomatic stdlib usage
+- Explicitness > cleverness
+- Types & tests
 
-## Rules
+Do:
 
 ### Style
 - PEP 8 naming & formatting
@@ -38,6 +38,4 @@ Python-specific conventions for readability, correctness, maintainability.
 - Performance hotspots: measure before optimizing
 - Legacy code: prioritize consistency w/ existing patterns
 
-See `COMMON.md`.
-
-Refs: [PEP 8](https://peps.python.org/pep-0008/), [PEP 484](https://peps.python.org/pep-0484/), [pathlib](https://docs.python.org/3/library/pathlib.html) (2026-01-26)
+Refs: See doc/refs.md

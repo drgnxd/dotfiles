@@ -5,15 +5,15 @@ description: Safe, incremental improvement strategies
 
 # Refactoring
 
-## Purpose
+Aim:
 Improve code structure while preserving behavior.
 
-## Core Principles
+Core:
 1. Preserve existing behavior & contracts
 2. Small, reversible changes
 3. Use tests & tooling to validate
 
-## Rules
+Do:
 
 ### Planning
 - Identify goal: readability, reuse, or performance
@@ -33,6 +33,4 @@ Improve code structure while preserving behavior.
 - Tests missing: add characterization tests first
 - High-risk areas: coordinate w/ reviewers before large refactors
 
-See `COMMON.md`.
-
-Refs: [Fowler Refactoring](https://martinfowler.com/books/refactoring.html), [catalog](https://refactoring.com/catalog/), [guru](https://refactoring.guru/refactoring) (2026-01-26)
+Refs: See doc/refs.md
