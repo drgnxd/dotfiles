@@ -20,14 +20,15 @@ chroma/eza() {
     case "$__wrd" in
         # Long options
         --all|--almost-all|--binary|--bytes|--classify|--color|--color-scale|--color-scale-mode|\
-        --icons|--icons-auto|--no-icons|--group-directories-first|--git|--git-ignore|--git-repos|\
-        --header|--hyperlink|--inode|--links|--long|--modified|--created|--accessed|\
-        --no-quotes|--no-permissions|--numeric|--octal-permissions|--only-dirs|--only-files|\
-        --reverse|--recurse|--sort|--time|--time-style|--tree|--level|--ignore-glob)
+        --icons|--icons-auto|--no-icons|--group-directories-first|--group-directories-last|\
+        --git|--git-ignore|--git-repos|--header|--hyperlink|--inode|--links|--long|--modified|\
+        --created|--accessed|--no-quotes|--no-permissions|--numeric|--octal-permissions|--only-dirs|\
+        --only-files|--reverse|--recurse|--sort|--time|--time-style|--tree|--level|--ignore-glob|\
+        --oneline|--grid|--absolute|--across|--width)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options
-        -[aAbBcCdDfFgGhHiIlLmMnNoprsStTuUvwxX1@]*)
+        # Short options (letters, digits and common single-char flags)
+        -[0-9A-Za-z@]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options

@@ -16,11 +16,12 @@ chroma/wget() {
     (( FAST_HIGHLIGHT[chroma-wget-counter-all] += 1, __start=__start_pos-${#PREBUFFER}, __end=__end_pos-${#PREBUFFER} ))
 
     case "$__wrd" in
-        # Options (subset)
-        --help|--version|--quiet|--verbose|--no-clobber|--continue|--timestamping|--server-response|--spider|--user-agent|--referer|--header|--save-headers|--output-document|--directory-prefix|--force-directories|--no-host-directories|--protocol-directories|--timeout|--tries|--wait|--waitretry|--random-wait|--proxy|--quota|--limit-rate|--recursive|--level|--delete-after|--convert-links|--backup-converted|--mirror|--page-requisites|--strict-comments)
+        # Options (expanded from wget manpage)
+        --help|--version|--quiet|--verbose|--no-clobber|--continue|--timestamping|--server-response|--spider|--user-agent|--referer|--header|--save-headers|--output-document|--output-file|--directory-prefix|--force-directories|--no-host-directories|--protocol-directories|--timeout|--tries|--wait|--waitretry|--random-wait|--proxy|--proxy-user|--proxy-password|--quota|--limit-rate|--recursive|--level|--delete-after|--convert-links|--convert-file-only|--backup-converted|--mirror|--page-requisites|--strict-comments|--accept|--reject|--accept-regex|--reject-regex|--input-file|--load-cookies|--save-cookies|--hsts-file|--https-only|--no-check-certificate|--check-certificate|--ca-certificate|--ca-directory|--certificate|--private-key|--private-key-type|--pinnedpubkey|--post-data|--post-file|--method|--referer|--span-hosts|--warc-file|--warc-max-size)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        -*)
+        # Short options (match common single-letter flags)
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         http://*|https://*|ftp://*)

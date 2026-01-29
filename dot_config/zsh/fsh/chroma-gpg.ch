@@ -16,12 +16,12 @@ chroma/gpg() {
     (( FAST_HIGHLIGHT[chroma-gpg-counter-all] += 1, __start=__start_pos-${#PREBUFFER}, __end=__end_pos-${#PREBUFFER} ))
 
     case "$__wrd" in
-        # Actions / Commands
-        --sign|--clearsign|--detach-sign|--encrypt|--symmetric|--store|--decrypt|--verify|--list-keys|--list-secret-keys|--check-sigs|--fingerprint|--list-packets|--gen-key|--edit-key|--sign-key|--lsign-key|--nrsign-key|--delete-key|--delete-secret-key|--delete-secret-and-public-key|--gen-revoke|--desig-revoke|--export|--send-keys|--recv-keys|--search-keys|--refresh-keys|--import|--card-status|--card-edit|--change-pin|--update-trustdb|--print-md|--server|--help|--version)
+        # Actions / Commands (expanded from gpg --help)
+        --sign|--clear-sign|--clearsign|--detach-sign|--encrypt|--symmetric|--store|--decrypt|--verify|--list-keys|--list-secret-keys|--list-signatures|--check-signatures|--fingerprint|--list-packets|--full-generate-key|--generate-key|--generate-revocation|--edit-key|--sign-key|--lsign-key|--quick-sign-key|--delete-keys|--delete-secret-keys|--import|--export|--send-keys|--receive-keys|--search-keys|--refresh-keys|--card-status|--edit-card|--change-pin|--update-trustdb|--print-md|--server|--help|--version)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
         # Options
-        --armor|--output|--recipient|--hidden-recipient|--default-key|--local-user|--compress-algo|--passphrase|--batch|--yes|--no|--keyring|--secret-keyring|--trustdb-name|--homedir|--display-charset|--verbose|--quiet)
+        --armor|--auto-key-import|--auto-key-locate|--output|--recipient|--hidden-recipient|--default-key|--local-user|--compress-algo|--passphrase|--batch|--yes|--no|--keyring|--secret-keyring|--trustdb-name|--homedir|--display-charset|--verbose|--quiet|--log-file|--options|--interactive|--quiet)
              __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
         -*)

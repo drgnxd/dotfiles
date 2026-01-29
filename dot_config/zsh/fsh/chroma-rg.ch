@@ -31,11 +31,11 @@ chroma/rg() {
         --one-file-system|--only-matching|--passthru|--path-separator|--pcre2|--pre|--pre-glob|\
         --pretty|--quiet|--regex-size-limit|--regexp|--replace|--search-zip|--smart-case|--sort|\
         --sortr|--stats|--text|--threads|--trim|--type|--type-add|--type-clear|--type-list|\
-        --type-not|--unrestricted|--vimgrep|--with-filename|--word-regexp)
+        --type-not|--unrestricted|--vimgrep|--with-filename|--word-regexp|--pcre2-auto|--engine)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options
-        -[ACBcEeFfgHhiIjLlmMNnopqRrsStuUvwxz0]*)
+        # Short options (letters, digits and common single-char flags)
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options

@@ -24,11 +24,11 @@ chroma/fd() {
         --color|--exec|--exec-batch|--exclude|--extension|--follow|--full-path|--glob|\
         --hidden|--ignore-case|--ignore-file|--list-details|--max-depth|--max-results|\
         --min-depth|--no-ignore|--no-ignore-vcs|--no-ignore-parent|--owner|--prune|--regex|\
-        --search-path|--show-errors|--size|--strip-cwd-prefix|--threads|--type)
+        --search-path|--show-errors|--size|--strip-cwd-prefix|--threads|--type|--format|--full-path)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options
-        -[abdcEeFfgHhiILlpsStuXx0]*)
+        # Short options (letters, digits and common single-char flags)
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options
