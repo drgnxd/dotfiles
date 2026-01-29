@@ -1,0 +1,45 @@
+# Language-Specific Skills
+
+bash:
+  desc: Safe shell scripting
+  core:
+    - set -euo pipefail
+    - quote vars "${var}"
+    - validate inputs
+  ex: |
+    ✓ readonly VAR="${1}"; [[ -n "${VAR}" ]] || exit 1
+    ✗ VAR=$1; rm -rf $VAR
+
+python:
+  desc: Readable, reliable Python
+  core:
+    - PEP 8 naming
+    - type hints for public APIs
+    - pathlib over string paths
+    - no mutable defaults
+  ex: |
+    ✓ def read(path: Path) -> str: return path.read_text()
+    ✗ def read(path): return open(path).read()
+  imports: [stdlib, third_party, local]
+  line_length: 88
+
+javascript:
+  desc: Modern JS/TS conventions
+  core:
+    - prefer const/let over var
+    - strict equality ===
+    - async/await over callbacks
+    - avoid any unless necessary
+  ex: |
+    ✓ const data = await fetch(url).then(r => r.json())
+    ✗ var data; fetch(url).then(r => r.json().then(d => data = d))
+
+rust:
+  desc: Safe, idiomatic Rust
+  core:
+    - rustfmt + clippy
+    - Result/Option over unwrap in prod
+    - iterators over manual indexing
+  ex: |
+    ✓ fn read(path: &Path) -> Result<String>
+    ✗ fn read(path: &Path) -> String { fs::read(path).unwrap() }

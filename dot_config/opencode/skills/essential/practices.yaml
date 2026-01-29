@@ -1,0 +1,68 @@
+# Engineering Practices
+
+coding:
+  unix_philosophy:
+    - small_is_beautiful
+    - do_one_thing_well
+    - build_prototype_fast
+    - portability_over_efficiency
+  functions:
+    - one_responsibility
+    - short_focused
+    - prefer_pure
+  errors: |
+    ✓ try: return f.read()
+      except FileNotFoundError as e:
+        raise RuntimeError(f"Missing: {path}") from e
+    ✗ try: return open(path).read()
+      except: return ""
+
+testing:
+  core:
+    - fast_deterministic
+    - cover_critical_paths
+    - readable_maintainable
+  types:
+    unit: isolated_logic
+    integration: cross_component
+    e2e: high_value_flows_only
+  quality:
+    - avoid_flaky
+    - assert_outcomes_not_implementation
+
+code_review:
+  focus:
+    - correctness
+    - clarity
+    - maintainability
+  check:
+    - edge_cases_error_handling
+    - data_validation_security
+    - clear_consistent_naming
+    - simple_control_flow
+  ex: |
+    ✓ "This can return null; add guard or update type"
+    ✗ "Looks bad"
+
+refactoring:
+  core:
+    - preserve_behavior
+    - small_reversible_changes
+    - tests_validate
+  plan:
+    - identify_goal
+    - dont_mix_with_features
+  execution:
+    - small_steps_with_checkpoints
+    - run_tests_after_each
+    - keep_apis_stable
+
+debugging:
+  workflow:
+    - reproduce_reliably
+    - isolate_minimal_case
+    - validate_fix_add_tests
+  investigation:
+    - logs_metrics_traces
+    - temp_instrumentation
+    - verify_assumptions

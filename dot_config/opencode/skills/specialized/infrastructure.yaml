@@ -1,0 +1,66 @@
+# Infrastructure Skills
+
+git:
+  core:
+    - feature_branches_for_wip
+    - no_direct_commits_to_protected
+    - rebase_only_on_private
+  commits:
+    - single_logical_change
+    - explain_intent_not_just_actions
+    - never_commit_secrets
+  workflow:
+    - git_status_diff_before_staging
+    - pull_before_push
+    - resolve_conflicts_locally
+
+docker:
+  core:
+    - slim_base_pin_versions
+    - multi_stage_builds
+    - never_copy_secrets
+    - non_root_when_possible
+  runtime:
+    - explicit_env_vars_volumes
+    - read_only_mounts_for_immutable
+    - health_checks_for_long_running
+
+linux:
+  core:
+    - least_privilege
+    - reversible_steps
+    - validate_before_after
+  changes:
+    - check_state_first
+    - targeted_commands
+    - backup_configs
+  services:
+    - verify_status_after_restart
+    - check_logs
+
+database:
+  schema:
+    - consistent_naming
+    - explicit_pks_indexes
+    - doc_relationships
+  query:
+    - index_frequent_filters
+    - avoid_full_scans
+    - review_plans
+  migrations:
+    - additive_first
+    - backfill_in_batches
+    - remove_after_consumers_updated
+
+security:
+  secrets:
+    - never_hardcode
+    - use_secret_managers
+    - rotate_if_exposed
+  input_output:
+    - validate_sanitize_all_input
+    - encode_outputs
+  dependencies:
+    - track_third_party
+    - update_regularly
+    - avoid_unmaintained

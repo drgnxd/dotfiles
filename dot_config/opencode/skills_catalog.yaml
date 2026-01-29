@@ -1,0 +1,42 @@
+# Skills Catalog v2.0
+
+load_strategy:
+  always: [skills_core.yaml]
+  by_task: auto_detect
+  max_tokens: 5000
+
+catalog:
+  essential:
+    languages:
+      path: essential/languages.yaml
+      tokens: 600
+      trigger_keywords: [python, bash, javascript, rust, .py, .sh, .js, .rs]
+    
+    practices:
+      path: essential/practices.yaml
+      tokens: 700
+      trigger_keywords: [code, test, review, refactor, debug]
+  
+  specialized:
+    infrastructure:
+      path: specialized/infrastructure.yaml
+      tokens: 600
+      trigger_keywords: [git, docker, linux, database, db, container, commit]
+    
+    research:
+      path: specialized/research.yaml
+      tokens: 800
+      trigger_keywords: [research, analyze, compare, evaluate, study, investigation]
+      has_tools: true
+      tools_path: tools/research/
+    
+    japanese:
+      path: specialized/japanese.yaml
+      tokens: 200
+      trigger_keywords: [日本語, japanese, 翻訳]
+
+presets:
+  python_dev: [languages, practices]
+  devops: [infrastructure, languages]
+  research_task: [research, practices]
+  general: [practices]

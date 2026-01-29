@@ -1,2 +1,0 @@
-Group findings by themes, identify patterns, and document knowledge gaps.
-Assign confidence levels and list open questions for follow-up research.
