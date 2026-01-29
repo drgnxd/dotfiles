@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+# fzf integration
+
+if command -v fzf >/dev/null 2>&1; then
+    # Ctrl-R: history search
+    __fzf_history__() {
+        local selected
+        selected=$(fc -rl 1 | fzf --tac --no-sort --query="$LBUFFER" | awk '{print substr($0, index($0,$2))}')
+        if [ -n "$selected" ]; then
+            LBUFFER="$selected"
+        fi
+        zle reset-prompt
+    }
+    zle -N __fzf_history__
+    bindkey '^R' __fzf_history__
+
+    # Ctrl-T: file search (fd)
+    if command -v fd >/dev/null 2>&1; then
+        export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+        export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    fi
+
+    # Alt-C: directory search (fd)
+    if command -v fd >/dev/null 2>&1; then
+        export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+    fi
+fi

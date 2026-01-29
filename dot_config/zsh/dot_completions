@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+# Per-command completion definitions
+
+# Docker completion: complete container names
+if command -v docker >/dev/null 2>&1; then
+    _docker_containers() {
+        local -a containers
+        containers=(${(f)"$(docker ps -a --format '{{.Names}}')"})
+        _describe 'containers' containers
+    }
+    compdef _docker_containers docker
+fi
+
+# chezmoi completion: complete managed files
+if command -v chezmoi >/dev/null 2>&1; then
+    _chezmoi_files() {
+        local -a files
+        files=(${(f)"$(chezmoi managed)"})
+        _describe 'managed files' files
+    }
+    compdef _chezmoi_files 'chezmoi edit' 'chezmoi cat'
+fi
+
+# brew completion: complete installed formulae
+if command -v brew >/dev/null 2>&1; then
+    _brew_installed() {
+        local -a packages
+        packages=(${(f)"$(brew list --formula)"})
+        _describe 'installed packages' packages
+    }
+    compdef _brew_installed 'brew uninstall' 'brew info'
+fi

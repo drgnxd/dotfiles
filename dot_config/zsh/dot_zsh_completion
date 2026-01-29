@@ -1,73 +1,55 @@
-# ~/.config/zsh/.zsh_completion
+# zsh completion setup
 
-# ------------------------------------------------------------------------------
-# 1. zsh-completions path setting (must be done before compinit)
-# ------------------------------------------------------------------------------
-# Use HOMEBREW_PREFIX set in .homebrew
+# Prefer Homebrew zsh-completions if available
 if [ -n "$HOMEBREW_PREFIX" ] && [ -d "$HOMEBREW_PREFIX/share/zsh-completions" ]; then
   fpath=("$HOMEBREW_PREFIX/share/zsh-completions" $fpath)
 fi
 
-# ------------------------------------------------------------------------------
-# 2. Initialize completion system
-# ------------------------------------------------------------------------------
+# Initialize completion system (use cache for speed)
 ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
 if [ ! -d "${ZSH_COMPDUMP%/*}" ]; then
   mkdir -p "${ZSH_COMPDUMP%/*}"
 fi
-
 autoload -U compinit
-# Skip security check for speed (-C: use cache)
 compinit -C -d "$ZSH_COMPDUMP"
 
-# ------------------------------------------------------------------------------
-# 3. Style settings (Improve visibility)
-# ------------------------------------------------------------------------------
-# Enable menu selection for completion candidates
+# Visual and matching styles
 zstyle ':completion:*' menu select
-
-# Show descriptions for completion candidates (e.g., --help  -- display usage information)
 zstyle ':completion:*' verbose yes
-# Solarized Dark optimized colors
-# Descriptions: bright green
 zstyle ':completion:*:descriptions' format '%F{green}-- %d --%f'
-# Messages: yellow
 zstyle ':completion:*:messages' format '%F{yellow}%d%f'
-# Warnings: red
 zstyle ':completion:*:warnings' format '%F{red}No matches for: %d%f'
-# Group headings: bright blue (bold)
 zstyle ':completion:*:group-name' format '%F{blue}%B%d%b%f'
-
-# Group completion candidates (Distinguish commands, aliases, files, etc.)
 zstyle ':completion:*' group-name ''
-
-# Case insensitive matching
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-# Colorize completion list for ls command etc.
-# Use LS_COLORS for file completion
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-# Specific colors for different completion types
-# parameters: violet
-zstyle ':completion:*:parameters' list-colors '=*=35'
-# commands/aliases: blue
-zstyle ':completion:*:commands' list-colors '=*=1;34'
-zstyle ':completion:*:aliases' list-colors '=*=1;36'
-# builtins: magenta
-zstyle ':completion:*:builtins' list-colors '=*=1;35'
-# functions: yellow
-zstyle ':completion:*:functions' list-colors '=*=1;33'
+# Completion cache
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+
+# Process and system related completions
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
+zstyle ':completion:*:(ssh|scp|rsync):*' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
+
+# Git and directory stack tweaks
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*:git-*:*' verbose yes
+zstyle ':completion:*:*:cd:*:directory-stack' menu yes select
+
+# Verbose completion output and selection prompt
+zstyle ':completion:*' extra-verbose yes
+zstyle ':completion:*' menu select=long
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
 
 # Taskwarrior: use cached IDs/descriptions for completion
 _task_ids_describe() {
-    # Ensure cache is loaded
     typeset -ga TASK_CACHE_DESC
     if (( ${#TASK_CACHE_DESC} )); then
         _describe -t task-ids 'task IDs' TASK_CACHE_DESC
     fi
 }
 
-# Prefer our task IDs tag when using task command
 zstyle ':completion:*:*:task:*' completer _oldlist _task_ids_describe _complete
 zstyle ':completion:*:*:task:*' group-name ''
 zstyle ':completion:*:*:task:*' tag-order 'task-ids' 'options' 'arguments'
