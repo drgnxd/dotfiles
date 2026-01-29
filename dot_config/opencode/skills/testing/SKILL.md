@@ -5,15 +5,15 @@ description: Testing strategy & coverage guidelines
 
 # Testing
 
-## Purpose
+Aim:
 Balanced testing strategy for confidence w/o excessive cost.
 
-## Core Principles
+Core:
 1. Fast, deterministic tests for core logic
 2. Cover critical paths & failure modes
 3. Readable, maintainable tests
 
-## Rules
+Do:
 
 ### Test Types
 - Unit tests for isolated logic
@@ -33,6 +33,4 @@ Balanced testing strategy for confidence w/o excessive cost.
 - External services required: use mocks or test doubles
 - Time-dependent logic: control clock in tests
 
-See `COMMON.md`.
-
-Refs: [Test pyramid](https://martinfowler.com/articles/practical-test-pyramid.html), [bliki](https://martinfowler.com/bliki/TestPyramid.html), [strategies](https://web.dev/articles/ta-strategies) (2026-01-26)
+Refs: See doc/refs.md

@@ -5,15 +5,15 @@ description: Docker builds & container ops best practices
 
 # Docker Experts
 
-## Purpose
+Aim:
 Secure, efficient container images & safe ops.
 
-## Core Principles
+Core:
 1. Minimal, reproducible images
 2. Non-root execution when possible
 3. Explicit, auditable runtime config
 
-## Rules
+Do:
 
 ### Dockerfile
 - Slim base images, pin versions
@@ -38,6 +38,4 @@ Secure, efficient container images & safe ops.
 - Root required: doc why, reduce capabilities
 - Large images: explain tradeoff, monitor pull times
 
-See `COMMON.md`.
-
-Refs: [Best practices](https://docs.docker.com/build/building/best-practices/), [Dockerfile ref](https://docs.docker.com/reference/dockerfile/) (2026-01-26)
+Refs: See doc/refs.md

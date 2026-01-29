@@ -7,20 +7,20 @@ description: Systematic research workflow for evidence synthesis & reporting
 
 Repeatable workflow for complex questions requiring evidence synthesis & structured reporting.
 
-## Purpose
+Aim:
 - Scoped, multi-phase research
 - Gather & evaluate diverse sources w/ quality checks
 - Synthesize into themes, patterns, gaps, recommendations
 - Traceable citations
 
-## Core Principles
+Core:
 1. **Scope First**: Define questions, criteria, constraints before search
 2. **Source Diversity**: Multiple independent sources, prefer primary
 3. **Evidence Grading**: Record recency, authority, confidence
 4. **Synthesis > Summary**: Themes, patterns, gaps
 5. **Reproducibility**: Track inputs, queries, decisions
 
-## Rules
+Do:
 
 ### Scope Definition
 Capture main question, subquestions, success criteria, constraints, deliverables before search.
@@ -80,8 +80,6 @@ AI coding assistant market → report w/ market signals, vendor positioning, tre
 
 Related: `thinking_framework`, `documentation`, `security_experts`
 
-See `COMMON.md`.
-
 Tools: `bin/search_and_analyze.py`, `bin/synthesize.py`, `bin/report_generator.py`
 
-Refs: [CRAAP](https://libguides.csuchico.edu/craap), [PRISMA](https://prisma-statement.org/) (2026-01-26)
+Refs: See doc/refs.md

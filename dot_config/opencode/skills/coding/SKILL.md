@@ -7,19 +7,19 @@ description: Baseline coding standards (Unix philosophy & clean design)
 
 Baseline for maintainable, composable code. Project-specific rules always take priority.
 
-## Purpose
+Aim:
 - Consistent baseline for style & structure
 - Small, testable units that compose well
 - Clear override hierarchy
 
-## Core Principles
+Core:
 1. Single responsibility per module/function
 2. Composability: standard I/O, small tools
 3. Clarity > cleverness
 4. Explicit errors w/ context
 5. Project overrides: local rules win
 
-## Rules
+Do:
 
 ### Priority Hierarchy
 1. `.opencode/skills/coding/SKILL.md`
@@ -87,6 +87,4 @@ See `doc/unix_philosophy.md`, `doc/clean_code.md`, `doc/best_practices.md`, `doc
 
 Related: `documentation`, `testing`, `refactoring`, `default_naming_conventions`
 
-See `COMMON.md`.
-
-Refs: [agentskills.io](https://agentskills.io/specification), [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy) (2026-01-26)
+Refs: See doc/refs.md

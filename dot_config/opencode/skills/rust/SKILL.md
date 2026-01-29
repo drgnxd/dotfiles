@@ -5,15 +5,15 @@ description: Rust conventions for idiomatic, safe code
 
 # Rust
 
-## Purpose
+Aim:
 Rust-specific guidelines for safe, idiomatic, maintainable code.
 
-## Core Principles
+Core:
 1. Leverage ownership & borrowing for safety
 2. Explicit error handling > panics
 3. Use standard tooling for formatting & linting
 
-## Rules
+Do:
 
 ### Style & Tooling
 - Format w/ `rustfmt`
@@ -37,6 +37,4 @@ Rust-specific guidelines for safe, idiomatic, maintainable code.
 - Tests or prototypes: `unwrap` acceptable w/ comment
 - Unsafe code: doc invariants & required conditions
 
-See `COMMON.md`.
-
-Refs: [Rust book](https://doc.rust-lang.org/stable/book/), [dev tools](https://doc.rust-lang.org/book/appendix-04-useful-development-tools.html), [clippy](https://doc.rust-lang.org/clippy/) (2026-01-26)
+Refs: See doc/refs.md

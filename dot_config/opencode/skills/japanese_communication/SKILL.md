@@ -5,15 +5,15 @@ description: Japanese response standards for tone & technical clarity
 
 # Japanese Communication
 
-## Purpose
+Aim:
 Clear, concise, professional Japanese w/ technical accuracy.
 
-## Core Principles
+Core:
 1. Japanese by default, natural technical phrasing
 2. Concise while preserving key details
 3. Consistent terminology, avoid unnecessary jargon
 
-## Rules
+Do:
 
 ### Language & Tone
 - Polite, professional Japanese (desu/masu form)
@@ -39,6 +39,4 @@ Clear, concise, professional Japanese w/ technical accuracy.
 - User requests another language: ask if Japanese still acceptable
 - No common Japanese equivalent: keep in English w/ short gloss
 
-See `COMMON.md`.
-
-Refs: [JTF E→J guide](https://www.jtf.jp/pdf/jtf_style_guide_e.pdf), [JTF style](https://www.jtf.jp/pdf/jtf_style_guide.pdf), [JAT style](https://jat.org/news/e_to_j_style_guide) (2026-01-26)
+Refs: See doc/refs.md
