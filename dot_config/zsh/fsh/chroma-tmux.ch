@@ -19,22 +19,20 @@ chroma/tmux() {
 
     # Highlighting logic for tmux arguments
     case "$__wrd" in
-        # Main subcommands
-        attach|attach-session|bind|bind-key|break-pane|capture-pane|choose-buffer|choose-client|\
-        choose-tree|clear-history|clock-mode|command-prompt|confirm-before|copy-mode|\
-        customize-mode|delete-buffer|detach|detach-client|display|display-menu|display-message|\
-        display-panes|display-popup|find-window|has|has-session|if|if-shell|join-pane|\
-        kill-pane|kill-server|kill-session|kill-window|last|last-pane|last-window|link-window|\
-        list-buffers|list-clients|list-commands|list-keys|list-panes|list-sessions|list-windows|\
-        load-buffer|lock|lock-client|lock-server|lock-session|move-pane|move-window|new|new-session|\
-        new-window|next|next-layout|next-window|paste-buffer|pipe-pane|prev|previous-layout|\
-        previous-window|refresh|refresh-client|rename|rename-session|rename-window|resize-pane|\
-        resize-window|respawn-pane|respawn-window|rotate-window|run|run-shell|save-buffer|\
-        select-layout|select-pane|select-window|send|send-keys|send-prefix|set|set-buffer|\
-        set-environment|set-hook|set-option|set-window-option|show|show-buffer|show-environment|\
-        show-hooks|show-messages|show-options|show-window-options|source|source-file|split-window|\
-        start|start-server|suspend-client|swap-pane|swap-window|switch-client|unbind|unbind-key|\
-        unlink-window|wait|wait-for)
+        # Main subcommands (sourced from tmux list-commands when available)
+        attach-session|bind-key|break-pane|capture-pane|choose-buffer|choose-client|choose-tree|\
+        clear-history|clock-mode|command-prompt|confirm-before|copy-mode|customize-mode|\
+        delete-buffer|detach-client|display-menu|display-message|display-panes|display-popup|\
+        find-window|has-session|if-shell|join-pane|kill-pane|kill-server|kill-session|kill-window|\
+        last-pane|last-window|link-window|list-buffers|list-clients|list-commands|list-keys|\
+        list-panes|list-sessions|list-windows|load-buffer|lock-client|lock-server|lock-session|\
+        move-pane|move-window|new-session|new-window|next-layout|next-window|paste-buffer|pipe-pane|\
+        previous-layout|previous-window|refresh-client|rename-session|rename-window|resize-pane|\
+        resize-window|respawn-pane|respawn-window|rotate-window|run-shell|save-buffer|select-layout|\
+        select-pane|select-window|send-keys|send-prefix|set-buffer|set-environment|set-hook|set-option|\
+        set-window-option|show-buffer|show-environment|show-hooks|show-messages|show-options|\
+        show-window-options|source-file|split-window|start-server|suspend-client|swap-pane|swap-window|\
+        switch-client|unbind-key|unlink-window|wait-for)
             if (( FAST_HIGHLIGHT[chroma-tmux-subcommand-seen] == 0 )); then
                 __style=${FAST_THEME_NAME}subcommand
                 FAST_HIGHLIGHT[chroma-tmux-subcommand-seen]=1
@@ -42,8 +40,8 @@ chroma/tmux() {
                 __style=${FAST_THEME_NAME}default
             fi
             ;;
-        # Global options
-        -[2CDdEfLlNPsTuUvV]*)
+        # Global options (single-hyphen options include letters, digits)
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options

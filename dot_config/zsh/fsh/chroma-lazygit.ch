@@ -18,13 +18,13 @@ chroma/lazygit() {
 
     # Highlighting logic for lazygit arguments
     case "$__wrd" in
-        # Long options
-        --config|--custom-config|--debug|--filter|--git-dir|--help|--logs|--print-config-dir|\
-        --print-default-config|--use-config-dir|--use-config-file|--version|--work-tree)
+        # Long options (expanded from lazygit --help)
+        --help|--path|--filter|--version|--debug|--profile|--config|--print-config-dir|--use-config-dir|\
+        --work-tree|--git-dir|--use-config-file|--print-default-config|--logs|--screen-mode)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options
-        -[cdghlfpvw]*)
+        # Short options — accept numeric/alpha to be robust
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options

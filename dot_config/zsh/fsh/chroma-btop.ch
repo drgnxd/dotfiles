@@ -22,8 +22,8 @@ chroma/btop() {
         --help|--version|--debug|--preset|--utf-force|--low-color|--no-color|--tty_on)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options
-        -[hvdpult]*)
+        # Short options (letters, digits and common single-char flags)
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options

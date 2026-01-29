@@ -21,13 +21,13 @@ chroma/bat() {
         # Long options
         --show-all|--nonprintable|--language|--line-range|--highlight-line|--file-name|\
         --diff|--diff-context|--tabs|--wrap|--terminal-width|--number|--color|--italic-text|\
-        --decorations|--paging|--pager|--map-syntax|--theme|--list-themes|--list-languages|\
+        --decorations|--paging|--pager|--map-syntax|--theme|--theme-dark|--theme-light|--force-colorization|--strip-ansi|--list-themes|--list-languages|\
         --config-file|--config-dir|--cache-dir|--generate-config-file|--acknowledgements|\
         --plain|--no-paging|--style)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options
-        -[AplnfrdHmPh]*)
+        # Short options (letters, digits and common single-char flags)
+        -[0-9A-Za-z@]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options

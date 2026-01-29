@@ -18,21 +18,25 @@ chroma/fzf() {
 
     # Highlighting logic for fzf arguments
     case "$__wrd" in
-        # Long options
-        --algo|--ansi|--bind|--border|--border-label|--border-label-pos|--color|--cycle|\
-        --delimiter|--disabled|--ellipsis|--expect|--extended|--filepath-word|--filter|\
-        --header|--header-first|--header-lines|--height|--help|--highlight-line|--history|\
-        --history-size|--hscroll|--hscroll-off|--info|--jump-labels|--keep-right|--layout|\
-        --listen|--literal|--margin|--marker|--min-height|--multi|--no-bold|--no-hscroll|\
-        --no-mouse|--no-sort|--no-unicode|--nth|--padding|--phony|--pointer|--preview|\
-        --preview-label|--preview-label-pos|--preview-window|--print-query|--print0|\
-        --prompt|--query|--read0|--regex|--reverse|--scheme|--scroll-off|--select-1|\
-        --separator|--sync|--tabstop|--tac|--tiebreak|--track|--version|--walker|\
-        --walker-root|--walker-skip|--with-nth|--with-shell|--wrap)
+        # Long options (expanded from local manpage)
+        --accept-nth|--algo|--ambidouble|--ansi|--bash|--bind|--black|--border|--border-label|--border-label-pos|--brief|\
+        --color|--column|--cycle|--delimiter|--disabled|--ellipsis|--exact|--exit-0|--expect|--extended|--filepath-word|\
+        --filter|--fish|--footer|--footer-border|--footer-label|--footer-label-pos|--freeze-left|--freeze-right|--gap|\
+        --gap-line|--ghost|--graph|--gutter|--gutter-raw|--header|--header-border|--header-first|--header-label|\
+        --header-label-pos|--header-lines|--header-lines-border|--height|--help|--highlight-line|--history|--history-size|\
+        --hscroll-off|--ignore-case|--info|--info-command|--input-border|--input-label|--input-label-pos|--jump-labels|\
+        --keep-right|--layout|--line-number|--list-border|--list-label|--list-label-pos|--listen|--listen-unsafe|--literal|\
+        --man|--margin|--marker|--marker-multi-line|--min-height|--multi|--no-bold|--no-clear|--no-color|--no-expect|\
+        --no-extended|--no-header-lines-border|--no-heading|--no-hscroll|--no-ignore-case|--no-info|--no-input|--no-list-border|\
+        --no-mouse|--no-multi|--no-multi-line|--no-scrollbar|--no-separator|--no-sort|--no-tty-default|--no-unicode|--nth|\
+        --oneline|--padding|--pointer|--preview|--preview-border|--preview-label|--preview-label-pos|--preview-window|\
+        --print-query|--print0|--prompt|--query|--raw|--read0|--reverse|--scheme|--scroll-off|--scrollbar|--select-1|\
+        --separator|--smart-case|--style|--sync|--tabstop|--tac|--tail|--tiebreak|--tmux|--track|--tty-|--unix-socket|--version|\
+        --walker|--walker-root|--walker-skip|--with-nth|--with-shell|--wrap|--wrap-sign|--zsh)
             __style=${FAST_THEME_NAME}double-hyphen-option
             ;;
-        # Short options  
-        -[0deifmnqx1]*)
+        # Short options — accept any common short option to reduce misses
+        -[0-9A-Za-z]*)
             __style=${FAST_THEME_NAME}single-hyphen-option
             ;;
         # Values after = in options
