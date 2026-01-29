@@ -4,11 +4,11 @@
 
 help:
 	@echo "Make targets:"
-	@echo "  venv    - create Python virtualenv (.venv)"
-	@echo "  install - create venv (if needed) and install dependencies from requirements.txt"
-	@echo "  run     - run skills_loader.py inside the venv"
-	@echo "  test    - run quick smoke test of loader"
-	@echo "  clean   - remove .venv"
+	@echo "  venv     - create Python virtualenv (.venv)"
+	@echo "  install  - create venv (if needed) and install dependencies"
+	@echo "  run      - run skills_loader.py"
+	@echo "  test     - run quick smoke test"
+	@echo "  clean    - remove .venv"
 
 venv:
 	@python3 -m venv .venv
@@ -17,16 +17,14 @@ venv:
 install: venv
 	@.venv/bin/python -m pip install --upgrade pip setuptools wheel
 	@.venv/bin/python -m pip install -r requirements.txt
-	@echo "Dependencies installed in .venv"
+	@echo "Dependencies installed"
 
 run: install
 	@.venv/bin/python skills_loader.py
 
 test: install
-	@.venv/bin/python - <<PY
-from skills_loader import SkillsLoader
-print(SkillsLoader().load_for_task('Create a Python script to parse CSV files')[:800])
-PY
+	@echo "=== Smoke Test Output ==="
+	@.venv/bin/python skills_loader.py | head -n 30
 
 clean:
 	@rm -rf .venv
