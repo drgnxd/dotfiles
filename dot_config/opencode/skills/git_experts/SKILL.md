@@ -5,15 +5,15 @@ description: Git workflow & collaboration best practices
 
 # Git Experts
 
-## Purpose
+Aim:
 Safe, consistent Git practices for collaboration, review, history hygiene.
 
-## Core Principles
+Core:
 1. Understandable, traceable history
 2. Minimize risk on shared branches
 3. Small, reviewable commits
 
-## Rules
+Do:
 
 ### Branching
 - Feature branches for WIP
@@ -39,6 +39,4 @@ Safe, consistent Git practices for collaboration, review, history hygiene.
 - History rewrite needed: confirm no one depends on branch
 - Sensitive data committed: rotate secrets, purge history carefully
 
-See `COMMON.md`.
-
-Refs: [git-commit](https://git-scm.com/docs/git-commit), [git-rebase](https://git-scm.com/docs/git-rebase), [contributing](https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project) (2026-01-26)
+Refs: See doc/refs.md

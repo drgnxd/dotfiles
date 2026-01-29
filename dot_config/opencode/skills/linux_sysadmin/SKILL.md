@@ -5,15 +5,15 @@ description: Linux admin for safe system ops
 
 # Linux Sysadmin
 
-## Purpose
+Aim:
 Operational guidance for managing Linux systems, services, resources safely.
 
-## Core Principles
+Core:
 1. Least-privilege changes, reversible steps
 2. Validate state before & after changes
 3. Doc commands & rationale for traceability
 
-## Rules
+Do:
 
 ### System Changes
 - Check current state (processes, disk, mem) before mods
@@ -37,6 +37,4 @@ Operational guidance for managing Linux systems, services, resources safely.
 - Production systems: schedule changes during maintenance windows
 - Emergency fixes: record all actions for post-incident review
 
-See `COMMON.md`.
-
-Refs: [systemctl](https://man7.org/linux/man-pages/man1/systemctl.1.html), [systemd.service](https://man7.org/linux/man-pages/man5/systemd.service.5.html), [systemd](https://man7.org/linux/man-pages/man1/systemd.1.html) (2026-01-26)
+Refs: See doc/refs.md

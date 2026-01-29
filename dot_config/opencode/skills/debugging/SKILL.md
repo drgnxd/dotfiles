@@ -5,15 +5,15 @@ description: Efficient issue isolation techniques
 
 # Debugging
 
-## Purpose
+Aim:
 Structured approach to reproduce, isolate, fix defects.
 
-## Core Principles
+Core:
 1. Reproduce reliably before changes
 2. Isolate minimal failing case
 3. Validate fix, guard against regressions
 
-## Rules
+Do:
 
 ### Reproduction
 - Capture inputs, env, steps
@@ -37,6 +37,4 @@ Structured approach to reproduce, isolate, fix defects.
 - Nondeterministic: add logging, time-based guards
 - Production-only: simulate env when possible
 
-See `COMMON.md`.
-
-Refs: [SRE troubleshooting](https://sre.google/sre-book/effective-troubleshooting/) (2026-01-26)
+Refs: See doc/refs.md

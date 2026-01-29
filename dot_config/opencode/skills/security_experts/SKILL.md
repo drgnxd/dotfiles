@@ -5,15 +5,15 @@ description: Security best practices for software & infrastructure
 
 # Security Experts
 
-## Purpose
+Aim:
 Baseline security practices for protecting data, systems, users.
 
-## Core Principles
+Core:
 1. Least privilege & defense in depth
 2. Protect secrets & sensitive data (at rest & in transit)
 3. Validate inputs, reduce attack surface
 
-## Rules
+Do:
 
 ### Secrets
 - Never hardcode secrets in source control
@@ -37,6 +37,4 @@ Baseline security practices for protecting data, systems, users.
 - Legacy systems: doc compensating controls
 - Security incidents: prioritize containment & logging
 
-See `COMMON.md`.
-
-Refs: [OWASP Top 10](https://owasp.org/www-project-top-ten/), [cheat sheets](https://cheatsheetseries.owasp.org/) (2026-01-26)
+Refs: See doc/refs.md

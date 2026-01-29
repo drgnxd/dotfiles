@@ -5,15 +5,15 @@ description: JavaScript & TypeScript conventions
 
 # JavaScript
 
-## Purpose
+Aim:
 Language-specific guidelines for reliable JS/TS codebases.
 
-## Core Principles
+Core:
 1. Clarity > terseness
 2. Modern features, avoid deprecated patterns
 3. Explicit, predictable async code
 
-## Rules
+Do:
 
 ### Syntax & Style
 - Prefer `const` & `let` over `var`
@@ -38,6 +38,4 @@ Language-specific guidelines for reliable JS/TS codebases.
 - Legacy code: match existing patterns, migrate gradually
 - Runtime constraints: doc any polyfills required
 
-See `COMMON.md`.
-
-Refs: [Strict equality](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality), [const](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const), [let](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let), [TS handbook](https://www.typescriptlang.org/docs/handbook/intro.html) (2026-01-26)
+Refs: See doc/refs.md

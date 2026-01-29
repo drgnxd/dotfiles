@@ -5,15 +5,15 @@ description: Clear, useful docs standards
 
 # Documentation
 
-## Purpose
+Aim:
 Accurate, user-focused documentation.
 
-## Core Principles
+Core:
 1. Write for target audience & their goals
 2. Sync docs w/ code changes
 3. Use examples to reduce ambiguity
 
-## Rules
+Do:
 
 ### Structure
 - Short overview & prerequisites
@@ -34,6 +34,4 @@ Accurate, user-focused documentation.
 - Breaking changes: add migration guide
 - Complex systems: diagrams or architecture summaries
 
-See `COMMON.md`.
-
-Refs: [Google doc guide](https://google.github.io/styleguide/docguide/best_practices.html), [Dev style](https://developers.google.com/style) (2026-01-26)
+Refs: See doc/refs.md

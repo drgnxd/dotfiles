@@ -5,15 +5,15 @@ description: Safe bash scripting for automation
 
 # Bash
 
-## Purpose
+Aim:
 Consistent, safe shell scripting practices.
 
-## Core Principles
+Core:
 1. Predictable execution, fail fast
 2. Quote to prevent word splitting
 3. Explicit checks over assumptions
 
-## Rules
+Do:
 
 ### Safety
 - `set -euo pipefail` unless different needed
@@ -40,4 +40,4 @@ Consistent, safe shell scripting practices.
 
 See `COMMON.md` for naming/refs.
 
-Refs: [bashref](https://tiswww.case.edu/php/chet/bash/bashref.html), [man](https://man7.org/linux/man-pages/man1/bash.1.html) (2026-01-26)
+Refs: See doc/refs.md
