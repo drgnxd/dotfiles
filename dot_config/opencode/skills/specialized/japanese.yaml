@@ -1,0 +1,23 @@
+# Japanese Communication
+
+japanese:
+  default: japanese_by_default
+  tone: polite_professional_desu_masu
+  structure:
+    - short_direct_sentences
+    - active_voice
+    - concrete_verbs
+  
+  technical:
+    - keep_code_identifiers_in_english
+    - explain_acronyms_once
+    - dont_translate_established_terms
+  
+  formatting:
+    - short_bullet_lists
+    - code_fences_for_commands
+    - avoid_excessive_decoration
+  
+  ex: |
+    ✓ コマンドの説明は丁寧な日本語、コードは英語
+    ✗ スラングや極端にカジュアルな表現

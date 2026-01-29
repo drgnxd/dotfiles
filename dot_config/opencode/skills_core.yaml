@@ -1,0 +1,46 @@
+# Core Skills - Always Loaded
+# Version: 2.0
+
+core_principles:
+  - clarity_over_cleverness
+  - explicit_over_implicit
+  - composability
+  - fail_fast
+  - single_responsibility
+
+safety_protocol:
+  destructive_cmds: [rm, dd, mkfs, "chmod -R", "> overwrite"]
+  require_confirm: true
+  actions:
+    - explain_what_changes
+    - explain_where
+    - explain_why
+    - ask_explicit_confirmation
+    - offer_backup_first
+
+naming:
+  files: lowercase_snake_case
+  exceptions: [README.md, SKILL.md]
+  separator: underscore_only
+  chars: [a-z, 0-9, _, .]
+  approved_abbrevs: [src, lib, doc, cfg, bin, tmp, env, pkg]
+
+coding_baseline:
+  priority:
+    1: .opencode/skills/coding/SKILL.md
+    2: CODING_STANDARDS.md or STYLE_GUIDE.md
+    3: .editorconfig
+    4: language_configs
+    5: global_skill
+
+  rules:
+    - single_responsibility_per_module
+    - small_composable_components
+    - explicit_errors_with_context
+
+  naming:
+    variables_functions: snake_case
+    constants: UPPER_SNAKE_CASE
+    classes_types: PascalCase
+
+  imports_order: [stdlib, third_party, local, types, assets]
