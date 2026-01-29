@@ -5,16 +5,16 @@ description: Default filename/directory rules (UNIX-Modern Snake Protocol)
 
 # Default Naming Conventions
 
-## Purpose
+Aim:
 Manage filenames/directories using UNIX-Modern Snake Protocol when no project rules exist.
 
-## Core Principles
+Core:
 1. Apply only when no explicit naming rules exist
 2. Lowercase snake_case for all files/dirs
 3. Clarity & searchability > brevity
 4. Approved abbreviations & allowed chars only
 
-## Rules
+Do:
 
 ### Naming (The Constitution)
 - **Case:** lowercase (Exception: `README.md`, `SKILL.md`)
@@ -42,4 +42,4 @@ Use only for industry standards:
 
 See `doc/naming_protocol.md` for details.
 
-Refs: [Google style](https://google.github.io/styleguide/), [MDN snake_case](https://developer.mozilla.org/en-US/docs/Glossary/Snake_case), [PEP 8](https://peps.python.org/pep-0008/) (2026-01-26)
+Refs: See doc/refs.md

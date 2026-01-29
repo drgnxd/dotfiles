@@ -5,15 +5,15 @@ description: Code review focus & quality checklist
 
 # Code Review
 
-## Purpose
+Aim:
 Consistent checklist for effective, fair code reviews.
 
-## Core Principles
+Core:
 1. Focus: correctness, clarity, maintainability
 2. Be specific & actionable
 3. Prioritize risks & user impact
 
-## Rules
+Do:
 
 ### Correctness
 - Validate edge cases & error handling
@@ -36,6 +36,4 @@ Consistent checklist for effective, fair code reviews.
 - Large changes: suggest splitting into smaller PRs
 - Performance-critical: ask for benchmarks
 
-See `COMMON.md`.
-
-Refs: [Google review guide](https://google.github.io/eng-practices/review/) (2026-01-26)
+Refs: See doc/refs.md

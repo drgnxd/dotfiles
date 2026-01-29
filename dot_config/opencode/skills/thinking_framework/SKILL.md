@@ -5,15 +5,15 @@ description: Structured reasoning workflow for planning, verification, robustnes
 
 # Thinking Framework
 
-## Purpose
+Aim:
 Repeatable reasoning process for accuracy, safety, completeness in engineering tasks.
 
-## Core Principles
+Core:
 1. Decompose complex tasks into smaller, verifiable steps
 2. Explore multiple approaches before committing
 3. Validate outcomes, guard against edge cases
 
-## Rules
+Do:
 
 ### Task Decomposition
 - Identify inputs, outputs, constraints before acting
@@ -43,6 +43,4 @@ Repeatable reasoning process for accuracy, safety, completeness in engineering t
 - Time limited: doc chosen shortcut & risk
 - Requirements conflict: highlight conflict, ask clarification
 
-See `COMMON.md`.
-
-Refs: [PDCA](https://strategicmanagementinsight.com/tools/pdca-plan-do-check-act/) (2026-01-26)
+Refs: See doc/refs.md
