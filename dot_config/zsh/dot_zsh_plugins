@@ -1,5 +1,3 @@
-# ~/.config/zsh/.zsh_plugins
-
 # Load plugins installed via Homebrew
 
 # Assumes HOMEBREW_PREFIX is set in the preceding .homebrew file
@@ -15,14 +13,9 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
       # Load Chroma definition files
       if [ -d "$fsh_config_dir" ]; then
           for chroma_file in "$fsh_config_dir"/chroma-*.ch(N); do
-              # Extract command name from filename (chroma-eza.ch -> eza)
               local cmd_name="${chroma_file:t:r:s/chroma-//}"
-              
-              # Source and register Chroma function
               if [ -f "$chroma_file" ]; then
                   source "$chroma_file"
-                  # Register Chroma function with fast-syntax-highlighting
-                  # Note: FAST_HIGHLIGHT is provided by fast-syntax-highlighting
                   FAST_HIGHLIGHT[chroma-${cmd_name}]="chroma/${cmd_name}"
               fi
           done
@@ -55,17 +48,18 @@ if [ -n "$HOMEBREW_PREFIX" ]; then
               "ce:chezmoi"
           )
 
-          local entry
-          for entry in "${chroma_aliases[@]}"; do
-              register_chroma_alias "${entry%%:*}" "${entry#*:}"
-          done
+           local entry
+           for entry in "${chroma_aliases[@]}"; do
+               register_chroma_alias "${entry%%:*}" "${entry#*:}"
+           done
       fi
   fi
-
   # zsh-autosuggestions (load after fsh)
   if [ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
       source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
   fi
+
+  # fast-syntax-highlighting is used with Chroma definitions
 
 fi
 
