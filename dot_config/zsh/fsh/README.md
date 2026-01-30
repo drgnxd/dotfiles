@@ -29,8 +29,8 @@
 | `mas` | `chroma-mas.ch` | Mac App Store CLI |
 | `npm` | `chroma-npm.ch` | Node.jsパッケージマネージャ |
 | `pip` | `chroma-pip.ch` | Pythonパッケージマネージャ |
-| `pyenv` | `chroma-pyenv.ch` | Python version manager |
 | `ripgrep` | `chroma-ripgrep.ch` | grep代替コマンド |
+| `uv` | `chroma-uv.ch` | Pythonパッケージマネージャ（uv） |
 | `starship` | `chroma-starship.ch` | クロスシェルプロンプト |
 | `task` | `chroma-task.ch` | Taskwarriorタスク管理（**高度な実装**） |
 | `tmux` | `chroma-tmux.ch` | ターミナルマルチプレクサ |
