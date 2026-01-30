@@ -8,49 +8,54 @@ source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
 
 log_info "Setting up Menu Bar and Control Center preferences..."
 
-###############################################################################
-# Control Center & Menu Bar Items                                             #
-###############################################################################
+configure_control_center() {
+	###############################################################################
+	# Control Center & Menu Bar Items                                             #
+	###############################################################################
 
-# Battery
-safe_defaults_write com.apple.controlcenter "NSStatusItem Visible Battery" -bool false
+	# Battery
+	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible Battery" -bool false
 
-# Control Center (BentoBox)
-safe_defaults_write com.apple.controlcenter "NSStatusItem Visible BentoBox" -bool true
+	# Control Center (BentoBox)
+	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible BentoBox" -bool true
 
-# Set physical spacing between menu bar icons to 10px
-if ! safe_defaults_write_current_host -globalDomain NSStatusItemSpacing -int 10; then
-	log_warning "Skipping currentHost NSStatusItemSpacing update"
-fi
-safe_defaults_write -globalDomain NSStatusItemSpacing -int 10
+	# Set physical spacing between menu bar icons to 10px
+	if ! safe_defaults_write_current_host -globalDomain NSStatusItemSpacing -int 10; then
+		log_warning "Skipping currentHost NSStatusItemSpacing update"
+	fi
+	safe_defaults_write -globalDomain NSStatusItemSpacing -int 10
 
-# Set padding around icons to 6px (makes the button itself smaller)
-if ! safe_defaults_write_current_host -globalDomain NSStatusItemSelectionPadding -int 6; then
-	log_warning "Skipping currentHost NSStatusItemSelectionPadding update"
-fi
-safe_defaults_write -globalDomain NSStatusItemSelectionPadding -int 6
+	# Set padding around icons to 6px (makes the button itself smaller)
+	if ! safe_defaults_write_current_host -globalDomain NSStatusItemSelectionPadding -int 6; then
+		log_warning "Skipping currentHost NSStatusItemSelectionPadding update"
+	fi
+	safe_defaults_write -globalDomain NSStatusItemSelectionPadding -int 6
 
-# Now Playing
-safe_defaults_write com.apple.controlcenter "NSStatusItem Visible NowPlaying" -bool false
+	# Now Playing
+	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible NowPlaying" -bool false
 
-# Screen Mirroring
-safe_defaults_write com.apple.controlcenter "NSStatusItem Visible ScreenMirroring" -bool false
+	# Screen Mirroring
+	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible ScreenMirroring" -bool false
 
-# WiFi
-safe_defaults_write com.apple.controlcenter "NSStatusItem Visible WiFi" -bool false
+	# WiFi
+	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible WiFi" -bool false
+}
 
-# Sound / Volume (Not explicitly in previous output, but good to set standard defaults if known, otherwise skip)
-# Bluetooth (Same as above)
+configure_clock() {
+	###############################################################################
+	# Clock                                                                       #
+	###############################################################################
 
-###############################################################################
-# Clock                                                                       #
-###############################################################################
+	safe_defaults_write com.apple.menuextra.clock IsAnalog -bool false
+	safe_defaults_write com.apple.menuextra.clock ShowAMPM -bool true
+	safe_defaults_write com.apple.menuextra.clock ShowDate -bool true
+	safe_defaults_write com.apple.menuextra.clock ShowDayOfWeek -bool true
+	safe_defaults_write com.apple.menuextra.clock ShowSeconds -bool true
+}
 
-safe_defaults_write com.apple.menuextra.clock IsAnalog -bool false
-safe_defaults_write com.apple.menuextra.clock ShowAMPM -bool true
-safe_defaults_write com.apple.menuextra.clock ShowDate -bool true
-safe_defaults_write com.apple.menuextra.clock ShowDayOfWeek -bool true
-safe_defaults_write com.apple.menuextra.clock ShowSeconds -bool true
+# Main execution
+configure_control_center
+configure_clock
 
 # Apply changes (SystemUIServer handles the menu bar clock, Control Center handles the rest)
 kill_process "SystemUIServer"
