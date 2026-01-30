@@ -59,7 +59,6 @@
 │       ├── .zsh_plugins        # プラグイン管理
 │       ├── .completions/       # コマンド別補完
 │       ├── .homebrew           # Homebrew セットアップ
-│       ├── .pyenv              # Python バージョン管理
 │       ├── .zoxide             # スマート cd
 │       ├── .proton             # Proton Pass 統合
 │       ├── .lima               # Lima/Docker 関数

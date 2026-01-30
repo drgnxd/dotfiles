@@ -63,7 +63,6 @@
 │       ├── .zsh_plugins        # Plugin management
 │       ├── .completions/       # Per-command completions
 │       ├── .homebrew           # Homebrew setup
-│       ├── .pyenv              # Python version management
 │       ├── .zoxide             # Smart cd
 │       ├── .proton             # Proton Pass integration
 │       ├── .lima               # Lima/Docker functions
@@ -98,7 +97,6 @@ source ~/.config/zsh/.zsh_plugins # Plugin management
 
 **Module Design**:
 - `.homebrew`: Homebrew-specific setup
-- `.pyenv`: Python version management
 - `.direnv`: Per-directory environment
 - `.proton`: Proton Pass CLI wrapper
 

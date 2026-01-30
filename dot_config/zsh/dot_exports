@@ -25,9 +25,6 @@ export NPM_CONFIG_PREFIX="$XDG_CONFIG_HOME/npm/global"
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
 
-# Pyenv
-export PYENV_ROOT="$XDG_DATA_HOME/.pyenv"
-
 # Taskwarrior
 export TASKRC="$XDG_CONFIG_HOME/taskwarrior/config"
 export TASKDATA="$XDG_DATA_HOME/taskwarrior"
