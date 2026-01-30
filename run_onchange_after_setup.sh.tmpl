@@ -26,12 +26,11 @@ run_step() {
   fi
 
   log_error "${step_name} failed"
-  if [ "$CONTINUE_ON_ERROR" = "1" ]; then
-    log_warning "Continuing despite failure (CONTINUE_ON_ERROR=1)"
-    return 0
+  if [ "${CONTINUE_ON_ERROR:-0}" != "1" ]; then
+    exit 1
   fi
-
-  exit 1
+  
+  log_warning "Continuing despite failure (CONTINUE_ON_ERROR=1)"
 }
 
 log_info "Starting macOS setup..."

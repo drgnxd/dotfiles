@@ -103,6 +103,46 @@ require_flag() {
 }
 
 #######################################
+# Internal: Execute macOS defaults write with flexible options.
+# Arguments:
+#   $1: Target user (or empty for current user)
+#   $2: "current_host" flag ("1" to use -currentHost)
+#   $@: Remaining arguments passed to 'defaults write'
+# Returns:
+#   0 on success, 1 on failure
+#######################################
+_safe_defaults_write_impl() {
+	local target_user=$1
+	local use_current_host=$2
+	shift 2
+
+	if ! check_command defaults; then
+		return 1
+	fi
+
+	local defaults_cmd=(defaults)
+	[ "$use_current_host" = "1" ] && defaults_cmd+=(-currentHost)
+	defaults_cmd+=(write "$@")
+
+	local cmd_str="defaults"
+	[ "$use_current_host" = "1" ] && cmd_str+=" -currentHost"
+	cmd_str+=" write $*"
+
+	if [ -n "$target_user" ] && [ "$(whoami)" != "$target_user" ]; then
+		if ! run_as_user "$target_user" "${defaults_cmd[@]}"; then
+			log_error "Failed to execute: $cmd_str (user: $target_user)"
+			return 1
+		fi
+	else
+		if ! "${defaults_cmd[@]}"; then
+			log_error "Failed to execute: $cmd_str"
+			return 1
+		fi
+	fi
+	return 0
+}
+
+#######################################
 # Execute macOS defaults write with error handling.
 # Arguments:
 #   $@: All arguments passed to 'defaults write'
@@ -110,15 +150,7 @@ require_flag() {
 #   0 on success, 1 on failure
 #######################################
 safe_defaults_write() {
-	if ! check_command defaults; then
-		return 1
-	fi
-
-	if ! defaults write "$@"; then
-		log_error "Failed to execute: defaults write $*"
-		return 1
-	fi
-	return 0
+	_safe_defaults_write_impl "" "0" "$@"
 }
 
 #######################################
@@ -129,15 +161,7 @@ safe_defaults_write() {
 #   0 on success, 1 on failure
 #######################################
 safe_defaults_write_current_host() {
-	if ! check_command defaults; then
-		return 1
-	fi
-
-	if ! defaults -currentHost write "$@"; then
-		log_error "Failed to execute: defaults -currentHost write $*"
-		return 1
-	fi
-	return 0
+	_safe_defaults_write_impl "" "1" "$@"
 }
 
 #######################################
@@ -157,15 +181,7 @@ safe_defaults_write_as_user() {
 		return 1
 	fi
 
-	if ! check_command defaults; then
-		return 1
-	fi
-
-	if ! run_as_user "$target_user" defaults write "$@"; then
-		log_error "Failed to execute: defaults write $* (user: $target_user)"
-		return 1
-	fi
-	return 0
+	_safe_defaults_write_impl "$target_user" "0" "$@"
 }
 
 #######################################
@@ -185,15 +201,20 @@ safe_defaults_write_current_host_as_user() {
 		return 1
 	fi
 
-	if ! check_command defaults; then
-		return 1
-	fi
+	_safe_defaults_write_impl "$target_user" "1" "$@"
+}
 
-	if ! run_as_user "$target_user" defaults -currentHost write "$@"; then
-		log_error "Failed to execute: defaults -currentHost write $* (user: $target_user)"
-		return 1
-	fi
-	return 0
+#######################################
+# Read a macOS defaults value safely.
+# Arguments:
+#   $1: Domain
+#   $2: Key
+# Outputs:
+#   Prints the value or "not set" if not found
+#######################################
+read_defaults() {
+	local domain=$1 key=$2
+	/usr/bin/defaults read "$domain" "$key" 2>/dev/null || echo "not set"
 }
 
 #######################################

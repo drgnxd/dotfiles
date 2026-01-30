@@ -11,11 +11,6 @@ log_info "🔍  Auditing macOS security posture..."
 # Console user for user-scoped defaults
 target_user=${SUDO_USER:-$(get_console_user)}
 
-read_defaults() {
-	local domain=$1 key=$2
-	/usr/bin/defaults read "$domain" "$key" 2>/dev/null || echo "not set"
-}
-
 printf "[Firewall] State: %s\n" "$({ /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate || true; } | awk 'NF{print $NF}' | tail -n1)"
 printf "[Firewall] Stealth mode: %s\n" "$({ /usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode || true; } | awk 'NF{print $NF}' | tail -n1)"
 printf "[Firewall] Allow signed apps: %s\n" "$({ /usr/libexec/ApplicationFirewall/socketfilterfw --getallowsigned || true; } | awk 'NF{print $NF}' | tail -n1)"

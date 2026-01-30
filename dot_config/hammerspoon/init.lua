@@ -28,24 +28,28 @@ hs.hotkey.bind = function(mods, key, param1, ...)
     return original_bind(mods, key, param1, ...)
 end
 
--- Load modules
-local reload = require("reload")
-local input_switcher = require("input_switcher")
-local caffeine = require("caffeine")
-local window = require("window")
-local cheatsheet = require("cheatsheet")
-local browser_control = require("browser_control")
+-- Module registry for organized initialization
+local modules = {
+  {name = "reload", required = true},
+  {name = "input_switcher", required = false},
+  {name = "caffeine", required = false},
+  {name = "window", required = true},
+  {name = "cheatsheet", required = false},
+  {name = "browser_control", required = false},
+}
+
+-- Load and initialize all modules
+for _, mod_info in ipairs(modules) do
+  local ok, module = pcall(require, mod_info.name)
+  if ok and module and module.init then
+    module.init()
+  elseif mod_info.required then
+    hs.alert.show("Failed to load required module: " .. mod_info.name)
+  end
+end
 
 -- Hyper key (Cmd+Alt+Ctrl+Shift) for conflict-free bindings
 local hyper = {"cmd", "alt", "ctrl", "shift"}
-
--- Initialize modules
-reload.init()
-input_switcher.init()
-caffeine.init()
-window.init()
-cheatsheet.init()
-browser_control.init()
 
 -- Example: quick launcher using Hyper
 hs.hotkey.bind(hyper, "A", "Launch Alacritty", function()
