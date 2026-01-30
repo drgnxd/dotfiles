@@ -53,11 +53,23 @@
 │   ├── tmux/                   # Terminal multiplexer
 │   ├── yazi/                   # File manager
 │   └── zsh/                    # Shell configuration
-│       ├── .zshrc.tmpl         # Entry point
-│       ├── .functions          # Custom functions
+│       ├── .zshrc.tmpl         # Main entry point
+│       ├── .zshenv             # Environment variables
+│       ├── .exports            # PATH and env vars
 │       ├── .aliases            # Command shortcuts
-│       ├── .exports            # Environment variables
-│       └── fsh/                # Syntax highlighting chromas
+│       ├── .functions          # Custom functions
+│       ├── .zsh_options        # Zsh settings
+│       ├── .zsh_completion     # Completion system
+│       ├── .zsh_plugins        # Plugin management
+│       ├── .completions/       # Per-command completions
+│       ├── .homebrew           # Homebrew setup
+│       ├── .pyenv              # Python version management
+│       ├── .zoxide             # Smart cd
+│       ├── .proton             # Proton Pass integration
+│       ├── .lima               # Lima/Docker functions
+│       ├── .fzf / .fzf_theme   # FZF integration and theme
+│       ├── .direnv             # Per-directory environments
+│       └── fsh/                # Fast Syntax Highlighting chromas
 ├── dot_zshenv                  # -> ~/.zshenv (XDG setup)
 ├── run_onchange_after_setup.sh.tmpl # Post-apply orchestrator
 ├── README.md / README.ja.md    # Bilingual documentation

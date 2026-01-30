@@ -22,13 +22,51 @@
 ~/.local/share/chezmoi/         # chezmoi ソースディレクトリ
 ├── .chezmoiignore.tmpl         # プラットフォーム別除外
 ├── .internal_scripts/
-│   ├── darwin/                 # macOS 専用セットアップ
-│   └── lib/                    # 共通 bash 関数
+│   ├── darwin/                 # macOS 専用セットアップスクリプト
+│   │   ├── system_defaults.sh  # UI/UX 設定
+│   │   ├── security_hardening.sh # ファイアウォール、リモートアクセス
+│   │   ├── keyboard.sh         # キーリピート設定
+│   │   ├── login_items.sh      # ログイン時アプリケーション
+│   │   ├── menubar.sh          # メニューバー設定
+│   │   ├── audit_security.sh   # セキュリティ監査
+│   │   ├── install_packages.sh.tmpl # Brewfile 実行
+│   │   ├── import_stats.sh.tmpl # Stats アプリ設定
+│   │   └── setup_cloud_symlinks.sh.tmpl # iCloud/Dropbox リンク
+│   └── lib/
+│       └── common.sh           # 共有 bash 関数
 ├── dot_config/                 # -> ~/.config/
-│   ├── taskwarrior/            # Taskwarrior 設定
-│   ├── zsh/                    # Zsh 設定
-│   └── ...
-├── dot_zshenv                  # -> ~/.zshenv
+│   ├── alacritty/              # ターミナルエミュレータ
+│   ├── bat/                    # シンタックスハイライト cat
+│   ├── gh/                     # GitHub CLI
+│   ├── git/                    # バージョン管理
+│   ├── hammerspoon/            # macOS 自動化 (Lua)
+│   ├── helix/                  # テキストエディタ
+│   ├── homebrew/               # パッケージマネージャー
+│   ├── npm/                    # Node.js パッケージ
+│   ├── opencode/               # AI コーディングエージェント
+│   ├── starship/               # シェルプロンプト
+│   ├── stats/                  # システムモニター
+│   ├── taskwarrior/            # タスク管理
+│   ├── tmux/                   # ターミナルマルチプレクサ
+│   ├── yazi/                   # ファイルマネージャー
+│   └── zsh/                    # シェル設定
+│       ├── .zshrc.tmpl         # メインエントリーポイント
+│       ├── .exports            # PATH と環境変数
+│       ├── .aliases            # コマンドショートカット
+│       ├── .functions          # カスタム関数
+│       ├── .zsh_options        # Zsh 設定
+│       ├── .zsh_completion     # 補完システム
+│       ├── .zsh_plugins        # プラグイン管理
+│       ├── .completions/       # コマンド別補完
+│       ├── .homebrew           # Homebrew セットアップ
+│       ├── .pyenv              # Python バージョン管理
+│       ├── .zoxide             # スマート cd
+│       ├── .proton             # Proton Pass 統合
+│       ├── .lima               # Lima/Docker 関数
+│       ├── .fzf / .fzf_theme   # FZF 統合とテーマ
+│       ├── .direnv             # ディレクトリ別環境
+│       └── fsh/                # ファストシンタックスハイライト
+├── dot_zshenv                  # -> ~/.zshenv (XDG セットアップ)
 ├── run_onchange_after_setup.sh.tmpl # セットアップオーケストレータ
 └── docs/                       # ドキュメント
 ```

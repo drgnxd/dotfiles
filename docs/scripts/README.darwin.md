@@ -98,9 +98,13 @@ All scripts source `../lib/common.sh` which provides:
 ### macOS Functions
 - `safe_defaults_write <args>` - Wrapper for `defaults write` with error checking
 - `safe_defaults_write_current_host <args>` - Wrapper for `defaults -currentHost write`
+- `safe_defaults_write_as_user <user> <args>` - Run defaults write as specific user
+- `safe_defaults_write_current_host_as_user <user> <args>` - Run with -currentHost as specific user
+- `read_defaults <domain> <key>` - Read defaults value safely (returns "not set" if missing)
 - `quit_app "App Name"` - Quit application gracefully via osascript
 - `kill_process "ProcessName"` - Kill process by name (used for System UI restarts)
 - `get_console_user` - Get the current GUI console user
+- `is_macos` - Check if running on macOS (returns 0 if Darwin)
 
 ### Failure Tracking
 - `record_failure "message"` - Record failure for batch reporting

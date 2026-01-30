@@ -28,4 +28,5 @@ Sensitive or user-specific files are excluded via `.chezmoiignore.tmpl`.
 ## Rationale
 - Non-interactive scripts remain automation-friendly
 - Explicit intent is required for destructive operations
-- Centralized guard checks live in `common.sh`
+- Centralized guard checks and helper functions live in `common.sh`
+- User-context execution via `run_as_user <username> <command>` for multi-user safety

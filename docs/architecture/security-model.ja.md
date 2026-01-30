@@ -27,4 +27,5 @@ ALLOW_DEFAULTS=1 ./system_defaults.sh
 ## 目的
 - 意図しない実行を防止
 - 自動化でも安全性を担保
-- ガードロジックを `common.sh` に集約
+- ガードロジックとヘルパー関数を `common.sh` に集約
+- マルチユーザー安全性のため `run_as_user <username> <command>` でユーザーコンテキスト実行

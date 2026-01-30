@@ -156,10 +156,13 @@ Use `private_` prefix for template files containing secrets.
 ## Code Style
 
 ### Shell Scripts
-- Use `#!/bin/bash` or `#!/bin/sh`
-- `set -euo pipefail` for error handling
+- Use `#!/bin/bash` with `set -euo pipefail` for error handling
 - Source common library: `source "$(dirname "$0")/../lib/common.sh"`
-- Use logging functions: `log_info`, `log_error`, `log_success`
+- Use logging functions: `log_info`, `log_error`, `log_success`, `log_warning`
+- Use guard flags for destructive operations: `require_flag "ALLOW_XXX" "description"`
+- Use safe defaults wrappers: `safe_defaults_write`, `safe_defaults_write_as_user`
+- Use helper functions: `check_command`, `quit_app`, `kill_process`, `get_console_user`
+- Track failures in batch operations: `record_failure` + `report_failures`
 
 ### Python
 - PEP 8 compliant
