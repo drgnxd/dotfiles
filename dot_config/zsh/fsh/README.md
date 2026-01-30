@@ -8,7 +8,7 @@
 
 ## インストール済みChroma一覧
 
-本リポジトリでは、**26個**のカスタムChroma定義を提供しています：
+本リポジトリでは、**35個**のカスタムChroma定義を提供しています：
 
 | コマンド | ファイル名 | 説明 |
 |---------|-----------|------|
@@ -38,6 +38,15 @@
 | `yazi` | `chroma-yazi.ch` | ターミナルファイルマネージャ |
 | `zk` | `chroma-zk.ch` | Zettelkastenノート管理 |
 | `zoxide` | `chroma-zoxide.ch` | cd代替コマンド |
+| `docker-compose` | `chroma-docker-compose.ch` | Docker Compose |
+| `ollama` | `chroma-ollama.ch` | LLM実行・管理 |
+| `xh` | `chroma-xh.ch` | HTTPクライアント |
+| `typst` | `chroma-typst.ch` | タイプセットシステム |
+| `dust` | `chroma-dust.ch` | ディスク使用量表示 |
+| `duf` | `chroma-duf.ch` | ディスク使用状況 |
+| `ncdu` | `chroma-ncdu.ch` | NCursesディスク使用量 |
+| `jaq` | `chroma-jaq.ch` | JSONクエリツール |
+| `sd` | `chroma-sd.ch` | 検索・置換ツール |
 
 ---
 
