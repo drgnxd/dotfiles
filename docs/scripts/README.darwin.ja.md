@@ -98,9 +98,13 @@ ALLOW_KEYBOARD_APPLY=1 bash .internal_scripts/darwin/keyboard.sh --apply --user 
 ### macOS 関数
 - `safe_defaults_write <args>` - エラーチェック付き `defaults write` のラッパー
 - `safe_defaults_write_current_host <args>` - `defaults -currentHost write` のラッパー
+- `safe_defaults_write_as_user <user> <args>` - 特定ユーザーとして defaults write を実行
+- `safe_defaults_write_current_host_as_user <user> <args>` - 特定ユーザーとして -currentHost 付きで実行
+- `read_defaults <domain> <key>` - 安全に defaults 値を読み取り（存在しない場合は "not set" を返す）
 - `quit_app "App Name"` - osascript 経由でアプリケーションを終了
 - `kill_process "ProcessName"` - プロセス名でプロセスを終了（System UI 再起動用）
 - `get_console_user` - 現在の GUI コンソールユーザーを取得
+- `is_macos` - macOS 上で実行されているかチェック（Darwin の場合は 0 を返す）
 
 ### 失敗トラッキング
 - `record_failure "message"` - バッチレポート用に失敗を記録
