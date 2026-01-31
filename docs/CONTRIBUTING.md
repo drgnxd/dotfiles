@@ -79,7 +79,7 @@ Follow [Conventional Commits](./COMMIT_CONVENTION.md):
 
 ### Examples
 ```bash
-feat(zsh): add Taskwarrior cache system
+feat(nushell): add Taskwarrior cache system
 fix(hammerspoon): correct window calculation for ultra-wide monitors
 docs(readme): update installation instructions
 refactor(scripts): extract common functions to lib/common.sh

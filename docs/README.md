@@ -10,7 +10,7 @@ This repository contains configurations for my macOS and Linux environments, inc
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
     *   Key aliases: `c` (chezmoi), `ca` (chezmoi apply), `t` (task), `g` (ripgrep), `ll` (eza)
     *   Includes all previous Zsh functionality migrated to Nushell
-*   **Legacy Shell:** Zsh configuration archived (see git history if needed)
+*   **Legacy Shell:** Zsh configuration archived under `archive/zsh` (see git history if needed)
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser)
 *   **Terminal Multiplexer:** Tmux with Solarized Dark theme and Vim-style keybindings
@@ -142,7 +142,6 @@ This will check for updates every 12 hours.
 *   `.internal_scripts/`: Internal macOS setup scripts (invoked by `run_onchange_after_setup.sh.tmpl`).
 *   `dot_config/`: Configuration files for various tools (XDG Base Directory compliant).
     *   `alacritty/`: GPU-accelerated terminal emulator configuration
-    *   `fsh/`: Custom themes for Zsh Fast Syntax Highlighting
     *   `gh/`: GitHub CLI configuration
     *   `git/`: Git configuration with delta integration
     *   `hammerspoon/`: macOS automation (window management, input switching, caffeine mode)
@@ -156,19 +155,19 @@ This will check for updates every 12 hours.
     *   `yazi/`: Blazing fast terminal file manager with custom theme
     *   `nushell/`: Modern shell configuration (see architecture/nushell.md)
         *   `autoload/`: Modular configuration files
+*   `archive/`: Archived legacy configurations
     *   `zsh/`: [ARCHIVED] Zsh configuration (migrated to Nushell)
 *   `run_onchange_after_setup.sh.tmpl`: Orchestrates macOS setup steps after `chezmoi apply`.
 
 ## Features
 
-### Taskwarrior 
+### Taskwarrior
 
-Enhanced Zsh integration for better task management: 
+Taskwarrior cache system for fast, shell-agnostic integrations:
 
-*   **Dynamic Syntax Highlighting**: Validates task IDs against the cache; valid IDs are highlighted, invalid ones are shown as subtle errors. 
-*   **Live Preview**: Displays task descriptions in the command-line mini-buffer as you type task IDs. 
-*   **Fast Completion**: Provides instantaneous completion candidates with task descriptions using a local cache. 
-*   **Automatic Cache**: Python hooks automatically refresh the task cache on every add or modify operation. 
+*   **Automatic Cache**: Python hooks refresh the cache on every add/modify operation
+*   **Structured Outputs**: ID and description lists optimized for prompt/completion usage
+*   **Legacy UI**: Zsh-specific highlighting/preview features are archived
 
 
 ### Hammerspoon

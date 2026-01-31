@@ -1,5 +1,5 @@
 # Nushell functions module
-# Equivalent to .functions in zsh
+# Legacy mapping from .functions (Zsh)
 
 # ------------------------------------------------------------------------------
 # Yazi Wrapper (follows cwd)

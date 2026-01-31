@@ -10,11 +10,10 @@
 .AppleDouble
 .LSOverride
 
-# Zsh session & history
-.zsh_sessions/
-.zsh_history
-zsh_history
-**/.zsh_history
+# Nushell session & history
+dot_config/nushell/history.sqlite3
+dot_config/nushell/history.sqlite
+dot_config/nushell/history.txt
 
 # General cache & trash
 .cache/
@@ -35,7 +34,7 @@ docs
 archive
 
 # Local configuration files (machine-specific)
-dot_config/zsh/local.zsh
+dot_config/nushell/local.nu
 dot_config/taskwarrior/local.rc
 .Brewfile
 private_Library/
@@ -47,6 +46,5 @@ private_Library/
 # Linux/Non-Darwin exclusions
 {{ if ne .chezmoi.os "darwin" }}
 dot_config/hammerspoon
-dot_config/zsh/.homebrew
 .scripts/run_onchange_darwin_install_packages.sh.tmpl
 {{ end }}

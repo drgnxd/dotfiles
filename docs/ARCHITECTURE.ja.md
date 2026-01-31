@@ -57,12 +57,12 @@
 │   │   │   ├── 03-aliases.nu   # コマンドエイリアス
 │   │   │   ├── 04-functions.nu # カスタム関数
 │   │   │   ├── 05-completions.nu # コマンド補完
-│   │   │   └── 06-integrations.nu # ツール統合
+│   │   │   ├── 06-integrations.nu # ツール統合
+│   │   │   └── 07-source-tools.nu # キャッシュ済みツール初期化の読み込み
 │   │   ├── env.nu.tmpl         # エントリーポイント (01-env.nu を読み込み)
 │   │   └── config.nu.tmpl      # メイン設定 (自動生成されたソース)
+├── archive/                    # 旧設定のアーカイブ
 │   └── zsh/                    # [アーカイブ済み] レガシー Zsh 設定
-│       └── (詳細は git 履歴を参照)
-├── dot_zshenv                  # -> ~/.zshenv (XDG セットアップ)
 ├── run_onchange_after_setup.sh.tmpl # セットアップオーケストレータ
 └── docs/                       # ドキュメント
 ```

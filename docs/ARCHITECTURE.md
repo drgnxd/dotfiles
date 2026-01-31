@@ -60,12 +60,12 @@
 │   │   │   ├── 03-aliases.nu   # Command aliases
 │   │   │   ├── 04-functions.nu # Custom functions
 │   │   │   ├── 05-completions.nu # Command completions
-│   │   │   └── 06-integrations.nu # Tool integrations
+│   │   │   ├── 06-integrations.nu # Tool integrations
+│   │   │   └── 07-source-tools.nu # Source cached tool init
 │   │   ├── env.nu.tmpl         # Entry point (sources 01-env.nu)
 │   │   └── config.nu.tmpl      # Main config (auto-generated sources)
+├── archive/                    # Archived legacy configs
 │   └── zsh/                    # [ARCHIVED] Legacy Zsh configuration
-│       └── (see git history for details)
-├── dot_zshenv                  # -> ~/.zshenv (XDG setup)
 ├── run_onchange_after_setup.sh.tmpl # Post-apply orchestrator
 ├── README.md / README.ja.md    # Bilingual documentation
 ├── CONTRIBUTING.md             # Development guide
@@ -92,7 +92,8 @@ autoload/
 ├── 03-aliases.nu       # Conditional command aliases
 ├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 ├── 05-completions.nu   # Dynamic completions
-└── 06-integrations.nu  # Starship, Zoxide, Direnv, Carapace
+├── 06-integrations.nu  # Starship, Zoxide, Direnv, Carapace
+└── 07-source-tools.nu  # Source cached tool init
 ```
 
 **Key Features**:
@@ -134,10 +135,10 @@ run_onchange_after_setup.sh.tmpl
 
 **Architecture**: XDG-compliant container environment without symlinks
 
-**Configuration** (`dot_config/zsh/.exports`):
-```bash
-export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"    # ~/.config/docker
-export LIMA_HOME="$XDG_DATA_HOME/lima"            # ~/.local/share/lima
+**Configuration** (`dot_config/nushell/autoload/01-env.nu`):
+```nushell
+$env.DOCKER_CONFIG = ($env.XDG_CONFIG_HOME | path join "docker")
+$env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
 ```
 
 **Directory Structure**:
@@ -156,7 +157,7 @@ export LIMA_HOME="$XDG_DATA_HOME/lima"            # ~/.local/share/lima
       └── ...               # VM runtime data
 ```
 
-**Management Functions** (`dot_config/zsh/.lima`):
+**Management Functions** (`dot_config/nushell/scripts/lima.nu`):
 
 | Function | Purpose | Example |
 |----------|---------|---------|
@@ -221,10 +222,10 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 ## Performance Optimizations
 
-### 1. Zsh Startup Time
-- Lazy-load heavy plugins
-- Minimal `.zshrc` (delegates to modules)
-- Compiled `.zshrc.zwc` via zcompile
+### 1. Nushell Startup
+- Deterministic autoload order for fast init
+- Cached tool init sourced from `~/.cache/nushell-init`
+- Minimal runtime checks for optional tools
 
 ### 2. Taskwarrior
 - Cache refresh is throttled and asynchronous (see taskwarrior doc)
@@ -250,7 +251,7 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 **Related Documentation**:
 - [Nushell Configuration](architecture/nushell.md)
 - [Taskwarrior Cache Architecture](dot_config/taskwarrior/CACHE_ARCHITECTURE.md)
-- [FSH Chroma Guide](dot_config/zsh/fsh/README.md) (Archived - Zsh)
+- [FSH Chroma Guide](archive/zsh/fsh/README.md) (Archived - Zsh)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Commit Convention](COMMIT_CONVENTION.md)
 

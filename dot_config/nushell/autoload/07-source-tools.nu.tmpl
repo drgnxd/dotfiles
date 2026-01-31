@@ -3,29 +3,24 @@
 # 
 # FIRST TIME SETUP:
 #   1. Generate cache files: nu ~/.config/nushell/autoload/06-integrations.nu
-#   2. Re-apply chezmoi: chezmoi apply ~/.config/nushell/
-#   3. New Nushell sessions will automatically source the caches
+#   2. New Nushell sessions will automatically source the caches
 #
-# NOTE: If cache files don't exist, source commands are commented out.
+# NOTE: Cache files are sourced if present; 06-integrations generates them.
 
-{{- $caches := glob "/Users/drgnxd/.cache/nushell-init/*.nu" }}
-{{- if $caches }}
-# Cache files found - enabling integrations
-{{ range $caches }}
-{{- if hasSuffix "/starship.nu" . }}
 # STARSHIP PROMPT
-source /Users/drgnxd/.cache/nushell-init/starship.nu
-{{- end }}
-{{- if hasSuffix "/zoxide.nu" . }}
-# ZOXIDE  
-source /Users/drgnxd/.cache/nushell-init/zoxide.nu
-{{- end }}
-{{- if hasSuffix "/carapace.nu" . }}
+let starship_file = "/Users/drgnxd/.cache/nushell-init/starship.nu"
+if ($starship_file | path exists) {
+    source /Users/drgnxd/.cache/nushell-init/starship.nu
+}
+
+# ZOXIDE
+let zoxide_file = "/Users/drgnxd/.cache/nushell-init/zoxide.nu"
+if ($zoxide_file | path exists) {
+    source /Users/drgnxd/.cache/nushell-init/zoxide.nu
+}
+
 # CARAPACE
-source /Users/drgnxd/.cache/nushell-init/carapace.nu
-{{- end }}
-{{ end }}
-{{- else }}
-# Cache files not generated yet. Run:
-#   nu ~/.config/nushell/autoload/06-integrations.nu
-{{- end }}
+let carapace_file = "/Users/drgnxd/.cache/nushell-init/carapace.nu"
+if ($carapace_file | path exists) {
+    source /Users/drgnxd/.cache/nushell-init/carapace.nu
+}

@@ -1,5 +1,5 @@
 # Nushell aliases module
-# Equivalent to .aliases in zsh
+# Legacy mapping from .aliases (Zsh)
 
 # Helper function to check if command exists
 def has-cmd [cmd: string] {
