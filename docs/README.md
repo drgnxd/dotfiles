@@ -6,7 +6,11 @@ My personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
 
 This repository contains configurations for my macOS and Linux environments, including:
 
-*   **Shell:** Zsh (with Starship prompt, zoxide, fzf)
+*   **Shell:** Nushell (modern shell with structured data, XDG-compliant, modular configuration)
+    *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
+    *   Key aliases: `c` (chezmoi), `ca` (chezmoi apply), `t` (task), `g` (ripgrep), `ll` (eza)
+    *   Includes all previous Zsh functionality migrated to Nushell
+*   **Legacy Shell:** Zsh configuration archived (see git history if needed)
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser)
 *   **Terminal Multiplexer:** Tmux with Solarized Dark theme and Vim-style keybindings
@@ -150,7 +154,9 @@ This will check for updates every 12 hours.
     *   `taskwarrior/`: Task management configuration
     *   `tmux/`: Terminal multiplexer with Solarized Dark theme
     *   `yazi/`: Blazing fast terminal file manager with custom theme
-    *   `zsh/`: Zsh configuration with plugins and completions
+    *   `nushell/`: Modern shell configuration (see architecture/nushell.md)
+        *   `autoload/`: Modular configuration files
+    *   `zsh/`: [ARCHIVED] Zsh configuration (migrated to Nushell)
 *   `run_onchange_after_setup.sh.tmpl`: Orchestrates macOS setup steps after `chezmoi apply`.
 
 ## Features
@@ -180,6 +186,26 @@ Window management and automation features:
 *   **Cheat Sheet** (Ctrl+Alt+/): Display all keybindings
 *   **Auto Reload**: Configuration reloads automatically on file changes
 *   **Manual Reload**: Ctrl+Shift+R to reload configuration
+
+### Nushell
+
+Modern shell with structured data and modular configuration:
+
+*   **Everything is Data**: Pipelines use structured data (tables, records) instead of plain text
+*   **XDG Compliant**: All configuration follows XDG Base Directory specification
+*   **Modular Architecture**: Configuration split across `autoload/` directory for maintainability
+*   **Conditional Commands**: Smart fallbacks (e.g., `ls` uses `eza` if available, otherwise standard `ls`)
+*   **Standard Library**: Uses `std/util` for PATH management and other utilities
+*   **Key Aliases**:
+    *   `c`, `ca`, `ce` - Chezmoi commands
+    *   `t` - Taskwarrior  
+    *   `g` - Ripgrep search
+    *   `ll`, `la`, `lt` - Enhanced file listings
+    *   `y` - Yazi file manager with cwd tracking
+    *   `update` / `upgrade-all` - Unified system upgrade
+*   **Auto-initialized Tools**: Starship, Zoxide, Direnv, Carapace
+*   **Local Overrides**: Support for `~/.config/nushell/local.nu` for machine-specific settings
+*   **Documentation**: See [docs/architecture/nushell.md](docs/architecture/nushell.md) for full details
 
 ### Helix language-server (LSP) support
 
