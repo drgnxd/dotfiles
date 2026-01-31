@@ -29,7 +29,7 @@ chroma/uv() {
             fi
             ;;
         # Python version management
-        python|python pin|python install|python uninstall|python list|python find)
+        python|"python pin"|"python install"|"python uninstall"|"python list"|"python find")
             if (( FAST_HIGHLIGHT[chroma-uv-subcommand-seen] == 0 )); then
                 __style=${FAST_THEME_NAME}subcommand
                 FAST_HIGHLIGHT[chroma-uv-subcommand-seen]=1
@@ -47,7 +47,7 @@ chroma/uv() {
             fi
             ;;
         # Tool management
-        tool|tool run|tool install|tool uninstall|tool upgrade|tool list|tool update-shell)
+        tool|"tool run"|"tool install"|"tool uninstall"|"tool upgrade"|"tool list"|"tool update-shell")
             if (( FAST_HIGHLIGHT[chroma-uv-subcommand-seen] == 0 )); then
                 __style=${FAST_THEME_NAME}subcommand
                 FAST_HIGHLIGHT[chroma-uv-subcommand-seen]=1
@@ -56,7 +56,7 @@ chroma/uv() {
             fi
             ;;
         # Cache and self management
-        cache|cache dir|cache clean|cache prune|self|self update)
+        cache|"cache dir"|"cache clean"|"cache prune"|self|"self update")
             if (( FAST_HIGHLIGHT[chroma-uv-subcommand-seen] == 0 )); then
                 __style=${FAST_THEME_NAME}subcommand
                 FAST_HIGHLIGHT[chroma-uv-subcommand-seen]=1
