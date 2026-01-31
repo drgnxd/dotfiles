@@ -148,10 +148,10 @@ style = "bg:base02 fg:orange"
 symbol = "▼ "
 format = "[ | $symbol$allowed]($style)"
 
-# --- Custom (Venv) ---
+# --- Custom (Venv for Nushell) ---
 [custom.venv]
-command = "basename \"$VIRTUAL_ENV\""
-when = "test -n \"$VIRTUAL_ENV\""
+command = "basename $env.VIRTUAL_ENV"
+when = "($env.VIRTUAL_ENV | is-not-empty)"
 style = "bg:base02 fg:cyan"
 format = "[ |  $output]($style)"
 

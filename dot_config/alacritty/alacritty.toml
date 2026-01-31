@@ -3,6 +3,16 @@
 [general]
 import = ["blur.toml"]
 
+[terminal.shell]
+program = "/opt/homebrew/bin/nu"
+args = [
+  "-l",
+  "--config",
+  "/Users/drgnxd/.config/nushell/config.nu",
+  "--env-config",
+  "/Users/drgnxd/.config/nushell/env.nu",
+]
+
 [window]
 decorations = "buttonless"
 # Window padding (pixels)
