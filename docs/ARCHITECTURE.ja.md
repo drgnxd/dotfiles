@@ -1,6 +1,7 @@
 # アーキテクチャ概要
 
 ## クイックリンク
+- [Nushell 設定](architecture/nushell.ja.md) - モジュール構成のモダンなシェル
 - [XDG Base Directory 準拠](architecture/xdg-compliance.ja.md)
 - [セキュリティモデルとガードフラグ](architecture/security-model.ja.md)
 - [プラットフォームサポート](architecture/platform-support.ja.md)
@@ -49,22 +50,18 @@
 │   ├── taskwarrior/            # タスク管理
 │   ├── tmux/                   # ターミナルマルチプレクサ
 │   ├── yazi/                   # ファイルマネージャー
-│   └── zsh/                    # シェル設定
-│       ├── .zshrc.tmpl         # メインエントリーポイント
-│       ├── .exports            # PATH と環境変数
-│       ├── .aliases            # コマンドショートカット
-│       ├── .functions          # カスタム関数
-│       ├── .zsh_options        # Zsh 設定
-│       ├── .zsh_completion     # 補完システム
-│       ├── .zsh_plugins        # プラグイン管理
-│       ├── .completions/       # コマンド別補完
-│       ├── .homebrew           # Homebrew セットアップ
-│       ├── .zoxide             # スマート cd
-│       ├── .proton             # Proton Pass 統合
-│       ├── .lima               # Lima/Docker 関数
-│       ├── .fzf / .fzf_theme   # FZF 統合とテーマ
-│       ├── .direnv             # ディレクトリ別環境
-│       └── fsh/                # ファストシンタックスハイライト
+│   ├── nushell/                # [使用中] モダンなシェル (architecture/nushell.ja.md 参照)
+│   │   ├── autoload/           # モジュール化された設定
+│   │   │   ├── 01-env.nu       # 環境変数
+│   │   │   ├── 02-path.nu      # PATH 設定
+│   │   │   ├── 03-aliases.nu   # コマンドエイリアス
+│   │   │   ├── 04-functions.nu # カスタム関数
+│   │   │   ├── 05-completions.nu # コマンド補完
+│   │   │   └── 06-integrations.nu # ツール統合
+│   │   ├── env.nu.tmpl         # エントリーポイント (01-env.nu を読み込み)
+│   │   └── config.nu.tmpl      # メイン設定 (自動生成されたソース)
+│   └── zsh/                    # [アーカイブ済み] レガシー Zsh 設定
+│       └── (詳細は git 履歴を参照)
 ├── dot_zshenv                  # -> ~/.zshenv (XDG セットアップ)
 ├── run_onchange_after_setup.sh.tmpl # セットアップオーケストレータ
 └── docs/                       # ドキュメント

@@ -6,7 +6,11 @@
 
 このリポジトリには、私のmacOSおよびLinux環境の設定ファイルが含まれています：
 
-*   **シェル:** Zsh (Starshipプロンプト、zoxide、fzf)
+*   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
+    *   詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
+    *   主なエイリアス: `c` (chezmoi), `ca` (chezmoi apply), `t` (task), `g` (ripgrep), `ll` (eza)
+    *   以前のZsh機能を全てNushellに移行済み
+*   **レガシーシェル:** Zsh設定はアーカイブ済み（必要に応じてgit履歴を参照）
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
@@ -148,7 +152,9 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
     *   `taskwarrior/`: タスク管理の設定
     *   `tmux/`: ターミナルマルチプレクサ（Solarized Darkテーマ）
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
-    *   `zsh/`: Zsh設定（プラグインと補完機能）
+    *   `nushell/`: モダンなシェル設定（詳細は architecture/nushell.ja.md を参照）
+        *   `autoload/`: モジュール化された設定ファイル
+    *   `zsh/`: [アーカイブ済み] Zsh設定（Nushellに移行済み）
 *   `run_onchange_after_setup.sh.tmpl`: `chezmoi apply`後のmacOSセットアップをまとめて実行
 
 ## 機能
@@ -178,6 +184,26 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 *   **チートシート** (Ctrl+Alt+/): 全キーバインドを表示
 *   **自動リロード**: 設定ファイルの変更時に自動的にリロード
 *   **手動リロード**: Ctrl+Shift+Rで設定をリロード
+
+### Nushell
+
+構造化データとモジュール構成を備えたモダンなシェル：
+
+*   **全てがデータ**: パイプラインはプレーンテキストではなく構造化データ（テーブル、レコード）を使用
+*   **XDG準拠**: 全ての設定はXDG Base Directory仕様に準拠
+*   **モジュール構成**: `autoload/` ディレクトリに分割された保守性の高い設定
+*   **条件付きコマンド**: スマートフォールバック（例：`ls`は使用可能な場合は`eza`、そうでなければ標準の`ls`を使用）
+*   **標準ライブラリ**: PATH管理などに`std/util`を使用
+*   **主なエイリアス**:
+    *   `c`, `ca`, `ce` - Chezmoiコマンド
+    *   `t` - Taskwarrior
+    *   `g` - Ripgrep検索
+    *   `ll`, `la`, `lt` - 強化されたファイル一覧
+    *   `y` - cwd追跡付きYaziファイルマネージャ
+    *   `update` / `upgrade-all` - 統合システムアップグレード
+*   **自動初期化ツール**: Starship、Zoxide、Direnv、Carapace
+*   **ローカル上書き**: マシン固有の設定用に `~/.config/nushell/local.nu` をサポート
+*   **ドキュメント**: 詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
 
 ### Helix の Language Server (LSP) サポート
 
