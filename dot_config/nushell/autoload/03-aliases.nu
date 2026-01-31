@@ -106,7 +106,11 @@ export def ocd [...args] {
 # Chezmoi
 export def c [...args] {
     if (has-cmd chezmoi) {
-        chezmoi ...$args
+        if (($args | length) > 0) and (($args | get 0) == "cd") {
+            cd (chezmoi source-path)
+        } else {
+            chezmoi ...$args
+        }
     } else {
         error make { msg: "chezmoi not found" }
     }

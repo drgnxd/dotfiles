@@ -107,6 +107,9 @@ $env.CPPFLAGS = "-I/opt/homebrew/opt/llvm/include"
 $env.EDITOR = "hx"
 $env.VISUAL = $env.EDITOR
 
+# Shell
+$env.SHELL = "/opt/homebrew/bin/nu"
+
 # =============================================================================
 # TERMINAL SETTINGS
 # =============================================================================
