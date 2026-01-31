@@ -1,0 +1,31 @@
+# Integrations Module - Source Cache Files
+# IMPORTANT: This file contains literal paths for 'source' commands
+# 
+# FIRST TIME SETUP:
+#   1. Generate cache files: nu ~/.config/nushell/autoload/06-integrations.nu
+#   2. Re-apply chezmoi: chezmoi apply ~/.config/nushell/
+#   3. New Nushell sessions will automatically source the caches
+#
+# NOTE: If cache files don't exist, source commands are commented out.
+
+{{- $caches := glob "/Users/drgnxd/.cache/nushell-init/*.nu" }}
+{{- if $caches }}
+# Cache files found - enabling integrations
+{{ range $caches }}
+{{- if hasSuffix "/starship.nu" . }}
+# STARSHIP PROMPT
+source /Users/drgnxd/.cache/nushell-init/starship.nu
+{{- end }}
+{{- if hasSuffix "/zoxide.nu" . }}
+# ZOXIDE  
+source /Users/drgnxd/.cache/nushell-init/zoxide.nu
+{{- end }}
+{{- if hasSuffix "/carapace.nu" . }}
+# CARAPACE
+source /Users/drgnxd/.cache/nushell-init/carapace.nu
+{{- end }}
+{{ end }}
+{{- else }}
+# Cache files not generated yet. Run:
+#   nu ~/.config/nushell/autoload/06-integrations.nu
+{{- end }}
