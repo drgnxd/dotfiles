@@ -4,7 +4,7 @@
 ```bash
 # 設定を編集
 cd ~/.local/share/chezmoi
-$EDITOR dot_config/zsh/.zshrc.tmpl
+$EDITOR dot_config/nushell/autoload/03-aliases.nu
 
 # 変更を適用
 chezmoi apply
@@ -20,7 +20,7 @@ cd ~/.local/share/chezmoi
 git add .
 
 # コミット
-git commit -m "feat(zsh): add new alias"
+git commit -m "feat(nushell): add new alias"
 
 # プッシュ
 git push origin main

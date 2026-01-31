@@ -4,8 +4,7 @@
 #
 # FIRST TIME SETUP:
 #   1. Run this file once: nu ~/.config/nushell/autoload/06-integrations.nu
-#   2. Then run: chezmoi apply
-#   3. New Nushell sessions will automatically source the caches
+#   2. New Nushell sessions will automatically source the caches
 
 let cache_dir = ($env.HOME | path join ".cache" "nushell-init")
 let force_regen = (($env | get NU_INIT_REGEN? | default "0") == "1")

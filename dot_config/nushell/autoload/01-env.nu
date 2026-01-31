@@ -92,8 +92,8 @@ $env.OLLAMA_ORIGINS = "moz-extension://*"
 # History files
 $env.LESSHISTFILE = ($env.XDG_STATE_HOME | path join "less" "history")
 
-# macOS Session state
-$env.SHELL_SESSION_DIR = ($env.XDG_STATE_HOME | path join "zsh" "sessions")
+# Shell session state
+$env.SHELL_SESSION_DIR = ($env.XDG_STATE_HOME | path join "nushell" "sessions")
 
 # =============================================================================
 # DEVELOPMENT ENVIRONMENT

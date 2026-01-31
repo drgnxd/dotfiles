@@ -159,6 +159,13 @@ source {{ $fullPath }}
 {{- end }}
 {{- end }}
 
+# Templated autoloads rendered by chezmoi (e.g., 07-source-tools.nu)
+{{- $sourceTools := joinPath $autoloadDir "07-source-tools.nu" }}
+let source_tools = "{{ $sourceTools }}"
+if ($source_tools | path exists) {
+    source {{ $sourceTools }}
+}
+
 # =============================================================================
 # LOCAL CONFIGURATION (User-specific overrides)
 # =============================================================================

@@ -2,7 +2,7 @@
 
 ## 概要
 
-本システムは、Taskwarriorのタスク情報をローカルキャッシュし、Zsh統合機能（シンタックスハイライト、補完、ライブプレビュー）のパフォーマンスを大幅に向上させるアーキテクチャです。
+本システムは、Taskwarriorのタスク情報をローカルキャッシュし、シェル統合機能（Nushell中心、Zshはアーカイブ済み）のパフォーマンスを大幅に向上させるアーキテクチャです。
 
 ### 目的
 
@@ -66,7 +66,12 @@ task add "New task"  または  task 1 done
     └─ ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/へ書き込み
 ```
 
-### 2. Zsh統合読み込みフロー
+### 2. Nushell統合（現行）
+
+- `t` エイリアスでTaskwarriorを利用
+- キャッシュは外部ツールや将来の補完/プロンプト拡張のために維持
+
+### 3. Zsh統合読み込みフロー（アーカイブ）
 
 ```
 [Zshシェル起動 or コマンド入力]
@@ -117,10 +122,10 @@ task add "New task"  または  task 1 done
 
 ---
 
-### Zsh統合
+### Legacy Zsh統合（アーカイブ）
 
 #### Fast Syntax Highlighting (`chroma-task.ch`)
-**場所**: `dot_config/zsh/fsh/chroma-task.ch`
+**場所**: `archive/zsh/fsh/chroma-task.ch`
 
 **動作**:
 1. 初回呼び出し時に`ids.list`をメモリへロード
@@ -134,8 +139,8 @@ task add "New task"  または  task 1 done
 - キャッシュファイルは1回のみ読み込み
 - Zsh配列による高速検索（`${CHROMA_TASK_IDS[(Ie)$__wrd]}`）
 
-#### Zsh Functions (`dot_functions`)
-**場所**: `dot_config/zsh/dot_functions`
+#### Zsh Functions (`dot_functions`)（アーカイブ）
+**場所**: `archive/zsh/dot_functions`
 
 **主要関数**:
 
@@ -177,6 +182,8 @@ task add "New task"  または  task 1 done
 ---
 
 ## トラブルシューティング
+
+※ Zshに関する手順はアーカイブ済みの環境向けです。
 
 ### キャッシュが更新されない
 
@@ -306,8 +313,8 @@ with open(os.path.join(cache_dir, "projects.list"), "w") as f:
 | `dot_config/taskwarrior/hooks/update_cache.py` | キャッシュ更新ライブラリ |
 | `dot_config/taskwarrior/hooks/on-add.py` | 新規タスク追加時のフック |
 | `dot_config/taskwarrior/hooks/on-modify.py` | タスク変更時のフック |
-| `dot_config/zsh/fsh/chroma-task.ch` | Syntax Highlighting定義 |
-| `dot_config/zsh/.functions` | Zshヘルパー関数 |
+| `archive/zsh/fsh/chroma-task.ch` | Syntax Highlighting定義 |
+| `archive/zsh/dot_functions` | Zshヘルパー関数 |
 | `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` | キャッシュ（IDリスト） |
 | `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/desc.list` | キャッシュ（説明付き） |
 

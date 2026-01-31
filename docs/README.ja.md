@@ -10,7 +10,7 @@
     *   詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
     *   主なエイリアス: `c` (chezmoi), `ca` (chezmoi apply), `t` (task), `g` (ripgrep), `ll` (eza)
     *   以前のZsh機能を全てNushellに移行済み
-*   **レガシーシェル:** Zsh設定はアーカイブ済み（必要に応じてgit履歴を参照）
+*   **レガシーシェル:** Zsh設定は`archive/zsh`にアーカイブ済み（必要に応じてgit履歴を参照）
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
@@ -140,7 +140,6 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 *   `.internal_scripts/`: macOSセットアップ用の内部スクリプト（`run_onchange_after_setup.sh.tmpl` から実行）
 *   `dot_config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
-    *   `fsh/`: Zsh Fast Syntax Highlightingのカスタムテーマ
     *   `gh/`: GitHub CLIの設定
     *   `git/`: Git設定（delta統合）
     *   `hammerspoon/`: macOS自動化（ウィンドウ管理、入力切替、カフェインモード）
@@ -154,19 +153,19 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
     *   `nushell/`: モダンなシェル設定（詳細は architecture/nushell.ja.md を参照）
         *   `autoload/`: モジュール化された設定ファイル
+*   `archive/`: 旧設定のアーカイブ
     *   `zsh/`: [アーカイブ済み] Zsh設定（Nushellに移行済み）
 *   `run_onchange_after_setup.sh.tmpl`: `chezmoi apply`後のmacOSセットアップをまとめて実行
 
 ## 機能
 
-### Taskwarrior 
+### Taskwarrior
 
-タスク管理を効率化するための高度なZsh連携機能を搭載しています： 
+シェル非依存のTaskwarriorキャッシュシステム：
 
-*   **動的シンタックスハイライト**: 入力されたタスクIDの有効性をキャッシュと照合し、リアルタイムでハイライト表示します。 
-*   **ライブプレビュー**: タスクIDの入力中、ミニバッファに該当するタスクの内容を自動的に表示します。 
-*   **高速な補完機能**: ローカルキャッシュを利用し、タスクの説明文を含む補完候補を瞬時に提示します。 
-*   **自動キャッシュ管理**: タスクの追加・変更時にPythonフックが自動的にキャッシュを更新します。 
+*   **自動キャッシュ**: 追加・変更時にPythonフックがキャッシュを更新
+*   **構造化出力**: プロンプト/補完向けにIDと説明のリストを生成
+*   **旧UI**: Zsh専用のハイライト/プレビューはアーカイブ済み
 
 
 ### Hammerspoon
