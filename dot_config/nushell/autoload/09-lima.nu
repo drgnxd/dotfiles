@@ -1,13 +1,7 @@
 # Lima and Docker management module
 
-def ensure-cmd [cmd: string] {
-    if not (has-cmd $cmd) {
-        error make { msg: $"($cmd) not found" }
-    }
-}
-
 export def lima-start [vm_name: string] {
-    ensure-cmd limactl
+    require-cmd limactl
 
     print $"Starting Lima VM: ($vm_name)..."
     ^limactl start $vm_name
@@ -31,20 +25,20 @@ export def lima-start [vm_name: string] {
 }
 
 export def lima-stop [vm_name: string] {
-    ensure-cmd limactl
+    require-cmd limactl
 
     print $"Stopping Lima VM: ($vm_name)..."
     ^limactl stop $vm_name
 }
 
 export def lima-status [] {
-    ensure-cmd limactl
+    require-cmd limactl
 
     ^limactl list
 }
 
 export def lima-shell [vm_name: string] {
-    ensure-cmd limactl
+    require-cmd limactl
 
     ^limactl shell $vm_name
 }
@@ -53,7 +47,7 @@ export def lima-delete [
     vm_name: string
     --force(-f)
 ] {
-    ensure-cmd limactl
+    require-cmd limactl
 
     if not $force {
         print $"Warning: This will permanently delete VM '($vm_name)' and all its data."
@@ -68,7 +62,7 @@ export def lima-delete [
 }
 
 export def docker-ctx [ctx?: string] {
-    ensure-cmd docker
+    require-cmd docker
 
     if ($ctx | is-empty) {
         print "Current Docker contexts:"
@@ -79,13 +73,13 @@ export def docker-ctx [ctx?: string] {
 }
 
 export def docker-ctx-reset [] {
-    ensure-cmd docker
+    require-cmd docker
 
     docker context use default
 }
 
 export def lima-docker-context [vm_name: string] {
-    ensure-cmd docker
+    require-cmd docker
 
     let ctx_name = $"($vm_name)-context"
     let socket_path = ($env.LIMA_HOME | path join $vm_name "sock" "docker.sock")

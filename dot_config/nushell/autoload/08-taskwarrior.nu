@@ -1,4 +1,4 @@
-# Taskwarrior preview in right prompt (Nushell)
+# Taskwarrior prompt preview (Nushell)
 
 def task_cache_dir [] {
     let cache_home = ($env | get -o XDG_CACHE_HOME | default ($env.HOME | path join ".cache"))
@@ -152,9 +152,7 @@ export def --env task [...args] {
 }
 
 export def --env t [...args] {
-    if not (has-cmd task) {
-        error make { msg: "task not found" }
-    }
+    require-cmd task
     task ...$args
 }
 

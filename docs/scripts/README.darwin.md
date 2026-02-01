@@ -83,7 +83,7 @@ ALLOW_KEYBOARD_APPLY=1 bash .internal_scripts/darwin/keyboard.sh --apply --user 
 
 ## Common Functions Library
 
-All scripts source `../lib/common.sh` which provides:
+All scripts source `../lib/bootstrap.sh`, which loads `common.sh` and provides:
 
 ### Logging Functions
 - `log_info "message"` - Blue informational message

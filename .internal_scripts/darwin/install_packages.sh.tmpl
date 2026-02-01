@@ -3,10 +3,12 @@ set -euo pipefail
 
 # Brewfile hash: {{ include "dot_config/homebrew/Brewfile.tmpl" | sha256sum }}
 
+SOURCE_ROOT="${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
 # Source shared bootstrap
 # shellcheck source=../lib/bootstrap.sh
 # shellcheck disable=SC1091
-source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
+source "${SOURCE_ROOT}/.internal_scripts/lib/bootstrap.sh"
 
 BREWFILE_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/homebrew/Brewfile"
 BREWFILE_SOURCE="{{ .chezmoi.sourceDir }}/dot_config/homebrew/Brewfile"

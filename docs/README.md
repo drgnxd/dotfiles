@@ -8,7 +8,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 
 *   **Shell:** Nushell (modern shell with structured data, XDG-compliant, modular configuration)
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
-    *   Key aliases: `c` (chezmoi), `ca` (chezmoi apply), `t` (task), `g` (ripgrep), `ll` (eza)
+    *   Key commands: `ca` (chezmoi apply), `ce` (chezmoi edit), `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   Includes all previous Zsh functionality migrated to Nushell
 *   **Legacy Shell:** Zsh configuration archived under `archive/zsh` (see git history if needed)
 *   **Terminal:** Alacritty with Solarized Dark theme
@@ -24,7 +24,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, shellcheck, pearcleaner, mas
+*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, shellcheck, pearcleaner, mas
 *   **Version Managers:** uv (Python), node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
@@ -193,16 +193,18 @@ Modern shell with structured data and modular configuration:
 *   **Everything is Data**: Pipelines use structured data (tables, records) instead of plain text
 *   **XDG Compliant**: All configuration follows XDG Base Directory specification
 *   **Modular Architecture**: Configuration split across `autoload/` directory for maintainability
-*   **Conditional Commands**: Smart fallbacks (e.g., `ls` uses `eza` if available, otherwise standard `ls`)
+*   **Conditional Commands**: Smart fallbacks (`g` uses `rg`/`grep`, `f` uses `fd`/`find`, `cat` uses `bat`/`cat`)
 *   **Standard Library**: Uses `std/util` for PATH management and other utilities
-*   **Key Aliases**:
-    *   `c`, `ca`, `ce` - Chezmoi commands
-    *   `t` - Taskwarrior  
+*   **Key Commands**:
+    *   `ca`, `ce` - Chezmoi apply/edit
+    *   `t` - Taskwarrior
     *   `g` - Ripgrep search
-    *   `ll`, `la`, `lt` - Enhanced file listings
+    *   `f` - fd search
+    *   `cat` - bat (fallback to cat)
+    *   `la`, `ld`, `lf`, `lsize` - List variants
     *   `y` - Yazi file manager with cwd tracking
     *   `update` / `upgrade-all` - Unified system upgrade
-*   **Auto-initialized Tools**: Starship, Zoxide, Direnv, Carapace
+*   **Auto-initialized Tools**: Starship, Zoxide, Direnv, Carapace, Atuin
 *   **Local Overrides**: Support for `~/.config/nushell/local.nu` for machine-specific settings
 *   **Documentation**: See [docs/architecture/nushell.md](docs/architecture/nushell.md) for full details
 

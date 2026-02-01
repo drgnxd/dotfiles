@@ -21,8 +21,11 @@ ALLOW_DEFAULTS=1 ./system_defaults.sh
 Sensitive or user-specific files are excluded via `.chezmoiignore.tmpl`.
 
 ```
-**config.local
-**hosts.yml
+dot_config/gh/hosts.yml
+dot_config/nushell/local.nu
+dot_config/taskwarrior/local.rc
+.Brewfile
+private_Library/
 ```
 
 ## Rationale

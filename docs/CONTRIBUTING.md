@@ -117,12 +117,12 @@ ALLOW_HARDEN=1 .internal_scripts/darwin/security_hardening.sh
 
 **Python hooks**:
 ```bash
-python3 dot_config/taskwarrior/hooks/update_cache.py < /dev/null
+uv run --quiet --script dot_config/taskwarrior/hooks/update_cache.py --update-only
 ```
 
 **Bash common library**:
 ```bash
-source .internal_scripts/lib/common.sh
+source .internal_scripts/lib/bootstrap.sh
 log_info "Testing common library"
 ```
 
@@ -145,8 +145,11 @@ Destructive operations require environment variable confirmation:
 ### Sensitive Files
 
 Files excluded via `.chezmoiignore.tmpl`:
-- `**/config.local`
-- `**/hosts.yml`
+- `dot_config/gh/hosts.yml`
+- `dot_config/nushell/local.nu`
+- `dot_config/taskwarrior/local.rc`
+- `.Brewfile`
+- `private_Library/`
 - Private keys
 
 Use `private_` prefix for template files containing secrets.
@@ -157,7 +160,7 @@ Use `private_` prefix for template files containing secrets.
 
 ### Shell Scripts
 - Use `#!/bin/bash` with `set -euo pipefail` for error handling
-- Source common library: `source "$(dirname "$0")/../lib/common.sh"`
+- Source bootstrap library with CHEZMOI fallback: `source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"`
 - Use logging functions: `log_info`, `log_error`, `log_success`, `log_warning`
 - Use guard flags for destructive operations: `require_flag "ALLOW_XXX" "description"`
 - Use safe defaults wrappers: `safe_defaults_write`, `safe_defaults_write_as_user`

@@ -1,9 +1,9 @@
 #!/usr/bin/env -S uv run --quiet --script
 """
-Taskwarrior on-modify hook.
+Taskwarrior on-add hook.
 
-This hook is triggered when a task is modified.
-It forwards the modified task JSON to Taskwarrior and updates the cache.
+This hook is triggered when a task is added.
+It forwards the new task JSON to Taskwarrior and updates the cache.
 """
 
 import sys

@@ -4,18 +4,19 @@
 ```
 [Task add/modify]
       -> [Python Hooks] -> update_cache.py -> [Cache Files]
-      -> [Zsh Functions] -> [Fast Syntax Highlighting]
+      -> [Nushell prompt preview] (uses cache)
+      -> [Legacy Zsh integration] (archived)
 ```
 
 ## Components
 - Python hooks update `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` and `desc.list`.
-- Zsh functions load cache data for completion and inline previews.
-- Fast Syntax Highlighting validates IDs using cached lists.
+- Nushell prompt preview reads `desc.list` for inline task descriptions and wraps `task` to refresh the cache.
+- Zsh integration is archived under `archive/zsh`.
 
 ## Performance Notes
 - Hook updates are throttled (5-second minimum interval) to reduce latency.
-- Zsh `task` wrapper refreshes the cache asynchronously for interactive speed.
-- Cache reloads are skipped unless the file mtime changes.
+- Nushell preview reads cache only when task IDs are present in the command line.
+- The Nushell `task` wrapper refreshes the cache after each invocation (via `uv` when available).
 
 ## Reference
 - `dot_config/taskwarrior/CACHE_ARCHITECTURE.md`

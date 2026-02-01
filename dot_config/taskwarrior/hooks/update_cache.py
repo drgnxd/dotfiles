@@ -3,7 +3,7 @@
 Taskwarrior cache update module.
 
 This module provides functionality to update the local cache of task IDs and descriptions
-for use by Zsh integration (syntax highlighting, completion, preview).
+for use by shell integrations (Nushell prompt preview, legacy Zsh highlighting).
 
 Run this script directly to refresh the cache or via Taskwarrior hooks for automatic updates.
 
@@ -17,7 +17,7 @@ import os
 import subprocess
 import sys
 import time
-from typing import List
+from typing import List, Tuple
 
 
 CACHE_DIR = os.path.join(
@@ -57,6 +57,29 @@ def write_if_changed(path: str, content: str) -> None:
         target_file.write(content)
 
 
+def load_tasks() -> List[dict]:
+    output = subprocess.check_output(
+        ["task", "status:pending", "-WAITING", "export"],
+        stderr=subprocess.DEVNULL,
+    )
+    return json.loads(output)
+
+
+def build_cache_contents(tasks: List[dict]) -> Tuple[str, str]:
+    ids: List[str] = []
+    descs: List[str] = []
+
+    for task in tasks:
+        task_id = task.get("id")
+        if task_id is None or task_id == 0:
+            continue
+        task_id_str = str(task_id)
+        ids.append(task_id_str)
+        descs.append(f"{task_id_str}:{task['description']}")
+
+    return "\n".join(ids), "\n".join(descs)
+
+
 def update_cache() -> None:
     """
     Update the Taskwarrior cache files with current pending tasks.
@@ -66,8 +89,8 @@ def update_cache() -> None:
     - desc.list: Contains task IDs and descriptions in "ID:description" format
 
     The cache is used by:
-    - Zsh fast-syntax-highlighting (chroma-task.ch) for ID validation
-    - Zsh functions (.functions) for task preview and completion
+    - Nushell prompt preview (autoload/08-taskwarrior.nu)
+    - Legacy Zsh integration (archived under archive/zsh)
 
     Note:
         Uses -WAITING filter to match 'task list' behavior (excludes currently waiting tasks).
@@ -85,23 +108,8 @@ def update_cache() -> None:
         # Use -WAITING (virtual tag) to match 'task list' behavior
         # -wait excludes tasks with wait attribute set (even if past)
         # -WAITING excludes only currently waiting tasks
-        output = subprocess.check_output(
-            ["task", "status:pending", "-WAITING", "export"], stderr=subprocess.DEVNULL
-        )
-        tasks = json.loads(output)
-
-        ids: List[str] = []
-        descs: List[str] = []
-
-        for task in tasks:
-            if "id" in task and task["id"] != 0:
-                task_id = str(task["id"])
-                ids.append(task_id)
-                descs.append(f"{task_id}:{task['description']}")
-
-        # Write cache files
-        ids_content = "\n".join(ids)
-        descs_content = "\n".join(descs)
+        tasks = load_tasks()
+        ids_content, descs_content = build_cache_contents(tasks)
 
         write_if_changed(IDS_CACHE_PATH, ids_content)
         write_if_changed(DESC_CACHE_PATH, descs_content)

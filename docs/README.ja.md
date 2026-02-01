@@ -8,7 +8,7 @@
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
     *   詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
-    *   主なエイリアス: `c` (chezmoi), `ca` (chezmoi apply), `t` (task), `g` (ripgrep), `ll` (eza)
+    *   主なコマンド: `ca` (chezmoi apply), `ce` (chezmoi edit), `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   以前のZsh機能を全てNushellに移行済み
 *   **レガシーシェル:** Zsh設定は`archive/zsh`にアーカイブ済み（必要に応じてgit履歴を参照）
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
@@ -22,7 +22,7 @@
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
     *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
-*   **ユーティリティ:** bat, eza, fd, ripgrep, moreutils, ncdu, smartmontools, direnv, shellcheck, pearcleaner, mas
+*   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, shellcheck, pearcleaner, mas
 *   **バージョンマネージャ:** uv (Python)、node、rust
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）, qFlipper（デバイス書き込みツール）
 
@@ -191,16 +191,18 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 *   **全てがデータ**: パイプラインはプレーンテキストではなく構造化データ（テーブル、レコード）を使用
 *   **XDG準拠**: 全ての設定はXDG Base Directory仕様に準拠
 *   **モジュール構成**: `autoload/` ディレクトリに分割された保守性の高い設定
-*   **条件付きコマンド**: スマートフォールバック（例：`ls`は使用可能な場合は`eza`、そうでなければ標準の`ls`を使用）
+*   **条件付きコマンド**: スマートフォールバック（`g`は`rg`/`grep`、`f`は`fd`/`find`、`cat`は`bat`/`cat`）
 *   **標準ライブラリ**: PATH管理などに`std/util`を使用
-*   **主なエイリアス**:
-    *   `c`, `ca`, `ce` - Chezmoiコマンド
+*   **主なコマンド**:
+    *   `ca`, `ce` - Chezmoi apply/edit
     *   `t` - Taskwarrior
     *   `g` - Ripgrep検索
-    *   `ll`, `la`, `lt` - 強化されたファイル一覧
+    *   `f` - fd検索
+    *   `cat` - bat（無い場合はcat）
+    *   `la`, `ld`, `lf`, `lsize` - リスト表示の派生
     *   `y` - cwd追跡付きYaziファイルマネージャ
     *   `update` / `upgrade-all` - 統合システムアップグレード
-*   **自動初期化ツール**: Starship、Zoxide、Direnv、Carapace
+*   **自動初期化ツール**: Starship、Zoxide、Direnv、Carapace、Atuin
 *   **ローカル上書き**: マシン固有の設定用に `~/.config/nushell/local.nu` をサポート
 *   **ドキュメント**: 詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
 
