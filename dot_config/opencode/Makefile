@@ -1,6 +1,6 @@
 # Makefile for local development (using uv)
 
-.PHONY: help venv install run test validate clean
+.PHONY: help venv install run test validate check-uv clean
 
 help:
 	@echo "Make targets:"
@@ -9,6 +9,7 @@ help:
 	@echo "  run      - run skills_loader.py inside venv"
 	@echo "  test     - run quick smoke test"
 	@echo "  validate - validate YAML syntax and structure"
+	@echo "  check-uv - check for forbidden pip/venv commands"
 	@echo "  clean    - remove .venv"
 
 venv:
@@ -37,6 +38,10 @@ validate: install
 	@test -f skills_core.yaml || echo "✗ skills_core.yaml missing"
 	@test -f skills_catalog.yaml || echo "✗ skills_catalog.yaml missing"
 	@echo "✓ File structure valid"
+
+check-uv:
+	@echo "=== Checking for forbidden pip/venv commands ==="
+	@bash skills/tools/check_uv_usage.sh .
 
 clean:
 	@rm -rf .venv

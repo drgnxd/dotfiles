@@ -8,6 +8,26 @@ This file is your entry point. Always read in this order:
 
 ---
 
+## 🐍 Python MANDATORY Rule
+
+**ALWAYS use `uv` for Python package management. NEVER use pip/venv/virtualenv directly.**
+
+```bash
+# ✅ Correct
+uv venv
+uv pip install pandas
+uv run script.py
+
+# ❌ WRONG - Do not do this
+pip install pandas
+python -m venv .venv
+virtualenv venv
+```
+
+See: uv_usage_guide.md for details
+
+---
+
 ## 🏗️ System Structure
 ```
 .opencode/
@@ -36,6 +56,7 @@ Task: "Create a Python script to parse CSV"
 → Loads: skills_core.yaml (always)
        + essential/languages.yaml (python detected)
        + essential/practices.yaml (code/test implied)
+→ Python commands MUST use uv: "uv pip install pandas"
 ```
 
 ---
@@ -51,6 +72,8 @@ Apply in this order (higher priority wins):
 5. Global skills (fallback defaults)
 
 **When in doubt**: Project rules > Global rules
+
+**Python special rule**: ALWAYS use uv (non-negotiable)
 
 ---
 
@@ -94,6 +117,14 @@ readonly INPUT="${1}"
 [[ -n "${INPUT}" ]] || { echo "Error: input required" >&2; exit 1; }
 ```
 
+**Python Example:**
+```bash
+# Applied: python skill (uv required)
+uv venv
+uv pip install -r requirements.txt
+uv run pytest
+```
+
 ---
 
 ## 📚 Common References
@@ -104,6 +135,13 @@ See `skills_core.yaml` → naming section
 - Code vars/funcs: `snake_case`
 - Constants: `UPPER_SNAKE_CASE`
 - Classes: `PascalCase`
+
+### Python Package Management
+See `skills_core.yaml` → python_requirements
+- Package manager: `uv` (mandatory)
+- Install: `uv pip install <package>`
+- Venv: `uv venv`
+- Run: `uv run <script>`
 
 ### Skill Documentation Format
 Each SKILL.md should follow:
@@ -127,6 +165,7 @@ Example: `PEP 8 (2025-01-30) - https://peps.python.org/pep-0008/`
 ```
 Task: "Write a Python function to read JSON"
 Skills loaded: languages.yaml + practices.yaml
+Commands: uv pip install <deps>, uv run script.py
 Token usage: ~1,800
 ```
 
