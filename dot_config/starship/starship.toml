@@ -439,6 +439,7 @@ format = "[ | $symbol$context]($style)"
 
 [jobs]
 symbol = " "
+symbol_threshold = 2
 style = "bg:base02 fg:base1"
 format = "[ | $symbol$number]($style)"
 
