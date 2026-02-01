@@ -10,7 +10,7 @@ set -euo pipefail
 # Define script directory relative to the source directory
 SCRIPT_DIR="{{ .chezmoi.sourceDir }}/.internal_scripts/darwin"
 LIB_DIR="{{ .chezmoi.sourceDir }}/.internal_scripts/lib"
-source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/bootstrap.sh"
 export CHEZMOI_SOURCE_DIR="{{ .chezmoi.sourceDir }}"
 
 CONTINUE_ON_ERROR=${CONTINUE_ON_ERROR:-0}

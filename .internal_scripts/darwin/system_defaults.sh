@@ -1,10 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+SOURCE_ROOT="${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
 # Source shared bootstrap
 # shellcheck source=../lib/bootstrap.sh
 # shellcheck disable=SC1091
-source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"
+source "${SOURCE_ROOT}/.internal_scripts/lib/bootstrap.sh"
 
 # Check guard flag
 require_flag "ALLOW_DEFAULTS" "macOS defaults modification"

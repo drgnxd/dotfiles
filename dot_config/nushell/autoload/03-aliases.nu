@@ -148,52 +148,34 @@ export def lsize [...args] {
 
 # LazyGit
 export def lg [...args] {
-    if (has-cmd lazygit) {
-        lazygit ...$args
-    } else {
-        error make { msg: "lazygit not found" }
-    }
+    require-cmd lazygit
+    lazygit ...$args
 }
 
 # opencode
 export def oc [...args] {
-    if (has-cmd opencode) {
-        opencode ...$args
-    } else {
-        error make { msg: "opencode not found" }
-    }
+    require-cmd opencode
+    opencode ...$args
 }
 
 export def ocd [...args] {
-    if (has-cmd opencode) {
-        opencode --continue ...$args
-    } else {
-        error make { msg: "opencode not found" }
-    }
+    require-cmd opencode
+    opencode --continue ...$args
 }
 
 # Chezmoi
 export def ca [...args] {
-    if (has-cmd chezmoi) {
-        chezmoi apply ...$args
-    } else {
-        error make { msg: "chezmoi not found" }
-    }
+    require-cmd chezmoi
+    chezmoi apply ...$args
 }
 
 export def ce [...args] {
-    if (has-cmd chezmoi) {
-        chezmoi edit ...$args
-    } else {
-        error make { msg: "chezmoi not found" }
-    }
+    require-cmd chezmoi
+    chezmoi edit ...$args
 }
 
 # Proton Pass
 export def pload [...args] {
-    if (has-cmd pass-cli) {
-        pass-cli ssh-agent load ...$args
-    } else {
-        error make { msg: "pass-cli not found" }
-    }
+    require-cmd pass-cli
+    pass-cli ssh-agent load ...$args
 }

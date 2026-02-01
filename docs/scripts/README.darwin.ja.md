@@ -83,7 +83,7 @@ ALLOW_KEYBOARD_APPLY=1 bash .internal_scripts/darwin/keyboard.sh --apply --user 
 
 ## 共通関数ライブラリ
 
-すべてのスクリプトは `../lib/common.sh` をソースし、以下を提供します：
+すべてのスクリプトは `../lib/bootstrap.sh` をソースし、`common.sh` を読み込んだ上で以下を提供します：
 
 ### ログ関数
 - `log_info "message"` - 青色の情報メッセージ

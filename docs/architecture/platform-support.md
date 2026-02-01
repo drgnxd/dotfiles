@@ -16,7 +16,7 @@
 **Package Manager**: Native (apt/dnf/pacman)
 
 **Shared Tools**:
-- Alacritty, Zsh, Tmux, Helix
+- Alacritty, Nushell, Tmux, Helix
 - Taskwarrior, Yazi, Starship
 - CLI utilities (bat, eza, fd, ripgrep)
 

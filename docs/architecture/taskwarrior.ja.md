@@ -4,18 +4,19 @@
 ```
 [Task add/modify]
       -> [Python Hooks] -> update_cache.py -> [Cache Files]
-      -> [Zsh Functions] -> [Fast Syntax Highlighting]
+      -> [Nushell プロンプトプレビュー]（キャッシュ参照）
+      -> [Zsh 統合]（アーカイブ済み）
 ```
 
 ## コンポーネント
 - Python フックが `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` と `desc.list` を更新
-- Zsh 関数がキャッシュを読み込み補完/プレビューに利用
-- Fast Syntax Highlighting がIDの妥当性を検証
+- Nushell のプロンプトプレビューが `desc.list` を参照し、`task` ラッパーがキャッシュ更新を実行
+- Zsh 統合は `archive/zsh` にアーカイブ済み
 
 ## パフォーマンス
 - フック更新は5秒スロットリングで連続実行を抑制
-- Zsh の `task` ラッパーは非同期更新で操作感を維持
-- キャッシュは更新時刻が変わらない限り再読込しない
+- Nushell のプレビューはコマンドラインにIDがある場合のみキャッシュを読む
+- Nushell の `task` ラッパーは実行後にキャッシュを更新（`uv` がある場合）
 
 ## 参考
 - `dot_config/taskwarrior/CACHE_ARCHITECTURE.md`

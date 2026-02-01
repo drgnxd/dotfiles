@@ -61,9 +61,11 @@
 │   │   │   ├── 04-functions.nu # Custom functions
 │   │   │   ├── 05-completions.nu # Command completions
 │   │   │   ├── 06-integrations.nu # Tool integrations
-│   │   │   └── 07-source-tools.nu # Source cached tool init
-│   │   ├── env.nu.tmpl         # Entry point (sources 01-env.nu)
-│   │   └── config.nu.tmpl      # Main config (auto-generated sources)
+│   │   │   ├── 07-source-tools.nu.tmpl # Source cached tool init (renders to 07-source-tools.nu)
+│   │   │   ├── 08-taskwarrior.nu # Taskwarrior prompt preview
+│   │   │   └── 09-lima.nu       # Lima/Docker helpers
+│   │   ├── env.nu.tmpl         # Entry point template (renders to env.nu)
+│   │   └── config.nu.tmpl      # Main config template (renders to config.nu)
 ├── archive/                    # Archived legacy configs
 │   └── zsh/                    # [ARCHIVED] Legacy Zsh configuration
 ├── run_onchange_after_setup.sh.tmpl # Post-apply orchestrator
@@ -81,8 +83,8 @@
 See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 
 **Entry Points**:
-- `env.nu` - Sources `autoload/01-env.nu` for environment setup
-- `config.nu` - Main configuration with auto-generated module sources
+- `env.nu.tmpl` - Template that renders to `env.nu` and sources `autoload/01-env.nu`
+- `config.nu.tmpl` - Template that renders to `config.nu` with auto-generated module sources
 
 **Modular Architecture**:
 ```
@@ -92,8 +94,10 @@ autoload/
 ├── 03-aliases.nu       # Conditional command aliases
 ├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 ├── 05-completions.nu   # Dynamic completions
-├── 06-integrations.nu  # Starship, Zoxide, Direnv, Carapace
-└── 07-source-tools.nu  # Source cached tool init
+├── 06-integrations.nu  # Starship, Zoxide, Direnv, Carapace, Atuin
+├── 07-source-tools.nu.tmpl  # Source cached tool init (renders to 07-source-tools.nu)
+├── 08-taskwarrior.nu   # Taskwarrior prompt preview
+└── 09-lima.nu          # Lima/Docker helpers
 ```
 
 **Key Features**:

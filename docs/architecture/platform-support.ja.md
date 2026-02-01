@@ -16,7 +16,7 @@
 **パッケージマネージャー**: apt/dnf/pacman など
 
 **共通ツール**:
-- Alacritty, Zsh, Tmux, Helix
+- Alacritty, Nushell, Tmux, Helix
 - Taskwarrior, Yazi, Starship
 - CLI ユーティリティ (bat, eza, fd, ripgrep)
 
