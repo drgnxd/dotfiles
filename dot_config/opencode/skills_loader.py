@@ -193,7 +193,7 @@ class SkillsLoader:
             # Check token budget
             if tokens_used + skill_tokens > max_tokens:
                 loaded_skills.append((skill_name, "skipped", None))
-                break
+                continue
 
             # Load skill content
             skill_path = self.base_path / "skills" / meta.get("path", "")

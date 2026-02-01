@@ -1,7 +1,7 @@
 # Skills Catalog v2.0
 
 load_strategy:
-  always: [skills_core.yaml]
+  always: [skills_core.yaml, japanese]
   by_task: auto_detect
   max_tokens: 5000
 

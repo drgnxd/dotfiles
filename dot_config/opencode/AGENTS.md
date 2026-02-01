@@ -35,6 +35,7 @@ See: uv_usage_guide.md for details
 ├── skills_core.yaml    ← Core rules (always load)
 ├── skills_catalog.yaml ← Skill index (metadata)
 ├── skills_loader.py    ← Auto-loader
+├── uv_usage_guide.md   ← Python package management guide
 └── skills/             ← Task-specific skills
     ├── essential/      ← High-frequency skills
     └── specialized/    ← Domain-specific skills
