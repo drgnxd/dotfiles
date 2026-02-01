@@ -39,7 +39,7 @@
 # }
 
 # grep -> ripgrep
-export def g [...args] {
+export def --wrapped g [...args] {
     if (has-cmd rg) {
         rg ...$args
     } else {
@@ -48,7 +48,7 @@ export def g [...args] {
 }
 
 # find -> fd
-export def f [...args] {
+export def --wrapped f [...args] {
     if (has-cmd fd) {
         fd ...$args
     } else {
@@ -57,7 +57,7 @@ export def f [...args] {
 }
 
 # cat -> bat
-export def cat [...args] {
+export def --wrapped cat [...args] {
     if (has-cmd bat) {
         bat --paging=never ...$args
     } else {
@@ -81,15 +81,15 @@ export alias c = clear
 # INTERACTIVE FILE OPERATIONS (confirm before overwrite/delete)
 # =============================================================================
 
-export def cp [...args] {
+export def --wrapped cp [...args] {
     ^cp -i ...$args
 }
 
-export def mv [...args] {
+export def --wrapped mv [...args] {
     ^mv -i ...$args
 }
 
-export def rm [...args] {
+export def --wrapped rm [...args] {
     # Skip -i if -f/--force is specified to allow non-interactive removal
     if ($args | any { $in == "-f" or $in == "--force" }) {
         ^rm ...$args
@@ -103,7 +103,7 @@ export def rm [...args] {
 # =============================================================================
 
 # List with hidden files
-export def la [...args] {
+export def --wrapped la [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
         ls -a
@@ -113,7 +113,7 @@ export def la [...args] {
 }
 
 # List only directories
-export def ld [...args] {
+export def --wrapped ld [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
         ls | where type == dir
@@ -123,7 +123,7 @@ export def ld [...args] {
 }
 
 # List only files
-export def lf [...args] {
+export def --wrapped lf [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
         ls | where type == file
@@ -133,7 +133,7 @@ export def lf [...args] {
 }
 
 # List sorted by size (descending)
-export def lsize [...args] {
+export def --wrapped lsize [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
         ls | sort-by size -r
@@ -147,35 +147,35 @@ export def lsize [...args] {
 # =============================================================================
 
 # LazyGit
-export def lg [...args] {
+export def --wrapped lg [...args] {
     require-cmd lazygit
     lazygit ...$args
 }
 
 # opencode
-export def oc [...args] {
+export def --wrapped oc [...args] {
     require-cmd opencode
     opencode ...$args
 }
 
-export def ocd [...args] {
+export def --wrapped ocd [...args] {
     require-cmd opencode
     opencode --continue ...$args
 }
 
 # Chezmoi
-export def ca [...args] {
+export def --wrapped ca [...args] {
     require-cmd chezmoi
     chezmoi apply ...$args
 }
 
-export def ce [...args] {
+export def --wrapped ce [...args] {
     require-cmd chezmoi
     chezmoi edit ...$args
 }
 
 # Proton Pass
-export def pload [...args] {
+export def --wrapped pload [...args] {
     require-cmd pass-cli
     pass-cli ssh-agent load ...$args
 }
