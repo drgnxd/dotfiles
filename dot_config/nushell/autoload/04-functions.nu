@@ -9,7 +9,7 @@ export def y [...args] {
     if ($cwd | is-not-empty) and ($cwd != $env.PWD) {
         cd $cwd
     }
-    rm -f $tmp_file
+    ^rm -f $tmp_file
 }
 
 # ZK WITH GIT SYNC

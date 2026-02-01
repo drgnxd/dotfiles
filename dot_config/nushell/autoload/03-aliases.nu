@@ -90,7 +90,12 @@ export def mv [...args] {
 }
 
 export def rm [...args] {
-    ^rm -i ...$args
+    # Skip -i if -f/--force is specified to allow non-interactive removal
+    if ($args | any { $in == "-f" or $in == "--force" }) {
+        ^rm ...$args
+    } else {
+        ^rm -i ...$args
+    }
 }
 
 # =============================================================================
@@ -99,22 +104,42 @@ export def rm [...args] {
 
 # List with hidden files
 export def la [...args] {
-    ls -a ...$args
+    let paths = ($args | default [])
+    if ($paths | is-empty) {
+        ls -a
+    } else {
+        ls -a ...$paths
+    }
 }
 
 # List only directories
 export def ld [...args] {
-    ls ...$args | where type == dir
+    let paths = ($args | default [])
+    if ($paths | is-empty) {
+        ls | where type == dir
+    } else {
+        ls ...$paths | where type == dir
+    }
 }
 
 # List only files
 export def lf [...args] {
-    ls ...$args | where type == file
+    let paths = ($args | default [])
+    if ($paths | is-empty) {
+        ls | where type == file
+    } else {
+        ls ...$paths | where type == file
+    }
 }
 
 # List sorted by size (descending)
 export def lsize [...args] {
-    ls ...$args | sort-by size -r
+    let paths = ($args | default [])
+    if ($paths | is-empty) {
+        ls | sort-by size -r
+    } else {
+        ls ...$paths | sort-by size -r
+    }
 }
 
 # =============================================================================
