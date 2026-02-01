@@ -24,3 +24,8 @@ let carapace_file = "/Users/drgnxd/.cache/nushell-init/carapace.nu"
 if ($carapace_file | path exists) {
     source /Users/drgnxd/.cache/nushell-init/carapace.nu
 }
+
+# Taskwarrior preview (wraps right prompt after prompt tools load)
+if (scope commands | where name == "task_preview_enable" | is-not-empty) {
+    task_preview_enable
+}
