@@ -10,7 +10,7 @@ def task_cache_update [] {
     if not ($update_script | path exists) {
         return
     }
-    if (which uv | is-empty) {
+    if not (has-cmd uv) {
         return
     }
     do { uv run --quiet --script $update_script --update-only } | ignore
@@ -152,7 +152,7 @@ export def --env task [...args] {
 }
 
 export def --env t [...args] {
-    if (which task | is-empty) {
+    if not (has-cmd task) {
         error make { msg: "task not found" }
     }
     task ...$args

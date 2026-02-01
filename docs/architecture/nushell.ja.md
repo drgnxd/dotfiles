@@ -11,13 +11,16 @@ dot_config/nushell/
 ├── env.nu                   # エントリポイント（01-env.nuを読み込み）
 ├── config.nu                # メイン設定（自動生成されたソース）
 └── autoload/
+    ├── 00-helpers.nu       # 共通ヘルパー
     ├── 01-env.nu           # 環境変数とXDGパス
     ├── 02-path.nu          # std/utilを使用したPATH設定
     ├── 03-aliases.nu       # フォールバック付きエイリアス
     ├── 04-functions.nu     # カスタム関数とラッパー
     ├── 05-completions.nu   # コマンド補完
     ├── 06-integrations.nu  # サードパーティツール統合
-    └── 07-source-tools.nu  # キャッシュ済みツール初期化の読み込み
+    ├── 07-source-tools.nu  # キャッシュ済みツール初期化の読み込み
+    ├── 08-taskwarrior.nu   # Taskwarriorプレビュー統合
+    └── 09-lima.nu          # Lima/Dockerヘルパー
 ```
 
 ## モジュール読み込み

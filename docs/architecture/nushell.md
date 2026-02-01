@@ -11,13 +11,16 @@ dot_config/nushell/
 ├── env.nu                   # Entry point (sources 01-env.nu)
 ├── config.nu                # Main configuration (auto-generated sources)
 └── autoload/
+    ├── 00-helpers.nu       # Shared helper functions
     ├── 01-env.nu           # Environment variables & XDG paths
     ├── 02-path.nu          # PATH configuration using std/util
     ├── 03-aliases.nu       # Command aliases with fallbacks
     ├── 04-functions.nu     # Custom functions & wrappers
     ├── 05-completions.nu   # Command completions
     ├── 06-integrations.nu  # Third-party tool integrations
-    └── 07-source-tools.nu  # Source cached tool init
+    ├── 07-source-tools.nu  # Source cached tool init
+    ├── 08-taskwarrior.nu   # Taskwarrior preview integration
+    └── 09-lima.nu          # Lima/Docker helpers
 ```
 
 ## Module Loading

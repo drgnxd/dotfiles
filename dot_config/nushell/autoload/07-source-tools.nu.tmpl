@@ -25,6 +25,18 @@ if ($carapace_file | path exists) {
     source /Users/drgnxd/.cache/nushell-init/carapace.nu
 }
 
+# ATUIN
+let atuin_file = "/Users/drgnxd/.cache/nushell-init/atuin.nu"
+if (not ($atuin_file | path exists)) and (has-cmd atuin) {
+    let atuin_init = (do { atuin init nu } | complete)
+    if ($atuin_init.exit_code == 0) {
+        $atuin_init.stdout | save -f $atuin_file
+    }
+}
+if ($atuin_file | path exists) {
+    source /Users/drgnxd/.cache/nushell-init/atuin.nu
+}
+
 # Taskwarrior preview (wraps right prompt after prompt tools load)
 if (scope commands | where name == "task_preview_enable" | is-not-empty) {
     task_preview_enable

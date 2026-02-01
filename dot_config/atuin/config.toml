@@ -1,0 +1,10 @@
+# atuin configuration
+
+# Enable automatic filtering of secrets (AWS keys, etc.)
+secrets_filter = true
+
+# Commands to exclude from history (prefix match)
+history_filter = [
+    "^SecretCommand",
+    "^base64",
+]
