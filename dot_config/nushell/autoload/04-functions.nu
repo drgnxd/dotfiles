@@ -80,7 +80,7 @@ export def save-stats [] {
 
 # PROTON PASS CLI
 export def ppget [query: string, --field: string = "password"] {
-    if (which pass-cli | is-empty) {
+    if not (has-cmd pass-cli) {
         print --stderr "Error: pass-cli not found."
         return 127
     }
@@ -99,7 +99,7 @@ export def ppget [query: string, --field: string = "password"] {
 
 # SYSTEM UPGRADE
 export def upgrade-all [] {
-    if (which brew | is-empty) {
+    if not (has-cmd brew) {
         print --stderr "Homebrew not found"
         return 127
     }
@@ -117,7 +117,7 @@ export def upgrade-all [] {
         print --stderr "Install buo/cask-upgrade: brew tap buo/cask-upgrade"
     }
     print "--- Mac App Store ---"
-    if (which mas | is-not-empty) {
+    if (has-cmd mas) {
         mas upgrade
         if ($env.LAST_EXIT_CODE != 0) { return 1 }
     } else {

@@ -58,7 +58,7 @@ if ($brew_path | is-not-empty) {
 # =============================================================================
 # FZF WITH FD
 # =============================================================================
-if (which fd | is-not-empty) {
+if (has-cmd fd) {
     $env.FZF_DEFAULT_COMMAND = 'fd --type f --hidden --follow --exclude .git'
     $env.FZF_CTRL_T_COMMAND = $env.FZF_DEFAULT_COMMAND
     $env.FZF_ALT_C_COMMAND = 'fd --type d --hidden --follow --exclude .git'

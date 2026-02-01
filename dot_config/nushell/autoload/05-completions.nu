@@ -3,7 +3,7 @@
 
 # Docker containers
 def docker-containers [] {
-    if (which docker | is-not-empty) {
+    if (has-cmd docker) {
         ^docker ps -a --format "{{.Names}}" | lines
     } else {
         []
@@ -16,7 +16,7 @@ export extern "docker" [
 
 # Chezmoi managed files
 def chezmoi-files [] {
-    if (which chezmoi | is-not-empty) {
+    if (has-cmd chezmoi) {
         ^chezmoi managed | lines
     } else {
         []
@@ -33,7 +33,7 @@ export extern "chezmoi cat" [
 
 # Brew packages
 def brew-packages [] {
-    if (which brew | is-not-empty) {
+    if (has-cmd brew) {
         ^brew list --formula | lines
     } else {
         []

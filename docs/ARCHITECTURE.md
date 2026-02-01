@@ -157,7 +157,7 @@ $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
       └── ...               # VM runtime data
 ```
 
-**Management Functions** (`dot_config/nushell/scripts/lima.nu`):
+**Management Functions** (`dot_config/nushell/autoload/09-lima.nu`):
 
 | Function | Purpose | Example |
 |----------|---------|---------|

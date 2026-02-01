@@ -2,14 +2,6 @@
 # Modern command replacements and shortcuts
 
 # =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def has-cmd [cmd: string] {
-    (which $cmd | is-not-empty)
-}
-
-# =============================================================================
 # MODERN CORE COMMANDS (with fallbacks)
 # =============================================================================
 
@@ -138,34 +130,5 @@ export def pload [...args] {
         pass-cli ssh-agent load ...$args
     } else {
         error make { msg: "pass-cli not found" }
-    }
-}
-
-# Lima shortcuts
-export def lls [] {
-    if (has-cmd limactl) {
-        limactl list
-    } else {
-        error make { msg: "limactl not found" }
-    }
-}
-
-export def dctx [ctx?: string] {
-    if (has-cmd docker) {
-        if ($ctx | is-empty) {
-            docker context ls
-        } else {
-            docker context use $ctx
-        }
-    } else {
-        error make { msg: "docker not found" }
-    }
-}
-
-export def dctx-reset [] {
-    if (has-cmd docker) {
-        docker context use default
-    } else {
-        error make { msg: "docker not found" }
     }
 }

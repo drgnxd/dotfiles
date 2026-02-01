@@ -15,7 +15,7 @@ if not ($cache_dir | path exists) {
 }
 
 # STARSHIP PROMPT
-if (which starship | is-not-empty) {
+if (has-cmd starship) {
     let starship_file = ($cache_dir | path join "starship.nu")
     if $force_regen or (not ($starship_file | path exists)) {
         let starship_init = (do { starship init nu } | complete)
@@ -26,7 +26,7 @@ if (which starship | is-not-empty) {
 }
 
 # ZOXIDE
-if (which zoxide | is-not-empty) {
+if (has-cmd zoxide) {
     let zoxide_file = ($cache_dir | path join "zoxide.nu")
     if $force_regen or (not ($zoxide_file | path exists)) {
         let zoxide_init = (do { zoxide init nushell } | complete)
@@ -37,7 +37,7 @@ if (which zoxide | is-not-empty) {
 }
 
 # CARAPACE
-if (which carapace | is-not-empty) {
+if (has-cmd carapace) {
     let carapace_file = ($cache_dir | path join "carapace.nu")
     if $force_regen or (not ($carapace_file | path exists)) {
         let carapace_init = (do { carapace _carapace nushell } | complete)
@@ -47,8 +47,19 @@ if (which carapace | is-not-empty) {
     }
 }
 
+# ATUIN
+if (has-cmd atuin) {
+    let atuin_file = ($cache_dir | path join "atuin.nu")
+    if $force_regen or (not ($atuin_file | path exists)) {
+        let atuin_init = (do { atuin init nu } | complete)
+        if ($atuin_init.exit_code == 0) {
+            $atuin_init.stdout | save -f $atuin_file
+        }
+    }
+}
+
 # DIRENV - uses load-env instead of source, no cache needed
-if (which direnv | is-not-empty) {
+if (has-cmd direnv) {
     let direnv_init = (do { direnv export json } | complete)
     if ($direnv_init.exit_code == 0) {
         let direnv_json = ($direnv_init.stdout | from json)
