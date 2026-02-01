@@ -2,7 +2,7 @@
 # Advanced wrappers and utilities
 
 # YAZI FILE MANAGER
-export def y [...args] {
+export def --wrapped y [...args] {
     let tmp_file = (mktemp -t "yazi-cwd.XXXXXX")
     yazi ...$args --cwd-file=$tmp_file
     let cwd = (open $tmp_file | str trim)
@@ -51,7 +51,7 @@ export def zk-sync [] {
     }
 }
 
-export def zk [...args] {
+export def --wrapped zk [...args] {
     if ($args | is-empty) {
         ^zk
     } else if ($args | get 0) == "sync" {
