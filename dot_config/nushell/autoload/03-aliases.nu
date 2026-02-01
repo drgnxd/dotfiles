@@ -5,38 +5,38 @@
 # MODERN CORE COMMANDS (with fallbacks)
 # =============================================================================
 
-# ls -> eza (with icons and git status)
-export def ls [...args] {
-    if (has-cmd eza) {
-        eza --icons --git ...$args
-    } else {
-        ^ls ...$args
-    }
-}
-
-export def ll [...args] {
-    if (has-cmd eza) {
-        eza --icons --git -l ...$args
-    } else {
-        ^ls -l ...$args
-    }
-}
-
-export def la [...args] {
-    if (has-cmd eza) {
-        eza --icons --git -la ...$args
-    } else {
-        ^ls -la ...$args
-    }
-}
-
-export def lt [...args] {
-    if (has-cmd eza) {
-        eza --icons --git --tree ...$args
-    } else {
-        ^ls -R ...$args
-    }
-}
+# ls -> eza (with icons and git status) - DISABLED
+# export def ls [...args] {
+#     if (has-cmd eza) {
+#         eza --icons --git ...$args
+#     } else {
+#         ^ls ...$args
+#     }
+# }
+#
+# export def ll [...args] {
+#     if (has-cmd eza) {
+#         eza --icons --git -l ...$args
+#     } else {
+#         ^ls -l ...$args
+#     }
+# }
+#
+# export def la [...args] {
+#     if (has-cmd eza) {
+#         eza --icons --git -la ...$args
+#     } else {
+#         ^ls -la ...$args
+#     }
+# }
+#
+# export def lt [...args] {
+#     if (has-cmd eza) {
+#         eza --icons --git --tree ...$args
+#     } else {
+#         ^ls -R ...$args
+#     }
+# }
 
 # grep -> ripgrep
 export def g [...args] {
@@ -63,6 +63,58 @@ export def cat [...args] {
     } else {
         ^cat ...$args
     }
+}
+
+# =============================================================================
+# DIRECTORY NAVIGATION SHORTCUTS
+# =============================================================================
+
+# Go up directories
+export alias .. = cd ..
+export alias ... = cd ../..
+export alias .... = cd ../../..
+
+# Clear screen
+export alias c = clear
+
+# =============================================================================
+# INTERACTIVE FILE OPERATIONS (confirm before overwrite/delete)
+# =============================================================================
+
+export def cp [...args] {
+    ^cp -i ...$args
+}
+
+export def mv [...args] {
+    ^mv -i ...$args
+}
+
+export def rm [...args] {
+    ^rm -i ...$args
+}
+
+# =============================================================================
+# LS VARIANTS
+# =============================================================================
+
+# List with hidden files
+export def la [...args] {
+    ls -a ...$args
+}
+
+# List only directories
+export def ld [...args] {
+    ls ...$args | where type == dir
+}
+
+# List only files
+export def lf [...args] {
+    ls ...$args | where type == file
+}
+
+# List sorted by size (descending)
+export def lsize [...args] {
+    ls ...$args | sort-by size -r
 }
 
 # =============================================================================
@@ -96,18 +148,6 @@ export def ocd [...args] {
 }
 
 # Chezmoi
-export def c [...args] {
-    if (has-cmd chezmoi) {
-        if (($args | length) > 0) and (($args | get 0) == "cd") {
-            cd (chezmoi source-path)
-        } else {
-            chezmoi ...$args
-        }
-    } else {
-        error make { msg: "chezmoi not found" }
-    }
-}
-
 export def ca [...args] {
     if (has-cmd chezmoi) {
         chezmoi apply ...$args
