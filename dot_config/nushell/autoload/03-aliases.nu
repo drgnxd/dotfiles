@@ -169,12 +169,3 @@ export def dctx-reset [] {
         error make { msg: "docker not found" }
     }
 }
-
-# Taskwarrior (from functions.nu)
-export def t [...args] {
-    if (has-cmd task) {
-        task ...$args
-    } else {
-        error make { msg: "task not found" }
-    }
-}
