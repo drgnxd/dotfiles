@@ -11,15 +11,35 @@ bash:
     ✗ VAR=$1; rm -rf $VAR
 
 python:
-  desc: Readable, reliable Python
+  desc: Readable, reliable Python with uv
+  package_manager: uv  # REQUIRED: always use uv, never pip directly
   core:
     - PEP 8 naming
     - type hints for public APIs
     - pathlib over string paths
     - no mutable defaults
+    - uv for all package operations
+
+  uv_commands:
+    install_package: "uv pip install <package>"
+    create_venv: "uv venv"
+    run_script: "uv run <script.py>"
+    install_from_requirements: "uv pip install -r requirements.txt"
+    add_dev_dependency: "uv pip install --dev <package>"
+
+  avoid:
+    - pip install (use uv pip install)
+    - python -m venv (use uv venv)
+    - virtualenv (use uv venv)
+
   ex: |
-    ✓ def read(path: Path) -> str: return path.read_text()
-    ✗ def read(path): return open(path).read()
+    ✓ uv venv && uv pip install pandas
+    ✓ uv run python script.py
+    ✓ uv pip install -r requirements.txt
+    ✗ pip install pandas
+    ✗ python -m venv .venv
+    ✗ virtualenv venv
+
   imports: [stdlib, third_party, local]
   line_length: 88
 
