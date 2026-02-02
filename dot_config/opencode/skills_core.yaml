@@ -17,7 +17,7 @@ safety_protocol:
     - ask_explicit_confirmation
     - offer_backup_first
 
-# Python必須ツール
+# Python mandatory tools
 python_requirements:
   package_manager: uv  # MANDATORY: always use uv, never pip/venv/virtualenv
   forbidden_commands:
@@ -56,3 +56,10 @@ coding_baseline:
     - explicit_errors_with_context
 
   imports_order: [stdlib, third_party, local, types, assets]
+
+thinking_protocol:
+  version: "1.0"
+  always_active: true
+  modes: [simple, medium, complex]
+  default_mode: medium
+  skill_file: skills/essential/thinking_framework.yaml
