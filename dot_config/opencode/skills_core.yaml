@@ -1,65 +1,22 @@
-# Core Skills - Always Loaded
+# Core - Always Load
 
-core_principles:
-  - clarity_over_cleverness
-  - explicit_over_implicit
-  - composability
-  - fail_fast
-  - single_responsibility
+principles: [clarity>cleverness, explicit>implicit, composable, fail_fast, single_resp]
 
-safety_protocol:
-  destructive_cmds: [rm, dd, mkfs, "chmod -R", "> overwrite"]
-  require_confirm: true
-  workflow:
-    - explain_what_changes
-    - explain_where
-    - explain_why
-    - ask_explicit_confirmation
-    - offer_backup_first
+safety:
+  destructive: [rm, dd, mkfs, "chmod -R", "> overwrite"]
+  must: [explain_what_where_why, confirm, offer_backup]
 
-# Python mandatory tools
-python_requirements:
-  package_manager: uv  # MANDATORY: always use uv, never pip/venv/virtualenv
-  forbidden_commands:
-    - pip install
-    - python -m venv
-    - virtualenv
-  required_commands:
-    - uv pip install
-    - uv venv
-    - uv run
+python_pkg_mgr: uv  # MANDATORY: uv only, never pip/venv/virtualenv
 
 naming:
-  files:
-    style: lowercase_snake_case
-    exceptions: [README.md, SKILL.md]
-    separator: underscore_only
-    allowed_chars: [a-z, 0-9, _, .]
-    approved_abbrevs: [src, lib, doc, cfg, bin, tmp, env, pkg]
+  file: snake_case (except README.md SKILL.md)
+  var_func: snake_case
+  const: UPPER_SNAKE
+  class: PascalCase
+  abbrev_ok: [src, lib, doc, cfg, bin, tmp, env, pkg]
 
-  code:
-    variables_functions: snake_case
-    constants: UPPER_SNAKE_CASE
-    classes_types: PascalCase
+code_priority: [.opencode/skills, CODING_STANDARDS.md, .editorconfig, lang_cfg, global]
 
-coding_baseline:
-  priority_order:
-    1: .opencode/skills/
-    2: CODING_STANDARDS.md or STYLE_GUIDE.md
-    3: .editorconfig
-    4: language_configs
-    5: global_defaults
+import_order: [stdlib, 3rd_party, local, types, assets]
 
-  core_rules:
-    - single_responsibility_per_module
-    - small_composable_components
-    - explicit_errors_with_context
-
-  imports_order: [stdlib, third_party, local, types, assets]
-
-thinking_protocol:
-  version: "1.0"
-  always_active: true
-  modes: [simple, medium, complex]
-  default_mode: medium
-  skill_file: skills/essential/thinking_framework.yaml
+think_active: true  # See thinking_framework.yaml

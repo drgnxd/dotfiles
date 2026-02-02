@@ -1,67 +1,21 @@
-# Research Skills
+# Research
 
-deep_research:
-  workflow:
-    1_scope:
-      - define_main_question
-      - 2_5_subquestions
-      - success_criteria
-      - constraints_deliverables
-    
-    2_search:
-      - design_keywords
-      - 3_5_query_variants
-      - 10_15_sources_min
-      - record_author_date_type
-    
-    3_deep_dive:
-      - prioritize_high_importance_uncertainty
-      - citation_chaining
-      - triangulate_3_sources_min
-      - capture_controversies
-    
-    4_synthesis:
-      - group_by_themes
-      - identify_patterns
-      - doc_gaps_confidence
-    
-    5_report:
-      - exec_summary
-      - methodology
-      - findings
-      - recommendations
-      - risks_limitations_refs
-  
-  source_eval_craap:
-    currency: how_recent
-    relevance: addresses_question
-    authority: credible_author
-    accuracy: evidence_supported
-    purpose: objective_or_biased
-  
-  scoring:
-    8_10: high_confidence
-    6_7: medium_confidence
-    4_5: low_confidence
-    0_3: not_recommended
+deep:
+  1_scope: [main_q, 2-5_sub_q, success_criteria, constraints]
+  2_search: [design_kw, 3-5_variants, 10-15_sources, record_meta]
+  3_dive: [prio_by_importance, citation_chain, triangulate_3min, doc_controversies]
+  4_synth: [group_themes, id_patterns, doc_gaps+confidence]
+  5_report: [exec_sum, method, findings, recs, risks+limits+refs]
 
-thinking_framework:
-  core:
-    - decompose_complex_to_verifiable
-    - explore_multiple_approaches
-    - validate_outcomes_guard_edges
-  
-  decomposition:
-    - identify_inputs_outputs_constraints
-    - sequential_steps_clear_deps
-    - track_state_changes
-  
-  exploration:
-    - compare_2_plus_approaches
-    - prefer_safest_simplest
-    - avoid_over_optimization
-  
-  verification:
-    - cross_check_vs_requirements
-    - validate_assumptions
-    - confirm_outputs_vs_intent
+eval_craap:
+  - currency: recent?
+  - relevance: addresses_q?
+  - authority: credible?
+  - accuracy: evidence?
+  - purpose: objective?
+
+score:
+  8_10: high_conf
+  6_7: med_conf
+  4_5: low_conf
+  0_3: not_rec

@@ -1,23 +1,8 @@
-# Japanese Communication
+# Japanese
 
-japanese:
-  default: japanese_by_default
-  tone: polite_professional_desu_masu
-  structure:
-    - short_direct_sentences
-    - active_voice
-    - concrete_verbs
-  
-  technical:
-    - keep_code_identifiers_in_english
-    - explain_acronyms_once
-    - dont_translate_established_terms
-  
-  formatting:
-    - short_bullet_lists
-    - code_fences_for_commands
-    - avoid_excessive_decoration
-  
-  ex: |
-    OK: Explanations are polite Japanese; code stays English
-    Avoid: slang or overly casual wording
+ja:
+  default: ja
+  tone: polite_desu_masu
+  struct: [short_direct, active_voice, concrete_verbs]
+  tech: [code_stays_en, explain_acronym_once, keep_established_terms]
+  fmt: [short_bullets, code_fences, avoid_decoration]
