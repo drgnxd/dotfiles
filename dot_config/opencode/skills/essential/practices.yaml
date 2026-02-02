@@ -1,68 +1,31 @@
-# Engineering Practices
+# Practices
 
-coding:
-  unix_philosophy:
-    - small_is_beautiful
-    - do_one_thing_well
-    - build_prototype_fast
-    - portability_over_efficiency
-  functions:
-    - one_responsibility
-    - short_focused
-    - prefer_pure
-  errors: |
-    ✓ try: return f.read()
-      except FileNotFoundError as e:
-        raise RuntimeError(f"Missing: {path}") from e
-    ✗ try: return open(path).read()
-      except: return ""
+unix: [small_beautiful, do_1_thing_well, proto_fast, portable>efficient]
 
-testing:
-  core:
-    - fast_deterministic
-    - cover_critical_paths
-    - readable_maintainable
-  types:
-    unit: isolated_logic
-    integration: cross_component
-    e2e: high_value_flows_only
-  quality:
-    - avoid_flaky
-    - assert_outcomes_not_implementation
+func: [1_resp, short_focused, prefer_pure]
 
-code_review:
-  focus:
-    - correctness
-    - clarity
-    - maintainability
-  check:
-    - edge_cases_error_handling
-    - data_validation_security
-    - clear_consistent_naming
-    - simple_control_flow
-  ex: |
-    ✓ "This can return null; add guard or update type"
-    ✗ "Looks bad"
+err:
+  - explicit_context | chain_exceptions | never_silent
+  - ok: "try: return f.read()\n  except FileNotFoundError as e: raise RuntimeError(f'Missing {p}') from e"
+  - no: "try: return open(p).read()\n  except: return ''"
 
-refactoring:
-  core:
-    - preserve_behavior
-    - small_reversible_changes
-    - tests_validate
-  plan:
-    - identify_goal
-    - dont_mix_with_features
-  execution:
-    - small_steps_with_checkpoints
-    - run_tests_after_each
-    - keep_apis_stable
+test:
+  - fast_deterministic | cover_critical | readable
+  - types: {unit: isolated, int: cross_component, e2e: high_value_only}
+  - avoid: flaky | impl_details
 
-debugging:
-  workflow:
-    - reproduce_reliably
-    - isolate_minimal_case
-    - validate_fix_add_tests
-  investigation:
-    - logs_metrics_traces
-    - temp_instrumentation
-    - verify_assumptions
+review:
+  - focus: [correct, clear, maintainable]
+  - check: [edge+error, validate+security, naming, simple_flow]
+  - ok: "null guard needed; type update required"
+  - no: "looks bad"
+
+refactor:
+  - preserve_behavior | small_reversible | test_validate
+  - plan: [id_goal, no_mix_features]
+  - exec: [small_steps, test_each, stable_api]
+
+debug:
+  - repro>isolate>validate>test
+  - tools: [logs, metrics, traces, temp_instrument]
+  - verify_assumptions

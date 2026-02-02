@@ -1,65 +1,21 @@
-# Language-Specific Skills
+# Languages
 
 bash:
-  desc: Safe shell scripting
-  core:
-    - set -euo pipefail
-    - quote vars "${var}"
-    - validate inputs
-  ex: |
-    ✓ readonly VAR="${1}"; [[ -n "${VAR}" ]] || exit 1
-    ✗ VAR=$1; rm -rf $VAR
+  - set -euo pipefail | quote "${vars}" | validate input
+  - ok: readonly V="${1}"; [[ -n "$V" ]] || exit 1
+  - no: V=$1; rm -rf $V
 
 python:
-  desc: Readable, reliable Python with uv
-  package_manager: uv  # REQUIRED: always use uv, never pip directly
-  core:
-    - PEP 8 naming
-    - type hints for public APIs
-    - pathlib over string paths
-    - no mutable defaults
-    - uv for all package operations
+  - pep8|types|pathlib|no_mut_defaults|uv_only
+  - uv: {venv: uv venv, install: uv pip install X, run: uv run script.py}
+  - no: pip|python -m venv|virtualenv
+  - import: [stdlib, 3rd, local]
+  - line: 88
 
-  uv_commands:
-    install_package: "uv pip install <package>"
-    create_venv: "uv venv"
-    run_script: "uv run <script.py>"
-    install_from_requirements: "uv pip install -r requirements.txt"
-    add_dev_dependency: "uv pip install --dev <package>"
-
-  avoid:
-    - pip install (use uv pip install)
-    - python -m venv (use uv venv)
-    - virtualenv (use uv venv)
-
-  ex: |
-    ✓ uv venv && uv pip install pandas
-    ✓ uv run python script.py
-    ✓ uv pip install -r requirements.txt
-    ✗ pip install pandas
-    ✗ python -m venv .venv
-    ✗ virtualenv venv
-
-  imports: [stdlib, third_party, local]
-  line_length: 88
-
-javascript:
-  desc: Modern JS/TS conventions
-  core:
-    - prefer const/let over var
-    - strict equality ===
-    - async/await over callbacks
-    - avoid any unless necessary
-  ex: |
-    ✓ const data = await fetch(url).then(r => r.json())
-    ✗ var data; fetch(url).then(r => r.json().then(d => data = d))
+js:
+  - const/let>var | === | async/await>callbacks | avoid any
+  - ok: const d = await fetch(u).then(r => r.json())
 
 rust:
-  desc: Safe, idiomatic Rust
-  core:
-    - rustfmt + clippy
-    - Result/Option over unwrap in prod
-    - iterators over manual indexing
-  ex: |
-    ✓ fn read(path: &Path) -> Result<String>
-    ✗ fn read(path: &Path) -> String { fs::read(path).unwrap() }
+  - rustfmt+clippy | Result/Option>unwrap | iter>index
+  - ok: "fn read(p: &Path) -> Result<String>"

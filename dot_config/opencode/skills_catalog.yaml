@@ -1,60 +1,23 @@
-# Skills Catalog v2.1
+# Catalog v2.2 - Optimized
 
-load_strategy:
-  always: [skills_core.yaml, japanese, thinking]
-  by_task: auto_detect
-  max_tokens: 5000
+load: {always: [skills_core.yaml, japanese, thinking], max_tok: 5000}
 
-catalog:
-  essential:
-    languages:
-      path: essential/languages.yaml
-      tokens: 600
-      trigger_keywords: [python, bash, javascript, rust, .py, .sh, .js, .rs]
-
-    practices:
-      path: essential/practices.yaml
-      tokens: 700
-      trigger_keywords: [code, test, review, refactor, debug]
-
-    thinking:
-      path: essential/thinking_framework.yaml
-      tokens: 900
-      trigger_keywords: [analyze, design, compare, evaluate, complex, security, migrate, refactor, architect]
-      priority: high
-
-  specialized:
-    infrastructure:
-      path: specialized/infrastructure.yaml
-      tokens: 600
-      trigger_keywords: [git, docker, linux, database, db, container, commit]
-
-    research:
-      path: specialized/research.yaml
-      tokens: 800
-      trigger_keywords: [research, analyze, compare, evaluate, study, investigation]
-      has_tools: true
-      tools_path: tools/research/
-
-    japanese:
-      path: specialized/japanese.yaml
-      tokens: 200
-      trigger_keywords: [japanese, translate, translation]
+cat:
+  langs: {path: essential/languages.yaml, tok: 300, kw: "py|sh|js|rs|\\.py|\\.sh|\\.js|\\.rs"}
+  prac: {path: essential/practices.yaml, tok: 350, kw: "code|test|review|refactor|debug"}
+  think: {path: essential/thinking_framework.yaml, tok: 400, kw: "analyze|design|compare|eval|complex|sec|migrate|arch", pri: hi}
+  infra: {path: specialized/infrastructure.yaml, tok: 300, kw: "git|docker|linux|db|container|commit"}
+  research: {path: specialized/research.yaml, tok: 250, kw: "research|analyze|compare|eval|study|investigation", tools: tools/research/}
+  ja: {path: specialized/japanese.yaml, tok: 100, kw: "japanese|translate|translation"}
 
 presets:
-  python_dev: [thinking, languages, practices]
-  devops: [thinking, infrastructure, languages]
-  research_task: [thinking, research, practices]
-  security_audit: [thinking, infrastructure, practices]
-  general: [thinking, practices]
+  py_dev: [think, langs, prac]
+  devops: [think, infra, langs]
+  research: [think, research, prac]
+  sec: [think, infra, prac]
+  general: [think, prac]
 
-thinking_mode_auto_detect:
-  simple:
-    patterns: ["^ls", "^cat", "^echo", "^pwd", "show", "list", "^get"]
-    overhead_budget: 50
-  medium:
-    patterns: ["create", "write", "refactor", "fix", "update", "implement"]
-    overhead_budget: 300
-  complex:
-    patterns: ["design", "architect", "migrate", "security", "audit", "research", "compare.+vs", "evaluate"]
-    overhead_budget: 750
+think_mode:
+  simple: {pat: ["^ls", "^cat", "^echo", "^pwd", "show", "list", "^get"], budget: 50}
+  medium: {pat: ["create", "write", "refactor", "fix", "update", "impl"], budget: 300}
+  complex: {pat: ["design", "arch", "migrate", "sec", "audit", "research", "compare.+vs", "eval"], budget: 750}

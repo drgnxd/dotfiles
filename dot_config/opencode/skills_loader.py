@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Skills loader with thinking framework support.
+"""Skills loader with thinking framework support - Optimized.
 
+Supports both original and optimized catalog key names.
 Loads core skills, always-load skills (japanese, thinking),
 and task-specific skills within a token budget.
-Detects thinking mode from task description.
 
 Usage: run as script or import SkillsLoader
 """
@@ -31,7 +31,7 @@ class ThinkingMode:
 class SkillsLoader:
     """Load and manage AI agent skills with thinking framework support."""
 
-    CORE_TOKENS_ESTIMATE = 500
+    CORE_TOKENS_ESTIMATE = 200  # Reduced from 500
 
     def __init__(self, base_path: Path = Path(__file__).resolve().parent):
         """Initialize the skills loader.
@@ -110,6 +110,82 @@ class SkillsLoader:
         except Exception:
             return None
 
+    # --- Catalog Key Normalization ---
+
+    def _get_catalog_value(self, meta: Dict, key: str, default=None):
+        """Get value from catalog with key aliasing support.
+
+        Supports both original and optimized key names:
+        - trigger_keywords / kw
+        - tokens / tok
+        - priority / pri
+
+        Args:
+            meta: Skill metadata dictionary.
+            key: Original key name.
+            default: Default value if key not found.
+
+        Returns:
+            Value from metadata.
+        """
+        aliases = {
+            "trigger_keywords": ["trigger_keywords", "kw"],
+            "tokens": ["tokens", "tok"],
+            "priority": ["priority", "pri"],
+            "has_tools": ["has_tools", "tools"],
+        }
+
+        if key in aliases:
+            for alias in aliases[key]:
+                if alias in meta:
+                    return meta[alias]
+        elif key in meta:
+            return meta[key]
+
+        return default
+
+    def _parse_keywords(self, meta: Dict) -> List[str]:
+        """Parse keywords from catalog metadata.
+
+        Supports both list and pipe-separated string formats.
+
+        Args:
+            meta: Skill metadata dictionary.
+
+        Returns:
+            List of keyword strings.
+        """
+        kw_value = self._get_catalog_value(meta, "trigger_keywords", [])
+
+        if isinstance(kw_value, list):
+            return kw_value
+        elif isinstance(kw_value, str):
+            # Pipe-separated format: "py|sh|js"
+            return [k.strip() for k in kw_value.split("|") if k.strip()]
+        else:
+            return []
+
+    def _catalog_is_flat(self, catalog_data: Dict) -> bool:
+        """Detect flat catalog mapping (skill -> meta) vs categorized mapping."""
+        if not isinstance(catalog_data, dict):
+            return False
+
+        meta_keys = {
+            "path",
+            "kw",
+            "trigger_keywords",
+            "tok",
+            "tokens",
+            "pri",
+            "priority",
+        }
+
+        for value in catalog_data.values():
+            if isinstance(value, dict) and any(k in value for k in meta_keys):
+                return True
+
+        return False
+
     # --- Thinking Mode Detection ---
 
     def _detect_thinking_mode(self, task: str) -> str:
@@ -125,20 +201,27 @@ class SkillsLoader:
             One of ThinkingMode constants.
         """
         task_lower = task.lower()
-        mode_config = self.catalog.get("thinking_mode_auto_detect", {})
+
+        # Support both original and optimized catalog structure
+        mode_config = self.catalog.get("thinking_mode_auto_detect") or self.catalog.get(
+            "think_mode", {}
+        )
 
         # Complex first (highest specificity)
-        for pattern in mode_config.get("complex", {}).get("patterns", []):
+        complex_cfg = mode_config.get("complex", {})
+        for pattern in complex_cfg.get("patterns") or complex_cfg.get("pat", []):
             if re.search(pattern, task_lower):
                 return ThinkingMode.COMPLEX
 
         # Simple patterns
-        for pattern in mode_config.get("simple", {}).get("patterns", []):
+        simple_cfg = mode_config.get("simple", {})
+        for pattern in simple_cfg.get("patterns") or simple_cfg.get("pat", []):
             if re.search(pattern, task_lower):
                 return ThinkingMode.SIMPLE
 
         # Medium patterns
-        for pattern in mode_config.get("medium", {}).get("patterns", []):
+        medium_cfg = mode_config.get("medium", {})
+        for pattern in medium_cfg.get("patterns") or medium_cfg.get("pat", []):
             if re.search(pattern, task_lower):
                 return ThinkingMode.MEDIUM
 
@@ -159,15 +242,33 @@ class SkillsLoader:
         task_lower = task.lower()
         skills_to_load: List[Tuple[str, Dict]] = []
 
-        catalog_data = self.catalog.get("catalog", {})
-        for _category, skills in catalog_data.items():
-            for skill_name, meta in skills.items():
-                keywords = meta.get("trigger_keywords", [])
+        # Support both "catalog" and "cat" keys
+        catalog_data = self.catalog.get("catalog") or self.catalog.get("cat", {})
+
+        if self._catalog_is_flat(catalog_data):
+            for skill_name, meta in catalog_data.items():
+                if not isinstance(meta, dict):
+                    continue
+                keywords = self._parse_keywords(meta)
                 if any(kw in task_lower for kw in keywords):
                     skills_to_load.append((skill_name, meta))
+        else:
+            for _category, skills in catalog_data.items():
+                if not isinstance(skills, dict):
+                    continue
+                for skill_name, meta in skills.items():
+                    if not isinstance(meta, dict):
+                        continue
+                    keywords = self._parse_keywords(meta)
+                    if any(kw in task_lower for kw in keywords):
+                        skills_to_load.append((skill_name, meta))
 
         # Priority sort: high-priority skills first
-        skills_to_load.sort(key=lambda x: 0 if x[1].get("priority") == "high" else 1)
+        def priority_key(x):
+            pri = self._get_catalog_value(x[1], "priority")
+            return 0 if pri in ("high", "hi") else 1
+
+        skills_to_load.sort(key=priority_key)
         return skills_to_load
 
     def _resolve_always_load(
@@ -175,7 +276,7 @@ class SkillsLoader:
     ) -> List[Tuple[str, Dict]]:
         """Prepend always-load skills that aren't already in the task list.
 
-        Reads load_strategy.always from catalog.
+        Reads load_strategy.always or load.always from catalog.
         Skips 'skills_core.yaml' (loaded separately via _load_core).
 
         Args:
@@ -184,20 +285,33 @@ class SkillsLoader:
         Returns:
             Combined list with always-load skills prepended.
         """
-        always_names = self.catalog.get("load_strategy", {}).get("always", [])
+        # Support both "load_strategy" and "load" keys
+        load_cfg = self.catalog.get("load_strategy") or self.catalog.get("load", {})
+        always_names = load_cfg.get("always", [])
         loaded_names = {name for name, _ in task_skills}
-        catalog_data = self.catalog.get("catalog", {})
+
+        catalog_data = self.catalog.get("catalog") or self.catalog.get("cat", {})
 
         prepend: List[Tuple[str, Dict]] = []
-        for always_name in always_names:
-            if always_name == "skills_core.yaml" or always_name in loaded_names:
-                continue
-            # Find in catalog
-            for _category, skills in catalog_data.items():
-                if always_name in skills:
-                    prepend.append((always_name, skills[always_name]))
+        if self._catalog_is_flat(catalog_data):
+            for always_name in always_names:
+                if always_name == "skills_core.yaml" or always_name in loaded_names:
+                    continue
+                if always_name in catalog_data:
+                    prepend.append((always_name, catalog_data[always_name]))
                     loaded_names.add(always_name)
-                    break
+        else:
+            for always_name in always_names:
+                if always_name == "skills_core.yaml" or always_name in loaded_names:
+                    continue
+                # Find in catalog
+                for _category, skills in catalog_data.items():
+                    if not isinstance(skills, dict):
+                        continue
+                    if always_name in skills:
+                        prepend.append((always_name, skills[always_name]))
+                        loaded_names.add(always_name)
+                        break
 
         return prepend + task_skills
 
@@ -212,8 +326,11 @@ class SkillsLoader:
         Returns:
             Formatted header string.
         """
-        mode_config = self.catalog.get("thinking_mode_auto_detect", {}).get(mode, {})
-        overhead = mode_config.get("overhead_budget", "?")
+        mode_config_root = self.catalog.get(
+            "thinking_mode_auto_detect"
+        ) or self.catalog.get("think_mode", {})
+        mode_config = mode_config_root.get(mode, {})
+        overhead = mode_config.get("overhead_budget") or mode_config.get("budget", "?")
 
         return (
             f"\n# Thinking Mode: {mode.upper()}\n# Overhead budget: {overhead} tokens\n"
@@ -277,8 +394,11 @@ class SkillsLoader:
             Formatted string with all loaded skills and metadata.
         """
         thinking_mode = self._detect_thinking_mode(task)
-        tokens_used = self.CORE_TOKENS_ESTIMATE
-        max_tokens = self.catalog.get("load_strategy", {}).get("max_tokens", 5000)
+        tokens_used = int(self.CORE_TOKENS_ESTIMATE)
+
+        # Support both "load_strategy" and "load" keys
+        load_cfg = self.catalog.get("load_strategy") or self.catalog.get("load", {})
+        max_tokens = int(load_cfg.get("max_tokens") or load_cfg.get("max_tok", 5000))
 
         # Resolve full skill list (always-load + keyword-matched)
         all_skills = self._resolve_always_load(self._analyze_task_keywords(task))
@@ -289,7 +409,8 @@ class SkillsLoader:
         # Load each skill within budget
         loaded_skills: List[Tuple[str, str, Optional[Dict]]] = []
         for skill_name, meta in all_skills:
-            skill_tokens = meta.get("tokens", 1000)
+            skill_tokens = self._get_catalog_value(meta, "tokens", 1000)
+            skill_tokens = int(skill_tokens) if skill_tokens is not None else 0
 
             if tokens_used + skill_tokens > max_tokens:
                 loaded_skills.append((skill_name, "skipped", None))
@@ -324,5 +445,7 @@ if __name__ == "__main__":
         print(f"\n{'=' * 60}")
         print(f"Task: {task}")
         print(f"{'=' * 60}")
-        print(loader.load_for_task(task)[:800])
+        result = loader.load_for_task(task)
+        print(result[:800])
         print("[... truncated ...]")
+        print(f"Total length: {len(result)} chars (~{len(result) // 4} tokens)")
