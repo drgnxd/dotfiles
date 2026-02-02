@@ -180,6 +180,22 @@ class SkillsLoader:
         # Analyze task and find matching skills
         skills_to_load = self._analyze_task_keywords(task)
 
+        # Add always-load skills from load_strategy
+        always_names = self.catalog.get("load_strategy", {}).get("always", [])
+        loaded_names = {name for name, _ in skills_to_load}
+        catalog_data = self.catalog.get("catalog", {})
+
+        for always_name in always_names:
+            # skills_core.yaml is loaded via _load_core()
+            if always_name == "skills_core.yaml" or always_name in loaded_names:
+                continue
+            # Find skill metadata from catalog
+            for category, skills in catalog_data.items():
+                if always_name in skills:
+                    skills_to_load.insert(0, (always_name, skills[always_name]))
+                    loaded_names.add(always_name)
+                    break
+
         # Prepare core content
         core_content = yaml.dump(self.core, default_flow_style=False)
 
