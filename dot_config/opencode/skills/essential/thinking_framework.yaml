@@ -1,0 +1,237 @@
+# Thinking Framework Skill
+# Thinking framework: maximize reasoning accuracy with structured hybrid reasoning
+
+aim: |
+  Maximize LLM reasoning accuracy through structured hybrid thinking.
+  Combines natural language expressiveness with symbolic rigor.
+  Adapts overhead to task complexity for token efficiency.
+
+core_principles:
+  - decompose_to_verifiable_units
+  - label_intermediate_results
+  - validate_at_each_step
+  - calibrate_confidence_to_evidence
+  - optimize_token_efficiency
+
+thinking_modes:
+  simple:
+    trigger: [list, show, get, cat, ls, pwd, echo, basic_query]
+    overhead: "0-3%"
+    protocol: direct_execution
+    description: "Direct execution. For tasks that do not require decomposition."
+
+  medium:
+    trigger: [create, write, refactor, fix, update, analyze, implement]
+    overhead: "5-8%"
+    protocol: decompose_plan_execute
+    steps:
+      1: analyze_inputs_outputs_constraints
+      2: select_approach
+      3: execute_with_verification
+    description: "Decompose -> plan -> execute. For mid-size tasks."
+
+  complex:
+    trigger: [design, architect, migrate, security, audit, research, compare, evaluate]
+    overhead: "10-15%"
+    protocol: full_structured_reasoning
+    steps:
+      1: formal_decomposition
+      2: multi_approach_evaluation
+      3: symbolic_natural_hybrid
+      4: step_verification
+      5: synthesis_with_confidence
+    description: "Fully structured reasoning. For complex or high-risk tasks."
+
+structured_thinking_patterns:
+
+  problem_decomposition:
+    when: "Required at the start of all Complex and Medium tasks"
+    template: |
+      [ANALYZE]
+      - Input: <state clearly>
+      - Output: <expected outcome>
+      - Constraints: <constraints>
+      - Dependencies: <prerequisites>
+    rules:
+      - every_complex_task_starts_here
+      - make_implicit_explicit
+      - identify_unknowns_early
+    example_good: |
+      [ANALYZE]
+      - Input: Session-based auth module (legacy)
+      - Output: JWT auth with refresh token rotation
+      - Constraints: Zero downtime, backward compatibility for 2 weeks
+      - Dependencies: PyJWT library, Redis for token blacklist
+    example_bad: |
+      Update the auth system
+
+  approach_evaluation:
+    when: "Complex tasks or when multiple approaches are realistic"
+    template: |
+      [APPROACH_A] <description>
+      Pros: <benefits>
+      Cons: <drawbacks>
+
+      [APPROACH_B] <description>
+      Pros: <benefits>
+      Cons: <drawbacks>
+
+      [SELECTED] <choice> - <rationale>
+    rules:
+      - minimum_two_alternatives
+      - explicit_trade_offs
+      - justify_selection
+    example_good: |
+      [APPROACH_A] In-place migration
+      Pros: single deploy, easy rollback
+      Cons: higher risk, complex transactions
+
+      [APPROACH_B] Parallel run + feature flag
+      Pros: gradual rollout, easy rollback
+      Cons: temporary code duplication
+
+      [SELECTED] B - safety and observability outweigh cost
+    example_bad: |
+      Use approach B
+
+  step_by_step_execution:
+    when: "Execution phase for all Medium and Complex tasks"
+    template: |
+      1. [ACTION] <what>
+         [RESULT] <intermediate outcome>
+         [VERIFY] <validation check>
+
+      2. [ACTION] <next step (reference prior RESULT)>
+         [RESULT] <new outcome>
+         [VERIFY] <validation check>
+    rules:
+      - number_each_step
+      - label_intermediate_results
+      - verify_before_proceeding
+      - use_previous_results_explicitly
+    example_good: |
+      1. [ACTION] Install dependencies
+         [RESULT] Added PyJWT==2.8.0 to requirements.txt
+         [VERIFY] OK: no conflicts with `uv pip install`
+
+      2. [ACTION] Create JWT service module
+         [RESULT] jwt_service.py (encode/decode/refresh)
+         [VERIFY] OK: unit tests pass with `uv run pytest`
+    example_bad: |
+      Installed deps and implemented. Tested.
+
+  symbolic_natural_hybrid:
+    when: "logic_heavy: algorithms, access control, data transformation"
+    pattern: symbolic_first_then_explain
+    template: |
+      // Symbolic
+      <pseudo-code or logic>
+
+      -> Explanation:
+      "<natural language supplement>"
+    example_good: |
+      // Symbolic
+      IF user.role == "admin" AND resource.owner == user.id THEN
+        GRANT access
+      ELSE IF user.role == "viewer" AND resource.public == true THEN
+        GRANT access
+      ELSE
+        DENY access
+
+      -> Explanation:
+      "Admins get unconditional access to their own resources.
+       Viewers can access public resources only.
+       Otherwise deny access under least privilege."
+    example_bad: |
+      admins then public resources can be seen
+
+  intermediate_variables:
+    when: "When reasoning spans 2+ steps"
+    template: |
+      CONCLUSION_A: <first finding>
+      -> Using CONCLUSION_A, derive CONCLUSION_B: <next finding>
+      -> A + B -> FINAL_RESULT: <synthesis>
+    rules:
+      - uppercase_labels_for_conclusions
+      - explicit_dependency_arrows
+      - reference_by_label_not_repetition
+    example_good: |
+      DB_BOTTLENECK: N+1 queries account for 70% of response time
+      -> From DB_BOTTLENECK derive SOLUTION: eager loading + JOIN
+      -> DB_BOTTLENECK + SOLUTION -> EXPECTED_GAIN: 85% latency reduction
+    example_bad: |
+      Queries are slow. Batch them. Should be faster.
+
+  metacognitive_markers:
+    purpose: "Signal reasoning transitions explicitly"
+    markers:
+      wait: "reconsidering an assumption"
+      therefore: "drawing a logical conclusion"
+      however: "finding a contradiction or edge case"
+      let_me_verify: "validation checkpoint"
+      given_that: "using an established fact"
+    example_good: |
+      Cache hit rate is 95%. Therefore, memory optimization is low priority.
+      Wait... that value was for read endpoints.
+      However, write endpoints are only at 20%.
+      Let me verify: what is the write traffic share?
+      Given that writes are under 5% of requests, the 95% value dominates.
+      Therefore, keep the initial conclusion.
+    example_bad: |
+      Cache is good. Writes are different. Probably fine.
+
+confidence_scoring:
+  scale:
+    8_10:
+      label: high
+      criteria: "3+ corroborating sources, implementation verified, edge cases covered"
+    6_7:
+      label: medium
+      criteria: "two sources, solid logic, some unknowns"
+    4_5:
+      label: low
+      criteria: "single source, contradictions, many assumptions"
+    0_3:
+      label: insufficient
+      criteria: "no sources, pure speculation"
+  template: |
+    [CONFIDENCE] <score>/10 - <evidence>
+  example: |
+    [CONFIDENCE] 8/10 - 4 production case studies show 60-80% latency reduction.
+    WebSockets edge cases are untested.
+
+token_optimization:
+  strategies:
+    compression:
+      use: "compress repetitive logic with symbolic notation"
+      example_good: "FOR each (u IN users WHERE role='admin') NOTIFY(u)"
+      example_bad: "Iterate all users and send notifications if role is admin..."
+    caching:
+      use: "reference prior conclusions by label (do not restate)"
+      example_good: "Use SECURITY_CONCLUSION_3 (XSS present) to design mitigations..."
+      example_bad: "From the earlier input validation analysis that found XSS..."
+    pruning:
+      use: "omit thinking trace for Simple tasks"
+      example_good: "ls -la -> list files (direct execution)"
+      example_bad: "[ANALYZE] Input: none, Output: file list... (unnecessary for Simple)"
+    lazy_loading:
+      use: "delay deep analysis until needed"
+      example_good: "Primary concern is A. We can analyze B, C, D if needed."
+      example_bad: "We will comprehensively analyze A, B, C, D, E..."
+
+edge_cases:
+  when_to_skip_protocol:
+    - "User explicitly asks for commands only"
+    - "Simple tasks (file listing, basic queries)"
+    - "Emergency production incidents"
+  when_to_force_protocol:
+    - "Security impact -> always verify"
+    - "Data loss risk -> always decompose"
+    - "Complex logic -> always use symbolic hybrid"
+    - "Ambiguous requirements -> clarify before execution"
+
+references:
+  - "[HybridMind] (2024-12) - arXiv:2411.03109 - Symbolic + NL Reasoning"
+  - "[NLEP] (2024-11) - arXiv:2409.03186 - Embedded Programs"
+  - "[SymbCoT] (2024-10) - arXiv:2410.01754 - Symbolic Chain-of-Thought"
+  - "[Structured Prompting] (2024-09) - arXiv:2409.08772"

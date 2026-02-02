@@ -1,6 +1,6 @@
 # Makefile for local development (using uv)
 
-.PHONY: help venv install run test validate check-uv clean
+.PHONY: help venv install run test validate test-thinking check-uv clean
 
 help:
 	@echo "Make targets:"
@@ -9,6 +9,7 @@ help:
 	@echo "  run      - run skills_loader.py inside venv"
 	@echo "  test     - run quick smoke test"
 	@echo "  validate - validate YAML syntax and structure"
+	@echo "  test-thinking - test thinking mode detection"
 	@echo "  check-uv - check for forbidden pip/venv commands"
 	@echo "  clean    - remove .venv"
 
@@ -38,6 +39,10 @@ validate: install
 	@test -f skills_core.yaml || echo "✗ skills_core.yaml missing"
 	@test -f skills_catalog.yaml || echo "✗ skills_catalog.yaml missing"
 	@echo "✓ File structure valid"
+
+test-thinking: install
+	@echo "=== Testing Thinking Mode Detection ==="
+	@uv run python -c "from skills_loader import SkillsLoader, ThinkingMode; loader = SkillsLoader(); assert loader._detect_thinking_mode('ls -la') == ThinkingMode.SIMPLE, 'FAIL: simple'; assert loader._detect_thinking_mode('Create a Python script') == ThinkingMode.MEDIUM, 'FAIL: medium'; assert loader._detect_thinking_mode('Design a microservices architecture') == ThinkingMode.COMPLEX, 'FAIL: complex'; print('OK: Simple mode detection'); print('OK: Medium mode detection'); print('OK: Complex mode detection')"
 
 check-uv:
 	@echo "=== Checking for forbidden pip/venv commands ==="

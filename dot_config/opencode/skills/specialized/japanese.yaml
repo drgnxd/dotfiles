@@ -19,5 +19,5 @@ japanese:
     - avoid_excessive_decoration
   
   ex: |
-    ✓ コマンドの説明は丁寧な日本語、コードは英語
-    ✗ スラングや極端にカジュアルな表現
+    OK: Explanations are polite Japanese; code stays English
+    Avoid: slang or overly casual wording
