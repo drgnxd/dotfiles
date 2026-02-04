@@ -19,3 +19,13 @@ js:
 rust:
   - rustfmt+clippy | Result/Option>unwrap | iter>index
   - ok: "fn read(p: &Path) -> Result<String>"
+
+nushell:
+  - structured_data|pipes|immutable|explicit_types
+  - table: ls | where size > 1mb | select name size
+  - transform: open data.json | each { |x| $x.value * 2 }
+  - err: do { cmd } | complete | if $in.exit_code != 0 { error make {...} }
+  - file: open data.csv | from csv | save output.json
+  - env: $env.PATH = ($env.PATH | append "/path")
+  - interop: ^bash-cmd | bash -c 'script'
+  - avoid: eval | unchecked run-external
