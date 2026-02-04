@@ -3,7 +3,7 @@
 load: {always: [skills_core.yaml, japanese, thinking], max_tok: 5000}
 
 cat:
-  langs: {path: essential/languages.yaml, tok: 300, kw: "py|sh|js|rs|\\.py|\\.sh|\\.js|\\.rs"}
+  langs: {path: essential/languages.yaml, tok: 400, kw: "nu|nushell|py|sh|js|rs|\\.nu|\\.py|\\.sh|\\.js|\\.rs"}
   prac: {path: essential/practices.yaml, tok: 350, kw: "code|test|review|refactor|debug"}
   think: {path: essential/thinking_framework.yaml, tok: 400, kw: "analyze|design|compare|eval|complex|sec|migrate|arch", pri: hi}
   infra: {path: specialized/infrastructure.yaml, tok: 300, kw: "git|docker|linux|db|container|commit"}

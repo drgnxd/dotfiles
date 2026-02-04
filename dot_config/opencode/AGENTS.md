@@ -108,6 +108,73 @@ readonly IN="${1}"
 
 ---
 
+## Shell Selection
+
+**Default**: Nushell (structured data processing, cross-platform)
+**Alternative**: Bash (POSIX compatibility, system scripts)
+
+### When to use Nushell
+- Structured data operations (CSV, JSON, YAML parsing/transformation)
+- Complex data pipelines with filtering and aggregation
+- Cross-platform scripts (Windows, macOS, Linux)
+- Type-safe shell scripting
+
+### When to use Bash
+- POSIX compliance required (strict sh compatibility)
+- System service management (systemd, init scripts)
+- Legacy environment support
+- Maximum portability to minimal Unix systems
+
+### Examples
+
+**Nushell** (structured data):
+```nushell
+# Parse CSV, filter, and export to JSON
+open data.csv 
+| where age > 30 
+| select name email department 
+| to json 
+| save filtered.json
+
+# Pipeline with error handling
+do { 
+  http get https://api.example.com/data 
+} | complete 
+| if $in.exit_code != 0 { 
+    error make {msg: "API request failed"} 
+  } else { 
+    $in.stdout | from json 
+  }
+```
+
+**Bash** (system operations):
+```bash
+# Service management with validation
+readonly SERVICE="nginx"
+systemctl restart "${SERVICE}"
+systemctl is-active --quiet "${SERVICE}" || {
+  echo "ERROR: ${SERVICE} failed to start" >&2
+  journalctl -u "${SERVICE}" -n 50
+  exit 1
+}
+```
+
+### Interoperability
+
+Nushell can invoke Bash commands using `^` prefix or `bash -c`:
+```nushell
+# Call external POSIX command
+^ls -la /var/log
+
+# Execute bash script
+bash -c 'source /etc/profile && echo $PATH'
+
+# Pipe to/from bash
+ls | where size > 1mb | each { |file| ^gzip $file.name }
+```
+
+---
+
 ## Language
 
 - **Default**: Japanese (polite, professional)
