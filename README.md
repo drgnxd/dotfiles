@@ -94,7 +94,7 @@ pre-commit install
 To (re)generate the secrets baseline:
 
 ```sh
-uv tool run detect-secrets scan > .secrets.baseline
+uv tool run detect-secrets scan --baseline .secrets.baseline
 ```
 
 ## Management

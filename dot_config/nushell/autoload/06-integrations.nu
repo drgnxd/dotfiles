@@ -6,12 +6,19 @@
 #   1. Run this file once: nu ~/.config/nushell/autoload/06-integrations.nu
 #   2. New Nushell sessions will automatically source the caches
 
-let XDG_DIRS = (xdg-dirs)
+let XDG_DIRS = (try { xdg-dirs } catch {
+    {
+        config: ($env.HOME | path join ".config")
+        cache: ($env.HOME | path join ".cache")
+        data: ($env.HOME | path join ".local" "share")
+        state: ($env.HOME | path join ".local" "state")
+    }
+})
 
 let cache_dir = ($XDG_DIRS.cache | path join "nushell-init")
 let force_regen = (($env | get NU_INIT_REGEN? | default "0") == "1")
 
-def cache-is-stale [tool: string, cache_file: path] -> bool {
+def cache-is-stale [tool: string, cache_file: path] {
     let tool_path = (which $tool | get path.0?)
     if $tool_path == null {
         return false

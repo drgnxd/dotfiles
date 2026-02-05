@@ -2,7 +2,14 @@
 # Uses Nushell standard library for path management
 
 use std "path add"
-let XDG_DIRS = (xdg-dirs)
+let XDG_DIRS = (try { xdg-dirs } catch {
+    {
+        config: ($env.HOME | path join ".config")
+        cache: ($env.HOME | path join ".cache")
+        data: ($env.HOME | path join ".local" "share")
+        state: ($env.HOME | path join ".local" "state")
+    }
+})
 
 # =============================================================================
 # DETECT HOMEBREW
