@@ -10,17 +10,21 @@ Nushellは、全てをデータとして扱うモダンなシェルです。こ�
 dot_config/nushell/
 ├── env.nu.tmpl              # テンプレート -> ~/.config/nushell/env.nu
 ├── config.nu.tmpl           # テンプレート -> ~/.config/nushell/config.nu
-└── autoload/
+├── autoload/
     ├── 00-helpers.nu       # 共通ヘルパー
     ├── 01-env.nu           # 環境変数とXDGパス
     ├── 02-path.nu          # std/utilを使用したPATH設定
     ├── 03-aliases.nu       # フォールバック付きエイリアス
     ├── 04-functions.nu     # カスタム関数とラッパー
     ├── 05-completions.nu   # コマンド補完
-    ├── 06-integrations.nu  # サードパーティツール統合
-    ├── 07-source-tools.nu.tmpl # テンプレート -> autoload/07-source-tools.nu
-    ├── 08-taskwarrior.nu   # Taskwarriorプレビュー統合
-    └── 09-lima.nu          # Lima/Dockerヘルパー
+    ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
+    ├── 07-source-tools.nu.tmpl # テンプレート -> autoload/07-source-tools.nu（キャッシュ読み込み）
+    ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
+    └── 09-lima.nu          # Lima/Dockerの遅延ラッパー
+└── modules/
+    ├── integrations.nu     # キャッシュ生成（オンデマンド）
+    ├── taskwarrior.nu      # Taskwarriorプレビュー＋キャッシュ更新
+    └── lima.nu             # Lima/Dockerコマンド
 ```
 
 ## モジュール読み込み
@@ -35,6 +39,8 @@ source ($nu.default-config-dir | path join "autoload" "02-path.nu")
 ```
 
 このアプローチにより、動的な`ls | each { source }`パターンで発生するパース時評価の問題を回避します。
+
+重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが`overlay use`（リテラルパス）で必要時に読み込みます。これにより起動を軽くしつつ、パース時評価の制約を回避します。
 
 ## 主な機能
 
@@ -115,17 +121,18 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `upgrade-all` / `update` - 統合システムアップグレード
 - `save-stats` - Stats.app設定のエクスポート
 - `bundle-id` - macOSアプリのバンドルID取得
+- `integrations-cache-update` - キャッシュ初期化スクリプト再生成（Starship/Zoxide/Carapace/Atuin）
 
 ## サードパーティ統合
 
-### 自動初期化されるツール
+### キャッシュ統合ツール
 - **Starship** - クロスシェルプロンプト
 - **Zoxide** - スマートディレクトリジャンプ
-- **Direnv** - 環境管理
 - **Carapace** - コマンド補完
 - **Atuin** - シェル履歴同期
+- **Direnv** - 環境管理（起動時に読み込み、キャッシュなし）
 
-全ての統合は、初期化前にコマンドの存在を確認します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/07-source-tools.nu`（テンプレートから生成）で読み込みます。
+キャッシュ生成は`integrations-cache-update`でオンデマンド実行します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/07-source-tools.nu`（テンプレートから生成）で読み込みます。
 
 ## 設定値
 

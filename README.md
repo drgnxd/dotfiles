@@ -172,6 +172,7 @@ This will check for updates every 12 hours.
 *   `.chezmoiignore.tmpl`: Template to ignore files based on OS (e.g. ignore macOS apps on Linux).
 *   `.pre-commit-config.yaml`: Optional local hooks (detect-secrets, YAML/TOML checks, local validators).
 *   `.secrets.baseline`: detect-secrets baseline for allowlisted findings.
+*   `.chezmoidata.toml`: Shared Solarized palette used by templated configs (Alacritty, tmux, yazi).
 *   `dot_config/homebrew/Brewfile`: List of Homebrew packages to install (macOS only).
 *   `.internal_scripts/`: Internal macOS setup scripts (invoked by `run_onchange_after_setup.sh.tmpl`).
 *   `docs/`: Architecture notes.

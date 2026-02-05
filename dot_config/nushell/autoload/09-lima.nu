@@ -1,106 +1,50 @@
-# Lima and Docker management module
+# Lima and Docker wrappers (lazy-loaded)
 
 export def lima-start [vm_name: string] {
-    require-cmd limactl
-
-    print $"Starting Lima VM: ($vm_name)..."
-    ^limactl start $vm_name
-    if ($env.LAST_EXIT_CODE != 0) {
-        print --stderr $"Error: Failed to start VM '($vm_name)'"
-        return 1
-    }
-
-    let ctx_name = $"($vm_name)-context"
-    if (has-cmd docker) {
-        let ctx_check = (do { docker context inspect $ctx_name } | complete)
-        if ($ctx_check.exit_code == 0) {
-            print $"Switching to Docker context: ($ctx_name)"
-            docker context use $ctx_name
-        } else {
-            print $"Note: Docker context '($ctx_name)' not found. Use 'lima-docker-context ($vm_name)' to create it."
-        }
-    } else {
-        print "Note: Docker not found; skipping context switch."
-    }
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    lima_start $vm_name
 }
 
 export def lima-stop [vm_name: string] {
-    require-cmd limactl
-
-    print $"Stopping Lima VM: ($vm_name)..."
-    ^limactl stop $vm_name
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    lima_stop $vm_name
 }
 
 export def lima-status [] {
-    require-cmd limactl
-
-    ^limactl list
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    lima_status
 }
 
 export def lima-shell [vm_name: string] {
-    require-cmd limactl
-
-    ^limactl shell $vm_name
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    lima_shell $vm_name
 }
 
 export def lima-delete [
     vm_name: string
     --force(-f)
 ] {
-    require-cmd limactl
-
-    if not $force {
-        print $"Warning: This will permanently delete VM '($vm_name)' and all its data."
-        let confirm = (input "Are you sure? (yes/no): ")
-        if $confirm != "yes" {
-            print "Deletion cancelled."
-            return 0
-        }
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    if $force {
+        lima_delete $vm_name --force
+    } else {
+        lima_delete $vm_name
     }
-
-    ^limactl delete $vm_name
 }
 
 export def docker-ctx [ctx?: string] {
-    require-cmd docker
-
-    if ($ctx | is-empty) {
-        print "Current Docker contexts:"
-        docker context ls
-    } else {
-        docker context use $ctx
-    }
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    docker_ctx $ctx
 }
 
 export def docker-ctx-reset [] {
-    require-cmd docker
-
-    docker context use default
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    docker_ctx_reset
 }
 
 export def lima-docker-context [vm_name: string] {
-    require-cmd docker
-
-    let ctx_name = $"($vm_name)-context"
-    let socket_path = ($env.LIMA_HOME | path join $vm_name "sock" "docker.sock")
-
-    if not ($socket_path | path exists) {
-        print --stderr $"Warning: Docker socket not found at: ($socket_path)"
-        print --stderr "Make sure the VM is running and has Docker enabled."
-        return 1
-    }
-
-    let ctx_check = (do { docker context inspect $ctx_name } | complete)
-    if ($ctx_check.exit_code == 0) {
-        print $"Updating existing Docker context: ($ctx_name)"
-        docker context update $ctx_name --docker $"host=unix://($socket_path)"
-    } else {
-        print $"Creating new Docker context: ($ctx_name)"
-        docker context create $ctx_name --docker $"host=unix://($socket_path)"
-    }
-
-    print $"Docker context '($ctx_name)' is ready."
-    print $"Switch to it with: docker-ctx ($ctx_name)"
+    overlay use "/Users/drgnxd/.config/nushell/modules/lima.nu"
+    lima_docker_context $vm_name
 }
 
 export alias lls = lima-status

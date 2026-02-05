@@ -136,6 +136,7 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 ## ディレクトリ構造
 
 *   `.chezmoiignore.tmpl`: OSに基づいてファイルを無視するためのテンプレート（例：LinuxでmacOSアプリを無視）
+*   `.chezmoidata.toml`: テンプレートで使うSolarizedパレットのSSOT（Alacritty/Tmux/Yazi）
 *   `dot_config/homebrew/Brewfile`: インストールするHomebrewパッケージのリスト（macOSのみ）
 *   `.internal_scripts/`: macOSセットアップ用の内部スクリプト（`run_onchange_after_setup.sh.tmpl` から実行）
 *   `dot_config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
