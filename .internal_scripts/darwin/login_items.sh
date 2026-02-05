@@ -12,9 +12,9 @@ source "${SOURCE_ROOT}/.internal_scripts/lib/bootstrap.sh"
 require_flag "ALLOW_GUI" "login items modification"
 
 # Verify osascript is available
-if ! check_command osascript; then
-	log_error "osascript command not found (required for managing login items)"
-	log_info "This command is part of macOS and should be available by default"
+if ! command -v osascript >/dev/null 2>&1; then
+	record_failure "osascript command not found"
+	report_failures
 	exit 1
 fi
 
@@ -38,11 +38,11 @@ for app in "${apps[@]}"; do
 	fi
 
 	if ! osascript -e "tell application \"System Events\" to if not (exists login item \"${app}\") then make login item at end with properties {path:\"/Applications/${app}.app\", hidden:false}"; then
-		log_error "Failed to ensure $app login item"
+		record_failure "Ensure login item: $app"
 		continue
 	fi
 
 	log_success "Ensured $app is in login items"
 done
 
-log_success "Login items setup complete"
+report_failures

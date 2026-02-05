@@ -89,7 +89,4 @@ configure_firewall
 disable_remote_services
 configure_account_security
 
-log_success "✅  Security hardening complete"
-
-# Report any failures
 report_failures

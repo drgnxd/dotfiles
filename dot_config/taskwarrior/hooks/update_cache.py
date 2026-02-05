@@ -12,12 +12,13 @@ Cache files (default under XDG_CACHE_HOME):
     ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/desc.list: Task descriptions (format: ID:description)
 """
 
+from dataclasses import dataclass, field
 import json
 import os
 import subprocess
 import sys
 import time
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 
 CACHE_DIR = os.path.join(
@@ -28,6 +29,15 @@ IDS_CACHE_PATH = os.path.join(CACHE_DIR, "ids.list")
 DESC_CACHE_PATH = os.path.join(CACHE_DIR, "desc.list")
 LAST_UPDATE_PATH = os.path.join(CACHE_DIR, ".last_update")
 MIN_UPDATE_INTERVAL_SECONDS = 5
+
+
+@dataclass(frozen=True)
+class Task:
+    id: int
+    description: str
+    status: str
+    project: Optional[str] = None
+    tags: List[str] = field(default_factory=list)
 
 
 def should_skip_update(now: float) -> bool:
@@ -57,25 +67,61 @@ def write_if_changed(path: str, content: str) -> None:
         target_file.write(content)
 
 
-def load_tasks() -> List[dict]:
+def task_from_dict(data: dict) -> Optional[Task]:
+    if not isinstance(data, dict):
+        return None
+
+    task_id = data.get("id")
+    description = data.get("description")
+    status = data.get("status")
+
+    if not isinstance(task_id, int) or task_id <= 0:
+        return None
+    if not isinstance(description, str) or not description:
+        return None
+    if not isinstance(status, str) or not status:
+        return None
+
+    project = data.get("project")
+    if project is not None and not isinstance(project, str):
+        project = None
+
+    tags_value = data.get("tags") or []
+    if not isinstance(tags_value, list):
+        tags_value = []
+    tags = [tag for tag in tags_value if isinstance(tag, str)]
+
+    return Task(
+        id=task_id,
+        description=description,
+        status=status,
+        project=project,
+        tags=tags,
+    )
+
+
+def load_tasks() -> List[Task]:
     output = subprocess.check_output(
         ["task", "status:pending", "-WAITING", "export"],
         stderr=subprocess.DEVNULL,
     )
-    return json.loads(output)
+    raw_tasks = json.loads(output)
+    tasks: List[Task] = []
+    for entry in raw_tasks:
+        task = task_from_dict(entry)
+        if task is not None:
+            tasks.append(task)
+    return tasks
 
 
-def build_cache_contents(tasks: List[dict]) -> Tuple[str, str]:
+def build_cache_contents(tasks: List[Task]) -> Tuple[str, str]:
     ids: List[str] = []
     descs: List[str] = []
 
     for task in tasks:
-        task_id = task.get("id")
-        if task_id is None or task_id == 0:
-            continue
-        task_id_str = str(task_id)
+        task_id_str = str(task.id)
         ids.append(task_id_str)
-        descs.append(f"{task_id_str}:{task['description']}")
+        descs.append(f"{task_id_str}:{task.description}")
 
     return "\n".join(ids), "\n".join(descs)
 

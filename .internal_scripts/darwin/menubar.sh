@@ -10,37 +10,45 @@ source "${SOURCE_ROOT}/.internal_scripts/lib/bootstrap.sh"
 
 log_info "Setting up Menu Bar and Control Center preferences..."
 
+apply_defaults() {
+	local label=$1
+	shift
+	safe_defaults_write "$@" || record_failure "$label"
+}
+
+apply_defaults_current_host() {
+	local label=$1
+	shift
+	safe_defaults_write_current_host "$@" || record_failure "$label"
+}
+
 configure_control_center() {
 	###############################################################################
 	# Control Center & Menu Bar Items                                             #
 	###############################################################################
 
 	# Battery
-	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible Battery" -bool false
+	apply_defaults "Hide Battery menu bar item" com.apple.controlcenter "NSStatusItem Visible Battery" -bool false
 
 	# Control Center (BentoBox)
-	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible BentoBox" -bool true
+	apply_defaults "Show Control Center" com.apple.controlcenter "NSStatusItem Visible BentoBox" -bool true
 
 	# Set physical spacing between menu bar icons to 10px
-	if ! safe_defaults_write_current_host -globalDomain NSStatusItemSpacing -int 10; then
-		log_warning "Skipping currentHost NSStatusItemSpacing update"
-	fi
-	safe_defaults_write -globalDomain NSStatusItemSpacing -int 10
+	apply_defaults_current_host "Set currentHost NSStatusItemSpacing" -globalDomain NSStatusItemSpacing -int 10
+	apply_defaults "Set NSStatusItemSpacing" -globalDomain NSStatusItemSpacing -int 10
 
 	# Set padding around icons to 6px (makes the button itself smaller)
-	if ! safe_defaults_write_current_host -globalDomain NSStatusItemSelectionPadding -int 6; then
-		log_warning "Skipping currentHost NSStatusItemSelectionPadding update"
-	fi
-	safe_defaults_write -globalDomain NSStatusItemSelectionPadding -int 6
+	apply_defaults_current_host "Set currentHost NSStatusItemSelectionPadding" -globalDomain NSStatusItemSelectionPadding -int 6
+	apply_defaults "Set NSStatusItemSelectionPadding" -globalDomain NSStatusItemSelectionPadding -int 6
 
 	# Now Playing
-	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible NowPlaying" -bool false
+	apply_defaults "Hide Now Playing" com.apple.controlcenter "NSStatusItem Visible NowPlaying" -bool false
 
 	# Screen Mirroring
-	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible ScreenMirroring" -bool false
+	apply_defaults "Hide Screen Mirroring" com.apple.controlcenter "NSStatusItem Visible ScreenMirroring" -bool false
 
 	# WiFi
-	safe_defaults_write com.apple.controlcenter "NSStatusItem Visible WiFi" -bool false
+	apply_defaults "Hide WiFi menu bar item" com.apple.controlcenter "NSStatusItem Visible WiFi" -bool false
 }
 
 configure_clock() {
@@ -48,11 +56,11 @@ configure_clock() {
 	# Clock                                                                       #
 	###############################################################################
 
-	safe_defaults_write com.apple.menuextra.clock IsAnalog -bool false
-	safe_defaults_write com.apple.menuextra.clock ShowAMPM -bool true
-	safe_defaults_write com.apple.menuextra.clock ShowDate -bool true
-	safe_defaults_write com.apple.menuextra.clock ShowDayOfWeek -bool true
-	safe_defaults_write com.apple.menuextra.clock ShowSeconds -bool true
+	apply_defaults "Use digital clock" com.apple.menuextra.clock IsAnalog -bool false
+	apply_defaults "Show AM/PM in clock" com.apple.menuextra.clock ShowAMPM -bool true
+	apply_defaults "Show date in clock" com.apple.menuextra.clock ShowDate -bool true
+	apply_defaults "Show day of week in clock" com.apple.menuextra.clock ShowDayOfWeek -bool true
+	apply_defaults "Show seconds in clock" com.apple.menuextra.clock ShowSeconds -bool true
 }
 
 # Main execution
@@ -60,7 +68,11 @@ configure_control_center
 configure_clock
 
 # Apply changes (SystemUIServer handles the menu bar clock, Control Center handles the rest)
-kill_process "SystemUIServer"
-kill_process "ControlCenter"
+if ! kill_process "SystemUIServer"; then
+	record_failure "Restart SystemUIServer"
+fi
+if ! kill_process "ControlCenter"; then
+	record_failure "Restart ControlCenter"
+fi
 
-log_success "Menu Bar settings applied"
+report_failures

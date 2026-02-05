@@ -15,29 +15,38 @@ log_info "Detected changes in Stats (eu.exelban.Stats) configuration. Importing 
 PLIST_PATH="{{ .chezmoi.homeDir }}/.config/stats/eu.exelban.Stats.plist"
 
 if [ ! -f "$PLIST_PATH" ]; then
-  log_error "Stats configuration file not found: $PLIST_PATH"
-  log_info "Expected location: ~/.config/stats/eu.exelban.Stats.plist"
-  log_info "This file should be created by chezmoi when applying the configuration"
-  log_info "Try running: chezmoi apply ~/.config/stats/eu.exelban.Stats.plist"
-  exit 1
+	record_failure "Stats configuration file not found: $PLIST_PATH"
+	log_info "Expected location: ~/.config/stats/eu.exelban.Stats.plist"
+	log_info "This file should be created by chezmoi when applying the configuration"
+	log_info "Try running: chezmoi apply ~/.config/stats/eu.exelban.Stats.plist"
+	report_failures
+	exit 1
 fi
 
 # Validate plist format
 if ! plutil -lint "$PLIST_PATH" >/dev/null 2>&1; then
-  log_error "Stats plist file is corrupted or invalid: $PLIST_PATH"
-  log_info "Check file format: plutil -lint \"$PLIST_PATH\""
-  exit 1
+	record_failure "Stats plist file is corrupted or invalid: $PLIST_PATH"
+	log_info "Check file format: plutil -lint \"$PLIST_PATH\""
+	report_failures
+	exit 1
 fi
 
 # Import settings from XML file
 if ! defaults import eu.exelban.Stats "$PLIST_PATH"; then
-  log_error "Failed to import Stats plist"
-  exit 1
+	record_failure "Failed to import Stats plist"
+	report_failures
+	exit 1
 fi
 
 log_success "Stats plist imported successfully"
 
 # Prompt reload to maintain cache consistency
-kill_process "cfprefsd"
-kill_process "Stats"
+if ! kill_process "cfprefsd"; then
+	record_failure "Restart cfprefsd"
+fi
+if ! kill_process "Stats"; then
+	record_failure "Restart Stats"
+fi
 open -a Stats || true
+
+report_failures

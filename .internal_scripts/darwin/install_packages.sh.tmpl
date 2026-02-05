@@ -31,10 +31,17 @@ trap cleanup EXIT
 
 log_info "Checking for Homebrew..."
 
+fail_step() {
+  local message=$1
+  record_failure "$message"
+  report_failures
+  exit 1
+}
+
 if command -v brew >/dev/null 2>&1; then
   log_info "Homebrew found. Preparing Brewfile..."
 
-  brewfile_path=$(resolve_brewfile "$BREWFILE_SOURCE") || exit 1
+  brewfile_path=$(resolve_brewfile "$BREWFILE_SOURCE") || fail_step "Resolve Brewfile"
   TMP_BREWFILE=${RESOLVED_BREWFILE_TMP:-""}
 
   # Prevent chezmoi persistent state lock contention during brew bundle
@@ -47,12 +54,16 @@ if command -v brew >/dev/null 2>&1; then
   if brew bundle --file="$brewfile_path" "${BUNDLE_OPTIONS[@]}"; then
     log_success "brew bundle completed successfully"
   else
-    log_error "brew bundle failed"
+    record_failure "brew bundle"
     echo "Hint: run 'brew bundle --file=$brewfile_path --verbose' to inspect errors." >&2
+    report_failures
     exit 1
   fi
 else
-  log_error "Homebrew not found. Skipping brew bundle"
+  record_failure "Homebrew not found"
   echo "Please install Homebrew manually or ensure it is in your PATH." >&2
+  report_failures
   exit 1
 fi
+
+report_failures

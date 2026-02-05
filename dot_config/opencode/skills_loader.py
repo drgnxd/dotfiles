@@ -8,8 +8,9 @@ and task-specific skills within a token budget.
 Usage: run as script or import SkillsLoader
 """
 
-from pathlib import Path
 import re
+import sys
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import yaml
 
@@ -93,6 +94,121 @@ class SkillsLoader:
         if core is None:
             raise SkillsLoaderError(f"Core skills file not found: {core_path}")
         return core
+
+    def _is_int_like(self, value) -> bool:
+        if isinstance(value, bool):
+            return False
+        if isinstance(value, int):
+            return True
+        if isinstance(value, str):
+            return value.isdigit()
+        return False
+
+    def validate_catalog(self) -> List[str]:
+        errors: List[str] = []
+        catalog = self.catalog
+
+        if not isinstance(catalog, dict):
+            return ["skills_catalog.yaml must be a mapping"]
+
+        load_cfg = catalog.get("load_strategy") or catalog.get("load")
+        if not isinstance(load_cfg, dict):
+            errors.append("load or load_strategy must be a mapping")
+        else:
+            always = load_cfg.get("always")
+            if always is None:
+                errors.append("load.always is required")
+            elif not isinstance(always, list) or not all(
+                isinstance(item, str) for item in always
+            ):
+                errors.append("load.always must be a list of strings")
+
+            max_tokens = load_cfg.get("max_tokens") or load_cfg.get("max_tok")
+            if max_tokens is None:
+                errors.append("load.max_tokens or load.max_tok is required")
+            elif not self._is_int_like(max_tokens):
+                errors.append("load.max_tokens must be an integer")
+
+        catalog_data = catalog.get("catalog") or catalog.get("cat")
+        if not isinstance(catalog_data, dict):
+            errors.append("catalog or cat must be a mapping")
+            return errors
+
+        skill_names: List[str] = []
+        if self._catalog_is_flat(catalog_data):
+            items = catalog_data.items()
+        else:
+            items = []
+            for _category, skills in catalog_data.items():
+                if isinstance(skills, dict):
+                    items.extend(skills.items())
+
+        for skill_name, meta in items:
+            skill_names.append(skill_name)
+            if not isinstance(meta, dict):
+                errors.append(f"Skill '{skill_name}' metadata must be a mapping")
+                continue
+
+            path_value = meta.get("path")
+            if not isinstance(path_value, str) or not path_value.strip():
+                errors.append(f"Skill '{skill_name}' is missing a valid path")
+            else:
+                skill_path = self.base_path / "skills" / path_value
+                if not skill_path.exists():
+                    errors.append(f"Skill '{skill_name}' path not found: {skill_path}")
+
+            token_value = self._get_catalog_value(meta, "tokens")
+            if token_value is None:
+                errors.append(f"Skill '{skill_name}' is missing tokens")
+            elif not self._is_int_like(token_value):
+                errors.append(f"Skill '{skill_name}' tokens must be an integer")
+
+            kw_value = self._get_catalog_value(meta, "trigger_keywords")
+            if kw_value is not None and not isinstance(kw_value, (list, str)):
+                errors.append(f"Skill '{skill_name}' keywords must be a list or string")
+
+        presets = catalog.get("presets")
+        if presets is not None:
+            if not isinstance(presets, dict):
+                errors.append("presets must be a mapping")
+            else:
+                known = set(skill_names)
+                for preset_name, preset_skills in presets.items():
+                    if not isinstance(preset_skills, list) or not all(
+                        isinstance(item, str) for item in preset_skills
+                    ):
+                        errors.append(
+                            f"Preset '{preset_name}' must be a list of skill names"
+                        )
+                        continue
+                    unknown = [name for name in preset_skills if name not in known]
+                    if unknown:
+                        errors.append(
+                            f"Preset '{preset_name}' references unknown skills: {unknown}"
+                        )
+
+        mode_cfg = catalog.get("thinking_mode_auto_detect") or catalog.get("think_mode")
+        if not isinstance(mode_cfg, dict):
+            errors.append("think_mode or thinking_mode_auto_detect must be a mapping")
+        else:
+            for mode in (
+                ThinkingMode.SIMPLE,
+                ThinkingMode.MEDIUM,
+                ThinkingMode.COMPLEX,
+            ):
+                mode_entry = mode_cfg.get(mode)
+                if not isinstance(mode_entry, dict):
+                    errors.append(f"Thinking mode '{mode}' must be a mapping")
+                    continue
+                patterns = mode_entry.get("patterns") or mode_entry.get("pat")
+                if not isinstance(patterns, list) or not all(
+                    isinstance(item, str) for item in patterns
+                ):
+                    errors.append(
+                        f"Thinking mode '{mode}' patterns must be a list of strings"
+                    )
+
+        return errors
 
     def _load_skill_content(self, skill_path: Path) -> Optional[Dict]:
         """Load a single skill file.
@@ -432,9 +548,22 @@ class SkillsLoader:
         )
 
 
-if __name__ == "__main__":
+def _run_validation() -> int:
     loader = SkillsLoader()
+    errors = loader.validate_catalog()
+    if errors:
+        for error in errors:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+    print("skills_catalog.yaml validation passed")
+    return 0
 
+
+def main() -> int:
+    if "--validate" in sys.argv[1:]:
+        return _run_validation()
+
+    loader = SkillsLoader()
     test_tasks = [
         "ls -la",
         "Create a Python script to parse CSV files",
@@ -449,3 +578,8 @@ if __name__ == "__main__":
         print(result[:800])
         print("[... truncated ...]")
         print(f"Total length: {len(result)} chars (~{len(result) // 4} tokens)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
