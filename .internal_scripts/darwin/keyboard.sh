@@ -52,7 +52,8 @@ while [ $# -gt 0 ]; do
 done
 
 if ! id "$target_user" >/dev/null 2>&1; then
-	log_error "Target user '$target_user' does not exist"
+	record_failure "Target user not found: $target_user"
+	report_failures
 	exit 1
 fi
 
@@ -107,8 +108,8 @@ apply_defaults() {
 	shift
 
 	if ! safe_defaults_write_as_user "$target_user" "$@"; then
-		log_error "Failed to set ${label}"
-		exit 1
+		record_failure "Set ${label}"
+		return 0
 	fi
 
 	log_success "Set ${label}"
@@ -121,7 +122,9 @@ if [ "$apply" -eq 0 ]; then
 	exit 0
 fi
 
-if ! check_command defaults; then
+if ! command -v defaults >/dev/null 2>&1; then
+	record_failure "defaults command not found"
+	report_failures
 	exit 1
 fi
 
@@ -148,3 +151,4 @@ fi
 apply_defaults "com.apple.keyboard.fnState = $PR_fnState" -g com.apple.keyboard.fnState -int "$PR_fnState"
 
 log_info "Done. Logout or restart affected apps if changes do not apply immediately."
+report_failures

@@ -2,6 +2,7 @@
 # Uses Nushell standard library for path management
 
 use std "path add"
+let XDG_DIRS = (xdg-dirs)
 
 # =============================================================================
 # DETECT HOMEBREW
@@ -32,7 +33,8 @@ if ($brew_path | is-not-empty) {
 # =============================================================================
 
 # User local binaries
-path add ($env.HOME | path join ".local" "bin")
+let local_bin = ($XDG_DIRS.data | path dirname | path join "bin")
+path add $local_bin
 
 # Cargo (Rust)
 if ($env | get CARGO_HOME? | is-not-empty) {

@@ -40,29 +40,17 @@
 
 # grep -> ripgrep
 export def --wrapped g [...args] {
-    if (has-cmd rg) {
-        rg ...$args
-    } else {
-        ^grep ...$args
-    }
+    cmd-or-fallback rg grep ...$args
 }
 
 # find -> fd
 export def --wrapped f [...args] {
-    if (has-cmd fd) {
-        fd ...$args
-    } else {
-        ^find ...$args
-    }
+    cmd-or-fallback fd find ...$args
 }
 
 # cat -> bat
 export def --wrapped cat [...args] {
-    if (has-cmd bat) {
-        bat --paging=never ...$args
-    } else {
-        ^cat ...$args
-    }
+    cmd-or-fallback bat cat --primary-args ["--paging=never"] ...$args
 }
 
 # =============================================================================

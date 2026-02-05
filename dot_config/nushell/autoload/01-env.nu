@@ -2,6 +2,11 @@
 # XDG Base Directory and application-specific settings
 
 # =============================================================================
+# XDG DIRS
+# =============================================================================
+let XDG_DIRS = (xdg-dirs)
+
+# =============================================================================
 # LOCALE
 # =============================================================================
 $env.LANG = "en_US.UTF-8"
@@ -28,10 +33,10 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 # =============================================================================
 # XDG BASE DIRECTORY
 # =============================================================================
-$env.XDG_CONFIG_HOME = ($env.HOME | path join ".config")
-$env.XDG_CACHE_HOME = ($env.HOME | path join ".cache")
-$env.XDG_DATA_HOME = ($env.HOME | path join ".local" "share")
-$env.XDG_STATE_HOME = ($env.HOME | path join ".local" "state")
+$env.XDG_CONFIG_HOME = $XDG_DIRS.config
+$env.XDG_CACHE_HOME = $XDG_DIRS.cache
+$env.XDG_DATA_HOME = $XDG_DIRS.data
+$env.XDG_STATE_HOME = $XDG_DIRS.state
 
 # =============================================================================
 # APPLICATION-SPECIFIC PATHS (XDG-compliant)

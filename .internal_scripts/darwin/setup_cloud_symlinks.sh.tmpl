@@ -47,27 +47,29 @@ for target in "$CLOUD_DIR"/*; do
                     link_name="${input_name:-$default_name}"
                     link_path="$HOME_DIR/$link_name"
 
-                    if [ -e "$link_path" ] && [ ! -L "$link_path" ]; then
-                        log_error "Cannot create symlink: $link_path already exists and is not a symlink"
-                        log_info "To fix: Move or remove the existing file/directory first"
-                        log_info "  mv \"$link_path\" \"$link_path.backup\""
-                        continue
-                    fi
+				if [ -e "$link_path" ] && [ ! -L "$link_path" ]; then
+					record_failure "Create symlink: $link_path (path exists)"
+					log_info "To fix: Move or remove the existing file/directory first"
+					log_info "  mv \"$link_path\" \"$link_path.backup\""
+					continue
+				fi
 
-                    if ln -sFn "$target" "$link_path"; then
-                        log_success "Created: $link_path -> $target"
-                    else
-                        log_error "Failed to create symlink: $link_path -> $target"
-                        log_info "Check permissions: ls -la \"$(dirname "$link_path")\""
-                    fi
+				if ln -sFn "$target" "$link_path"; then
+					log_success "Created: $link_path -> $target"
+				else
+					record_failure "Create symlink: $link_path -> $target"
+					log_info "Check permissions: ls -la \"$(dirname "$link_path")\""
+				fi
                     ;;
                 *)
                     echo "⏭️  Skipped: $default_name"
                     ;;
             esac
-        else
-            log_warning "No TTY available, cannot prompt for '$default_name'"
-            log_info "Run this script in an interactive terminal to create symlinks"
-        fi
-    fi
+		else
+			log_warning "No TTY available, cannot prompt for '$default_name'"
+			log_info "Run this script in an interactive terminal to create symlinks"
+		fi
+	fi
  done
+
+report_failures
