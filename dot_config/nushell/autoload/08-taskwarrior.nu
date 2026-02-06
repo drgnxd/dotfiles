@@ -53,7 +53,7 @@ export def --env task_preview_update [buffer?: string] {
         return
     }
 
-    overlay use "/Users/drgnxd/.config/nushell/modules/taskwarrior.nu"
+    overlay use "../modules/taskwarrior.nu"
     taskwarrior_preview_update $current
 }
 
@@ -62,21 +62,21 @@ export def --env task_preview_clear [] {
 }
 
 export def --env task_preview_insert_char [ch: string] {
-    overlay use "/Users/drgnxd/.config/nushell/modules/taskwarrior.nu"
+    overlay use "../modules/taskwarrior.nu"
     taskwarrior_preview_insert_char $ch
 }
 
 export def --env task_preview_backspace [] {
-    overlay use "/Users/drgnxd/.config/nushell/modules/taskwarrior.nu"
+    overlay use "../modules/taskwarrior.nu"
     taskwarrior_preview_backspace
 }
 
 export def --env task [...args] {
-    overlay use "/Users/drgnxd/.config/nushell/modules/taskwarrior.nu"
+    overlay use "../modules/taskwarrior.nu"
     taskwarrior_run ...$args
 }
 
 export def --env t [...args] {
-    overlay use "/Users/drgnxd/.config/nushell/modules/taskwarrior.nu"
+    overlay use "../modules/taskwarrior.nu"
     taskwarrior_run ...$args
 }
