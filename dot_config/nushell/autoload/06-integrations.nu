@@ -1,7 +1,7 @@
 # Integrations wrappers (lazy-loaded cache generation)
 
 export def integrations-cache-update [] {
-    overlay use "/Users/author/.config/nushell/modules/integrations.nu"
+    overlay use "../modules/integrations.nu"
     integrations_cache_update
 }
 
