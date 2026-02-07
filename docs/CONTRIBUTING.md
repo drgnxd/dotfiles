@@ -3,54 +3,34 @@
 ## Development Setup
 
 ### Prerequisites
-- macOS or Linux
-- [chezmoi](https://www.chezmoi.io/) installed
+- macOS
+- Nix (flakes enabled)
 - Git
 
 ### Initial Setup
 ```bash
-# Clone and apply
-chezmoi init --apply drgnxd
+# Clone into the recommended location
+git clone git@github.com:drgnxd/dotfiles.git ~/.config/nix-config
 
-# Or fork your own
-chezmoi init --apply yourusername
+# Apply configuration
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
 ```
 
 ---
 
-## Brewfile Management
+## Package Management
 
-### Declarative Workflow (Recommended)
+### CLI/TUI Packages
+Packages are defined in `home/packages.nix`.
 
-1. **Edit the Brewfile**
-   ```bash
-   chezmoi edit dot_config/homebrew/Brewfile
-   ```
-
-2. **Apply changes**
-   ```bash
-   chezmoi apply
-   # This triggers run_onchange script to execute brew bundle
-   ```
-
-### Imperative Workflow
-
-Capture currently installed packages:
+1. Edit `home/packages.nix`
+2. Apply:
 ```bash
-brew bundle dump --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --force --describe
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
 ```
 
-### Sync Check
-
-**Check missing packages**:
-```bash
-brew bundle check --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --verbose
-```
-
-**Check unmanaged packages**:
-```bash
-brew bundle cleanup --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile"
-```
+### macOS Apps (Casks/MAS)
+GUI apps and MAS entries are managed in `hosts/macbook/default.nix` under `homebrew`.
 
 ---
 
@@ -82,7 +62,6 @@ Follow [Conventional Commits](./COMMIT_CONVENTION.md):
 feat(nushell): add Taskwarrior cache system
 fix(hammerspoon): correct window calculation for ultra-wide monitors
 docs(readme): update installation instructions
-refactor(scripts): extract common functions to lib/common.sh
 ```
 
 ---
@@ -90,87 +69,51 @@ refactor(scripts): extract common functions to lib/common.sh
 ## Testing Locally
 
 ### Before Committing
-
-1. **Check diff**
+1. **Build**
    ```bash
-   chezmoi diff
+   darwin-rebuild build --flake ~/.config/nix-config#macbook
    ```
 
-2. **Dry run**
+2. **Apply to test system**
    ```bash
-   chezmoi apply --dry-run --verbose
+   darwin-rebuild switch --flake ~/.config/nix-config#macbook
    ```
 
-3. **Apply to test system**
-   ```bash
-   chezmoi apply
-   ```
-
-### Script Testing
-
-**macOS setup scripts** (use with caution):
+### Scripts
+**Cloud symlink setup** (interactive, guarded):
 ```bash
-# With safety flags
-ALLOW_DEFAULTS=1 .internal_scripts/darwin/system_defaults.sh
-ALLOW_HARDEN=1 .internal_scripts/darwin/security_hardening.sh
+FORCE=1 scripts/darwin/setup_cloud_symlinks.sh
 ```
 
-**Python hooks**:
+### Python hooks
 ```bash
 uv run --quiet --script dot_config/taskwarrior/hooks/update_cache.py --update-only
-```
-
-**Bash common library**:
-```bash
-source .internal_scripts/lib/bootstrap.sh
-log_info "Testing common library"
 ```
 
 ---
 
 ## Security Best Practices
 
-### Guard Flags
+### Secrets
+Secrets are stored in `secrets/*.age` and managed with `agenix`. Do not commit plaintext secrets.
 
-Destructive operations require environment variable confirmation:
-
-| Flag | Purpose |
-|------|---------|
-| `ALLOW_DEFAULTS=1` | macOS defaults write |
-| `ALLOW_HARDEN=1` | Security hardening |
-| `ALLOW_GUI=1` | Login items modification |
-| `ALLOW_KEYBOARD_APPLY=1` | Keyboard settings |
-| `FORCE=1` | Cloud symlink creation |
-
-### Sensitive Files
-
-Files excluded via `.chezmoiignore.tmpl`:
-- `dot_config/gh/hosts.yml`
-- `dot_config/nushell/local.nu`
-- `dot_config/taskwarrior/local.rc`
-- `.Brewfile`
-- `private_Library/`
-- Private keys
-
-Use `private_` prefix for template files containing secrets.
+### Local Overrides
+Local, machine-specific overrides live outside the repo (examples):
+- `~/.config/nushell/local.nu`
+- `~/.config/taskwarrior/local.rc`
 
 ---
 
 ## Code Style
 
 ### Shell Scripts
-- Use `#!/bin/bash` with `set -euo pipefail` for error handling
-- Source bootstrap library with CHEZMOI fallback: `source "${CHEZMOI_SOURCE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.internal_scripts/lib/bootstrap.sh"`
-- Use logging functions: `log_info`, `log_error`, `log_success`, `log_warning`
-- Use guard flags for destructive operations: `require_flag "ALLOW_XXX" "description"`
-- Use safe defaults wrappers: `safe_defaults_write`, `safe_defaults_write_as_user`
-- Use helper functions: `check_command`, `quit_app`, `kill_process`, `get_console_user`
-- Track failures in batch operations: `record_failure` + `report_failures`
+- Use `#!/bin/bash` with `set -euo pipefail`
+- Avoid destructive operations without explicit guard flags
 
 ### Python
+- Use `uv` for dependency management
 - PEP 8 compliant
 - Type hints for public functions
-- Docstrings for modules and functions
 
 ### Lua (Hammerspoon)
 - 2-space indentation
@@ -183,7 +126,7 @@ Use `private_` prefix for template files containing secrets.
 
 1. Create feature branch: `git checkout -b feature/my-feature`
 2. Make changes following conventions
-3. Test locally (`chezmoi apply`)
+3. Build locally (`darwin-rebuild build`)
 4. Commit with conventional format
 5. Push and create PR with description
 
@@ -196,7 +139,3 @@ Open an issue for:
 - Bug reports
 - Documentation improvements
 - General questions
-
----
-
-**Last Updated**: 2026-01

@@ -1,21 +1,21 @@
 # dotfiles
 
-[chezmoi](https://www.chezmoi.io/)で管理している個人用のdotfilesです。
+Nix（nix-darwin + home-manager）で管理している個人用のdotfilesです。
 
 ## 概要
 
-このリポジトリには、私のmacOSおよびLinux環境の設定ファイルが含まれています：
+このリポジトリには、私のmacOS環境の設定ファイルが含まれています：
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
     *   詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
-    *   主なコマンド: `ca` (chezmoi apply), `ce` (chezmoi edit), `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
+    *   主なコマンド: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   以前のZsh機能を全てNushellに移行済み
 *   **レガシーシェル:** Zsh設定は`archive/zsh`にアーカイブ済み（必要に応じてgit履歴を参照）
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
 *   **ウィンドウマネージャ:** Hammerspoon (macOSのみ)
-*   **パッケージマネージャ:** Homebrew (macOS), ネイティブパッケージマネージャ (Linux)
+*   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
 *   **開発ツール:** Git (delta・git-lfs統合)、lazygit、gh、opencode（`oc`・`ocd`エイリアス）、Guile（GNU Guile）
@@ -30,20 +30,14 @@
 
 ### 前提条件
 
-*   macOS または Linux
+*   macOS
 *   Git
-*   curl/wget
+*   Nix（flakes有効）
 
-### ワンライナーインストール
-
-```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply drgnxd
-```
-
-または、すでに`chezmoi`がインストールされている場合：
+### 適用
 
 ```sh
-chezmoi init --apply drgnxd
+darwin-rebuild switch --flake .#macbook
 ```
 
 ## インストール後の設定
@@ -65,80 +59,33 @@ hx ~/.config/git/config.local
 
 ## 運用・管理
 
-### Homebrewパッケージの管理
+### Nixパッケージの管理
 
-本リポジトリでは、`dot_config/homebrew/Brewfile` を `chezmoi` のソースディレクトリ内で直接管理し、`~/.Brewfile`は使わず`$XDG_CONFIG_HOME/homebrew/Brewfile`（既定: `~/.config/homebrew/Brewfile`）を使用します。
+パッケージ定義は `home/packages.nix` にあります。
 
-**実行フラグ（安全性関連）**
-- `run_onchange_after_setup.sh.tmpl`: macOSセットアップ手順をまとめて実行。`CONTINUE_ON_ERROR=1` で失敗しても継続。
-- `.internal_scripts/darwin/install_packages.sh.tmpl`: Brewfileをレンダリングして `brew bundle` を実行（追加フラグなし）。
-- `.internal_scripts/darwin/import_stats.sh.tmpl`: plistが無い場合は失敗で終了。
-- `.internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl`: シンボリックリンク作成に `FORCE=1` が必須（対話式。非symlinkターゲットは上書きしない）。
-- `.internal_scripts/darwin/login_items.sh`: ログイン項目変更に `ALLOW_GUI=1` が必須。
-- `.internal_scripts/darwin/security_hardening.sh`: ハードニング実行に `ALLOW_HARDEN=1` が必須。失敗を集計して報告。
-- `.internal_scripts/darwin/system_defaults.sh`: macOSデフォルト変更に `ALLOW_DEFAULTS=1` が必須。オプションで `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`。Dockを実行中アプリのみ表示する設定（`static-only`）も適用。
-- `.internal_scripts/darwin/keyboard.sh`: キーボード設定適用に `ALLOW_KEYBOARD_APPLY=1` が必須（`--apply`時）。
-- `.internal_scripts/darwin/menubar.sh`: 追加フラグなし。
-- `.internal_scripts/darwin/audit_security.sh`: 追加フラグなし。
+#### 追加・削除
 
-#### パッケージの追加・削除
-
-**推奨フロー (宣言的管理):**
-
-1. ソースファイルを編集してパッケージを追記・削除します：
-    ```sh
-    chezmoi edit dot_config/homebrew/Brewfile
-    ```
-2. 変更をシステムに適用（インストール）します：
-    ```sh
-    chezmoi apply
-    ```
-
-**代替フロー (現在の環境を取り込み):**
-
-手動で `brew install` したパッケージを管理ファイルに反映させる場合：
+1. `home/packages.nix` を編集
+2. 適用：
 
 ```sh
-# 現在の環境で Brewfile を上書き更新（説明文付き）
-brew bundle dump --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --force --describe
+darwin-rebuild switch --flake .#macbook
 ```
 
-#### 同期状態の確認
-
-定義ファイル（`dot_config/homebrew/Brewfile`）と現在のシステム状態の差異を確認します。
-
-  * **不足パッケージの確認** (定義にあるがインストールされていないもの):
-
-    ```sh
-    brew bundle check --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --verbose
-    ```
-
-  * **管理外パッケージの確認** (インストールされているが定義にないもの):
-
-    ```sh
-    # 削除はせず、削除対象リストを表示 (Dry Run)
-    brew bundle cleanup --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile"
-    ```
-
-#### 自動アップデート
-
-本設定では、パッケージを最新に保つために `homebrew/autoupdate` を導入しています。
-自動アップデート（`--greedy` によるGUIアプリを含む）を有効にするには、以下のコマンドを実行します：
+#### 入力更新
 
 ```sh
-brew autoupdate start 43200 --upgrade --cleanup --greedy
+nix flake update
+darwin-rebuild switch --flake .#macbook
 ```
-
-これにより、12時間ごとにアップデートがチェックされます。
-
-<!-- end list -->
 
 ## ディレクトリ構造
 
-*   `.chezmoiignore.tmpl`: OSに基づいてファイルを無視するためのテンプレート（例：LinuxでmacOSアプリを無視）
-*   `.chezmoidata.toml`: テンプレートで使うSolarizedパレットのSSOT（Alacritty/Tmux/Yazi）
-*   `dot_config/homebrew/Brewfile`: インストールするHomebrewパッケージのリスト（macOSのみ）
-*   `.internal_scripts/`: macOSセットアップ用の内部スクリプト（`run_onchange_after_setup.sh.tmpl` から実行）
+*   `flake.nix`: Nixエントリポイント（nix-darwin + home-manager）
+*   `hosts/`: nix-darwinのシステム設定
+*   `home/`: home-managerモジュールとパッケージ定義
+*   `secrets/`: agenix暗号化シークレット（任意）
+*   `scripts/`: macOS補助スクリプト（Nix管理）
 *   `dot_config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
     *   `gh/`: GitHub CLIの設定
@@ -156,7 +103,6 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
         *   `autoload/`: モジュール化された設定ファイル
 *   `archive/`: 旧設定のアーカイブ
     *   `zsh/`: [アーカイブ済み] Zsh設定（Nushellに移行済み）
-*   `run_onchange_after_setup.sh.tmpl`: `chezmoi apply`後のmacOSセットアップをまとめて実行
 
 ## 機能
 
@@ -195,7 +141,6 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 *   **条件付きコマンド**: スマートフォールバック（`g`は`rg`/`grep`、`f`は`fd`/`find`、`cat`は`bat`/`cat`）
 *   **標準ライブラリ**: PATH管理などに`std/util`を使用
 *   **主なコマンド**:
-    *   `ca`, `ce` - Chezmoi apply/edit
     *   `t` - Taskwarrior
     *   `g` - Ripgrep検索
     *   `f` - fd検索
@@ -209,7 +154,7 @@ brew autoupdate start 43200 --upgrade --cleanup --greedy
 
 ### Helix の Language Server (LSP) サポート
 
-この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Homebrew パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPが含まれます。エディタ設定は `dot_config/helix/`、パッケージ定義は `dot_config/homebrew/Brewfile` を参照してください。
+この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPが含まれます。エディタ設定は `dot_config/helix/`、パッケージ定義は `nix/packages.nix` を参照してください。
 
 ## ライセンス
 

@@ -1,20 +1,20 @@
 # dotfiles
 
-My personal dotfiles managed with [chezmoi](https://www.chezmoi.io/).
+My personal dotfiles managed with nix-darwin + home-manager.
 
 ## Quick Start
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply drgnxd
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
 ```
 
 ## Overview
 
-This repository contains configurations for my macOS and Linux environments, including:
+This repository contains configurations for my macOS environment, including:
 
 *   **Shell:** Nushell (modern shell with structured data, XDG-compliant, modular configuration)
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
-    *   Key commands: `ca` (chezmoi apply), `ce` (chezmoi edit), `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
+    *   Key commands: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   Includes all previous Zsh functionality migrated to Nushell
 *   **Legacy Shell:** Zsh configuration archived under `archive/zsh` (see git history if needed)
 *   **Terminal:** Alacritty with Solarized Dark theme
@@ -23,7 +23,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Editor:** Helix with Emacs hybrid bindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Window Manager:** Hammerspoon (macOS only)
-*   **Package Manager:** Homebrew (macOS), Native Package Manager (Linux)
+*   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
 *   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
@@ -38,20 +38,14 @@ This repository contains configurations for my macOS and Linux environments, inc
 
 ### Prerequisites
 
-*   macOS or Linux
+*   macOS
 *   Git
-*   curl/wget
+*   Nix (flakes enabled)
 
-### One-line Install
-
-```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply drgnxd
-```
-
-Or, if you have `chezmoi` installed already:
+### Apply Configuration
 
 ```sh
-chezmoi init --apply drgnxd
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
 ```
 
 ## Post-Installation Setup
@@ -61,13 +55,13 @@ chezmoi init --apply drgnxd
 Verify required commands are available before running macOS setup scripts:
 
 ```sh
-bash .internal_scripts/check_dependencies.sh
+bash scripts/check_dependencies.sh
 ```
 
-If any commands are missing, install them with:
+If any commands are missing, re-run darwin-rebuild to install packages:
 
 ```sh
-brew bundle install
+darwin-rebuild switch --flake .#macbook
 ```
 
 ### Git Configuration
@@ -87,8 +81,7 @@ pre-commit is optional. CI runs the same security scan and config validation.
 If you want local hooks:
 
 ```sh
-brew install pre-commit
-pre-commit install
+nix shell nixpkgs#pre-commit -c pre-commit install
 ```
 
 To (re)generate the secrets baseline:
@@ -99,82 +92,35 @@ uv tool run detect-secrets scan --baseline .secrets.baseline
 
 ## Management
 
-### Managing Homebrew Packages
+### Managing Nix Packages
 
-This repository manages `dot_config/homebrew/Brewfile` within the `chezmoi` source directory and uses `$XDG_CONFIG_HOME/homebrew/Brewfile` (default `~/.config/homebrew/Brewfile`) instead of `~/.Brewfile`.
-
-**Execution flags (safety):**
-- `run_onchange_after_setup.sh.tmpl`: orchestrates macOS setup steps; optional `CONTINUE_ON_ERROR=1` to continue after a failed step.
-- `.internal_scripts/darwin/install_packages.sh.tmpl`: renders Brewfile and runs `brew bundle`. No extra flag.
-- `.internal_scripts/darwin/import_stats.sh.tmpl`: fails if plist missing; exits non-zero.
-- `.internal_scripts/darwin/setup_cloud_symlinks.sh.tmpl`: requires `FORCE=1` to create symlinks (interactive; non-symlink targets are skipped).
-- `.internal_scripts/darwin/login_items.sh`: requires `ALLOW_GUI=1` to modify login items.
-- `.internal_scripts/darwin/security_hardening.sh`: requires `ALLOW_HARDEN=1`; aggregates failures.
-- `.internal_scripts/darwin/system_defaults.sh`: requires `ALLOW_DEFAULTS=1`. Optional flags: `ALLOW_LSQUARANTINE_OFF=1`, `ALLOW_SPOTLIGHT_DISABLE=1`. Applies Dock running-apps-only (`static-only`).
-- `.internal_scripts/darwin/keyboard.sh`: requires `ALLOW_KEYBOARD_APPLY=1` when using `--apply`.
-- `.internal_scripts/darwin/menubar.sh`: no extra flag.
-- `.internal_scripts/darwin/audit_security.sh`: no extra flag.
+Package definitions live in `home/packages.nix`.
 
 #### Adding/Removing Packages
 
-**Recommended Workflow (Declarative):**
-
-1. Edit the source file to add or remove packages:
-    ```sh
-    chezmoi edit dot_config/homebrew/Brewfile
-    ```
-2. Apply changes to the system:
-    ```sh
-    chezmoi apply
-    ```
-
-**Alternative Workflow (Import Current State):**
-
-To reflect manually installed packages into the configuration file:
+1. Edit `home/packages.nix`
+2. Apply changes:
 
 ```sh
-# Overwrite Brewfile with current system state (with descriptions)
-brew bundle dump --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --force --describe
+darwin-rebuild switch --flake .#macbook
 ```
 
-#### Checking Consistency
-
-Verify discrepancies between the definition file (`dot_config/homebrew/Brewfile`) and the current system state.
-
-  * **Check for missing packages** (listed in Brewfile but not installed):
-
-    ```sh
-    brew bundle check --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile" --verbose
-    ```
-
-  * **Check for unmanaged packages** (installed but not listed in Brewfile):
-
-    ```sh
-    # List unmanaged packages without uninstalling (Dry Run)
-    brew bundle cleanup --file="$(chezmoi source-path)/dot_config/homebrew/Brewfile"
-    ```
-
-#### Automatic Updates
-
-This configuration includes `homebrew/autoupdate` to keep packages fresh.
-To enable automatic updates (including GUI apps via `--greedy`), run:
+#### Updating Inputs
 
 ```sh
-brew autoupdate start 43200 --upgrade --cleanup --greedy
+nix flake update
+darwin-rebuild switch --flake .#macbook
 ```
-
-This will check for updates every 12 hours.
-
-<!-- end list -->
 
 ## Structure
 
-*   `.chezmoiignore.tmpl`: Template to ignore files based on OS (e.g. ignore macOS apps on Linux).
+*   `flake.nix`: Nix entrypoint (nix-darwin + home-manager).
+*   `hosts/`: nix-darwin system configuration.
+*   `home/`: Home-manager modules and package definitions.
+*   `secrets/`: agenix encrypted secrets (optional).
+*   `scripts/`: macOS helper scripts managed by Nix.
 *   `.pre-commit-config.yaml`: Optional local hooks (detect-secrets, YAML/TOML checks, local validators).
 *   `.secrets.baseline`: detect-secrets baseline for allowlisted findings.
-*   `.chezmoidata.toml`: Shared Solarized palette used by templated configs (Alacritty, tmux, yazi).
-*   `dot_config/homebrew/Brewfile`: List of Homebrew packages to install (macOS only).
-*   `.internal_scripts/`: Internal macOS setup scripts (invoked by `run_onchange_after_setup.sh.tmpl`).
 *   `docs/`: Architecture notes.
 *   `dot_config/`: Configuration files for various tools (XDG Base Directory compliant).
     *   `alacritty/`: GPU-accelerated terminal emulator configuration
@@ -193,7 +139,6 @@ This will check for updates every 12 hours.
         *   `autoload/`: Modular configuration files
 *   `archive/`: Archived legacy configurations
     *   `zsh/`: [ARCHIVED] Zsh configuration (migrated to Nushell)
-*   `run_onchange_after_setup.sh.tmpl`: Orchestrates macOS setup steps after `chezmoi apply`.
 
 ## Features
 
@@ -231,7 +176,6 @@ Modern shell with structured data and modular configuration:
 *   **Conditional Commands**: Smart fallbacks (`g` uses `rg`/`grep`, `f` uses `fd`/`find`, `cat` uses `bat`/`cat`)
 *   **Standard Library**: Uses `std/util` for PATH management and other utilities
 *   **Key Commands**:
-    *   `ca`, `ce` - Chezmoi apply/edit
     *   `t` - Taskwarrior
     *   `g` - Ripgrep search
     *   `f` - fd search
@@ -245,7 +189,7 @@ Modern shell with structured data and modular configuration:
 
 ### Helix language-server (LSP) support
 
-This configuration enables additional language-server integrations for the Helix editor and documents the matching Homebrew packages. The repository now includes recommended LSPs such as `pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, and `texlab`. See `dot_config/helix/` for editor settings and `dot_config/homebrew/Brewfile` for package declarations.
+This configuration enables additional language-server integrations for the Helix editor and documents the matching Nix packages. The repository now includes recommended LSPs such as `pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, and `texlab`. See `dot_config/helix/` for editor settings and `home/packages.nix` for package declarations.
 
 ## License
 

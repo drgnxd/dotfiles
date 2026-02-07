@@ -11,46 +11,38 @@
 
 ## 設計原則
 - XDG 準拠で設定の場所を統一
-- ガードフラグで破壊的操作を明示化
-- chezmoi テンプレートでプラットフォーム差異を吸収
-- 冪等性を維持して再実行可能
+- ガード付きの対話操作のみ明示的に許可
+- Nix モジュールでプラットフォーム差異を吸収（nix-darwin + home-manager）
+- 宣言的な適用と冪等なフック
 
 ---
 
 ## ディレクトリ構成
 
 ```
-~/.local/share/chezmoi/         # chezmoi ソースディレクトリ
-├── .chezmoiignore.tmpl         # プラットフォーム別除外
-├── .internal_scripts/
-│   ├── darwin/                 # macOS 専用セットアップスクリプト
-│   │   ├── system_defaults.sh  # UI/UX 設定
-│   │   ├── security_hardening.sh # ファイアウォール、リモートアクセス
-│   │   ├── keyboard.sh         # キーリピート設定
-│   │   ├── login_items.sh      # ログイン時アプリケーション
-│   │   ├── menubar.sh          # メニューバー設定
-│   │   ├── audit_security.sh   # セキュリティ監査
-│   │   ├── install_packages.sh.tmpl # Brewfile 実行
-│   │   ├── import_stats.sh.tmpl # Stats アプリ設定
-│   │   └── setup_cloud_symlinks.sh.tmpl # iCloud/Dropbox リンク
-│   └── lib/
-│       └── common.sh           # 共有 bash 関数
-├── dot_config/                 # -> ~/.config/
+~/.config/nix-config/           # Nix フレークのリポジトリ
+├── flake.nix                   # エントリポイント（nix-darwin + home-manager）
+├── flake.lock                  # 依存の固定
+├── hosts/
+│   └── macbook/default.nix     # nix-darwin システム設定
+├── home/
+│   ├── default.nix             # home-manager 設定
+│   └── packages.nix            # パッケージ一覧
+├── dot_config/                 # 設定ファイルのソース（XDG）
 │   ├── alacritty/              # ターミナルエミュレータ
 │   ├── bat/                    # シンタックスハイライト cat
 │   ├── gh/                     # GitHub CLI
 │   ├── git/                    # バージョン管理
 │   ├── hammerspoon/            # macOS 自動化 (Lua)
 │   ├── helix/                  # テキストエディタ
-│   ├── homebrew/               # パッケージマネージャー
-│   ├── npm/                    # Node.js パッケージ
+│   ├── npm/                    # Node.js 設定
 │   ├── opencode/               # AI コーディングエージェント
 │   ├── starship/               # シェルプロンプト
 │   ├── stats/                  # システムモニター
 │   ├── taskwarrior/            # タスク管理
 │   ├── tmux/                   # ターミナルマルチプレクサ
 │   ├── yazi/                   # ファイルマネージャー
-│   ├── nushell/                # [使用中] モダンなシェル (architecture/nushell.ja.md 参照)
+│   ├── nushell/                # モダンなシェル設定
 │   │   ├── autoload/           # モジュール化された設定
 │   │   │   ├── 01-env.nu       # 環境変数
 │   │   │   ├── 02-path.nu      # PATH 設定
@@ -58,15 +50,17 @@
 │   │   │   ├── 04-functions.nu # カスタム関数
 │   │   │   ├── 05-completions.nu # コマンド補完
 │   │   │   ├── 06-integrations.nu # ツール統合
-│   │   │   ├── 07-source-tools.nu.tmpl # キャッシュ済みツール初期化（07-source-tools.nu にレンダリング）
+│   │   │   ├── 07-source-tools.nu # キャッシュ読み込み
 │   │   │   ├── 08-taskwarrior.nu # Taskwarrior プロンプトプレビュー
 │   │   │   └── 09-lima.nu       # Lima/Docker ヘルパー
-│   │   ├── env.nu.tmpl         # エントリーポイント（env.nu にレンダリング）
-│   │   └── config.nu.tmpl      # メイン設定（config.nu にレンダリング）
-├── archive/                    # 旧設定のアーカイブ
-│   └── zsh/                    # [アーカイブ済み] レガシー Zsh 設定
-├── run_onchange_after_setup.sh.tmpl # セットアップオーケストレータ
-└── docs/                       # ドキュメント
+│   │   ├── env.nu              # エントリーポイント
+│   │   └── config.nu           # メイン設定
+├── scripts/
+│   └── darwin/setup_cloud_symlinks.sh # CloudStorage シンボリックリンク補助
+├── secrets/
+│   └── secrets.nix             # agenix キーマップ
+├── docs/                       # ドキュメント
+└── archive/                    # 旧設定のアーカイブ
 ```
 
 ---

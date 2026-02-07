@@ -111,16 +111,23 @@ $env.SHELL_SESSION_DIR = ($env.XDG_STATE_HOME | path join "nushell" "sessions")
 # DEVELOPMENT ENVIRONMENT
 # =============================================================================
 
-# LLVM (Homebrew)
-$env.LDFLAGS = "-L/opt/homebrew/opt/llvm/lib"
-$env.CPPFLAGS = "-I/opt/homebrew/opt/llvm/include"
+# Dotfiles
+if ($env | get -o DOTFILES_DIR | default "" | is-empty) {
+    $env.DOTFILES_DIR = ($env.HOME | path join ".config" "nix-config")
+}
+if ($env | get -o DOTFILES_FLAKE_TARGET | default "" | is-empty) {
+    $env.DOTFILES_FLAKE_TARGET = "macbook"
+}
 
 # Editor
 $env.EDITOR = "hx"
 $env.VISUAL = $env.EDITOR
 
 # Shell
-$env.SHELL = "/opt/homebrew/bin/nu"
+let nu_path = (which nu | get path.0?)
+if $nu_path != null {
+    $env.SHELL = $nu_path
+}
 
 # =============================================================================
 # TERMINAL SETTINGS

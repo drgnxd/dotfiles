@@ -12,27 +12,20 @@ let XDG_DIRS = (try { xdg-dirs } catch {
 })
 
 # =============================================================================
-# DETECT HOMEBREW
+# DETECT NIX PROFILES
 # =============================================================================
-def detect-homebrew [] {
-    let brew_paths = [
-        "/opt/homebrew/bin/brew"
-        "/usr/local/bin/brew"
-        "/home/linuxbrew/.linuxbrew/bin/brew"
+def detect-nix-paths [] {
+    let user = ($env | get -o USER | default "")
+    let per_user = if ($user | is-not-empty) { $"/etc/profiles/per-user/($user)/bin" } else { "" }
+    let candidates = [
+        ($env.HOME | path join ".nix-profile" "bin")
+        ($env.HOME | path join ".local" "share" "nix" "profile" "bin")
+        "/nix/var/nix/profiles/default/bin"
+        "/run/current-system/sw/bin"
+        $per_user
     ]
     
-    $brew_paths | where { |it| ($it | path exists) and ($it | path type) == "file" } | get 0?
-}
-
-let brew_path = (detect-homebrew)
-
-# Initialize Homebrew environment if found
-if ($brew_path | is-not-empty) {
-    # Get Homebrew prefix
-    let hb_prefix = (do { ^$brew_path --prefix } | complete)
-    if ($hb_prefix.exit_code == 0) {
-        $env.HOMEBREW_PREFIX = ($hb_prefix.stdout | str trim)
-    }
+    $candidates | where { |it| ($it | is-not-empty) and ($it | path exists) }
 }
 
 # =============================================================================
@@ -53,15 +46,17 @@ if ($env | get NPM_CONFIG_PREFIX? | is-not-empty) {
     path add ($env.NPM_CONFIG_PREFIX | path join "bin")
 }
 
-# Homebrew LLVM
-if ($brew_path | is-not-empty) {
-    path add "/opt/homebrew/opt/llvm/bin"
+# Homebrew (macOS, optional)
+if ("/opt/homebrew/bin" | path exists) {
+    path add "/opt/homebrew/bin"
+}
+if ("/opt/homebrew/sbin" | path exists) {
+    path add "/opt/homebrew/sbin"
 }
 
-# Homebrew binaries (highest priority)
-if ($brew_path | is-not-empty) {
-    let brew_bin = ($brew_path | path dirname)
-    path add $brew_bin
+# Nix profiles (highest priority)
+for p in (detect-nix-paths) {
+    path add $p
 }
 
 # =============================================================================

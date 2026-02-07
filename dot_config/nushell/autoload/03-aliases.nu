@@ -151,17 +151,6 @@ export def --wrapped ocd [...args] {
     opencode --continue ...$args
 }
 
-# Chezmoi
-export def --wrapped ca [...args] {
-    require-cmd chezmoi
-    chezmoi apply ...$args
-}
-
-export def --wrapped ce [...args] {
-    require-cmd chezmoi
-    chezmoi edit ...$args
-}
-
 # Proton Pass
 export def --wrapped pload [...args] {
     require-cmd pass-cli

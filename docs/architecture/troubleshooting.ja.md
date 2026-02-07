@@ -1,36 +1,29 @@
-# トラブルシューティング
+## Nix の問題
 
-## chezmoi の問題
-
-**状態がおかしい場合**:
+**darwin-rebuild が失敗する**:
 ```bash
-chezmoi state dump  # 現在の状態を確認
-chezmoi state reset # 状態をリセット
+darwin-rebuild build --flake ~/.config/nix-config#macbook
 ```
+まずは build でエラー内容を確認し、該当の Nix ファイルを修正します。
 
-**差分が大きすぎる場合**:
+**flake の依存が解決できない**:
 ```bash
-chezmoi diff | less  # ページャーで確認
+nix flake update --flake ~/.config/nix-config
 ```
+ネットワークや入力更新の問題を確認します。
 
-## スクリプト実行エラー
+## secrets の問題
 
-**ガードフラグが設定されていない**:
-```
-[ERROR] Refusing to proceed without ALLOW_DEFAULTS=1
-```
-**解決策**: 必要な環境変数を設定して再実行
-
-**sudo パスワードのタイムアウト**:
-```
-sudo: a password is required
-```
-**解決策**: `sudo -v` で認証を更新
-
-## Homebrew の問題
-
-**Brewfile のロックエラー**:
+**agenix がファイルを見つけられない**:
 ```bash
-rm ~/Library/Caches/Homebrew/Brewfile.lock.json
-brew bundle --file ~/.config/homebrew/Brewfile
+ls secrets
 ```
+`secrets/*.age` が存在するか、`secrets/secrets.nix` のキーが正しいか確認します。
+
+## Homebrew (nix-darwin) の問題
+
+**cask のインストール失敗**:
+```bash
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
+```
+エラーに応じて該当 cask を調整します。

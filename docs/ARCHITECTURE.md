@@ -9,31 +9,24 @@
 
 ## Design Principles
 - XDG compliance for predictable config locations
-- Security-first guard flags for destructive operations
-- Platform-aware configuration via chezmoi templates
-- Idempotent scripts safe to re-run with state checks
+- Security-first defaults with guarded interactive scripts
+- Platform-aware configuration via Nix modules (nix-darwin + home-manager)
+- Declarative activation with idempotent hooks
 
 ---
 
 ## Directory Structure
 
 ```
-~/.local/share/chezmoi/         # chezmoi source directory
-├── .chezmoiignore.tmpl         # Platform-specific exclusions
-├── .internal_scripts/
-│   ├── darwin/                 # macOS-only setup scripts
-│   │   ├── system_defaults.sh  # UI/UX preferences
-│   │   ├── security_hardening.sh # Firewall, remote access
-│   │   ├── keyboard.sh         # Key repeat settings
-│   │   ├── login_items.sh      # Startup applications
-│   │   ├── menubar.sh          # Menu bar configuration
-│   │   ├── audit_security.sh   # Security posture check
-│   │   ├── install_packages.sh.tmpl # Brewfile execution
-│   │   ├── import_stats.sh.tmpl # Stats app config
-│   │   └── setup_cloud_symlinks.sh.tmpl # iCloud/Dropbox links
-│   └── lib/
-│       └── common.sh           # Shared bash functions
-├── dot_config/                 # -> ~/.config/
+~/.config/nix-config/           # Nix flake repository
+├── flake.nix                   # Entry point (nix-darwin + home-manager)
+├── flake.lock                  # Pinned inputs
+├── hosts/
+│   └── macbook/default.nix     # nix-darwin system configuration
+├── home/
+│   ├── default.nix             # home-manager configuration
+│   └── packages.nix            # Package list
+├── dot_config/                 # Config sources (XDG)
 │   ├── alacritty/              # Terminal emulator
 │   ├── bat/                    # Syntax-highlighted cat
 │   ├── gh/                     # GitHub CLI
@@ -42,8 +35,6 @@
 │   │   └── config.local.example # User-specific template
 │   ├── hammerspoon/            # macOS automation (Lua)
 │   ├── helix/                  # Text editor
-│   ├── homebrew/               # Package manager
-│   │   └── Brewfile.tmpl       # Package definitions
 │   ├── npm/                    # Node.js packages
 │   ├── opencode/               # AI coding agent
 │   ├── starship/               # Shell prompt
@@ -53,7 +44,7 @@
 │   │   └── CACHE_ARCHITECTURE.md # Documentation
 │   ├── tmux/                   # Terminal multiplexer
 │   ├── yazi/                   # File manager
-│   ├── nushell/                # [ACTIVE] Modern shell (see architecture/nushell.md)
+│   ├── nushell/                # Modern shell (see architecture/nushell.md)
 │   │   ├── autoload/           # Modular configuration
 │   │   │   ├── 01-env.nu       # Environment variables
 │   │   │   ├── 02-path.nu      # PATH configuration
@@ -61,16 +52,19 @@
 │   │   │   ├── 04-functions.nu # Custom functions
 │   │   │   ├── 05-completions.nu # Command completions
 │   │   │   ├── 06-integrations.nu # Tool integrations
-│   │   │   ├── 07-source-tools.nu.tmpl # Source cached tool init (renders to 07-source-tools.nu)
+│   │   │   ├── 07-source-tools.nu # Source cached tool init
 │   │   │   ├── 08-taskwarrior.nu # Taskwarrior prompt preview
 │   │   │   └── 09-lima.nu       # Lima/Docker helpers
-│   │   ├── env.nu.tmpl         # Entry point template (renders to env.nu)
-│   │   └── config.nu.tmpl      # Main config template (renders to config.nu)
+│   │   ├── env.nu              # Entry point
+│   │   └── config.nu           # Main config
+├── scripts/
+│   └── darwin/setup_cloud_symlinks.sh # Optional CloudStorage symlink helper
+├── secrets/
+│   └── secrets.nix             # agenix key map
+├── docs/                       # Architecture notes
 ├── archive/                    # Archived legacy configs
 │   └── zsh/                    # [ARCHIVED] Legacy Zsh configuration
-├── run_onchange_after_setup.sh.tmpl # Post-apply orchestrator
 ├── README.md / README.ja.md    # Bilingual documentation
-├── CONTRIBUTING.md             # Development guide
 └── ARCHITECTURE.md             # This file
 ```
 
@@ -83,8 +77,8 @@
 See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 
 **Entry Points**:
-- `env.nu.tmpl` - Template that renders to `env.nu` and sources `autoload/01-env.nu`
-- `config.nu.tmpl` - Template that renders to `config.nu` with auto-generated module sources
+- `env.nu` - Sources `autoload/01-env.nu`
+- `config.nu` - Loads autoload modules and local overrides
 
 **Modular Architecture**:
 ```
@@ -95,7 +89,7 @@ autoload/
 ├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 ├── 05-completions.nu   # Dynamic completions
 ├── 06-integrations.nu  # Starship, Zoxide, Direnv, Carapace, Atuin
-├── 07-source-tools.nu.tmpl  # Source cached tool init (renders to 07-source-tools.nu)
+├── 07-source-tools.nu  # Source cached tool init
 ├── 08-taskwarrior.nu   # Taskwarrior prompt preview
 └── 09-lima.nu          # Lima/Docker helpers
 ```
@@ -107,9 +101,9 @@ autoload/
 - Standard library integration (`std/util`)
 - Local overrides via `~/.config/nushell/local.nu`
 
-**Chezmoi Template Integration**:
+**Module Loading**:
 ```nushell
-# AUTOLOAD MODULES (Generated by Chezmoi)
+# AUTOLOAD MODULES
 source ($nu.default-config-dir | path join "autoload" "01-env.nu")
 source ($nu.default-config-dir | path join "autoload" "02-path.nu")
 ...
@@ -118,22 +112,16 @@ source ($nu.default-config-dir | path join "autoload" "02-path.nu")
 ### 2. Taskwarrior Integration
 See [Taskwarrior Integration](architecture/taskwarrior.md).
 
-### 3. chezmoi Integration
+### 3. Nix Integration
 
-**State Management**:
-- `run_onchange_` scripts execute when source changes
-- Template hash tracking prevents redundant execution
+**Flake-based entrypoint**:
+- `flake.nix` ties nix-darwin, home-manager, and agenix together
+- `hosts/macbook/default.nix` owns system-level configuration
+- `home/default.nix` manages user-level config and activation hooks
 
-**Templates**:
-```
-dot_config/homebrew/Brewfile.tmpl
-  -> Rendered during brew bundle
-  -> Hash-based change detection
-
-run_onchange_after_setup.sh.tmpl
-  -> Orchestrates all setup scripts
-  -> Conditional platform execution
-```
+**Secrets**:
+- Encrypted with `agenix` in `secrets/*.age`
+- Decrypted into user config paths during activation
 
 ### 4. Container and Virtualization (Docker + Lima)
 
@@ -211,9 +199,9 @@ See [XDG Base Directory Compliance](architecture/xdg-compliance.md).
 ### 2. Guard Flags Over Prompts
 See [Security Model and Guard Flags](architecture/security-model.md).
 
-### 3. Separate Common Library
-- Shared helpers reduce duplication across scripts
-- Unified logging and guard behavior
+### 3. Declarative macOS Configuration
+- System defaults and launch agents via nix-darwin
+- User-level configuration via home-manager
 
 ### 4. Taskwarrior Cache System
 See [Taskwarrior Integration](architecture/taskwarrior.md).
@@ -233,10 +221,6 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 ### 2. Taskwarrior
 - Cache refresh is throttled and asynchronous (see taskwarrior doc)
-
-### 3. Homebrew
-- `run_onchange` executes only when Brewfile changes
-- Auto-update via `homebrew-autoupdate`
 
 ---
 
@@ -279,7 +263,7 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 | Feature | Zsh | Nushell |
 |---------|-----|---------|
 | Data Model | Text streams | Structured tables/records |
-| Configuration | Multiple sourced files | Modular `autoload/` with templates |
+| Configuration | Multiple sourced files | Modular `autoload/` structure |
 | Aliases | Simple string replacement | `export def` functions with logic |
 | PATH Management | Manual string manipulation | `std/util path add` |
 | Environment | `.zshenv` + `.zshrc` | `env.nu` + `config.nu` |
@@ -287,7 +271,9 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 ---
 
 **External Resources**:
-- [chezmoi Documentation](https://www.chezmoi.io/)
+- [Nix Manual](https://nixos.org/manual/nix/stable/)
+- [nix-darwin](https://github.com/LnL7/nix-darwin)
+- [home-manager](https://github.com/nix-community/home-manager)
 - [XDG Base Directory Spec](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 

@@ -3,20 +3,20 @@
 ## 1. ローカル変更
 ```bash
 # 設定を編集
-cd ~/.local/share/chezmoi
+cd ~/.config/nix-config
 $EDITOR dot_config/nushell/autoload/03-aliases.nu
 
 # 変更を適用
-chezmoi apply
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
 
-# 差分確認
-chezmoi diff
+# ビルドのみ（検証用）
+darwin-rebuild build --flake ~/.config/nix-config#macbook
 ```
 
 ## 2. Git 管理
 ```bash
 # 変更をステージング
-cd ~/.local/share/chezmoi
+cd ~/.config/nix-config
 git add .
 
 # コミット
@@ -29,9 +29,12 @@ git push origin main
 ## 3. 新マシンへのデプロイ
 ```bash
 # リポジトリをクローン
-chezmoi init --apply https://github.com/yourusername/dotfiles.git
+git clone https://github.com/yourusername/dotfiles.git ~/.config/nix-config
 
-# ユーザー固有設定を追加
+# 適用
+darwin-rebuild switch --flake ~/.config/nix-config#macbook
+
+# ユーザー固有設定を追加（任意）
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 $EDITOR ~/.config/git/config.local
 ```

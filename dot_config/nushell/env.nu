@@ -4,5 +4,5 @@
 # Disable welcome banner (must be set early in env.nu)
 $env.config.show_banner = false
 
-# Use literal path for source (required by Nushell parser)
-source /Users/drgnxd/.config/nushell/autoload/01-env.nu
+# Use an explicit path for source
+source "/Users/drgnxd/.config/nushell/autoload/01-env.nu"
