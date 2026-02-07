@@ -12,7 +12,7 @@ jobs:
       - name: Run ShellCheck
         run: |
           shellcheck --version
-          find .internal_scripts -name "*.sh" -print0 | xargs -0 shellcheck
+          find scripts -name "*.sh" -print0 | xargs -0 shellcheck
       - name: Install shfmt
         run: |
           # Install shfmt binary for Linux runners (x86_64)
@@ -24,7 +24,7 @@ jobs:
         run: |
           echo "Running shfmt format check..."
           # List any files that are not formatted; fail the job if any are found
-          find .internal_scripts -type f -name "*.sh" -print0 | xargs -0 shfmt -l | tee /tmp/shfmt_unformatted || true
+          find scripts -type f -name "*.sh" -print0 | xargs -0 shfmt -l | tee /tmp/shfmt_unformatted || true
           if [ -s /tmp/shfmt_unformatted ]; then
             echo "shfmt detected unformatted files:" >&2
             cat /tmp/shfmt_unformatted >&2
