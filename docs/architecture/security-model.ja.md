@@ -1,34 +1,14 @@
-# セキュリティモデルとガードフラグ
-
 ## ガードフラグ
-破壊的な変更を伴うスクリプトは、明示的な環境変数がないと実行されません。
+ほとんどの変更は Nix により宣言的に適用します。明示的なガードが必要なのはクラウドシンボリックリンク作成のみです。
 
-```bash
-# 例
-ALLOW_DEFAULTS=1 ./system_defaults.sh
-```
-
-| フラグ | スクリプト | リスク |
-|------|-----------|--------|
-| `ALLOW_DEFAULTS` | system_defaults.sh | 中 |
-| `ALLOW_HARDEN` | security_hardening.sh | 高 |
-| `ALLOW_GUI` | login_items.sh | 低 |
-| `ALLOW_KEYBOARD_APPLY` | keyboard.sh | 低 |
-| `FORCE` | setup_cloud_symlinks.sh | 中 |
+| フラグ | スクリプト | 目的 |
+|------|-----------|------|
+| `FORCE=1` | `scripts/darwin/setup_cloud_symlinks.sh` | CloudStorage のシンボリックリンク作成 |
 
 ## 秘密情報管理
-ユーザー固有/機密ファイルは `.chezmoiignore.tmpl` で除外します。
-
-```
-dot_config/gh/hosts.yml
-dot_config/nushell/local.nu
-dot_config/taskwarrior/local.rc
-.Brewfile
-private_Library/
-```
+秘密情報は `secrets/*.age` に格納し、`agenix` で管理します。平文の秘密情報はコミットしません。復号はアクティベーション時にユーザーの設定パスへ行います。
 
 ## 目的
-- 意図しない実行を防止
-- 自動化でも安全性を担保
-- ガードロジックとヘルパー関数を `common.sh` に集約
-- マルチユーザー安全性のため `run_as_user <username> <command>` でユーザーコンテキスト実行
+- 変更の宣言的管理により安全性を担保
+- インタラクティブ操作にのみ明示的な許可を要求
+- 秘密情報を暗号化したまま管理

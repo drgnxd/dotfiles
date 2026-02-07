@@ -24,3 +24,7 @@ dot_local/state/
 # Secret/local configs
 **/*local*
 **/hosts.yml
+dot_config/npm/
+
+# Build outputs
+result/

@@ -1,35 +1,14 @@
-# Security Model and Guard Flags
-
 ## Guard Flag System
-System-modifying scripts require explicit environment flags to prevent accidental
-execution and to keep automation non-interactive.
+Most system changes are applied declaratively through Nix. The only interactive helper that requires a guard flag is the cloud symlink script.
 
-```bash
-# Example
-ALLOW_DEFAULTS=1 ./system_defaults.sh
-```
-
-| Flag | Script | Risk Level |
-|------|--------|-----------|
-| `ALLOW_DEFAULTS` | system_defaults.sh | Medium |
-| `ALLOW_HARDEN` | security_hardening.sh | High |
-| `ALLOW_GUI` | login_items.sh | Low |
-| `ALLOW_KEYBOARD_APPLY` | keyboard.sh | Low |
-| `FORCE` | setup_cloud_symlinks.sh | Medium |
+| Flag | Script | Purpose |
+|------|--------|---------|
+| `FORCE=1` | `scripts/darwin/setup_cloud_symlinks.sh` | Cloud storage symlink creation |
 
 ## Secrets Management
-Sensitive or user-specific files are excluded via `.chezmoiignore.tmpl`.
-
-```
-dot_config/gh/hosts.yml
-dot_config/nushell/local.nu
-dot_config/taskwarrior/local.rc
-.Brewfile
-private_Library/
-```
+Secrets are stored in `secrets/*.age` and managed with `agenix`. Do not commit plaintext secrets. Encrypted files are decrypted at activation time to user config paths.
 
 ## Rationale
-- Non-interactive scripts remain automation-friendly
-- Explicit intent is required for destructive operations
-- Centralized guard checks and helper functions live in `common.sh`
-- User-context execution via `run_as_user <username> <command>` for multi-user safety
+- Declarative activation replaces ad-hoc scripts
+- Explicit intent is required for interactive symlink creation
+- Secrets remain encrypted in the repository

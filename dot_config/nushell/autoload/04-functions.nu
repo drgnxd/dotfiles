@@ -64,7 +64,8 @@ export def --wrapped zk [...args] {
 # STATS CONFIG EXPORT
 export def save-stats [] {
     let src = ($env.HOME | path join "Library" "Preferences" "eu.exelban.Stats.plist")
-    let dest = ($env.HOME | path join ".local" "share" "chezmoi" "dot_config" "stats" "eu.exelban.Stats.plist")
+    let dotfiles_dir = ($env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config"))
+    let dest = ($dotfiles_dir | path join "dot_config" "stats" "eu.exelban.Stats.plist")
     if not ($src | path exists) {
         print --stderr $"Stats plist not found at ($src)"
         return 1
@@ -99,32 +100,42 @@ export def ppget [query: string, --field: string = "password"] {
 
 # SYSTEM UPGRADE
 export def upgrade-all [] {
-    if not (has-cmd brew) {
-        print --stderr "Homebrew not found"
+    if not (has-cmd nix) {
+        print --stderr "nix not found"
         return 127
     }
-    print "--- Homebrew Formulae ---"
-    brew update
-    if ($env.LAST_EXIT_CODE != 0) { return 1 }
-    brew upgrade
-    if ($env.LAST_EXIT_CODE != 0) { return 1 }
-    print "--- Homebrew Casks ---"
-    let tap_check = (do { brew tap-info buo/cask-upgrade } | complete)
-    if ($tap_check.exit_code == 0) {
-        brew cu --all --cleanup --yes
-        if ($env.LAST_EXIT_CODE != 0) { return 1 }
-    } else {
-        print --stderr "Install buo/cask-upgrade: brew tap buo/cask-upgrade"
+
+    let dotfiles_dir = ($env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config"))
+    if not ($dotfiles_dir | path exists) {
+        print --stderr $"Dotfiles directory not found: ($dotfiles_dir)"
+        return 1
     }
-    print "--- Mac App Store ---"
+
+    let target = ($env | get -o DOTFILES_FLAKE_TARGET | default "")
+    let fallback_target = ($env | get -o USER | default "default")
+    let target_name = if ($target | is-empty) { $fallback_target } else { $target }
+    let flake_ref = $"($dotfiles_dir)#($target_name)"
+
+    print "--- Nix flake update ---"
+    nix flake update $dotfiles_dir
+    if ($env.LAST_EXIT_CODE != 0) { return 1 }
+
+    if (has-cmd darwin-rebuild) {
+        print "--- darwin-rebuild ---"
+        darwin-rebuild switch --flake $flake_ref
+    } else if (has-cmd home-manager) {
+        print "--- home-manager ---"
+        home-manager switch --flake $flake_ref
+    } else {
+        print --stderr "home-manager or darwin-rebuild not found"
+        return 127
+    }
+
     if (has-cmd mas) {
+        print "--- Mac App Store ---"
         mas upgrade
         if ($env.LAST_EXIT_CODE != 0) { return 1 }
-    } else {
-        print --stderr "Install mas: brew install mas"
     }
-    print "--- Cleanup ---"
-    brew cleanup
 }
 
 export alias update = upgrade-all

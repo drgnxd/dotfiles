@@ -1,26 +1,13 @@
-# Platform Support
-
 ## macOS (darwin)
-**Package Manager**: Homebrew (`Brewfile.tmpl`)
+**Package Manager**: Nix (nix-darwin + home-manager)
 
 **System Integration**:
-- `system_defaults.sh`: NSUserDefaults modifications
-- `Hammerspoon`: Window management and input switching
-- `Stats`: System monitor (plist-based config)
+- `system.defaults` and activation scripts via nix-darwin
+- LaunchAgents via `launchd.user.agents`
+- Hammerspoon and Stats configuration via Home Manager
 
-**Automation**:
-- Login items via AppleScript
-- Menu bar configuration via `defaults`
+**Apps**:
+- GUI apps managed through nix-darwin `homebrew` (casks/MAS) where nixpkgs is insufficient
 
 ## Linux
-**Package Manager**: Native (apt/dnf/pacman)
-
-**Shared Tools**:
-- Alacritty, Nushell, Tmux, Helix
-- Taskwarrior, Yazi, Starship
-- CLI utilities (bat, eza, fd, ripgrep)
-
-**Exclusions**:
-- Hammerspoon (macOS-only)
-- Homebrew (macOS-centric)
-- `.internal_scripts/darwin/`
+Linux is not currently targeted in this configuration.
