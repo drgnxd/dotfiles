@@ -11,6 +11,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Nushell
         run: brew install nushell
+      - name: Prepare Nushell cache
+        run: |
+          mkdir -p "$HOME/.cache/nushell-init"
+          touch "$HOME/.cache/nushell-init/starship.nu"
+          touch "$HOME/.cache/nushell-init/zoxide.nu"
+          touch "$HOME/.cache/nushell-init/carapace.nu"
+          touch "$HOME/.cache/nushell-init/atuin.nu"
       - name: Source autoload modules
         run: |
           nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'version'
