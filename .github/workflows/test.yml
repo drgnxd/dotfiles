@@ -13,14 +13,10 @@ jobs:
         run: brew install nushell
       - name: Source autoload modules
         run: |
-          sources=""
-          for file in dot_config/nushell/autoload/*.nu; do
-            sources="${sources}source ${file}; "
-          done
-          nu -c "$sources"
+          nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'version'
       - name: Verify XDG dirs
         run: |
-          nu -c 'source dot_config/nushell/autoload/00-constants.nu; xdg-dirs | to json'
+          nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'xdg-dirs | to json'
 
   test-opencode:
     runs-on: ubuntu-latest

@@ -1,6 +1,6 @@
 # Taskwarrior preview wrapper (lazy-loaded)
 
-const taskwarrior_module = "/Users/drgnxd/.config/nushell/modules/taskwarrior.nu"
+const taskwarrior_module = ($nu.config-path | path dirname | path join "modules" "taskwarrior.nu")
 
 def task_preview_message [] {
     let msg = ($env | get -o TASK_PREVIEW_MESSAGE | default "")

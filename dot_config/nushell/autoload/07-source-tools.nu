@@ -8,12 +8,11 @@
 # NOTE: Cache files are sourced if present; 06-integrations generates them.
 
 # Refresh cached init scripts if available
-const cache_dir = "/Users/drgnxd/.cache/nushell-init"
-const starship_file = "/Users/drgnxd/.cache/nushell-init/starship.nu"
-const zoxide_file = "/Users/drgnxd/.cache/nushell-init/zoxide.nu"
-const carapace_file = "/Users/drgnxd/.cache/nushell-init/carapace.nu"
-const atuin_file = "/Users/drgnxd/.cache/nushell-init/atuin.nu"
-const starship_bin = "/etc/profiles/per-user/drgnxd/bin/starship"
+const cache_dir = ($nu.home-dir | path join ".cache" "nushell-init")
+const starship_file = ($nu.home-dir | path join ".cache" "nushell-init" "starship.nu")
+const zoxide_file = ($nu.home-dir | path join ".cache" "nushell-init" "zoxide.nu")
+const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
+const atuin_file = ($nu.home-dir | path join ".cache" "nushell-init" "atuin.nu")
 const brew_starship_bin = "/opt/homebrew/bin/starship"
 if (scope commands | where name == "integrations-cache-update" | is-not-empty) {
     integrations-cache-update
@@ -27,10 +26,13 @@ if (has-cmd starship) {
     } else {
         true
     }
-    if $needs_regen and ($starship_bin | path exists) {
-        let starship_init = (do { ^$starship_bin init nu } | complete)
-        if ($starship_init.exit_code == 0) {
-            $starship_init.stdout | save -f $starship_file
+    if $needs_regen {
+        let starship_exec = (which starship | get path.0?)
+        if $starship_exec != null {
+            let starship_init = (do { ^$starship_exec init nu } | complete)
+            if ($starship_init.exit_code == 0) {
+                $starship_init.stdout | save -f $starship_file
+            }
         }
     }
     if ($starship_file | path exists) {

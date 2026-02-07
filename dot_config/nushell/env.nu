@@ -5,4 +5,5 @@
 $env.config.show_banner = false
 
 # Use an explicit path for source
-source "/Users/drgnxd/.config/nushell/autoload/01-env.nu"
+const env_dir = ($nu.env-path | path dirname)
+source ($env_dir | path join "autoload" "01-env.nu")

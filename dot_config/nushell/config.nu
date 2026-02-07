@@ -277,7 +277,7 @@ $env.config.menus = [
 # AUTOLOAD MODULES
 # =============================================================================
 
-const config_dir = "/Users/drgnxd/.config/nushell"
+const config_dir = ($nu.config-path | path dirname)
 
 source ($config_dir | path join "autoload" "00-constants.nu")
 source ($config_dir | path join "autoload" "00-helpers.nu")
