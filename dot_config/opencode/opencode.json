@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "gemma3-tool-fix": {
+          "name": "gemma3-tool-fix"
+        }
+      }
+    }
+  },
+  "mcp": {
+    "searxng": {
+      "type": "local",
+      "command": [
+        "env",
+        "SEARXNG_URL=http://localhost:8080",
+        "npx",
+        "-y",
+        "mcp-searxng"
+      ],
+      "enabled": true,
+      "timeout": 15000
+    }
+  },
+  "tools": {
+    "searxng_*": true
+  }
+}
