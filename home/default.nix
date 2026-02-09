@@ -28,9 +28,12 @@ let
             && !lib.hasInfix "/__pycache__/" path_str;
       };
 
-  opencode_source = clean_source { src = ../dot_config/opencode; };
+  opencode_config = ../dot_config/opencode/opencode.json;
 
   taskwarrior_source = clean_source { src = ../dot_config/taskwarrior; };
+
+  opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
+  taskwarrior_local_rc = "${config.xdg.configHome}/taskwarrior.local.rc";
 
   use_npmrc_secret = builtins.pathExists ../secrets/npmrc.age;
   has_npmrc_file = builtins.pathExists ../dot_config/npm/npmrc;
@@ -95,8 +98,6 @@ in
       "nushell/modules/taskwarrior.nu".source = ../dot_config/nushell/modules/taskwarrior.nu;
       "nushell/modules/lima.nu".source = ../dot_config/nushell/modules/lima.nu;
 
-      "opencode".source = opencode_source;
-
       "shellcheck/shellcheckrc".source = ../dot_config/shellcheck/shellcheckrc;
       "starship/starship.toml".source = ../dot_config/starship/starship.toml;
 
@@ -143,6 +144,21 @@ in
     mkdir -p "$HOME/.local/state/launchagents/hammerspoon"
     mkdir -p "$HOME/.local/state/launchagents/maccy"
     mkdir -p "$HOME/.local/state/launchagents/stats"
+  '';
+
+  home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    opencode_target="${opencode_target}"
+    opencode_dir="$(dirname "$opencode_target")"
+    mkdir -p "$opencode_dir"
+    /bin/cp -f "${opencode_config}" "$opencode_target"
+  '';
+
+  home.activation.ensureTaskwarriorLocalRc = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    taskwarrior_local_rc="${taskwarrior_local_rc}"
+    if [ ! -f "$taskwarrior_local_rc" ]; then
+      mkdir -p "$(dirname "$taskwarrior_local_rc")"
+      touch "$taskwarrior_local_rc"
+    fi
   '';
 
   home.activation.ensureNushellInitCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

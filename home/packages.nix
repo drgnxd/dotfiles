@@ -25,7 +25,7 @@ let
     "nushell"
     "shellcheck"
     "starship"
-    "taskwarrior2"
+    "taskwarrior3"
     "tmux"
     "yazi"
     "zoxide"
