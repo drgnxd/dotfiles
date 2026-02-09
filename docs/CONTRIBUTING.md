@@ -100,7 +100,7 @@ Secrets are stored in `secrets/*.age` and managed with `agenix`. Do not commit p
 ### Local Overrides
 Local, machine-specific overrides live outside the repo (examples):
 - `~/.config/nushell/local.nu`
-- `~/.config/taskwarrior/local.rc`
+- `~/.config/taskwarrior.local.rc`
 
 ---
 
