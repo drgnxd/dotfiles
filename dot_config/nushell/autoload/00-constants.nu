@@ -1,11 +1,14 @@
-# Constants Module
-# Centralized XDG base directories
 
-def xdg-dirs [] {
-    {
-        config: ($env.HOME | path join ".config")
-        cache: ($env.HOME | path join ".cache")
-        data: ($env.HOME | path join ".local" "share")
-        state: ($env.HOME | path join ".local" "state")
-    }
-}
+# Constants Module
+
+# FIX: Hardcode path to match config.nu and env.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+const integrations_module = ($config_dir | path join 'modules' 'integrations.nu')
+const taskwarrior_module = ($config_dir | path join 'modules' 'taskwarrior.nu')
+const lima_module = ($config_dir | path join 'modules' 'lima.nu')
+
+# Export for use in other sourced files
+export const config_dir = $config_dir
+export const integrations_module = $integrations_module
+export const taskwarrior_module = $taskwarrior_module
+export const lima_module = $lima_module

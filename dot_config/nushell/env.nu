@@ -1,9 +1,9 @@
-# Nushell Environment Entry Point
-# Loaded first by Nushell, then config.nu
 
-# Disable welcome banner (must be set early in env.nu)
+# Nushell Environment Entry Point
 $env.config.show_banner = false
 
-# Use an explicit path for source
-const env_dir = ($nu.env-path | path dirname)
-source ($env_dir | path join "autoload" "01-env.nu")
+# FIX: Hardcode path to avoid const evaluation errors
+const env_dir = '/Users/drgnxd/.config/nushell'
+
+source ($env_dir | path join 'autoload' '01-env.nu')
+source ($env_dir | path join 'autoload' '02-path.nu')
