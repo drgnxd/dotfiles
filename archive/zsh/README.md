@@ -16,7 +16,7 @@ The Zsh configuration has been fully migrated to Nushell with the following impr
 - **Shell**: Zsh → Nushell (modern shell with structured data)
 - **Configuration**: Multiple sourced files → Modular `autoload/` directory
 - **Aliases**: Simple string replacement → `export def` functions with logic
-- **PATH Management**: Manual string manipulation → `std/util path add`
+- **PATH Management**: Manual string manipulation → `path-add` helper
 - **Environment**: `.zshenv` + `.zshrc` → `env.nu` + `config.nu`
 
 ### Feature Parity
