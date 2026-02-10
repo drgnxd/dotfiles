@@ -13,7 +13,7 @@ dot_config/nushell/
 ├── autoload/
     ├── 00-helpers.nu       # Shared helper functions
     ├── 01-env.nu           # Environment variables & XDG paths
-    ├── 02-path.nu          # PATH configuration using std/util
+    ├── 02-path.nu          # PATH configuration with path-add helper
     ├── 03-aliases.nu       # Command aliases with fallbacks
     ├── 04-functions.nu     # Custom functions & wrappers
     ├── 05-completions.nu   # Command completions
@@ -29,18 +29,26 @@ dot_config/nushell/
 
 ## Module Loading
 
-`config.nu` sources modules with explicit paths derived from `$nu.default-config-dir` and loads cached init scripts if present:
+`env.nu` and `config.nu` source modules using a pinned `config_dir` constant (currently `/Users/drgnxd/.config/nushell`) to avoid const-evaluation errors from `$nu.config-path`/`$nu.env-path`:
 
 ```nushell
-# AUTOLOAD MODULES
-source ($nu.default-config-dir | path join "autoload" "01-env.nu")
-source ($nu.default-config-dir | path join "autoload" "02-path.nu")
+# env.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+source ($config_dir | path join 'autoload' '01-env.nu')
+source ($config_dir | path join 'autoload' '02-path.nu')
+
+# config.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+source ($config_dir | path join 'autoload' '00-constants.nu')
+source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
 This approach avoids the parse-time evaluation issues that occur with dynamic `ls | each { source }` patterns.
 
-Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with literal paths. This keeps startup fast while avoiding parse-time evaluation errors.
+If you relocate the config directory, update the hardcoded paths in `env.nu`, `config.nu`, `autoload/00-constants.nu`, and the autoload wrappers that `overlay use` modules.
+
+Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with absolute literal paths. This keeps startup fast while avoiding parse-time evaluation errors.
 
 ## Key Features
 
@@ -70,13 +78,16 @@ export def g [...args] {
 
 This ensures the configuration works across different systems, even when modern tools (bat, fd, ripgrep) aren't installed.
 
-### 3. Standard Library Integration
+### 3. PATH Management Helper
 
-Uses Nushell's `std/util` for PATH management:
+PATH entries are added through a small helper that only prepends existing paths in a deterministic order:
 
 ```nushell
-use std "path add"
-path add ($env.HOME | path join ".local" "bin")
+def --env path-add [new_path: string] {
+    if ($new_path | path exists) {
+        $env.PATH = ($env.PATH | prepend $new_path | uniq)
+    }
+}
 ```
 
 ### 4. ENV_CONVERSIONS

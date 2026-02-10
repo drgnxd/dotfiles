@@ -77,14 +77,14 @@
 See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 
 **Entry Points**:
-- `env.nu` - Sources `autoload/01-env.nu`
+- `env.nu` - Sources `autoload/01-env.nu` and `autoload/02-path.nu`
 - `config.nu` - Loads autoload modules and local overrides
 
 **Modular Architecture**:
 ```
 autoload/
 ├── 01-env.nu           # XDG paths, ENV_CONVERSIONS
-├── 02-path.nu          # PATH using std/util
+├── 02-path.nu          # PATH with path-add helper
 ├── 03-aliases.nu       # Conditional command aliases
 ├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 ├── 05-completions.nu   # Dynamic completions
@@ -98,16 +98,24 @@ autoload/
 - Everything is data (structured tables/records, not text)
 - XDG Base Directory compliance
 - Conditional command loading with fallbacks
-- Standard library integration (`std/util`)
+- PATH helper with existence checks (`path-add`)
 - Local overrides via `~/.config/nushell/local.nu`
 
 **Module Loading**:
 ```nushell
-# AUTOLOAD MODULES
-source ($nu.default-config-dir | path join "autoload" "01-env.nu")
-source ($nu.default-config-dir | path join "autoload" "02-path.nu")
+# env.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+source ($config_dir | path join 'autoload' '01-env.nu')
+source ($config_dir | path join 'autoload' '02-path.nu')
+
+# config.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+source ($config_dir | path join 'autoload' '00-constants.nu')
+source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
+
+If the config directory moves, update the hardcoded `config_dir` and module wrapper paths accordingly.
 
 ### 2. Taskwarrior Integration
 See [Taskwarrior Integration](architecture/taskwarrior.md).
@@ -265,7 +273,7 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 | Data Model | Text streams | Structured tables/records |
 | Configuration | Multiple sourced files | Modular `autoload/` structure |
 | Aliases | Simple string replacement | `export def` functions with logic |
-| PATH Management | Manual string manipulation | `std/util path add` |
+| PATH Management | Manual string manipulation | `path-add` helper (prepend + exists check) |
 | Environment | `.zshenv` + `.zshrc` | `env.nu` + `config.nu` |
 
 ---

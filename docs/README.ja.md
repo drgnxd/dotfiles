@@ -139,7 +139,7 @@ darwin-rebuild switch --flake .#macbook
 *   **XDG準拠**: 全ての設定はXDG Base Directory仕様に準拠
 *   **モジュール構成**: `autoload/` ディレクトリに分割された保守性の高い設定
 *   **条件付きコマンド**: スマートフォールバック（`g`は`rg`/`grep`、`f`は`fd`/`find`、`cat`は`bat`/`cat`）
-*   **標準ライブラリ**: PATH管理などに`std/util`を使用
+*   **PATHヘルパー**: 既存パスのみを順序通りに先頭追加する`path-add`を使用
 *   **主なコマンド**:
     *   `t` - Taskwarrior
     *   `g` - Ripgrep検索

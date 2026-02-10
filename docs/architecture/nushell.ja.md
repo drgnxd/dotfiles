@@ -13,7 +13,7 @@ dot_config/nushell/
 ├── autoload/
     ├── 00-helpers.nu       # 共通ヘルパー
     ├── 01-env.nu           # 環境変数とXDGパス
-    ├── 02-path.nu          # std/utilを使用したPATH設定
+    ├── 02-path.nu          # path-addヘルパーを使ったPATH設定
     ├── 03-aliases.nu       # フォールバック付きエイリアス
     ├── 04-functions.nu     # カスタム関数とラッパー
     ├── 05-completions.nu   # コマンド補完
@@ -29,18 +29,26 @@ dot_config/nushell/
 
 ## モジュール読み込み
 
-`config.nu` は `$nu.default-config-dir` を使って明示的にモジュールを `source` し、キャッシュ済みの初期化スクリプトがあれば読み込みます：
+`env.nu` と `config.nu` は、`$nu.config-path`/`$nu.env-path` の定数評価エラーを避けるため、固定の `config_dir`（現在は `/Users/drgnxd/.config/nushell`）で明示的に `source` します：
 
 ```nushell
-# AUTOLOAD MODULES
-source ($nu.default-config-dir | path join "autoload" "01-env.nu")
-source ($nu.default-config-dir | path join "autoload" "02-path.nu")
+# env.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+source ($config_dir | path join 'autoload' '01-env.nu')
+source ($config_dir | path join 'autoload' '02-path.nu')
+
+# config.nu
+const config_dir = '/Users/drgnxd/.config/nushell'
+source ($config_dir | path join 'autoload' '00-constants.nu')
+source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
 このアプローチにより、動的な`ls | each { source }`パターンで発生するパース時評価の問題を回避します。
 
-重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが`overlay use`（リテラルパス）で必要時に読み込みます。これにより起動を軽くしつつ、パース時評価の制約を回避します。
+設定場所を移動する場合は、`env.nu`、`config.nu`、`autoload/00-constants.nu`、および `overlay use` を行う各ラッパーのハードコードパスを更新してください。
+
+重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが`overlay use`（絶対リテラルパス）で必要時に読み込みます。これにより起動を軽くしつつ、パース時評価の制約を回避します。
 
 ## 主な機能
 
@@ -70,13 +78,16 @@ export def g [...args] {
 
 これにより、モダンなツール（bat、fd、ripgrep）がインストールされていない異なるシステムでも設定が機能します。
 
-### 3. 標準ライブラリ統合
+### 3. PATH管理ヘルパー
 
-Nushellの`std/util`を使用してPATHを管理します：
+PATHは、存在するパスだけを先頭追加する小さなヘルパーで管理します：
 
 ```nushell
-use std "path add"
-path add ($env.HOME | path join ".local" "bin")
+def --env path-add [new_path: string] {
+    if ($new_path | path exists) {
+        $env.PATH = ($env.PATH | prepend $new_path | uniq)
+    }
+}
 ```
 
 ### 4. ENV_CONVERSIONS

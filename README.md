@@ -174,7 +174,7 @@ Modern shell with structured data and modular configuration:
 *   **XDG Compliant**: All configuration follows XDG Base Directory specification
 *   **Modular Architecture**: Configuration split across `autoload/` directory for maintainability
 *   **Conditional Commands**: Smart fallbacks (`g` uses `rg`/`grep`, `f` uses `fd`/`find`, `cat` uses `bat`/`cat`)
-*   **Standard Library**: Uses `std/util` for PATH management and other utilities
+*   **PATH Helper**: Uses a small `path-add` helper to prepend existing paths in order
 *   **Key Commands**:
     *   `t` - Taskwarrior
     *   `g` - Ripgrep search
