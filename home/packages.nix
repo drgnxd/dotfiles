@@ -33,7 +33,6 @@ let
     "alacritty"
     "floorp-bin"
     "maccy"
-    "stats"
 
     "helix"
 

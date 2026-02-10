@@ -27,6 +27,7 @@ in
       "hammerspoon"
       "pearcleaner"
       "sol"
+      "stats"
       "font-hackgen-nerd"
 
       "gimp"
