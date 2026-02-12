@@ -1,17 +1,19 @@
 # Environment Variables Module
 # XDG Base Directory and application-specific settings
 
+export def xdg-dirs [] {
+    {
+        config: ($env | get --optional XDG_CONFIG_HOME | default ($env.HOME | path join ".config"))
+        cache: ($env | get --optional XDG_CACHE_HOME | default ($env.HOME | path join ".cache"))
+        data: ($env | get --optional XDG_DATA_HOME | default ($env.HOME | path join ".local" "share"))
+        state: ($env | get --optional XDG_STATE_HOME | default ($env.HOME | path join ".local" "state"))
+    }
+}
+
 # =============================================================================
 # XDG DIRS
 # =============================================================================
-let XDG_DIRS = (try { xdg-dirs } catch {
-    {
-        config: ($env.HOME | path join ".config")
-        cache: ($env.HOME | path join ".cache")
-        data: ($env.HOME | path join ".local" "share")
-        state: ($env.HOME | path join ".local" "state")
-    }
-})
+let XDG_DIRS = (xdg-dirs)
 
 # =============================================================================
 # LOCALE
