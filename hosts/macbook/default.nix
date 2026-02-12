@@ -22,7 +22,10 @@ in
     taps = [
       "protonpass/homebrew-tap"
     ];
-    brews = [ "mas" ];
+    brews = [
+      "mas"
+      "pass-cli"
+    ];
     casks = [
       "hammerspoon"
       "pearcleaner"
