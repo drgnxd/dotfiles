@@ -1,8 +1,7 @@
 
 # Constants Module
 
-# FIX: Hardcode path to match config.nu and env.nu
-const config_dir = '/Users/drgnxd/.config/nushell'
+const config_dir = ($nu.config-path | path dirname)
 const integrations_module = ($config_dir | path join 'modules' 'integrations.nu')
 const taskwarrior_module = ($config_dir | path join 'modules' 'taskwarrior.nu')
 const lima_module = ($config_dir | path join 'modules' 'lima.nu')

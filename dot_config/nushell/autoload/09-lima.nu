@@ -1,8 +1,7 @@
 
 # Lima and Docker wrappers (lazy-loaded)
 
-# FIX: Hardcode path to avoid import errors
-const lima_module = '/Users/drgnxd/.config/nushell/modules/lima.nu'
+const lima_module = (($nu.config-path | path dirname) | path join 'modules' 'lima.nu')
 
 export def lima-start [vm_name: string] {
     overlay use $lima_module
