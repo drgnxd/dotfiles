@@ -65,7 +65,6 @@ let
     "typst"
 
     "gnupg"
-    "pass"
 
     "p7zip"
     "smartmontools"
