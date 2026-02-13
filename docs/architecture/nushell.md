@@ -29,26 +29,24 @@ dot_config/nushell/
 
 ## Module Loading
 
-`env.nu` and `config.nu` source modules using a pinned `config_dir` constant (currently `/Users/drgnxd/.config/nushell`) to avoid const-evaluation errors from `$nu.config-path`/`$nu.env-path`:
+`env.nu` and `config.nu` source modules via pinned absolute paths (`/Users/drgnxd/.config/nushell/...`) so lookups stay stable even when loaded config files live in Home Manager store paths:
 
 ```nushell
 # env.nu
-const config_dir = '/Users/drgnxd/.config/nushell'
-source ($config_dir | path join 'autoload' '01-env.nu')
-source ($config_dir | path join 'autoload' '02-path.nu')
+source '/Users/drgnxd/.config/nushell/autoload/01-env.nu'
+source '/Users/drgnxd/.config/nushell/autoload/02-path.nu'
 
 # config.nu
-const config_dir = '/Users/drgnxd/.config/nushell'
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
+source '/Users/drgnxd/.config/nushell/autoload/00-constants.nu'
+source '/Users/drgnxd/.config/nushell/autoload/00-helpers.nu'
 ...
 ```
 
-This approach avoids the parse-time evaluation issues that occur with dynamic `ls | each { source }` patterns.
+This approach keeps module lookups anchored to the user config directory and avoids parse-time failures caused by deriving sibling paths from store-backed config file locations.
 
-If you relocate the config directory, update the hardcoded paths in `env.nu`, `config.nu`, `autoload/00-constants.nu`, and the autoload wrappers that `overlay use` modules.
+If you relocate your config directory, update the pinned paths in `env.nu`, `config.nu`, `autoload/00-constants.nu`, and wrapper files under `autoload/`.
 
-Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with absolute literal paths. This keeps startup fast while avoiding parse-time evaluation errors.
+Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with pinned absolute paths. This keeps startup fast while avoiding parse-time evaluation errors.
 
 ## Key Features
 

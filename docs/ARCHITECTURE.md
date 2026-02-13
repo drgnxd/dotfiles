@@ -104,18 +104,16 @@ autoload/
 **Module Loading**:
 ```nushell
 # env.nu
-const config_dir = '/Users/drgnxd/.config/nushell'
-source ($config_dir | path join 'autoload' '01-env.nu')
-source ($config_dir | path join 'autoload' '02-path.nu')
+source '/Users/drgnxd/.config/nushell/autoload/01-env.nu'
+source '/Users/drgnxd/.config/nushell/autoload/02-path.nu'
 
 # config.nu
-const config_dir = '/Users/drgnxd/.config/nushell'
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
+source '/Users/drgnxd/.config/nushell/autoload/00-constants.nu'
+source '/Users/drgnxd/.config/nushell/autoload/00-helpers.nu'
 ...
 ```
 
-If the config directory moves, update the hardcoded `config_dir` and module wrapper paths accordingly.
+Using a pinned config path keeps module loading stable even when config files are symlinked into Nix store paths.
 
 ### 2. Taskwarrior Integration
 See [Taskwarrior Integration](architecture/taskwarrior.md).

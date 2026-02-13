@@ -1,7 +1,7 @@
 
 # Constants Module
 
-const config_dir = ($nu.config-path | path dirname)
+const config_dir = '/Users/drgnxd/.config/nushell'
 const integrations_module = ($config_dir | path join 'modules' 'integrations.nu')
 const taskwarrior_module = ($config_dir | path join 'modules' 'taskwarrior.nu')
 const lima_module = ($config_dir | path join 'modules' 'lima.nu')

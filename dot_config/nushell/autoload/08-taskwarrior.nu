@@ -1,8 +1,6 @@
 
 # Taskwarrior preview wrapper (lazy-loaded)
 
-const taskwarrior_module = (($nu.config-path | path dirname) | path join 'modules' 'taskwarrior.nu')
-
 def task_preview_message [] {
     let msg = ($env | get --optional TASK_PREVIEW_MESSAGE | default '')
     if ($msg | is-empty) {
@@ -57,7 +55,7 @@ export def --env task_preview_update [buffer?: string] {
         return
     }
 
-    overlay use $taskwarrior_module
+    overlay use '/Users/drgnxd/.config/nushell/modules/taskwarrior.nu'
     taskwarrior_preview_update $current
 }
 
@@ -66,21 +64,21 @@ export def --env task_preview_clear [] {
 }
 
 export def --env task_preview_insert_char [ch: string] {
-    overlay use $taskwarrior_module
+    overlay use '/Users/drgnxd/.config/nushell/modules/taskwarrior.nu'
     taskwarrior_preview_insert_char $ch
 }
 
 export def --env task_preview_backspace [] {
-    overlay use $taskwarrior_module
+    overlay use '/Users/drgnxd/.config/nushell/modules/taskwarrior.nu'
     taskwarrior_preview_backspace
 }
 
 export def --env task [...args] {
-    overlay use $taskwarrior_module
+    overlay use '/Users/drgnxd/.config/nushell/modules/taskwarrior.nu'
     taskwarrior_run ...$args
 }
 
 export def --env t [...args] {
-    overlay use $taskwarrior_module
+    overlay use '/Users/drgnxd/.config/nushell/modules/taskwarrior.nu'
     taskwarrior_run ...$args
 }
