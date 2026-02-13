@@ -1,14 +1,14 @@
-# Catalog v2.2 - Optimized
+# Catalog v2.3 - Improved matching, presets, ordering
 
-load: {always: [skills_core.yaml, japanese, thinking], max_tok: 5000}
+load: {always: [skills_core.yaml, ja, think], max_tok: 5000}
 
 cat:
-  langs: {path: essential/languages.yaml, tok: 400, kw: "nu|nushell|py|sh|js|rs|\\.nu|\\.py|\\.sh|\\.js|\\.rs"}
-  prac: {path: essential/practices.yaml, tok: 350, kw: "code|test|review|refactor|debug"}
-  think: {path: essential/thinking_framework.yaml, tok: 400, kw: "analyze|design|compare|eval|complex|sec|migrate|arch", pri: hi}
-  infra: {path: specialized/infrastructure.yaml, tok: 300, kw: "git|docker|linux|db|container|commit"}
-  research: {path: specialized/research.yaml, tok: 250, kw: "research|analyze|compare|eval|study|investigation", tools: tools/research/}
-  ja: {path: specialized/japanese.yaml, tok: 100, kw: "japanese|translate|translation"}
+  think: {path: essential/thinking_framework.yaml, tok: 400, order: 1, kw: "analyze|design|compare|eval|complex|sec|migrate|arch", pri: hi}
+  langs: {path: essential/languages.yaml, tok: 400, order: 2, kw: "nushell|python|bash|javascript|rust|\\.nu|\\.py|\\.sh|\\.js|\\.rs"}
+  prac: {path: essential/practices.yaml, tok: 350, order: 3, kw: "code|test|review|refactor|debug"}
+  infra: {path: specialized/infrastructure.yaml, tok: 300, order: 4, kw: "git|docker|linux|db|container|commit"}
+  research: {path: specialized/research.yaml, tok: 250, order: 5, kw: "research|study|investigation", tools: tools/research/}
+  ja: {path: specialized/japanese.yaml, tok: 100, order: 6, kw: "japanese|translate|translation"}
 
 presets:
   py_dev: [think, langs, prac]

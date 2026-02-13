@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Skills loader with thinking framework support - Optimized.
+"""Skills loader with thinking framework support.
 
 Supports both original and optimized catalog key names.
-Loads core skills, always-load skills (japanese, thinking),
-and task-specific skills within a token budget.
+Loads core skills, always-load skills, and task-specific skills
+within a token budget. Supports presets and ordered loading.
 
 Usage: run as script or import SkillsLoader
 """
@@ -11,7 +11,7 @@ Usage: run as script or import SkillsLoader
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import yaml
 
 
@@ -32,7 +32,7 @@ class ThinkingMode:
 class SkillsLoader:
     """Load and manage AI agent skills with thinking framework support."""
 
-    CORE_TOKENS_ESTIMATE = 200  # Reduced from 500
+    CORE_TOKENS_ESTIMATE = 200  # Fallback if estimation fails
 
     def __init__(self, base_path: Path = Path(__file__).resolve().parent):
         """Initialize the skills loader.
@@ -43,6 +43,32 @@ class SkillsLoader:
         self.base_path = base_path
         self.catalog = self._load_catalog()
         self.core = self._load_core()
+
+    # --- Token Estimation ---
+
+    @staticmethod
+    def _estimate_tokens(text: str) -> int:
+        """Estimate token count from text content.
+
+        Uses a heuristic: 4 chars per token for English-dominant text,
+        3 chars per token when Japanese characters exceed 30%.
+
+        Args:
+            text: Text to estimate tokens for.
+
+        Returns:
+            Estimated token count.
+        """
+        if not text:
+            return 0
+
+        total_chars = len(text)
+        japanese_chars = sum(1 for c in text if ord(c) > 0x3000)
+
+        if japanese_chars > total_chars * 0.3:
+            return max(1, total_chars // 3)
+        else:
+            return max(1, total_chars // 4)
 
     # --- YAML Loading ---
 
@@ -104,7 +130,7 @@ class SkillsLoader:
             return value.isdigit()
         return False
 
-    def validate_catalog(self) -> List[str]:
+    def validate_catalog(self, warn_duplicate_keywords: bool = False) -> List[str]:
         errors: List[str] = []
         catalog = self.catalog
 
@@ -135,6 +161,8 @@ class SkillsLoader:
             return errors
 
         skill_names: List[str] = []
+        all_keywords: Dict[str, List[str]] = {}  # keyword -> [skill_names]
+
         if self._catalog_is_flat(catalog_data):
             items = catalog_data.items()
         else:
@@ -166,6 +194,39 @@ class SkillsLoader:
             kw_value = self._get_catalog_value(meta, "trigger_keywords")
             if kw_value is not None and not isinstance(kw_value, (list, str)):
                 errors.append(f"Skill '{skill_name}' keywords must be a list or string")
+
+            # Collect keywords for duplicate detection
+            keywords = self._parse_keywords(meta)
+            for kw in keywords:
+                # Skip extension patterns for duplicate check
+                if kw.startswith(".") or kw.startswith("\\."):
+                    continue
+                if kw not in all_keywords:
+                    all_keywords[kw] = []
+                all_keywords[kw].append(skill_name)
+
+        # Validate always-load references exist in catalog
+        if isinstance(load_cfg, dict):
+            always = load_cfg.get("always", [])
+            if isinstance(always, list):
+                known = set(skill_names)
+                for name in always:
+                    if name == "skills_core.yaml":
+                        continue
+                    if name not in known:
+                        errors.append(
+                            f"Always-load skill '{name}' not found in catalog. "
+                            f"Available: {sorted(known)}"
+                        )
+
+        # Report duplicate keywords (optional, may be intentional)
+        if warn_duplicate_keywords:
+            for kw, owners in all_keywords.items():
+                if len(owners) > 1:
+                    errors.append(
+                        f"Keyword '{kw}' is shared by multiple skills: {owners} "
+                        f"(may cause unintended loading)"
+                    )
 
         presets = catalog.get("presets")
         if presets is not None:
@@ -228,7 +289,7 @@ class SkillsLoader:
 
     # --- Catalog Key Normalization ---
 
-    def _get_catalog_value(self, meta: Dict, key: str, default=None):
+    def _get_catalog_value(self, meta: Dict, key: str, default: Any = None) -> Any:
         """Get value from catalog with key aliasing support.
 
         Supports both original and optimized key names:
@@ -249,6 +310,7 @@ class SkillsLoader:
             "tokens": ["tokens", "tok"],
             "priority": ["priority", "pri"],
             "has_tools": ["has_tools", "tools"],
+            "order": ["order", "ord"],
         }
 
         if key in aliases:
@@ -280,6 +342,41 @@ class SkillsLoader:
             return [k.strip() for k in kw_value.split("|") if k.strip()]
         else:
             return []
+
+    def _matches_keywords(self, task: str, keywords: List[str]) -> bool:
+        """Check if task matches any keyword with word boundary awareness.
+
+        Handles three keyword types:
+        - File extensions (e.g. '.py', '\\.py'): substring match
+        - Regex patterns (containing special chars): regex match
+        - Plain words: word boundary match to avoid substring false positives
+
+        Args:
+            task: Lowercased task description.
+            keywords: List of keywords to match against.
+
+        Returns:
+            True if any keyword matches.
+        """
+        for kw in keywords:
+            # File extension pattern (e.g. .py, \.py)
+            if kw.startswith(".") or kw.startswith("\\."):
+                clean_ext = kw.lstrip("\\")
+                if clean_ext in task:
+                    return True
+            # Short keywords (1-2 chars) that are common substrings:
+            # require word boundary to avoid 'py' matching 'cpython'
+            elif len(kw) <= 3:
+                pattern = r"(?:^|[^a-z0-9_])" + re.escape(kw) + r"(?:[^a-z0-9_]|$)"
+                if re.search(pattern, task):
+                    return True
+            # Longer keywords: still use boundary check for safety
+            else:
+                pattern = r"(?:^|[^a-z0-9_])" + re.escape(kw) + r"(?:[^a-z0-9_]|$)"
+                if re.search(pattern, task):
+                    return True
+
+        return False
 
     def _catalog_is_flat(self, catalog_data: Dict) -> bool:
         """Detect flat catalog mapping (skill -> meta) vs categorized mapping."""
@@ -366,7 +463,7 @@ class SkillsLoader:
                 if not isinstance(meta, dict):
                     continue
                 keywords = self._parse_keywords(meta)
-                if any(kw in task_lower for kw in keywords):
+                if self._matches_keywords(task_lower, keywords):
                     skills_to_load.append((skill_name, meta))
         else:
             for _category, skills in catalog_data.items():
@@ -376,13 +473,19 @@ class SkillsLoader:
                     if not isinstance(meta, dict):
                         continue
                     keywords = self._parse_keywords(meta)
-                    if any(kw in task_lower for kw in keywords):
+                    if self._matches_keywords(task_lower, keywords):
                         skills_to_load.append((skill_name, meta))
 
-        # Priority sort: high-priority skills first
-        def priority_key(x):
+        # Sort by priority (high first), then by order field
+        def priority_key(x: Tuple[str, Dict]) -> Tuple[int, int]:
             pri = self._get_catalog_value(x[1], "priority")
-            return 0 if pri in ("high", "hi") else 1
+            raw_order = self._get_catalog_value(x[1], "order", 99)
+            try:
+                order_val = int(raw_order)
+            except (TypeError, ValueError):
+                order_val = 99
+            pri_val = 0 if pri in ("high", "hi") else 1
+            return (pri_val, order_val)
 
         skills_to_load.sort(key=priority_key)
         return skills_to_load
@@ -493,54 +596,120 @@ class SkillsLoader:
 
     # --- Main Entry ---
 
-    def load_for_task(self, task: str) -> str:
+    def _resolve_preset(self, preset: str) -> List[Tuple[str, Dict]]:
+        """Resolve a preset name to a list of (skill_name, meta) tuples.
+
+        Args:
+            preset: Preset name from catalog presets section.
+
+        Returns:
+            List of (skill_name, skill_metadata) tuples.
+
+        Raises:
+            SkillsLoaderError: If preset not found or references unknown skills.
+        """
+        presets = self.catalog.get("presets", {})
+        if preset not in presets:
+            available = sorted(presets.keys()) if presets else []
+            raise SkillsLoaderError(
+                f"Preset '{preset}' not found. Available: {available}"
+            )
+
+        skill_names = presets[preset]
+        catalog_data = self.catalog.get("catalog") or self.catalog.get("cat", {})
+
+        result: List[Tuple[str, Dict]] = []
+        for name in skill_names:
+            meta = self._find_skill_in_catalog(catalog_data, name)
+            if meta is None:
+                raise SkillsLoaderError(
+                    f"Preset '{preset}' references unknown skill '{name}'"
+                )
+            result.append((name, meta))
+
+        return result
+
+    def _find_skill_in_catalog(
+        self, catalog_data: Dict, skill_name: str
+    ) -> Optional[Dict]:
+        """Find skill metadata by name in catalog.
+
+        Args:
+            catalog_data: Catalog data (flat or categorized).
+            skill_name: Name of the skill to find.
+
+        Returns:
+            Skill metadata dict, or None if not found.
+        """
+        if self._catalog_is_flat(catalog_data):
+            return catalog_data.get(skill_name)
+        else:
+            for _category, skills in catalog_data.items():
+                if isinstance(skills, dict) and skill_name in skills:
+                    return skills[skill_name]
+        return None
+
+    def load_for_task(self, task: str, preset: Optional[str] = None) -> str:
         """Load relevant skills for a given task.
 
         Flow:
             1. Detect thinking mode from task description
-            2. Find keyword-matched skills
+            2. Find keyword-matched skills (or use preset)
             3. Prepend always-load skills
             4. Load each skill within token budget
             5. Format and return output
 
         Args:
             task: Task description to analyze.
+            preset: Optional preset name to use instead of keyword matching.
 
         Returns:
             Formatted string with all loaded skills and metadata.
         """
         thinking_mode = self._detect_thinking_mode(task)
-        tokens_used = int(self.CORE_TOKENS_ESTIMATE)
 
         # Support both "load_strategy" and "load" keys
         load_cfg = self.catalog.get("load_strategy") or self.catalog.get("load", {})
         max_tokens = int(load_cfg.get("max_tokens") or load_cfg.get("max_tok", 5000))
 
-        # Resolve full skill list (always-load + keyword-matched)
-        all_skills = self._resolve_always_load(self._analyze_task_keywords(task))
+        # Resolve skill list: preset or keyword-matched
+        if preset is not None:
+            task_skills = self._resolve_preset(preset)
+        else:
+            task_skills = self._analyze_task_keywords(task)
 
-        # Core content
+        all_skills = self._resolve_always_load(task_skills)
+
+        # Core content with measured token count
         core_content = yaml.dump(self.core, default_flow_style=False)
+        tokens_used = self._estimate_tokens(core_content)
 
         # Load each skill within budget
         loaded_skills: List[Tuple[str, str, Optional[Dict]]] = []
         for skill_name, meta in all_skills:
-            skill_tokens = self._get_catalog_value(meta, "tokens", 1000)
-            skill_tokens = int(skill_tokens) if skill_tokens is not None else 0
-
-            if tokens_used + skill_tokens > max_tokens:
-                loaded_skills.append((skill_name, "skipped", None))
-                continue
-
             skill_path = self.base_path / "skills" / meta.get("path", "")
             skill_content = self._load_skill_content(skill_path)
 
             if skill_content is None:
                 status = "missing" if not skill_path.exists() else "error"
                 loaded_skills.append((skill_name, status, None))
-            else:
-                loaded_skills.append((skill_name, "loaded", skill_content))
+                continue
 
+            # Use measured tokens, fall back to catalog value
+            skill_text = yaml.dump(skill_content, default_flow_style=False)
+            measured_tokens = self._estimate_tokens(skill_text)
+            raw_catalog_tokens = self._get_catalog_value(meta, "tokens", 0)
+            try:
+                catalog_tokens = int(raw_catalog_tokens)
+            except (TypeError, ValueError):
+                catalog_tokens = 0
+            skill_tokens = max(measured_tokens, catalog_tokens)
+
+            if tokens_used + skill_tokens > max_tokens:
+                loaded_skills.append((skill_name, "skipped", None))
+                continue
+
+            loaded_skills.append((skill_name, "loaded", skill_content))
             tokens_used += skill_tokens
 
         return self._format_output(
@@ -563,7 +732,34 @@ def main() -> int:
     if "--validate" in sys.argv[1:]:
         return _run_validation()
 
+    if "--validate-strict" in sys.argv[1:]:
+        loader = SkillsLoader()
+        errors = loader.validate_catalog(warn_duplicate_keywords=True)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}", file=sys.stderr)
+            return 1
+        print("skills_catalog.yaml strict validation passed")
+        return 0
+
+    # Check for preset argument: --preset=py_dev
+    preset = None
+    for arg in sys.argv[1:]:
+        if arg.startswith("--preset="):
+            preset = arg.split("=", 1)[1]
+
     loader = SkillsLoader()
+
+    if preset:
+        print(f"Loading preset: {preset}")
+        try:
+            result = loader.load_for_task("preset task", preset=preset)
+            print(result)
+        except SkillsLoaderError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
+        return 0
+
     test_tasks = [
         "ls -la",
         "Create a Python script to parse CSV files",
