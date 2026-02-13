@@ -113,7 +113,7 @@
 	<key>GPU_widget</key>
 	<string>tachometer</string>
 	<key>LaunchAtLoginNext</key>
-	<true/>
+	<false/>
 	<key>NSNavPanelExpandedSizeForSaveMode</key>
 	<string>{880, 448}</string>
 	<key>NSNavPanelExpandedStateForSaveMode</key>
