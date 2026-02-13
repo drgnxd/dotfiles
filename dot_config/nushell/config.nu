@@ -1,6 +1,8 @@
 
 # Nushell Configuration
 
+const config_dir = ($nu.config-path | path dirname)
+
 # History
 $env.config.history = {
     file_format: 'sqlite'
@@ -180,19 +182,19 @@ $env.config.keybindings = (
 # AUTOLOAD MODULES
 # =============================================================================
 
-source '/Users/drgnxd/.config/nushell/autoload/00-constants.nu'
-source '/Users/drgnxd/.config/nushell/autoload/00-helpers.nu'
+source ($config_dir | path join 'autoload' '00-constants.nu')
+source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 # Modules (Dependencies) - Load these FIRST
-source '/Users/drgnxd/.config/nushell/autoload/03-aliases.nu'
-source '/Users/drgnxd/.config/nushell/autoload/04-functions.nu'
-source '/Users/drgnxd/.config/nushell/autoload/05-completions.nu'
-source '/Users/drgnxd/.config/nushell/autoload/06-integrations.nu'
-source '/Users/drgnxd/.config/nushell/autoload/08-taskwarrior.nu'
-source '/Users/drgnxd/.config/nushell/autoload/09-lima.nu'
+source ($config_dir | path join 'autoload' '03-aliases.nu')
+source ($config_dir | path join 'autoload' '04-functions.nu')
+source ($config_dir | path join 'autoload' '05-completions.nu')
+source ($config_dir | path join 'autoload' '06-integrations.nu')
+source ($config_dir | path join 'autoload' '08-taskwarrior.nu')
+source ($config_dir | path join 'autoload' '09-lima.nu')
 
 # Tools / Consumers - Load these LAST
-source '/Users/drgnxd/.config/nushell/autoload/07-source-tools.nu'
+source ($config_dir | path join 'autoload' '07-source-tools.nu')
 
 # Local config (optional)
-try { source '/Users/drgnxd/.config/nushell/local.nu' }
+try { source ($config_dir | path join 'local.nu') }

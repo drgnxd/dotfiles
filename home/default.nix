@@ -263,4 +263,19 @@ in
       /bin/mv -f "$stats_agent" "$stats_agent_disabled"
     fi
   '';
+
+  home.activation.disableHammerspoonLaunchAtLogin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    user_id="$(/usr/bin/id -u)"
+    hammerspoon_agent="$HOME/Library/LaunchAgents/org.hammerspoon.Hammerspoon.plist"
+    hammerspoon_agent_disabled="$HOME/Library/LaunchAgents/org.hammerspoon.Hammerspoon.plist.disabled"
+
+    /bin/launchctl bootout "gui/$user_id/org.hammerspoon.Hammerspoon" 2>/dev/null || true
+    /bin/launchctl disable "gui/$user_id/org.hammerspoon.Hammerspoon" 2>/dev/null || true
+    /bin/launchctl bootout "gui/$user_id/org.hammerspoon.Hammerspoon.LaunchAtLogin" 2>/dev/null || true
+    /bin/launchctl disable "gui/$user_id/org.hammerspoon.Hammerspoon.LaunchAtLogin" 2>/dev/null || true
+
+    if [ -f "$hammerspoon_agent" ]; then
+      /bin/mv -f "$hammerspoon_agent" "$hammerspoon_agent_disabled"
+    fi
+  '';
 }
