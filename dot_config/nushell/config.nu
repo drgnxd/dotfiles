@@ -1,7 +1,7 @@
 
 # Nushell Configuration
 
-const config_dir = ($nu.config-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 
 # History
 $env.config.history = {
