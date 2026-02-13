@@ -154,7 +154,7 @@ darwin-rebuild switch --flake .#macbook
 
 ### Helix の Language Server (LSP) サポート
 
-この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPが含まれます。エディタ設定は `dot_config/helix/`、パッケージ定義は `nix/packages.nix` を参照してください。
+この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPが含まれます。エディタ設定は `dot_config/helix/`、パッケージ定義は `home/packages.nix` を参照してください。
 
 ## ライセンス
 

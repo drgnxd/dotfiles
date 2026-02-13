@@ -5,6 +5,7 @@
 - nix-darwin の `system.defaults` と activation scripts
 - `launchd.user.agents` による LaunchAgent 管理
 - Hammerspoon と Stats の設定は Home Manager で管理
+- Home Manager の activation で、Stats/Hammerspoon の旧アプリ管理 LaunchAgent を無効化し二重起動を防止
 
 **アプリ**:
 - nixpkgs で不足する GUI アプリは nix-darwin の `homebrew` で管理

@@ -20,7 +20,7 @@ This repository contains configurations for my macOS environment, including:
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser)
 *   **Terminal Multiplexer:** Tmux with Solarized Dark theme and Vim-style keybindings
-*   **Editor:** Helix with Emacs hybrid bindings (Solarized Dark)
+*   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Window Manager:** Hammerspoon (macOS only)
 *   **Package Manager:** Nix (nix-darwin + home-manager)

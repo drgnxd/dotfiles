@@ -29,24 +29,26 @@ dot_config/nushell/
 
 ## モジュール読み込み
 
-`env.nu` と `config.nu` は、Home Manager 環境で設定本体が Nix ストア上にあっても安定してモジュールを解決できるよう、固定の絶対パス（`/Users/drgnxd/.config/nushell/...`）で `source` します：
+`env.nu` と `config.nu` は、Nushell が実際に読み込んだ設定パスから実行時に `config_dir` を求め、その配下を相対的に `source` します：
 
 ```nushell
 # env.nu
-source '/Users/drgnxd/.config/nushell/autoload/01-env.nu'
-source '/Users/drgnxd/.config/nushell/autoload/02-path.nu'
+const config_dir = ($nu.env-path | path dirname)
+source ($config_dir | path join 'autoload' '01-env.nu')
+source ($config_dir | path join 'autoload' '02-path.nu')
 
 # config.nu
-source '/Users/drgnxd/.config/nushell/autoload/00-constants.nu'
-source '/Users/drgnxd/.config/nushell/autoload/00-helpers.nu'
+const config_dir = ($nu.config-path | path dirname)
+source ($config_dir | path join 'autoload' '00-constants.nu')
+source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
-このアプローチにより、設定ファイル自体の配置場所（例: Nix ストア）に影響されず、実際の設定ディレクトリを基準にモジュールを解決できます。
+この方式により、Home Manager のストア経由シンボリックリンク環境でも、実際に有効な設定ディレクトリを基準に安定してモジュール解決できます。
 
-設定ディレクトリを移動した場合は、`env.nu`、`config.nu`、`autoload/00-constants.nu`、および `autoload/` 配下ラッパーの固定パスを更新してください。
+ユーザー名やホームディレクトリが変わっても、手動で固定パスを書き換える必要はありません。
 
-重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが固定の絶対パスで `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、パース時評価の制約を回避します。
+重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが `autoload/00-constants.nu` で定義したモジュール定数経由で `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、ハードコードされたパス依存を避けます。
 
 ## 主な機能
 
@@ -153,7 +155,7 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 ### UI
 - バナー: 無効
 - エラースタイル: Fancy
-- 編集モード: Emacs
+- 編集モード: Readline互換（Nushell の `emacs` モード）
 - Kittyプロトコル: 有効
 - ブラケット貼り付け: 有効
 

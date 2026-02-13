@@ -29,24 +29,26 @@ dot_config/nushell/
 
 ## Module Loading
 
-`env.nu` and `config.nu` source modules via pinned absolute paths (`/Users/drgnxd/.config/nushell/...`) so lookups stay stable even when loaded config files live in Home Manager store paths:
+`env.nu` and `config.nu` resolve a runtime `config_dir` from Nushell's active config paths, then source modules relative to that directory:
 
 ```nushell
 # env.nu
-source '/Users/drgnxd/.config/nushell/autoload/01-env.nu'
-source '/Users/drgnxd/.config/nushell/autoload/02-path.nu'
+const config_dir = ($nu.env-path | path dirname)
+source ($config_dir | path join 'autoload' '01-env.nu')
+source ($config_dir | path join 'autoload' '02-path.nu')
 
 # config.nu
-source '/Users/drgnxd/.config/nushell/autoload/00-constants.nu'
-source '/Users/drgnxd/.config/nushell/autoload/00-helpers.nu'
+const config_dir = ($nu.config-path | path dirname)
+source ($config_dir | path join 'autoload' '00-constants.nu')
+source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
-This approach keeps module lookups anchored to the user config directory and avoids parse-time failures caused by deriving sibling paths from store-backed config file locations.
+This keeps module lookups anchored to whichever config Nushell actually loaded and avoids parse-time failures caused by store-backed symlink paths in Home Manager.
 
-If you relocate your config directory, update the pinned paths in `env.nu`, `config.nu`, `autoload/00-constants.nu`, and wrapper files under `autoload/`.
+No user-specific path rewrites are needed when moving between machines/users, as long as `env.nu` and `config.nu` are loaded from the target config directory.
 
-Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with pinned absolute paths. This keeps startup fast while avoiding parse-time evaluation errors.
+Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with module constants exported from `autoload/00-constants.nu`. This keeps startup fast while avoiding hardcoded path assumptions.
 
 ## Key Features
 
@@ -153,7 +155,7 @@ Cache generation runs on demand via `integrations-cache-update`. Generated init 
 ### UI
 - Banner: Disabled
 - Error style: Fancy
-- Edit mode: Emacs
+- Edit mode: Readline-compatible (Nushell `emacs` mode)
 - Kitty protocol: Enabled
 - Bracketed paste: Enabled
 
