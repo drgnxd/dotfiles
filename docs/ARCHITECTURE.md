@@ -104,18 +104,18 @@ autoload/
 **Module Loading**:
 ```nushell
 # env.nu
-const config_dir = ($nu.env-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 source ($config_dir | path join 'autoload' '01-env.nu')
 source ($config_dir | path join 'autoload' '02-path.nu')
 
 # config.nu
-const config_dir = ($nu.config-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 source ($config_dir | path join 'autoload' '00-constants.nu')
 source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
-Using runtime config-path resolution keeps module loading stable even when config files are symlinked into Nix store paths.
+Using `$nu.home-dir` to anchor module paths keeps loading stable even when active config files are loaded from Nix store paths.
 
 ### 2. Taskwarrior Integration
 See [Taskwarrior Integration](architecture/taskwarrior.md).

@@ -29,22 +29,22 @@ dot_config/nushell/
 
 ## Module Loading
 
-`env.nu` and `config.nu` resolve a runtime `config_dir` from Nushell's active config paths, then source modules relative to that directory:
+`env.nu` and `config.nu` resolve `config_dir` from `$nu.home-dir` and source modules relative to `~/.config/nushell`:
 
 ```nushell
 # env.nu
-const config_dir = ($nu.env-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 source ($config_dir | path join 'autoload' '01-env.nu')
 source ($config_dir | path join 'autoload' '02-path.nu')
 
 # config.nu
-const config_dir = ($nu.config-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 source ($config_dir | path join 'autoload' '00-constants.nu')
 source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
-This keeps module lookups anchored to whichever config Nushell actually loaded and avoids parse-time failures caused by store-backed symlink paths in Home Manager.
+This keeps module lookups anchored to `~/.config/nushell` in Home Manager setups and avoids parse-time failures when active config files live under `/nix/store`.
 
 No user-specific path rewrites are needed when moving between machines/users, as long as `env.nu` and `config.nu` are loaded from the target config directory.
 

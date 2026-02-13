@@ -29,22 +29,22 @@ dot_config/nushell/
 
 ## モジュール読み込み
 
-`env.nu` と `config.nu` は、Nushell が実際に読み込んだ設定パスから実行時に `config_dir` を求め、その配下を相対的に `source` します：
+`env.nu` と `config.nu` は、`$nu.home-dir` から `~/.config/nushell` を組み立てて `config_dir` を求め、その配下を相対的に `source` します：
 
 ```nushell
 # env.nu
-const config_dir = ($nu.env-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 source ($config_dir | path join 'autoload' '01-env.nu')
 source ($config_dir | path join 'autoload' '02-path.nu')
 
 # config.nu
-const config_dir = ($nu.config-path | path dirname)
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 source ($config_dir | path join 'autoload' '00-constants.nu')
 source ($config_dir | path join 'autoload' '00-helpers.nu')
 ...
 ```
 
-この方式により、Home Manager のストア経由シンボリックリンク環境でも、実際に有効な設定ディレクトリを基準に安定してモジュール解決できます。
+この方式により、Home Manager で設定ファイル本体が `/nix/store` 側にあっても、`~/.config/nushell` を基準に安定してモジュール解決できます。
 
 ユーザー名やホームディレクトリが変わっても、手動で固定パスを書き換える必要はありません。
 
