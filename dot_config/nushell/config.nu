@@ -1,7 +1,13 @@
 
 # Nushell Configuration
 
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
+const config_dir = (
+    if (((($nu.config-path | path dirname) | path join 'autoload' '00-constants.nu') | path exists)) {
+        ($nu.config-path | path dirname)
+    } else {
+        $nu.default-config-dir
+    }
+)
 
 # History
 $env.config.history = {
