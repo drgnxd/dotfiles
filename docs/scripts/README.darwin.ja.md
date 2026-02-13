@@ -18,6 +18,7 @@
 - `home/default.nix`
   - ユーザー設定（Finder/Dock/メニューバー）
   - Stats.app 設定のインポート
+  - Stats/Hammerspoon の旧 LaunchAtLogin Agent を無効化・退避し、二重起動を防止
 
 ## 使用例
 ```bash

@@ -18,6 +18,7 @@ This directory documents the remaining macOS helper scripts. Most system configu
 - `home/default.nix`
   - User-level defaults (Finder/Dock/menu bar)
   - Stats.app configuration import
+  - Legacy LaunchAtLogin agents for Stats/Hammerspoon are disabled and archived to prevent duplicate app launches
 
 ## Usage
 ```bash
