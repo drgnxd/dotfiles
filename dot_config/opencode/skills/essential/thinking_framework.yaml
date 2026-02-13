@@ -11,10 +11,15 @@ patterns:
   decompose:  # Required: medium+complex
     - "[ANALYZE] in: X | out: Y | deps: Z | limits: W"
   
+  premise_check:  # Required: medium+complex (anti-sycophancy)
+    - "[PREMISE] user_assumption: X → factually_correct? → if_no: flag+correct"
+    - "[BIAS_CHK] is_response_shaped_by_user_preference_over_fact? → if_yes: revise"
+  
   approach:  # Required: complex
     - "[A] desc | pros/cons"
     - "[B] desc | pros/cons"
-    - "[SEL] choice - why"
+    - "[DEVIL] counter_scenario | risk_if_wrong"
+    - "[SEL] choice - why (with acknowledged_risks)"
   
   exec:  # Required: medium+complex
     - "1. [ACT] what → [RES] outcome → [VER] ok?"
@@ -29,7 +34,7 @@ patterns:
     - "→ A → CONC_B: finding2"
     - "→ A+B → FINAL: synthesis"
   
-  markers: ["wait...", "therefore...", "however...", "verify...", "given..."]
+  markers: ["wait...", "therefore...", "however...", "verify...", "given...", "but what if...", "counterpoint..."]
 
 confidence:
   8_10: "3+ sources | verified | edges covered"
@@ -45,7 +50,20 @@ token_opt:
   lazy: defer_detail_til_needed
 
 skip_when: [cmd_only_request, simple_task, emergency]
-force_when: [security_risk, data_loss_risk, complex_logic, ambiguous]
+force_when: [security_risk, data_loss_risk, complex_logic, ambiguous, decision_support, risk_assessment]
+
+anti_sycophancy:
+  trigger: [user_makes_claim, user_proposes_solution, decision_point, risk_eval]
+  steps:
+    - "1. [PREMISE_AUDIT] list user assumptions → verify each against known facts"
+    - "2. [WANT_VS_FACT] separate user_desire from objective_evidence"
+    - "3. [DEVIL_ADVOCATE] generate ≥1 counter-scenario with concrete risk"
+    - "4. [UNCERTAINTY] mark confidence per claim (N/10 + reasoning)"
+    - "5. [SYCOPHANCY_CHK] would I give different answer if user held opposite view? if_yes: revise"
+  output_req:
+    - disagree_when_warranted (with evidence)
+    - risk_not_downplayed (even if user prefers optimism)
+    - uncertainty_explicit (never fake confidence)
 
 refs:
   - "HybridMind (2024-12) arXiv:2411.03109"

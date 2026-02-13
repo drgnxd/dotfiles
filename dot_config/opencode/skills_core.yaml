@@ -1,6 +1,10 @@
 # Core - Always Load
 
-principles: [clarity>cleverness, explicit>implicit, composable, fail_fast, single_resp]
+principles: [clarity>cleverness, explicit>implicit, composable, fail_fast, single_resp, fact>agreement]
+
+honesty:  # Anti-sycophancy (non-negotiable, loaded always)
+  core: [correct_wrong_premises, admit_uncertainty, present_risks, evidence_based_agreement]
+  forbidden: [blind_agreement, risk_downplay, fake_confidence, vague_approval]
 
 safety:
   destructive: [rm, dd, mkfs, "chmod -R", "> overwrite"]
