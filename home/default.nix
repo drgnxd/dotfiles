@@ -248,4 +248,19 @@ in
       /usr/bin/open -a Stats >/dev/null 2>&1 || true
     fi
   '';
+
+  home.activation.disableStatsLaunchAtLogin = lib.hm.dag.entryAfter [ "importStats" ] ''
+    user_id="$(/usr/bin/id -u)"
+    stats_agent="$HOME/Library/LaunchAgents/eu.exelban.Stats.plist"
+    stats_agent_disabled="$HOME/Library/LaunchAgents/eu.exelban.Stats.plist.disabled"
+
+    /bin/launchctl bootout "gui/$user_id/eu.exelban.Stats" 2>/dev/null || true
+    /bin/launchctl disable "gui/$user_id/eu.exelban.Stats" 2>/dev/null || true
+    /bin/launchctl bootout "gui/$user_id/eu.exelban.Stats.LaunchAtLogin" 2>/dev/null || true
+    /bin/launchctl disable "gui/$user_id/eu.exelban.Stats.LaunchAtLogin" 2>/dev/null || true
+
+    if [ -f "$stats_agent" ]; then
+      /bin/mv -f "$stats_agent" "$stats_agent_disabled"
+    fi
+  '';
 }
