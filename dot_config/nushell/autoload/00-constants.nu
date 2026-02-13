@@ -1,7 +1,13 @@
 
 # Constants Module
 
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
+const config_dir = (
+    if (((($nu.config-path | path dirname) | path join 'modules' 'integrations.nu') | path exists)) {
+        ($nu.config-path | path dirname)
+    } else {
+        $nu.default-config-dir
+    }
+)
 const integrations_module = ($config_dir | path join 'modules' 'integrations.nu')
 const taskwarrior_module = ($config_dir | path join 'modules' 'taskwarrior.nu')
 const lima_module = ($config_dir | path join 'modules' 'lima.nu')
