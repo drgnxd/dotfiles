@@ -40,14 +40,30 @@ See: skills/essential/thinking_framework.yaml for templates
 ## System Structure
 
 ```
-.opencode/
-├── AGENTS.md           <- Start here
-├── skills_core.yaml    <- Always loaded
-├── skills_catalog.yaml <- Skill index
-├── skills_loader.py    <- Auto-loader
+<opencode-config>/          # ~/.config/opencode/ or equivalent
+├── AGENTS.md               <- Start here
+├── opencode.json            <- OpenCode app config
+├── skills_core.yaml         <- Always loaded (core principles)
+├── skills_catalog.yaml      <- Skill index (keywords, tokens, presets)
+├── skills_loader.py         <- Auto-loader (Python)
+├── Makefile                 <- Dev targets (test, validate, check-uv)
+├── requirements.txt         <- Python deps (pyyaml)
+├── tests/                   <- pytest test suite
+│   ├── conftest.py
+│   └── test_skills_loader.py
 └── skills/
-    ├── essential/      <- High-frequency (languages, practices, thinking)
-    └── specialized/    <- Domain-specific (infra, research, japanese)
+    ├── essential/           <- High-frequency
+    │   ├── languages.yaml   <- Bash, Python, JS, Rust, Nushell
+    │   ├── practices.yaml   <- Unix, test, review, refactor, debug
+    │   └── thinking_framework.yaml
+    ├── specialized/         <- Domain-specific
+    │   ├── infrastructure.yaml  <- Git, Docker, Linux, DB, Security
+    │   ├── japanese.yaml    <- Japanese language defaults
+    │   └── research.yaml    <- Deep research methodology
+    └── tools/               <- Enforcement & analysis scripts
+        ├── check_uv_usage.sh
+        ├── coding/          <- Style checkers (flake8, black, mypy)
+        └── research/        <- Search, synthesize, report tools
 ```
 
 ---
@@ -60,7 +76,7 @@ Example:
 ```
 Task: "Create a Python script"
 [Mode: MEDIUM]
-→ Loads: core + japanese + thinking + languages + practices
+→ Loads: core + ja + think + langs + prac
 → Python commands MUST use uv
 ```
 
@@ -70,7 +86,7 @@ Task: "Create a Python script"
 
 1. **Thinking Protocol** - Structured reasoning (non-negotiable)
 2. **uv Rule** - Python pkg mgmt (non-negotiable)
-3. `.opencode/skills/` - Project overrides
+3. `skills/` - Project skill overrides
 4. `CODING_STANDARDS.md` - Project docs
 5. `.editorconfig` - Editor config
 6. Language configs - `pyproject.toml`, `.eslintrc`, etc.
@@ -204,4 +220,4 @@ ls | where size > 1mb | each { |file| ^gzip $file.name }
 
 ---
 
-**Last updated**: 2025-02-02
+**Last updated**: 2025-02-13
