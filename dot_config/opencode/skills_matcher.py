@@ -1,7 +1,7 @@
 """Keyword matching, thinking mode detection, and task analysis."""
 
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 # Import the catalog value accessor protocol to avoid circular deps
 from skills_catalog import SkillsCatalog

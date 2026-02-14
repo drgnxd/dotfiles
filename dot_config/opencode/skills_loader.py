@@ -21,7 +21,7 @@ import yaml
 
 from skills_catalog import SkillsCatalog, SkillsLoaderError
 from skills_formatter import SkillsFormatter
-from skills_matcher import SkillsMatcher, ThinkingMode
+from skills_matcher import SkillsMatcher, ThinkingMode as ThinkingMode
 
 
 class SkillsLoader:
