@@ -36,11 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v7
       - name: Run ruff
         run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-          ruff check dot_config/taskwarrior/hooks
+          uv tool run ruff check dot_config/taskwarrior/hooks dot_config/opencode

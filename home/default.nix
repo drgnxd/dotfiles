@@ -28,6 +28,76 @@ let
             && !lib.hasInfix "/__pycache__/" path_str;
       };
 
+  # Simple source-only config files: target path relative to XDG_CONFIG_HOME
+  # mapped from source path relative to repository root (dot_config/)
+  simpleConfigFiles = [
+    # Alacritty
+    { target = "alacritty/alacritty.toml"; source = ../dot_config/alacritty/alacritty.toml; }
+    { target = "alacritty/blur.toml"; source = ../dot_config/alacritty/blur.toml; }
+
+    # Shell tools
+    { target = "atuin/config.toml"; source = ../dot_config/atuin/config.toml; }
+    { target = "bat/config"; source = ../dot_config/bat/config; }
+    { target = "gh/config.yml"; source = ../dot_config/gh/config.yml; }
+    { target = "git/config"; source = ../dot_config/git/config; }
+    { target = "git/config.local.example"; source = ../dot_config/git/config.local.example; }
+
+    # Helix
+    { target = "helix/config.toml"; source = ../dot_config/helix/config.toml; }
+    { target = "helix/languages.toml"; source = ../dot_config/helix/languages.toml; }
+    { target = "helix/themes/solarized_dark_transparent.toml"; source = ../dot_config/helix/themes/solarized_dark_transparent.toml; }
+
+    # Nushell
+    { target = "nushell/config.nu"; source = ../dot_config/nushell/config.nu; }
+    { target = "nushell/env.nu"; source = ../dot_config/nushell/env.nu; }
+    { target = "nushell/local.nu"; source = ../dot_config/nushell/local.nu; }
+    { target = "nushell/autoload/00-constants.nu"; source = ../dot_config/nushell/autoload/00-constants.nu; }
+    { target = "nushell/autoload/00-helpers.nu"; source = ../dot_config/nushell/autoload/00-helpers.nu; }
+    { target = "nushell/autoload/01-env.nu"; source = ../dot_config/nushell/autoload/01-env.nu; }
+    { target = "nushell/autoload/02-path.nu"; source = ../dot_config/nushell/autoload/02-path.nu; }
+    { target = "nushell/autoload/03-aliases.nu"; source = ../dot_config/nushell/autoload/03-aliases.nu; }
+    { target = "nushell/autoload/04-functions.nu"; source = ../dot_config/nushell/autoload/04-functions.nu; }
+    { target = "nushell/autoload/05-completions.nu"; source = ../dot_config/nushell/autoload/05-completions.nu; }
+    { target = "nushell/autoload/06-integrations.nu"; source = ../dot_config/nushell/autoload/06-integrations.nu; }
+    { target = "nushell/autoload/07-source-tools.nu"; source = ../dot_config/nushell/autoload/07-source-tools.nu; }
+    { target = "nushell/autoload/08-taskwarrior.nu"; source = ../dot_config/nushell/autoload/08-taskwarrior.nu; }
+    { target = "nushell/autoload/09-lima.nu"; source = ../dot_config/nushell/autoload/09-lima.nu; }
+    { target = "nushell/modules/integrations.nu"; source = ../dot_config/nushell/modules/integrations.nu; }
+    { target = "nushell/modules/taskwarrior.nu"; source = ../dot_config/nushell/modules/taskwarrior.nu; }
+    { target = "nushell/modules/lima.nu"; source = ../dot_config/nushell/modules/lima.nu; }
+
+    # Other tools
+    { target = "shellcheck/shellcheckrc"; source = ../dot_config/shellcheck/shellcheckrc; }
+    { target = "starship/starship.toml"; source = ../dot_config/starship/starship.toml; }
+    { target = "tmux/tmux.conf"; source = ../dot_config/tmux/tmux.conf; }
+
+    # Yazi
+    { target = "yazi/yazi.toml"; source = ../dot_config/yazi/yazi.toml; }
+    { target = "yazi/theme.toml"; source = ../dot_config/yazi/theme.toml; }
+    { target = "yazi/keymap.toml"; source = ../dot_config/yazi/keymap.toml; }
+    { target = "yazi/flavors/solarized-dark.yazi/flavor.toml"; source = ../dot_config/yazi/flavors/solarized-dark.yazi/flavor.toml; }
+    { target = "yazi/flavors/solarized-dark-custom/colors.toml"; source = ../dot_config/yazi/flavors/solarized-dark-custom/colors.toml; }
+    { target = "yazi/flavors/solarized-dark-custom/style.yazi"; source = ../dot_config/yazi/flavors/solarized-dark-custom/style.yazi; }
+
+    # Hammerspoon
+    { target = "hammerspoon/init.lua"; source = ../dot_config/hammerspoon/init.lua; }
+    { target = "hammerspoon/window.lua"; source = ../dot_config/hammerspoon/window.lua; }
+    { target = "hammerspoon/cheatsheet.lua"; source = ../dot_config/hammerspoon/cheatsheet.lua; }
+    { target = "hammerspoon/reload.lua"; source = ../dot_config/hammerspoon/reload.lua; }
+    { target = "hammerspoon/input_switcher.lua"; source = ../dot_config/hammerspoon/input_switcher.lua; }
+    { target = "hammerspoon/browser_control.lua"; source = ../dot_config/hammerspoon/browser_control.lua; }
+    { target = "hammerspoon/caffeine.lua"; source = ../dot_config/hammerspoon/caffeine.lua; }
+
+    # Stats
+    { target = "stats/eu.exelban.Stats.plist"; source = ../dot_config/stats/eu.exelban.Stats.plist; }
+  ];
+
+  # Generate xdg.configFile attrs from the simple list
+  simpleConfigAttrs = builtins.listToAttrs (map (entry: {
+    name = entry.target;
+    value = { source = entry.source; };
+  }) simpleConfigFiles);
+
   opencode_config = ../dot_config/opencode/opencode.json;
 
   taskwarrior_source = clean_source { src = ../dot_config/taskwarrior; };
@@ -60,67 +130,17 @@ in
     ("Missing nix packages: " + (lib.concatStringsSep ", " packages.missing));
 
   xdg.configFile = lib.mkMerge [
+    # Bulk-generated simple source mappings
+    simpleConfigAttrs
+
+    # Entries requiring special attributes
     {
-      "alacritty/alacritty.toml".source = ../dot_config/alacritty/alacritty.toml;
-      "alacritty/blur.toml".source = ../dot_config/alacritty/blur.toml;
       "alacritty/toggle_blur.sh" = {
         source = ../dot_config/alacritty/executable_toggle_blur.sh;
         executable = true;
       };
 
-      "atuin/config.toml".source = ../dot_config/atuin/config.toml;
-      "bat/config".source = ../dot_config/bat/config;
-      "gh/config.yml".source = ../dot_config/gh/config.yml;
-      "git/config".source = ../dot_config/git/config;
-      "git/config.local.example".source = ../dot_config/git/config.local.example;
-
-      "helix/config.toml".source = ../dot_config/helix/config.toml;
-      "helix/languages.toml".source = ../dot_config/helix/languages.toml;
-      "helix/themes/solarized_dark_transparent.toml".source = ../dot_config/helix/themes/solarized_dark_transparent.toml;
-
-      "nushell/config.nu".source = ../dot_config/nushell/config.nu;
-      "nushell/env.nu".source = ../dot_config/nushell/env.nu;
-      "nushell/local.nu".source = ../dot_config/nushell/local.nu;
-
-      "nushell/autoload/00-constants.nu".source = ../dot_config/nushell/autoload/00-constants.nu;
-      "nushell/autoload/00-helpers.nu".source = ../dot_config/nushell/autoload/00-helpers.nu;
-      "nushell/autoload/01-env.nu".source = ../dot_config/nushell/autoload/01-env.nu;
-      "nushell/autoload/02-path.nu".source = ../dot_config/nushell/autoload/02-path.nu;
-      "nushell/autoload/03-aliases.nu".source = ../dot_config/nushell/autoload/03-aliases.nu;
-      "nushell/autoload/04-functions.nu".source = ../dot_config/nushell/autoload/04-functions.nu;
-      "nushell/autoload/05-completions.nu".source = ../dot_config/nushell/autoload/05-completions.nu;
-      "nushell/autoload/06-integrations.nu".source = ../dot_config/nushell/autoload/06-integrations.nu;
-      "nushell/autoload/07-source-tools.nu".source = ../dot_config/nushell/autoload/07-source-tools.nu;
-      "nushell/autoload/08-taskwarrior.nu".source = ../dot_config/nushell/autoload/08-taskwarrior.nu;
-      "nushell/autoload/09-lima.nu".source = ../dot_config/nushell/autoload/09-lima.nu;
-
-      "nushell/modules/integrations.nu".source = ../dot_config/nushell/modules/integrations.nu;
-      "nushell/modules/taskwarrior.nu".source = ../dot_config/nushell/modules/taskwarrior.nu;
-      "nushell/modules/lima.nu".source = ../dot_config/nushell/modules/lima.nu;
-
-      "shellcheck/shellcheckrc".source = ../dot_config/shellcheck/shellcheckrc;
-      "starship/starship.toml".source = ../dot_config/starship/starship.toml;
-
       "taskwarrior".source = taskwarrior_source;
-
-      "tmux/tmux.conf".source = ../dot_config/tmux/tmux.conf;
-
-      "yazi/yazi.toml".source = ../dot_config/yazi/yazi.toml;
-      "yazi/theme.toml".source = ../dot_config/yazi/theme.toml;
-      "yazi/keymap.toml".source = ../dot_config/yazi/keymap.toml;
-      "yazi/flavors/solarized-dark.yazi/flavor.toml".source = ../dot_config/yazi/flavors/solarized-dark.yazi/flavor.toml;
-      "yazi/flavors/solarized-dark-custom/colors.toml".source = ../dot_config/yazi/flavors/solarized-dark-custom/colors.toml;
-      "yazi/flavors/solarized-dark-custom/style.yazi".source = ../dot_config/yazi/flavors/solarized-dark-custom/style.yazi;
-
-      "hammerspoon/init.lua".source = ../dot_config/hammerspoon/init.lua;
-      "hammerspoon/window.lua".source = ../dot_config/hammerspoon/window.lua;
-      "hammerspoon/cheatsheet.lua".source = ../dot_config/hammerspoon/cheatsheet.lua;
-      "hammerspoon/reload.lua".source = ../dot_config/hammerspoon/reload.lua;
-      "hammerspoon/input_switcher.lua".source = ../dot_config/hammerspoon/input_switcher.lua;
-      "hammerspoon/browser_control.lua".source = ../dot_config/hammerspoon/browser_control.lua;
-      "hammerspoon/caffeine.lua".source = ../dot_config/hammerspoon/caffeine.lua;
-
-      "stats/eu.exelban.Stats.plist".source = ../dot_config/stats/eu.exelban.Stats.plist;
     }
     (lib.optionalAttrs (!use_npmrc_secret && has_npmrc_file) {
       "npm/npmrc".source = ../dot_config/npm/npmrc;

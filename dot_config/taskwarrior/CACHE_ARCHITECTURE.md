@@ -213,7 +213,7 @@ task add "New task"  または  task 1 done
 
 4. **手動でキャッシュを再構築**
    ```bash
-   python3 ${XDG_CONFIG_HOME:-~/.config}/taskwarrior/hooks/update_cache.py --update-only
+    uv run --quiet --script ${XDG_CONFIG_HOME:-~/.config}/taskwarrior/hooks/update_cache.py --update-only
    ```
 
 ### プレビューが表示されない
