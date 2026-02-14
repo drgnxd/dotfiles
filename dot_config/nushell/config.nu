@@ -1,13 +1,8 @@
 
 # Nushell Configuration
 
-const config_dir = (
-    if (((($nu.config-path | path dirname) | path join 'autoload' '00-constants.nu') | path exists)) {
-        ($nu.config-path | path dirname)
-    } else {
-        $nu.default-config-dir
-    }
-)
+# Use ~/.config/nushell unconditionally (see env.nu for rationale).
+const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 
 # History
 $env.config.history = {
@@ -34,150 +29,56 @@ $env.config.completions.external = {
 }
 
 # Task preview keybindings
-let task_preview_repaint_keys = [
-    {
-        name: task_preview_digit_0
-        modifier: none
-        keycode: char_0
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '0' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_1
-        modifier: none
-        keycode: char_1
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '1' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_2
-        modifier: none
-        keycode: char_2
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '2' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_3
-        modifier: none
-        keycode: char_3
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '3' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_4
-        modifier: none
-        keycode: char_4
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '4' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_5
-        modifier: none
-        keycode: char_5
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '5' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_6
-        modifier: none
-        keycode: char_6
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '6' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_7
-        modifier: none
-        keycode: char_7
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '7' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_8
-        modifier: none
-        keycode: char_8
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '8' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_digit_9
-        modifier: none
-        keycode: char_9
-        mode: [emacs vi_insert]
-        event: [
-            { edit: insertchar value: '9' }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_backspace
-        modifier: none
-        keycode: backspace
-        mode: [emacs vi_insert]
-        event: [
-            { edit: backspace }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_delete
-        modifier: none
-        keycode: delete
-        mode: [emacs vi_insert]
-        event: [
-            { edit: delete }
-            { send: executehostcommand cmd: 'task_preview_update' }
-            { send: repaint }
-        ]
-    }
-    {
-        name: task_preview_cancel
-        modifier: control
-        keycode: char_c
-        mode: [emacs vi_insert vi_normal]
-        event: [
-            { send: executehostcommand cmd: 'task_preview_clear' }
-            { send: ctrlc }
-        ]
-    }
-]
+let task_preview_repaint_keys = (
+    # Generate digit keybindings (0-9) data-driven
+    (0..9 | each { |n|
+        {
+            name: $"task_preview_digit_($n)"
+            modifier: none
+            keycode: $"char_($n)"
+            mode: [emacs vi_insert]
+            event: [
+                { edit: insertchar value: ($n | into string) }
+                { send: executehostcommand cmd: 'task_preview_update' }
+                { send: repaint }
+            ]
+        }
+    })
+    | append [
+        {
+            name: task_preview_backspace
+            modifier: none
+            keycode: backspace
+            mode: [emacs vi_insert]
+            event: [
+                { edit: backspace }
+                { send: executehostcommand cmd: 'task_preview_update' }
+                { send: repaint }
+            ]
+        }
+        {
+            name: task_preview_delete
+            modifier: none
+            keycode: delete
+            mode: [emacs vi_insert]
+            event: [
+                { edit: delete }
+                { send: executehostcommand cmd: 'task_preview_update' }
+                { send: repaint }
+            ]
+        }
+        {
+            name: task_preview_cancel
+            modifier: control
+            keycode: char_c
+            mode: [emacs vi_insert vi_normal]
+            event: [
+                { send: executehostcommand cmd: 'task_preview_clear' }
+                { send: ctrlc }
+            ]
+        }
+    ]
+)
 
 $env.config.keybindings = (
     ($env.config.keybindings | default [])

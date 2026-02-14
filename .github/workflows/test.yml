@@ -18,6 +18,10 @@ jobs:
           touch "$HOME/.cache/nushell-init/zoxide.nu"
           touch "$HOME/.cache/nushell-init/carapace.nu"
           touch "$HOME/.cache/nushell-init/atuin.nu"
+      - name: Symlink nushell config to XDG location
+        run: |
+          mkdir -p "$HOME/.config"
+          ln -s "$GITHUB_WORKSPACE/dot_config/nushell" "$HOME/.config/nushell"
       - name: Source autoload modules
         run: |
           nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'version'
@@ -29,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - name: Run OpenCode tests
         run: |
           uv run --with-requirements requirements.txt --with pytest --directory dot_config/opencode pytest
@@ -38,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - name: Scan for secrets drift
         run: |
           uv tool run detect-secrets scan --baseline .secrets.baseline
@@ -75,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - name: Validate YAML and TOML syntax
         run: |
           uv run --with pyyaml --directory . python - <<'PY'
@@ -118,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - name: Run Taskwarrior hook tests
         run: |
           uv run --with pytest --directory dot_config/taskwarrior/hooks pytest

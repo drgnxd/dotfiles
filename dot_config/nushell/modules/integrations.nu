@@ -61,50 +61,28 @@ export def integrations_cache_update [] {
         mkdir $cache_dir
     }
 
-    if (which starship | is-not-empty) {
-        let starship_file = ($cache_dir | path join "starship.nu")
-        let starship_regen = ($force_regen or (not ($starship_file | path exists)) or (cache_is_stale "starship" $starship_file))
-        if $starship_regen {
-            let starship_init = (do { starship init nu } | complete)
-            if ($starship_init.exit_code == 0) {
-                $starship_init.stdout | save -f $starship_file
-                write_cache_hash "starship" $starship_file
-            }
-        }
-    }
+    # Tool definitions: [tool_name, cache_filename, init_command_args]
+    let tools = [
+        ["starship",  "starship.nu",  ["starship", "init", "nu"]]
+        ["zoxide",    "zoxide.nu",    ["zoxide", "init", "nushell"]]
+        ["carapace",  "carapace.nu",  ["carapace", "_carapace", "nushell"]]
+        ["atuin",     "atuin.nu",     ["atuin", "init", "nu"]]
+    ]
 
-    if (which zoxide | is-not-empty) {
-        let zoxide_file = ($cache_dir | path join "zoxide.nu")
-        let zoxide_regen = ($force_regen or (not ($zoxide_file | path exists)) or (cache_is_stale "zoxide" $zoxide_file))
-        if $zoxide_regen {
-            let zoxide_init = (do { zoxide init nushell } | complete)
-            if ($zoxide_init.exit_code == 0) {
-                $zoxide_init.stdout | save -f $zoxide_file
-                write_cache_hash "zoxide" $zoxide_file
-            }
-        }
-    }
+    for tool_entry in $tools {
+        let tool_name = ($tool_entry | get 0)
+        let cache_filename = ($tool_entry | get 1)
+        let init_args = ($tool_entry | get 2)
 
-    if (which carapace | is-not-empty) {
-        let carapace_file = ($cache_dir | path join "carapace.nu")
-        let carapace_regen = ($force_regen or (not ($carapace_file | path exists)) or (cache_is_stale "carapace" $carapace_file))
-        if $carapace_regen {
-            let carapace_init = (do { carapace _carapace nushell } | complete)
-            if ($carapace_init.exit_code == 0) {
-                $carapace_init.stdout | save -f $carapace_file
-                write_cache_hash "carapace" $carapace_file
-            }
-        }
-    }
-
-    if (which atuin | is-not-empty) {
-        let atuin_file = ($cache_dir | path join "atuin.nu")
-        let atuin_regen = ($force_regen or (not ($atuin_file | path exists)) or (cache_is_stale "atuin" $atuin_file))
-        if $atuin_regen {
-            let atuin_init = (do { atuin init nu } | complete)
-            if ($atuin_init.exit_code == 0) {
-                $atuin_init.stdout | save -f $atuin_file
-                write_cache_hash "atuin" $atuin_file
+        if (which $tool_name | is-not-empty) {
+            let cache_file = ($cache_dir | path join $cache_filename)
+            let needs_regen = ($force_regen or (not ($cache_file | path exists)) or (cache_is_stale $tool_name $cache_file))
+            if $needs_regen {
+                let init_result = (do { ^($init_args | get 0) ...($init_args | skip 1) } | complete)
+                if ($init_result.exit_code == 0) {
+                    $init_result.stdout | save -f $cache_file
+                    write_cache_hash $tool_name $cache_file
+                }
             }
         }
     }
