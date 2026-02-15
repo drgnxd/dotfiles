@@ -79,6 +79,22 @@ docs(readme): update installation instructions
    darwin-rebuild switch --flake ~/.config/nix-config#macbook
    ```
 
+### Nix eval sanity checks
+
+Use `path:.#...` during refactors so untracked local files are visible to evaluation:
+
+```bash
+nix eval --no-write-lock-file path:.#darwinConfigurations.macbook.config.system.stateVersion
+nix eval --no-write-lock-file path:.#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
+```
+
+Use `.#...` to verify Git-flake behavior before merging. Newly added files must be tracked first:
+
+```bash
+git add <new-files>
+nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
+```
+
 ### Scripts
 **Cloud symlink setup** (interactive, guarded):
 ```bash
@@ -88,6 +104,7 @@ FORCE=1 scripts/darwin/setup_cloud_symlinks.sh
 ### Python hooks
 ```bash
 uv run --quiet --script dot_config/taskwarrior/hooks/update_cache.py --update-only
+uv run --with pytest --directory dot_config/taskwarrior/hooks pytest -q
 ```
 
 ---

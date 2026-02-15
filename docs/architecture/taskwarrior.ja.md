@@ -10,6 +10,10 @@
 
 ## コンポーネント
 - Python フックが `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` と `desc.list` を更新
+- フックの標準入力は JSON ストリームとして厳密に解釈（on-add / on-modify 両対応）
+- JSON 解釈に失敗した場合は、後方互換のため最終非空行をそのまま転送
+- フック内部エラーは `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/hook_errors.log` に記録し、Taskwarrior 操作は継続
+- デバッグ時は `TASKWARRIOR_HOOK_DEBUG=1` でエラー行を stderr にも出力
 - Nushell のプロンプトプレビューが `desc.list` を参照し、`task` ラッパーがキャッシュ更新を実行
 - Nushell 統合は遅延ロード: `autoload/08-taskwarrior.nu` が初回利用時に `modules/taskwarrior.nu` を読み込み
 - Zsh 統合は `archive/zsh` にアーカイブ済み

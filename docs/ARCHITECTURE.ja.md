@@ -26,8 +26,16 @@
 ├── hosts/
 │   └── macbook/default.nix     # nix-darwin システム設定
 ├── home/
-│   ├── default.nix             # home-manager 設定
-│   └── packages.nix            # パッケージ一覧
+│   ├── default.nix             # home-manager エントリーポイント（モジュール読込）
+│   ├── packages.nix            # パッケージ一覧
+│   └── modules/
+│       ├── activation.nix      # activation フックとユーザー設定
+│       ├── xdg_config_files.nix # xdg.configFile の集約
+│       ├── xdg_terminal_files.nix # ターミナル/CLI の割当
+│       ├── xdg_editor_files.nix # エディタの割当
+│       ├── xdg_nushell_files.nix # Nushell の割当
+│       ├── xdg_yazi_files.nix  # Yazi の割当
+│       └── xdg_desktop_files.nix # デスクトップ系アプリの割当
 ├── dot_config/                 # 設定ファイルのソース（XDG）
 │   ├── alacritty/              # ターミナルエミュレータ
 │   ├── bat/                    # シンタックスハイライト cat
@@ -49,7 +57,7 @@
 │   │   │   ├── 03-aliases.nu   # コマンドエイリアス
 │   │   │   ├── 04-functions.nu # カスタム関数
 │   │   │   ├── 05-completions.nu # コマンド補完
-│   │   │   ├── 06-integrations.nu # ツール統合
+│   │   │   ├── 06-integrations.nu # 統合ラッパー + Direnv 初期化
 │   │   │   ├── 07-source-tools.nu # キャッシュ読み込み
 │   │   │   ├── 08-taskwarrior.nu # Taskwarrior プロンプトプレビュー
 │   │   │   └── 09-lima.nu       # Lima/Docker ヘルパー

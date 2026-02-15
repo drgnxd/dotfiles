@@ -16,6 +16,9 @@ This directory documents the remaining macOS helper scripts. Most system configu
   - Homebrew casks/MAS for GUI apps
 
 - `home/default.nix`
+  - Home Manager user entrypoint (imports user modules)
+
+- `home/modules/activation.nix`
   - User-level defaults (Finder/Dock/menu bar)
   - Stats.app configuration import
   - Legacy LaunchAtLogin agents for Stats/Hammerspoon are disabled and archived to prevent duplicate app launches
