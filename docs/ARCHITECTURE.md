@@ -24,8 +24,16 @@
 ├── hosts/
 │   └── darwin/default.nix     # nix-darwin system configuration
 ├── home/
-│   ├── default.nix             # home-manager configuration
-│   └── packages.nix            # Package list
+│   ├── default.nix             # home-manager entrypoint (imports modules)
+│   ├── packages.nix            # Package list
+│   └── modules/
+│       ├── activation.nix      # Activation hooks and user defaults
+│       ├── xdg_config_files.nix # XDG configFile composition
+│       ├── xdg_terminal_files.nix # Terminal/CLI config mappings
+│       ├── xdg_editor_files.nix # Editor config mappings
+│       ├── xdg_nushell_files.nix # Nushell config mappings
+│       ├── xdg_yazi_files.nix  # Yazi config mappings
+│       └── xdg_desktop_files.nix # Desktop app config mappings
 ├── dot_config/                 # Config sources (XDG)
 │   ├── alacritty/              # Terminal emulator
 │   ├── bat/                    # Syntax-highlighted cat
@@ -51,7 +59,7 @@
 │   │   │   ├── 03-aliases.nu   # Command aliases
 │   │   │   ├── 04-functions.nu # Custom functions
 │   │   │   ├── 05-completions.nu # Command completions
-│   │   │   ├── 06-integrations.nu # Tool integrations
+│   │   │   ├── 06-integrations.nu # Integrations wrapper + Direnv init
 │   │   │   ├── 07-source-tools.nu # Source cached tool init
 │   │   │   ├── 08-taskwarrior.nu # Taskwarrior prompt preview
 │   │   │   └── 09-lima.nu       # Lima/Docker helpers
@@ -88,7 +96,7 @@ autoload/
 ├── 03-aliases.nu       # Conditional command aliases
 ├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 ├── 05-completions.nu   # Dynamic completions
-├── 06-integrations.nu  # Starship, Zoxide, Direnv, Carapace, Atuin
+├── 06-integrations.nu  # Integrations wrapper + Direnv init
 ├── 07-source-tools.nu  # Source cached tool init
 ├── 08-taskwarrior.nu   # Taskwarrior prompt preview
 └── 09-lima.nu          # Lima/Docker helpers
@@ -125,7 +133,9 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 **Flake-based entrypoint**:
 - `flake.nix` ties nix-darwin, home-manager, and agenix together
 - `hosts/darwin/default.nix` owns system-level configuration
-- `home/default.nix` manages user-level config and activation hooks
+- `home/default.nix` composes user-level modules
+- `home/modules/activation.nix` manages user defaults, launch-agent handling, and app setup hooks
+- `home/modules/xdg_config_files.nix` composes XDG file mappings from focused `xdg_*_files.nix` lists
 
 **Secrets**:
 - Encrypted with `agenix` in `secrets/*.age`
