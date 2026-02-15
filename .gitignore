@@ -21,6 +21,14 @@ dot_cache/
 dot_local/share/Trash/
 dot_local/state/
 
+# Python/tooling caches
+.venv/
+.pytest_cache/
+.ruff_cache/
+**/.venv/
+**/.pytest_cache/
+**/.ruff_cache/
+
 # Secret/local configs
 **/*local*
 **/hosts.yml

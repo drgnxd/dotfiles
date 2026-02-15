@@ -1,17 +1,7 @@
 # Lima and Docker management (lazy-loaded)
 
-def lima_has_cmd [cmd: string] {
-    (which $cmd | is-not-empty)
-}
-
-def lima_require_cmd [cmd: string] {
-    if not (lima_has_cmd $cmd) {
-        error make { msg: $"($cmd) not found" }
-    }
-}
-
 export def lima_start [vm_name: string] {
-    lima_require_cmd "limactl"
+    require-cmd "limactl"
 
     print $"Starting Lima VM: ($vm_name)..."
     ^limactl start $vm_name
@@ -21,7 +11,7 @@ export def lima_start [vm_name: string] {
     }
 
     let ctx_name = $"($vm_name)-context"
-    if (lima_has_cmd "docker") {
+    if (has-cmd "docker") {
         let ctx_check = (do { docker context inspect $ctx_name } | complete)
         if ($ctx_check.exit_code == 0) {
             print $"Switching to Docker context: ($ctx_name)"
@@ -35,20 +25,20 @@ export def lima_start [vm_name: string] {
 }
 
 export def lima_stop [vm_name: string] {
-    lima_require_cmd "limactl"
+    require-cmd "limactl"
 
     print $"Stopping Lima VM: ($vm_name)..."
     ^limactl stop $vm_name
 }
 
 export def lima_status [] {
-    lima_require_cmd "limactl"
+    require-cmd "limactl"
 
     ^limactl list
 }
 
 export def lima_shell [vm_name: string] {
-    lima_require_cmd "limactl"
+    require-cmd "limactl"
 
     ^limactl shell $vm_name
 }
@@ -57,7 +47,7 @@ export def lima_delete [
     vm_name: string
     --force(-f)
 ] {
-    lima_require_cmd "limactl"
+    require-cmd "limactl"
 
     if not $force {
         print $"Warning: This will permanently delete VM '($vm_name)' and all its data."
@@ -72,7 +62,7 @@ export def lima_delete [
 }
 
 export def docker_ctx [ctx?: string] {
-    lima_require_cmd "docker"
+    require-cmd "docker"
 
     if ($ctx | is-empty) {
         print "Current Docker contexts:"
@@ -83,13 +73,13 @@ export def docker_ctx [ctx?: string] {
 }
 
 export def docker_ctx_reset [] {
-    lima_require_cmd "docker"
+    require-cmd "docker"
 
     docker context use default
 }
 
 export def lima_docker_context [vm_name: string] {
-    lima_require_cmd "docker"
+    require-cmd "docker"
 
     let ctx_name = $"($vm_name)-context"
     let socket_path = ($env.LIMA_HOME | path join $vm_name "sock" "docker.sock")

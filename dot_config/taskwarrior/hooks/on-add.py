@@ -1,9 +1,9 @@
 #!/usr/bin/env -S uv run --quiet --script
 """
-Taskwarrior on-modify hook.
+Taskwarrior on-add/on-modify hook.
 
-This hook is triggered when a task is modified.
-It forwards the modified task JSON to Taskwarrior and updates the cache.
+This entrypoint is shared by both on-add.py and on-modify.py.
+It forwards the newest task JSON to Taskwarrior and updates the cache.
 """
 
 import sys
