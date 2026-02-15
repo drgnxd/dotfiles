@@ -2,111 +2,6 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
-
-  clean_source = { src, exclude_names ? [] }:
-    let
-      default_excludes = [
-        ".DS_Store"
-        ".pytest_cache"
-        ".ruff_cache"
-        ".venv"
-        "__pycache__"
-        "CACHEDIR.TAG"
-      ];
-    in
-      lib.cleanSourceWith {
-        inherit src;
-        filter = path: type:
-          let
-            path_str = toString path;
-            name = builtins.baseNameOf path;
-          in
-            !(lib.elem name (default_excludes ++ exclude_names))
-            && !lib.hasInfix "/.pytest_cache/" path_str
-            && !lib.hasInfix "/.ruff_cache/" path_str
-            && !lib.hasInfix "/.venv/" path_str
-            && !lib.hasInfix "/__pycache__/" path_str;
-      };
-
-  # Simple source-only config files: target path relative to XDG_CONFIG_HOME
-  # mapped from source path relative to repository root (dot_config/)
-  simpleConfigFiles = [
-    # Alacritty
-    { target = "alacritty/alacritty.toml"; source = ../dot_config/alacritty/alacritty.toml; }
-    { target = "alacritty/blur.toml"; source = ../dot_config/alacritty/blur.toml; }
-
-    # Shell tools
-    { target = "atuin/config.toml"; source = ../dot_config/atuin/config.toml; }
-    { target = "bat/config"; source = ../dot_config/bat/config; }
-    { target = "gh/config.yml"; source = ../dot_config/gh/config.yml; }
-    { target = "git/config"; source = ../dot_config/git/config; }
-    { target = "git/config.local.example"; source = ../dot_config/git/config.local.example; }
-
-    # Helix
-    { target = "helix/config.toml"; source = ../dot_config/helix/config.toml; }
-    { target = "helix/languages.toml"; source = ../dot_config/helix/languages.toml; }
-    { target = "helix/themes/solarized_dark_transparent.toml"; source = ../dot_config/helix/themes/solarized_dark_transparent.toml; }
-
-    # Nushell
-    { target = "nushell/config.nu"; source = ../dot_config/nushell/config.nu; }
-    { target = "nushell/env.nu"; source = ../dot_config/nushell/env.nu; }
-    { target = "nushell/local.nu"; source = ../dot_config/nushell/local.nu; }
-    { target = "nushell/autoload/00-constants.nu"; source = ../dot_config/nushell/autoload/00-constants.nu; }
-    { target = "nushell/autoload/00-helpers.nu"; source = ../dot_config/nushell/autoload/00-helpers.nu; }
-    { target = "nushell/autoload/01-env.nu"; source = ../dot_config/nushell/autoload/01-env.nu; }
-    { target = "nushell/autoload/02-path.nu"; source = ../dot_config/nushell/autoload/02-path.nu; }
-    { target = "nushell/autoload/03-aliases.nu"; source = ../dot_config/nushell/autoload/03-aliases.nu; }
-    { target = "nushell/autoload/04-functions.nu"; source = ../dot_config/nushell/autoload/04-functions.nu; }
-    { target = "nushell/autoload/05-completions.nu"; source = ../dot_config/nushell/autoload/05-completions.nu; }
-    { target = "nushell/autoload/06-integrations.nu"; source = ../dot_config/nushell/autoload/06-integrations.nu; }
-    { target = "nushell/autoload/07-source-tools.nu"; source = ../dot_config/nushell/autoload/07-source-tools.nu; }
-    { target = "nushell/autoload/08-taskwarrior.nu"; source = ../dot_config/nushell/autoload/08-taskwarrior.nu; }
-    { target = "nushell/autoload/09-lima.nu"; source = ../dot_config/nushell/autoload/09-lima.nu; }
-    { target = "nushell/modules/integrations.nu"; source = ../dot_config/nushell/modules/integrations.nu; }
-    { target = "nushell/modules/taskwarrior.nu"; source = ../dot_config/nushell/modules/taskwarrior.nu; }
-    { target = "nushell/modules/lima.nu"; source = ../dot_config/nushell/modules/lima.nu; }
-
-    # Other tools
-    { target = "shellcheck/shellcheckrc"; source = ../dot_config/shellcheck/shellcheckrc; }
-    { target = "starship/starship.toml"; source = ../dot_config/starship/starship.toml; }
-    { target = "tmux/tmux.conf"; source = ../dot_config/tmux/tmux.conf; }
-
-    # Yazi
-    { target = "yazi/yazi.toml"; source = ../dot_config/yazi/yazi.toml; }
-    { target = "yazi/theme.toml"; source = ../dot_config/yazi/theme.toml; }
-    { target = "yazi/keymap.toml"; source = ../dot_config/yazi/keymap.toml; }
-    { target = "yazi/flavors/solarized-dark.yazi/flavor.toml"; source = ../dot_config/yazi/flavors/solarized-dark.yazi/flavor.toml; }
-    { target = "yazi/flavors/solarized-dark-custom/colors.toml"; source = ../dot_config/yazi/flavors/solarized-dark-custom/colors.toml; }
-    { target = "yazi/flavors/solarized-dark-custom/style.yazi"; source = ../dot_config/yazi/flavors/solarized-dark-custom/style.yazi; }
-
-    # Hammerspoon
-    { target = "hammerspoon/init.lua"; source = ../dot_config/hammerspoon/init.lua; }
-    { target = "hammerspoon/window.lua"; source = ../dot_config/hammerspoon/window.lua; }
-    { target = "hammerspoon/cheatsheet.lua"; source = ../dot_config/hammerspoon/cheatsheet.lua; }
-    { target = "hammerspoon/reload.lua"; source = ../dot_config/hammerspoon/reload.lua; }
-    { target = "hammerspoon/input_switcher.lua"; source = ../dot_config/hammerspoon/input_switcher.lua; }
-    { target = "hammerspoon/browser_control.lua"; source = ../dot_config/hammerspoon/browser_control.lua; }
-    { target = "hammerspoon/caffeine.lua"; source = ../dot_config/hammerspoon/caffeine.lua; }
-
-    # Stats
-    { target = "stats/eu.exelban.Stats.plist"; source = ../dot_config/stats/eu.exelban.Stats.plist; }
-  ];
-
-  # Generate xdg.configFile attrs from the simple list
-  simpleConfigAttrs = builtins.listToAttrs (map (entry: {
-    name = entry.target;
-    value = { source = entry.source; };
-  }) simpleConfigFiles);
-
-  opencode_config = ../dot_config/opencode/opencode.json;
-
-  taskwarrior_source = clean_source { src = ../dot_config/taskwarrior; };
-
-  opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
-  taskwarrior_local_rc = "${config.xdg.configHome}/taskwarrior.local.rc";
-
-  use_npmrc_secret = builtins.pathExists ../secrets/npmrc.age;
-  has_npmrc_file = builtins.pathExists ../dot_config/npm/npmrc;
 in
 {
   home.username = "drgnxd";
@@ -114,6 +9,11 @@ in
   home.stateVersion = "24.11";
 
   programs.home-manager.enable = true;
+
+  imports = [
+    ./modules/activation.nix
+    ./modules/xdg_config_files.nix
+  ];
 
   xdg.enable = true;
 
@@ -129,24 +29,6 @@ in
   warnings = lib.optional (packages.missing != [])
     ("Missing nix packages: " + (lib.concatStringsSep ", " packages.missing));
 
-  xdg.configFile = lib.mkMerge [
-    # Bulk-generated simple source mappings
-    simpleConfigAttrs
-
-    # Entries requiring special attributes
-    {
-      "alacritty/toggle_blur.sh" = {
-        source = ../dot_config/alacritty/executable_toggle_blur.sh;
-        executable = true;
-      };
-
-      "taskwarrior".source = taskwarrior_source;
-    }
-    (lib.optionalAttrs (!use_npmrc_secret && has_npmrc_file) {
-      "npm/npmrc".source = ../dot_config/npm/npmrc;
-    })
-  ];
-
   home.file = {
     ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";
     ".Scilab".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/scilab";
@@ -158,144 +40,4 @@ in
     };
   };
 
-  home.activation.ensureDirectories = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "$HOME/.local/bin"
-    mkdir -p "$HOME/Desktop/Screenshots"
-    mkdir -p "$HOME/.local/state/launchagents/hammerspoon"
-    mkdir -p "$HOME/.local/state/launchagents/maccy"
-    mkdir -p "$HOME/.local/state/launchagents/stats"
-  '';
-
-  home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    opencode_target="${opencode_target}"
-    opencode_dir="$(dirname "$opencode_target")"
-    mkdir -p "$opencode_dir"
-    /bin/cp -f "${opencode_config}" "$opencode_target"
-  '';
-
-  home.activation.ensureTaskwarriorLocalRc = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    taskwarrior_local_rc="${taskwarrior_local_rc}"
-    if [ ! -f "$taskwarrior_local_rc" ]; then
-      mkdir -p "$(dirname "$taskwarrior_local_rc")"
-      touch "$taskwarrior_local_rc"
-    fi
-  '';
-
-  home.activation.ensureNushellInitCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "$HOME/.cache/nushell-init"
-    touch "$HOME/.cache/nushell-init/starship.nu"
-    touch "$HOME/.cache/nushell-init/zoxide.nu"
-    touch "$HOME/.cache/nushell-init/carapace.nu"
-    touch "$HOME/.cache/nushell-init/atuin.nu"
-  '';
-
-  home.activation.applyUserDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    /usr/bin/defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
-    /usr/bin/defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
-    /usr/bin/defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
-    /usr/bin/defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
-    /usr/bin/defaults write NSGlobalDomain AppleLanguages -array "en-JP" "ja-JP"
-    /usr/bin/defaults write NSGlobalDomain AppleLocale -string "en_JP"
-    /usr/bin/defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
-    /usr/bin/defaults write NSGlobalDomain AppleMetricUnits -bool true
-    /usr/bin/defaults write NSGlobalDomain AppleTemperatureUnit -string "Celsius"
-    /usr/bin/defaults write NSGlobalDomain AppleICUDateFormatStrings -dict-add 1 "yyyy/MM/dd"
-    /usr/bin/defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
-    /usr/bin/defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
-    /usr/bin/defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
-    /usr/bin/defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-    /usr/bin/defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
-
-    /usr/bin/defaults write -g com.apple.mouse.scaling -int 7
-    /usr/bin/defaults write -g com.apple.trackpad.scaling -int 7
-
-    /usr/bin/defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-    /usr/bin/defaults write com.apple.finder AppleShowAllFiles -bool true
-    /usr/bin/defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
-    /usr/bin/defaults write com.apple.finder ShowStatusBar -bool true
-    /usr/bin/defaults write com.apple.finder ShowPathbar -bool true
-    /usr/bin/defaults write com.apple.finder _FXSortFoldersFirst -bool true
-    /usr/bin/defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
-    /usr/bin/defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
-    /usr/bin/defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
-
-    /usr/bin/defaults write com.apple.dock autohide -bool true
-    /usr/bin/defaults write com.apple.dock autohide-delay -float 0
-    /usr/bin/defaults write com.apple.dock autohide-time-modifier -float 0
-    /usr/bin/defaults write com.apple.dock workspaces-swoosh-animation-off -bool true
-    /usr/bin/defaults write com.apple.dock show-recents -bool false
-    /usr/bin/defaults write com.apple.dock static-only -bool true
-    /usr/bin/defaults write com.apple.dock tilesize -int 48
-
-    /usr/bin/defaults write com.apple.screencapture disable-shadow -bool true
-    /usr/bin/defaults write com.apple.screencapture type -string "png"
-    /usr/bin/defaults write com.apple.screencapture location -string "$HOME/Desktop/Screenshots"
-
-    /usr/bin/defaults write -g KeyRepeat -int 1
-    /usr/bin/defaults write -g InitialKeyRepeat -int 15
-    /usr/bin/defaults write -g ApplePressAndHoldEnabled -bool false
-    /usr/bin/defaults write -g com.apple.keyboard.fnState -int 1
-
-    /usr/bin/defaults write com.apple.controlcenter "NSStatusItem Visible Battery" -bool false
-    /usr/bin/defaults write com.apple.controlcenter "NSStatusItem Visible BentoBox" -bool true
-    /usr/bin/defaults -currentHost write -globalDomain NSStatusItemSpacing -int 10
-    /usr/bin/defaults write -globalDomain NSStatusItemSpacing -int 10
-    /usr/bin/defaults -currentHost write -globalDomain NSStatusItemSelectionPadding -int 6
-    /usr/bin/defaults write -globalDomain NSStatusItemSelectionPadding -int 6
-    /usr/bin/defaults write com.apple.controlcenter "NSStatusItem Visible NowPlaying" -bool false
-    /usr/bin/defaults write com.apple.controlcenter "NSStatusItem Visible ScreenMirroring" -bool false
-    /usr/bin/defaults write com.apple.controlcenter "NSStatusItem Visible WiFi" -bool false
-
-    /usr/bin/defaults write com.apple.menuextra.clock IsAnalog -bool false
-    /usr/bin/defaults write com.apple.menuextra.clock ShowAMPM -bool true
-    /usr/bin/defaults write com.apple.menuextra.clock ShowDate -bool true
-    /usr/bin/defaults write com.apple.menuextra.clock ShowDayOfWeek -bool true
-    /usr/bin/defaults write com.apple.menuextra.clock ShowSeconds -bool true
-
-    /usr/bin/killall Dock 2>/dev/null || true
-    /usr/bin/killall Finder 2>/dev/null || true
-    /usr/bin/killall SystemUIServer 2>/dev/null || true
-    /usr/bin/killall ControlCenter 2>/dev/null || true
-  '';
-
-  home.activation.importStats = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    stats_plist="$HOME/.config/stats/eu.exelban.Stats.plist"
-    if [ -f "$stats_plist" ]; then
-      /usr/bin/plutil -lint "$stats_plist" >/dev/null 2>&1 && \
-        /usr/bin/defaults import eu.exelban.Stats "$stats_plist" || true
-      /usr/bin/killall cfprefsd 2>/dev/null || true
-      /usr/bin/killall Stats 2>/dev/null || true
-      /usr/bin/open -a Stats >/dev/null 2>&1 || true
-    fi
-  '';
-
-  home.activation.disableStatsLaunchAtLogin = lib.hm.dag.entryAfter [ "importStats" ] ''
-    user_id="$(/usr/bin/id -u)"
-    stats_agent="$HOME/Library/LaunchAgents/eu.exelban.Stats.plist"
-    stats_agent_disabled="$HOME/Library/LaunchAgents/eu.exelban.Stats.plist.disabled"
-
-    /bin/launchctl bootout "gui/$user_id/eu.exelban.Stats" 2>/dev/null || true
-    /bin/launchctl disable "gui/$user_id/eu.exelban.Stats" 2>/dev/null || true
-    /bin/launchctl bootout "gui/$user_id/eu.exelban.Stats.LaunchAtLogin" 2>/dev/null || true
-    /bin/launchctl disable "gui/$user_id/eu.exelban.Stats.LaunchAtLogin" 2>/dev/null || true
-
-    if [ -f "$stats_agent" ]; then
-      /bin/mv -f "$stats_agent" "$stats_agent_disabled"
-    fi
-  '';
-
-  home.activation.disableHammerspoonLaunchAtLogin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    user_id="$(/usr/bin/id -u)"
-    hammerspoon_agent="$HOME/Library/LaunchAgents/org.hammerspoon.Hammerspoon.plist"
-    hammerspoon_agent_disabled="$HOME/Library/LaunchAgents/org.hammerspoon.Hammerspoon.plist.disabled"
-
-    /bin/launchctl bootout "gui/$user_id/org.hammerspoon.Hammerspoon" 2>/dev/null || true
-    /bin/launchctl disable "gui/$user_id/org.hammerspoon.Hammerspoon" 2>/dev/null || true
-    /bin/launchctl bootout "gui/$user_id/org.hammerspoon.Hammerspoon.LaunchAtLogin" 2>/dev/null || true
-    /bin/launchctl disable "gui/$user_id/org.hammerspoon.Hammerspoon.LaunchAtLogin" 2>/dev/null || true
-
-    if [ -f "$hammerspoon_agent" ]; then
-      /bin/mv -f "$hammerspoon_agent" "$hammerspoon_agent_disabled"
-    fi
-  '';
 }

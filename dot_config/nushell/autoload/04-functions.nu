@@ -87,12 +87,12 @@ export def ppget [query: string, --field: string = "password"] {
     }
     let search_result = (do { pass-cli search $query --json } | complete)
     if ($search_result.exit_code != 0) {
-        print --stderr $"Error: Secret '(query)' not found."
+        print --stderr $"Error: Secret '($query)' not found."
         return 1
     }
     let item_id = ($search_result.stdout | from json | get 0.id?)
     if ($item_id | is-empty) or ($item_id == null) {
-        print --stderr $"Error: Secret '(query)' not found."
+        print --stderr $"Error: Secret '($query)' not found."
         return 1
     }
     pass-cli get $item_id --field $field --output text

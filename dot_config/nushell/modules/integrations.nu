@@ -1,12 +1,16 @@
 # Integrations cache generator (lazy-loaded)
 
+def tool_path [tool: string] {
+    which $tool | get path.0?
+}
+
 def cache_is_stale [tool: string, cache_file: path] {
-    let tool_path = (which $tool | get path.0?)
-    if $tool_path == null {
+    let resolved_tool_path = (tool_path $tool)
+    if $resolved_tool_path == null {
         return false
     }
 
-    let hash_result = (do { ^shasum -a 256 $tool_path } | complete)
+    let hash_result = (do { ^shasum -a 256 $resolved_tool_path } | complete)
     if ($hash_result.exit_code != 0) {
         return false
     }
@@ -25,12 +29,12 @@ def cache_is_stale [tool: string, cache_file: path] {
 }
 
 def write_cache_hash [tool: string, cache_file: path] {
-    let tool_path = (which $tool | get path.0?)
-    if $tool_path == null {
+    let resolved_tool_path = (tool_path $tool)
+    if $resolved_tool_path == null {
         return
     }
 
-    let hash_result = (do { ^shasum -a 256 $tool_path } | complete)
+    let hash_result = (do { ^shasum -a 256 $resolved_tool_path } | complete)
     if ($hash_result.exit_code != 0) {
         return
     }
@@ -74,7 +78,7 @@ export def integrations_cache_update [] {
         let cache_filename = ($tool_entry | get 1)
         let init_args = ($tool_entry | get 2)
 
-        if (which $tool_name | is-not-empty) {
+        if (has-cmd $tool_name) {
             let cache_file = ($cache_dir | path join $cache_filename)
             let needs_regen = ($force_regen or (not ($cache_file | path exists)) or (cache_is_stale $tool_name $cache_file))
             if $needs_regen {

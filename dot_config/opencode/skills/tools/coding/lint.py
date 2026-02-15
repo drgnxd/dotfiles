@@ -13,6 +13,11 @@ def main() -> int:
         description="Run lint checks for Python and shell files."
     )
     parser.add_argument("target", nargs="?", default=".")
+    parser.add_argument(
+        "--allow-missing",
+        action="store_true",
+        help="Skip missing lint tools instead of failing",
+    )
     args = parser.parse_args()
 
     script_dir = Path(__file__).resolve().parent
@@ -22,7 +27,12 @@ def main() -> int:
         print(f"Missing script: {check_script}")
         return 1
 
-    result = subprocess.run([str(check_script), args.target], check=False)
+    command = [str(check_script)]
+    if args.allow_missing:
+        command.append("--allow-missing")
+    command.append(args.target)
+
+    result = subprocess.run(command, check=False)
     return result.returncode
 
 

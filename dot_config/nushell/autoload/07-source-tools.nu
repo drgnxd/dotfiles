@@ -1,40 +1,18 @@
-# Integrations Module - Source Cache Files
-# IMPORTANT: This file contains literal paths for 'source' commands
-# 
-# FIRST TIME SETUP:
-#   1. Generate cache files: nu ~/.config/nushell/autoload/06-integrations.nu
-#   2. New Nushell sessions will automatically source the caches
-#
-# NOTE: Cache files are sourced if present; 06-integrations generates them.
+# Integrations cache consumer (source-only)
+# Cache generation happens in modules/integrations.nu via integrations-cache-update.
 
-# Refresh cached init scripts if available
-const cache_dir = ($nu.home-dir | path join ".cache" "nushell-init")
 const starship_file = ($nu.home-dir | path join ".cache" "nushell-init" "starship.nu")
 const zoxide_file = ($nu.home-dir | path join ".cache" "nushell-init" "zoxide.nu")
 const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
 const atuin_file = ($nu.home-dir | path join ".cache" "nushell-init" "atuin.nu")
-const brew_starship_bin = "/opt/homebrew/bin/starship"
+
+# Refresh cached init scripts first
 if (scope commands | where name == "integrations-cache-update" | is-not-empty) {
     integrations-cache-update
 }
 
 # STARSHIP PROMPT
 if (has-cmd starship) {
-    let needs_regen = if ($starship_file | path exists) {
-        let content = (open $starship_file | str trim)
-        ($content | is-empty) or ($content | str contains $brew_starship_bin)
-    } else {
-        true
-    }
-    if $needs_regen {
-        let starship_exec = (which starship | get path.0?)
-        if $starship_exec != null {
-            let starship_init = (do { ^$starship_exec init nu } | complete)
-            if ($starship_init.exit_code == 0) {
-                $starship_init.stdout | save -f $starship_file
-            }
-        }
-    }
     if ($starship_file | path exists) {
         source $starship_file
     }
@@ -52,12 +30,6 @@ if ((has-cmd carapace) and ($carapace_file | path exists)) {
 
 # ATUIN
 if (has-cmd atuin) {
-    if (not ($atuin_file | path exists)) {
-        let atuin_init = (do { atuin init nu } | complete)
-        if ($atuin_init.exit_code == 0) {
-            $atuin_init.stdout | save -f $atuin_file
-        }
-    }
     if ($atuin_file | path exists) {
         source $atuin_file
     }

@@ -28,6 +28,7 @@ CACHE_DIR = os.path.join(
 IDS_CACHE_PATH = os.path.join(CACHE_DIR, "ids.list")
 DESC_CACHE_PATH = os.path.join(CACHE_DIR, "desc.list")
 LAST_UPDATE_PATH = os.path.join(CACHE_DIR, ".last_update")
+ERROR_LOG_PATH = os.path.join(CACHE_DIR, "hook_errors.log")
 MIN_UPDATE_INTERVAL_SECONDS = 5
 
 
@@ -38,6 +39,24 @@ class Task:
     status: str
     project: Optional[str] = None
     tags: List[str] = field(default_factory=list)
+
+
+def log_hook_error(message: str, error: Optional[BaseException] = None) -> None:
+    timestamp = time.strftime("%Y-%m-%dT%H:%M:%S")
+    details = message
+    if error is not None:
+        details = f"{message}: {error.__class__.__name__}: {error}"
+    line = f"{timestamp} {details}"
+
+    try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(ERROR_LOG_PATH, "a", encoding="utf-8") as log_file:
+            log_file.write(line + "\n")
+    except OSError:
+        pass
+
+    if os.environ.get("TASKWARRIOR_HOOK_DEBUG") == "1":
+        print(line, file=sys.stderr)
 
 
 def should_skip_update(now: float) -> bool:
@@ -126,6 +145,59 @@ def build_cache_contents(tasks: List[Task]) -> Tuple[str, str]:
     return "\n".join(ids), "\n".join(descs)
 
 
+def parse_hook_json_stream(stdin_data: str) -> Optional[List[object]]:
+    """Parse one or more JSON values from hook stdin.
+
+    Taskwarrior sends one JSON object for on-add and two objects for on-modify.
+    We parse as a JSON stream so formatting/newline variations do not break.
+    Returns None when decoding fails.
+    """
+    decoder = json.JSONDecoder()
+    parsed: List[object] = []
+    index = 0
+    input_len = len(stdin_data)
+
+    while index < input_len:
+        while index < input_len and stdin_data[index].isspace():
+            index += 1
+
+        if index >= input_len:
+            break
+
+        try:
+            value, next_index = decoder.raw_decode(stdin_data, index)
+        except json.JSONDecodeError:
+            return None
+
+        parsed.append(value)
+        index = next_index
+
+    return parsed
+
+
+def emit_hook_output(stdin_data: str) -> None:
+    """Emit the task JSON object Taskwarrior expects on stdout."""
+    parsed_values = parse_hook_json_stream(stdin_data)
+
+    if parsed_values is None:
+        log_hook_error("Failed to parse hook input as JSON stream; using line fallback")
+    elif parsed_values:
+        last_payload = parsed_values[-1]
+        if isinstance(last_payload, dict):
+            sys.stdout.write(json.dumps(last_payload, ensure_ascii=False) + "\n")
+            sys.stdout.flush()
+            return
+
+        log_hook_error(
+            "Hook input JSON stream did not end with an object; using line fallback"
+        )
+
+    lines = [line for line in stdin_data.split("\n") if line.strip()]
+    if lines:
+        sys.stdout.write(lines[-1].rstrip("\n") + "\n")
+        sys.stdout.flush()
+
+
 def update_cache() -> None:
     """
     Update the Taskwarrior cache files with current pending tasks.
@@ -161,15 +233,15 @@ def update_cache() -> None:
         write_if_changed(DESC_CACHE_PATH, descs_content)
         touch_update_marker(now)
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as error:
         # Task command failed - silently ignore to prevent blocking task operations
-        pass
-    except json.JSONDecodeError:
+        log_hook_error("Task command failed during cache update", error)
+    except json.JSONDecodeError as error:
         # Invalid JSON from task command - silently ignore
-        pass
-    except Exception:
+        log_hook_error("Task command returned invalid JSON during cache update", error)
+    except Exception as error:
         # Any other error - silently ignore to ensure hooks don't break task operations
-        pass
+        log_hook_error("Unexpected error during cache update", error)
 
 
 def process_hook_input() -> None:
@@ -188,12 +260,7 @@ def process_hook_input() -> None:
     The output is required for Taskwarrior to complete the operation.
     """
     stdin_data = sys.stdin.read()
-    lines = [line for line in stdin_data.split("\n") if line.strip()]
-
-    if lines:
-        # Output the last JSON object (new task for on-add, modified task for on-modify)
-        sys.stdout.write(lines[-1].rstrip("\n") + "\n")
-        sys.stdout.flush()
+    emit_hook_output(stdin_data)
 
     # Update cache after outputting (non-blocking)
     update_cache()

@@ -1,9 +1,5 @@
 # Taskwarrior integration (lazy-loaded)
 
-def taskwarrior_has_cmd [cmd: string] {
-    (which $cmd | is-not-empty)
-}
-
 def taskwarrior_cache_dir [] {
     let cache_home = ($env | get -o XDG_CACHE_HOME | default ($env.HOME | path join ".cache"))
     $cache_home | path join "taskwarrior"
@@ -14,7 +10,7 @@ def taskwarrior_cache_update [] {
     if not ($update_script | path exists) {
         return
     }
-    if not (taskwarrior_has_cmd "uv") {
+    if not (has-cmd "uv") {
         return
     }
     do { uv run --quiet --script $update_script --update-only } | ignore
@@ -140,7 +136,7 @@ export def --env taskwarrior_preview_backspace [] {
 }
 
 export def --env taskwarrior_run [...args] {
-    if not (taskwarrior_has_cmd "task") {
+    if not (has-cmd "task") {
         error make { msg: "task not found" }
     }
     ^task ...$args
