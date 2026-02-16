@@ -160,7 +160,7 @@ Window management and automation features:
     *   `enter`: Maximize
     *   `U/I/J/K`: Quarter screen positions (top-left, top-right, bottom-left, bottom-right)
     *   `C`: Center (80% size)
-*   **Auto Input Switching**: Automatically switches to English input for Alacritty and Sol
+*   **Auto Input Switching**: Automatically switches to English input for Alacritty and Sol (including Sol launch via Cmd+Space)
 *   **Caffeine Mode**: Prevent display sleep via menubar icon (coffee/sleep)
 *   **Cheat Sheet** (Ctrl+Alt+/): Display all keybindings
 *   **Auto Reload**: Configuration reloads automatically on file changes
