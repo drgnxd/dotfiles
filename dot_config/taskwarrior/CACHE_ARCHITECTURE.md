@@ -55,8 +55,7 @@ ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/
 task add "New task"  または  task 1 done
     ↓
 [Taskwarrior Hooks]
-    ├─ on-add.py       (新規タスク時)
-    └─ on-modify.py    (変更時)
+    └─ on-add.py       (現在のエントリーポイント)
     ↓
 [共通ライブラリ]
     update_cache.py
@@ -113,12 +112,13 @@ task add "New task"  または  task 1 done
 - すべての例外を`pass`で吸収（Taskwarrior操作をブロックしないため）
 - `subprocess.DEVNULL`でstderr抑制
 
-#### `on-add.py` / `on-modify.py` (薄いラッパー)
+#### `on-add.py` (薄いラッパー)
 **場所**: `dot_config/taskwarrior/hooks/`
 
 **役割**:
 - `update_cache.py`をimportして`process_hook_input()`を呼び出すのみ
 - コード重複を排除
+- 必要であれば同内容の `on-modify.py` を追加して、Taskwarrior の変更フックにも流用可能
 
 ---
 
@@ -312,7 +312,6 @@ with open(os.path.join(cache_dir, "projects.list"), "w") as f:
 |-------------|------|
 | `dot_config/taskwarrior/hooks/update_cache.py` | キャッシュ更新ライブラリ |
 | `dot_config/taskwarrior/hooks/on-add.py` | 新規タスク追加時のフック |
-| `dot_config/taskwarrior/hooks/on-modify.py` | タスク変更時のフック |
 | `archive/zsh/fsh/chroma-task.ch` | Syntax Highlighting定義 |
 | `archive/zsh/dot_functions` | Zshヘルパー関数 |
 | `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` | キャッシュ（IDリスト） |

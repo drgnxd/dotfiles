@@ -82,6 +82,6 @@ Note: This is not recommended as Nushell is now the primary shell.
 
 ## References
 
-- [Nushell Configuration](../dot_config/nushell/)
+- [Nushell Configuration](../../dot_config/nushell/)
 - [Nushell Documentation](https://www.nushell.sh/book/)
-- [Migration Guide: docs/architecture/nushell.md](../docs/architecture/nushell.md)
+- [Migration Guide: docs/architecture/nushell.md](../../docs/architecture/nushell.md)
