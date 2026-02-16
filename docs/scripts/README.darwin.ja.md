@@ -29,5 +29,5 @@ FORCE=1 scripts/darwin/setup_cloud_symlinks.sh
 ```
 
 ## 関連ドキュメント
-- [リポジトリアーキテクチャ](../../ARCHITECTURE.md)
+- [リポジトリアーキテクチャ](../ARCHITECTURE.md)
 - [セキュリティモデル](../architecture/security-model.ja.md)

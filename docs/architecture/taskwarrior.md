@@ -10,7 +10,8 @@
 
 ## Components
 - Python hooks update `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` and `desc.list`.
-- Hook stdin is parsed as a JSON stream (supports on-add and on-modify payload formats).
+- This repository ships `on-add.py` as the active hook entrypoint.
+- Hook stdin is parsed as a JSON stream (supports both single-object and two-object payload formats).
 - If JSON parsing fails, hooks fall back to forwarding the last non-empty input line for compatibility.
 - Hook runtime errors are written to `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/hook_errors.log` without blocking task operations.
 - Set `TASKWARRIOR_HOOK_DEBUG=1` to mirror hook error lines to stderr while debugging.

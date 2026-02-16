@@ -72,8 +72,9 @@
 ├── docs/                       # Architecture notes
 ├── archive/                    # Archived legacy configs
 │   └── zsh/                    # [ARCHIVED] Legacy Zsh configuration
-├── README.md / README.ja.md    # Bilingual documentation
-└── ARCHITECTURE.md             # This file
+├── README.md                   # Main README (English)
+├── docs/README.ja.md           # Japanese README
+└── docs/ARCHITECTURE.md        # This file
 ```
 
 ---
@@ -256,8 +257,8 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 **Related Documentation**:
 - [Nushell Configuration](architecture/nushell.md)
-- [Taskwarrior Cache Architecture](dot_config/taskwarrior/CACHE_ARCHITECTURE.md)
-- [FSH Chroma Guide](archive/zsh/fsh/README.md) (Archived - Zsh)
+- [Taskwarrior Cache Architecture](../dot_config/taskwarrior/CACHE_ARCHITECTURE.md)
+- [FSH Chroma Guide](../archive/zsh/fsh/README.md) (Archived - Zsh)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Commit Convention](COMMIT_CONVENTION.md)
 

@@ -7,7 +7,7 @@ Nix（nix-darwin + home-manager）で管理している個人用のdotfilesで�
 このリポジトリには、私のmacOS環境の設定ファイルが含まれています：
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
-    *   詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
+    *   詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
     *   主なコマンド: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   以前のZsh機能を全てNushellに移行済み
 *   **レガシーシェル:** Zsh設定は`archive/zsh`にアーカイブ済み（必要に応じてgit履歴を参照）
@@ -42,12 +42,23 @@ darwin-rebuild switch --flake .#macbook
 
 ## インストール後の設定
 
+### 依存コマンドの確認
+
+macOSセットアップスクリプトの実行前に、必要なコマンドを確認します：
+
+```sh
+bash scripts/check_dependencies.sh
+```
+
+不足しているコマンドがある場合は、`darwin-rebuild` を再実行してパッケージを適用してください：
+
+```sh
+darwin-rebuild switch --flake .#macbook
+```
 
 ### Git設定
 
-
 インストール後、ローカルのgit設定ファイルを作成してユーザー情報を設定してください：
-
 
 ```sh
 cp ~/.config/git/config.local.example ~/.config/git/config.local
@@ -55,6 +66,21 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 hx ~/.config/git/config.local
 ```
 
+### pre-commit フック（任意）
+
+pre-commit は任意です。CI では同等のセキュリティスキャンと設定検証を実行します。
+
+ローカルでフックを有効化する場合：
+
+```sh
+nix shell nixpkgs#pre-commit -c pre-commit install
+```
+
+シークレット検出のベースラインを再生成する場合：
+
+```sh
+uv tool run detect-secrets scan --baseline .secrets.baseline
+```
 
 
 ## 運用・管理
@@ -150,7 +176,7 @@ darwin-rebuild switch --flake .#macbook
     *   `update` / `upgrade-all` - 統合システムアップグレード
 *   **自動初期化ツール**: Starship、Zoxide、Direnv、Carapace、Atuin
 *   **ローカル上書き**: マシン固有の設定用に `~/.config/nushell/local.nu` をサポート
-*   **ドキュメント**: 詳細は [docs/architecture/nushell.ja.md](docs/architecture/nushell.ja.md) を参照
+*   **ドキュメント**: 詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
 
 ### Helix の Language Server (LSP) サポート
 

@@ -29,7 +29,7 @@ git push origin main
 ## 3. 新マシンへのデプロイ
 ```bash
 # リポジトリをクローン
-git clone https://github.com/yourusername/dotfiles.git ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
 
 # 適用
 darwin-rebuild switch --flake ~/.config/nix-config#macbook
