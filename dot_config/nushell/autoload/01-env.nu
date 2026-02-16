@@ -56,6 +56,10 @@ $env.GNUPGHOME = ($env.XDG_CONFIG_HOME | path join "gnupg")
 
 # Rust/Cargo
 $env.CARGO_HOME = ($env.XDG_DATA_HOME | path join "cargo")
+$env.RUSTUP_HOME = ($env.XDG_DATA_HOME | path join "rustup")
+
+# Matplotlib
+$env.MPLCONFIGDIR = ($env.XDG_CONFIG_HOME | path join "matplotlib")
 
 # Node.js/npm
 $env.NPM_CONFIG_PREFIX = ($env.XDG_DATA_HOME | path join "npm")

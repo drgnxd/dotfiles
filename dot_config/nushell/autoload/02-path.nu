@@ -28,7 +28,7 @@ for p in (detect-nix-paths) {
 }
 
 path-add ($env.HOME | path join '.local' 'bin')
-path-add ($env.HOME | path join '.cargo' 'bin')
+path-add ($env.CARGO_HOME | path join 'bin')
 path-add '/opt/homebrew/bin'
 path-add '/opt/homebrew/sbin'
 
