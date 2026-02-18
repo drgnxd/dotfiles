@@ -16,7 +16,7 @@
 
   outputs = inputs@{ self, nixpkgs, nix-darwin, home-manager, agenix, ... }:
     let
-      system = if builtins ? currentSystem then builtins.currentSystem else "aarch64-darwin";
+      system = "aarch64-darwin";
     in
     {
       darwinConfigurations."darwin" = nix-darwin.lib.darwinSystem {

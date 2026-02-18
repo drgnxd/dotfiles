@@ -38,12 +38,19 @@ export def --env task_preview_enable [] {
 
 export def --env task_preview_update [buffer?: string] {
     let current = if ($buffer | is-not-empty) { $buffer } else { (try { commandline } catch { '' }) }
-    if ($current | is-empty) {
+    let trimmed = ($current | str trim --left)
+
+    if ($trimmed | is-empty) {
         $env.TASK_PREVIEW_MESSAGE = ''
         return
     }
 
-    let words = ($current | split row ' ' | where $it != '')
+    if not ($trimmed | str starts-with 't') {
+        $env.TASK_PREVIEW_MESSAGE = ''
+        return
+    }
+
+    let words = ($trimmed | split row ' ' | where $it != '')
     if ($words | is-empty) {
         $env.TASK_PREVIEW_MESSAGE = ''
         return
@@ -56,7 +63,7 @@ export def --env task_preview_update [buffer?: string] {
     }
 
     overlay use $taskwarrior_module
-    taskwarrior_preview_update $current
+    taskwarrior_preview_update $trimmed
 }
 
 export def --env task_preview_clear [] {

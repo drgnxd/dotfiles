@@ -3,6 +3,7 @@
 
 # Use ~/.config/nushell unconditionally (see env.nu for rationale).
 const config_dir = ($nu.home-dir | path join '.config' 'nushell')
+let has_carapace = (which carapace | is-not-empty)
 
 # History
 $env.config.history = {
@@ -20,7 +21,7 @@ $env.config.completions.external = {
     enable: true
     max_results: 100
     completer: {|spans|
-        if (which carapace | is-not-empty) {
+        if $has_carapace {
             carapace $spans.0 nushell ...$spans | from json
         } else {
             null
