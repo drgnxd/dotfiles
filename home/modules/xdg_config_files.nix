@@ -1,29 +1,22 @@
-{ lib, ... }:
+{ lib, osConfig ? {}, ... }:
 
 let
   clean_source = { src, exclude_names ? [] }:
     let
-      default_excludes = [
+      excluded_names = [
         ".DS_Store"
         ".pytest_cache"
         ".ruff_cache"
         ".venv"
         "__pycache__"
         "CACHEDIR.TAG"
-      ];
+      ] ++ exclude_names;
     in
       lib.cleanSourceWith {
         inherit src;
-        filter = path: _type:
-          let
-            path_str = toString path;
-            name = builtins.baseNameOf path;
-          in
-            !(lib.elem name (default_excludes ++ exclude_names))
-            && !lib.hasInfix "/.pytest_cache/" path_str
-            && !lib.hasInfix "/.ruff_cache/" path_str
-            && !lib.hasInfix "/.venv/" path_str
-            && !lib.hasInfix "/__pycache__/" path_str;
+        filter = path: type:
+          lib.cleanSourceFilter path type
+          && !(lib.elem (builtins.baseNameOf path) excluded_names);
       };
 
   terminal_configs = import ./xdg_terminal_files.nix;
@@ -50,7 +43,7 @@ let
 
   taskwarrior_source = clean_source { src = ../../dot_config/taskwarrior; };
 
-  use_npmrc_secret = builtins.pathExists ../../secrets/npmrc.age;
+  use_npmrc_secret = lib.hasAttrByPath [ "age" "secrets" "npmrc" ] osConfig;
   has_npmrc_file = builtins.pathExists ../../dot_config/npm/npmrc;
 in
 {
