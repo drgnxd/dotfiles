@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
@@ -12,19 +15,26 @@ jobs:
       - name: Run ShellCheck
         run: |
           shellcheck --version
-          find scripts -name "*.sh" -print0 | xargs -0 shellcheck
+          shell_files="$(git ls-files '*.sh')"
+          if [ -z "$shell_files" ]; then
+            echo "No shell scripts found"
+            exit 0
+          fi
+          printf '%s\n' "$shell_files" | xargs shellcheck
       - name: Install shfmt
         run: |
-          # Install shfmt binary for Linux runners (x86_64)
-          curl -sSLo shfmt "https://github.com/mvdan/sh/releases/download/v3.12.0/shfmt_v3.12.0_linux_amd64"
-          chmod +x shfmt
-          sudo mv shfmt /usr/local/bin/shfmt
+          sudo apt-get update
+          sudo apt-get install -y shfmt
 
       - name: Check shell formatting with shfmt
         run: |
           echo "Running shfmt format check..."
-          # List any files that are not formatted; fail the job if any are found
-          find scripts -type f -name "*.sh" -print0 | xargs -0 shfmt -l | tee /tmp/shfmt_unformatted || true
+          shell_files="$(git ls-files '*.sh')"
+          if [ -z "$shell_files" ]; then
+            echo "No shell scripts found"
+            exit 0
+          fi
+          printf '%s\n' "$shell_files" | xargs shfmt -l | tee /tmp/shfmt_unformatted || true
           if [ -s /tmp/shfmt_unformatted ]; then
             echo "shfmt detected unformatted files:" >&2
             cat /tmp/shfmt_unformatted >&2

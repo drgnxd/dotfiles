@@ -10,7 +10,7 @@
 
 ## コンポーネント
 - Python フックが `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` と `desc.list` を更新
-- このリポジトリでは `on-add.py` を有効なフックエントリーポイントとして配布
+- このリポジトリでは `on-add.py` と `on-modify.py` の両方を有効なフックエントリーポイントとして配布（共通処理は `update_cache.py`）
 - フックの標準入力は JSON ストリームとして厳密に解釈（単一オブジェクト/2オブジェクトの両形式に対応）
 - JSON 解釈に失敗した場合は、後方互換のため最終非空行をそのまま転送
 - フック内部エラーは `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/hook_errors.log` に記録し、Taskwarrior 操作は継続
