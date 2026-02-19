@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test-nushell:
     runs-on: macos-latest
@@ -37,6 +40,17 @@ jobs:
       - name: Run OpenCode tests
         run: |
           uv run --with-requirements requirements.txt --with pytest --directory dot_config/opencode pytest
+
+  validate-nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Validate Nix evaluation
+        run: |
+          nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.system.stateVersion
+          nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.stateVersion
+          nix flake check --no-build --no-write-lock-file
 
   security-scan:
     runs-on: ubuntu-latest

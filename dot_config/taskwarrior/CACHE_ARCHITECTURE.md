@@ -55,7 +55,8 @@ ${XDG_CACHE_HOME:-~/.cache}/taskwarrior/
 task add "New task"  または  task 1 done
     ↓
 [Taskwarrior Hooks]
-    └─ on-add.py       (現在のエントリーポイント)
+    ├─ on-add.py
+    └─ on-modify.py
     ↓
 [共通ライブラリ]
     update_cache.py
@@ -112,13 +113,13 @@ task add "New task"  または  task 1 done
 - すべての例外を`pass`で吸収（Taskwarrior操作をブロックしないため）
 - `subprocess.DEVNULL`でstderr抑制
 
-#### `on-add.py` (薄いラッパー)
+#### `on-add.py` / `on-modify.py` (薄いラッパー)
 **場所**: `dot_config/taskwarrior/hooks/`
 
 **役割**:
 - `update_cache.py`をimportして`process_hook_input()`を呼び出すのみ
 - コード重複を排除
-- 必要であれば同内容の `on-modify.py` を追加して、Taskwarrior の変更フックにも流用可能
+- 追加時・変更時の両フックで同一処理を使う
 
 ---
 

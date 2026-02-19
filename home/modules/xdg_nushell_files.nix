@@ -1,7 +1,6 @@
 [
   { target = "nushell/config.nu"; source = ../../dot_config/nushell/config.nu; }
   { target = "nushell/env.nu"; source = ../../dot_config/nushell/env.nu; }
-  { target = "nushell/local.nu"; source = ../../dot_config/nushell/local.nu; }
   { target = "nushell/autoload/00-constants.nu"; source = ../../dot_config/nushell/autoload/00-constants.nu; }
   { target = "nushell/autoload/00-helpers.nu"; source = ../../dot_config/nushell/autoload/00-helpers.nu; }
   { target = "nushell/autoload/01-env.nu"; source = ../../dot_config/nushell/autoload/01-env.nu; }

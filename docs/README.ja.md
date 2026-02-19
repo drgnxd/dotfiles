@@ -175,7 +175,7 @@ darwin-rebuild switch --flake .#macbook
     *   `y` - cwd追跡付きYaziファイルマネージャ
     *   `update` / `upgrade-all` - 統合システムアップグレード
 *   **自動初期化ツール**: Starship、Zoxide、Direnv、Carapace、Atuin
-*   **ローカル上書き**: マシン固有の設定用に `~/.config/nushell/local.nu` をサポート
+*   **ローカル上書き**: マシン固有の設定用に未管理ファイル `~/.config/nushell/local.nu` をサポート
 *   **ドキュメント**: 詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
 
 ### Helix の Language Server (LSP) サポート
