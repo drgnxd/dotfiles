@@ -23,6 +23,7 @@ jobs:
           touch "$HOME/.cache/nushell-init/atuin.nu"
       - name: Symlink nushell config to XDG location
         run: |
+          cp "$GITHUB_WORKSPACE/dot_config/nushell/local.nu.example" "$GITHUB_WORKSPACE/dot_config/nushell/local.nu"
           mkdir -p "$HOME/.config"
           ln -s "$GITHUB_WORKSPACE/dot_config/nushell" "$HOME/.config/nushell"
       - name: Source autoload modules
