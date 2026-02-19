@@ -1,0 +1,13 @@
+# Local Nushell overrides (unmanaged by Home Manager)
+#
+# Usage:
+#   cp ~/.config/nix-config/dot_config/nushell/local.nu.example ~/.config/nushell/local.nu
+#
+# This file is intentionally not symlinked by Home Manager, so each machine can
+# keep private or host-specific settings here.
+
+# Example: override default flake target on this machine
+# $env.DOTFILES_FLAKE_TARGET = "macbook"
+
+# Example: prepend a machine-local tool path
+# $env.PATH = ($env.PATH | prepend "/opt/custom/bin" | uniq)

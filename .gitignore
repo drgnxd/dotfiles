@@ -31,6 +31,7 @@ dot_local/state/
 
 # Secret/local configs
 **/*local*
+!dot_config/nushell/local.nu.example
 **/hosts.yml
 dot_config/npm/
 
