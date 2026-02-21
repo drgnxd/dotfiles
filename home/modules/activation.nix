@@ -4,6 +4,7 @@ let
   opencode_config = ../../dot_config/opencode/opencode.json;
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   taskwarrior_local_rc = "${config.xdg.configHome}/taskwarrior.local.rc";
+  nushell_local_nu = "${config.xdg.configHome}/nushell/local.nu";
 
   disable_login_launch_agent = { plist_name, labels }:
     ''
@@ -42,6 +43,14 @@ in
     if [ ! -f "$taskwarrior_local_rc" ]; then
       mkdir -p "$(dirname "$taskwarrior_local_rc")"
       touch "$taskwarrior_local_rc"
+    fi
+  '';
+
+  home.activation.ensureNushellLocalNu = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    nushell_local_nu="${nushell_local_nu}"
+    if [ ! -f "$nushell_local_nu" ]; then
+      mkdir -p "$(dirname "$nushell_local_nu")"
+      touch "$nushell_local_nu"
     fi
   '';
 
