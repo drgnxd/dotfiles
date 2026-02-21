@@ -108,7 +108,7 @@ autoload/
 - XDG Base Directory compliance
 - Conditional command loading with fallbacks
 - PATH helper with existence checks (`path-add`)
-- Local overrides via `~/.config/nushell/local.nu`
+- Local overrides via `~/.config/nushell/local.nu` (empty file ensured during activation)
 
 **Module Loading**:
 ```nushell

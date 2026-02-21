@@ -184,7 +184,7 @@ Modern shell with structured data and modular configuration:
     *   `y` - Yazi file manager with cwd tracking
     *   `update` / `upgrade-all` - Unified system upgrade
 *   **Auto-initialized Tools**: Starship, Zoxide, Direnv, Carapace, Atuin
-*   **Local Overrides**: Support for unmanaged `~/.config/nushell/local.nu` for machine-specific settings
+*   **Local Overrides**: Support for unmanaged `~/.config/nushell/local.nu` for machine-specific settings (auto-created as an empty file during activation)
 *   **Documentation**: See [docs/architecture/nushell.md](docs/architecture/nushell.md) for full details
 
 ### Helix language-server (LSP) support

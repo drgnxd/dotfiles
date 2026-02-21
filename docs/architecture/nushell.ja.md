@@ -175,7 +175,9 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 ## ローカル上書き
 
-マシン固有の設定には`~/.config/nushell/local.nu`を作成してください：
+マシン固有の設定には`~/.config/nushell/local.nu`を使用してください。
+このファイルは Home Manager の activation 時に、存在しない場合は空ファイルとして自動作成されます。
+必要な上書き設定を追記してください：
 
 ```nushell
 # ~/.config/nushell/local.nu
