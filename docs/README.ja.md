@@ -12,6 +12,7 @@ Nix（nix-darwin + home-manager）で管理している個人用のdotfilesで�
     *   以前のZsh機能を全てNushellに移行済み
 *   **レガシーシェル:** Zsh設定は`archive/zsh`にアーカイブ済み（必要に応じてgit履歴を参照）
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
+*   **ターミナルマルチプレクサ:** Zellij
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
 *   **ウィンドウマネージャ:** Hammerspoon (macOSのみ)
@@ -123,7 +124,7 @@ darwin-rebuild switch --flake .#macbook
     *   `starship/`: クロスシェルプロンプトの設定
     *   `stats/`: Stats（システムモニター）の設定
     *   `taskwarrior/`: タスク管理の設定
-    *   `tmux/`: ターミナルマルチプレクサ（Solarized Darkテーマ）
+    *   `zellij/`: ターミナルマルチプレクサの設定
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
     *   `nushell/`: モダンなシェル設定（詳細は architecture/nushell.ja.md を参照）
         *   `autoload/`: モジュール化された設定ファイル

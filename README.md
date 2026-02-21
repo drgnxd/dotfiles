@@ -19,7 +19,7 @@ This repository contains configurations for my macOS environment, including:
 *   **Legacy Shell:** Zsh configuration archived under `archive/zsh` (see git history if needed)
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser)
-*   **Terminal Multiplexer:** Tmux with Solarized Dark theme and Vim-style keybindings
+*   **Terminal Multiplexer:** Zellij
 *   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Window Manager:** Hammerspoon (macOS only)
@@ -133,7 +133,7 @@ darwin-rebuild switch --flake .#macbook
     *   `starship/`: Cross-shell prompt configuration
     *   `stats/`: Configuration for Stats (system monitor)
     *   `taskwarrior/`: Task management configuration
-    *   `tmux/`: Terminal multiplexer with Solarized Dark theme
+    *   `zellij/`: Terminal multiplexer configuration
     *   `yazi/`: Blazing fast terminal file manager with custom theme
     *   `nushell/`: Modern shell configuration (see architecture/nushell.md)
         *   `autoload/`: Modular configuration files

@@ -26,7 +26,7 @@ let
     "shellcheck"
     "starship"
     "taskwarrior3"
-    "tmux"
+    "zellij"
     "yazi"
     "zoxide"
 
