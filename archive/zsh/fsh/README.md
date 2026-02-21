@@ -8,7 +8,7 @@
 
 ## インストール済みChroma一覧
 
-本リポジトリでは、**35個**のカスタムChroma定義を提供しています：
+本リポジトリでは、**34個**のカスタムChroma定義を提供しています：
 
 | コマンド | ファイル名 | 説明 |
 |---------|-----------|------|
@@ -33,7 +33,6 @@
 | `uv` | `chroma-uv.ch` | Pythonパッケージマネージャ（uv） |
 | `starship` | `chroma-starship.ch` | クロスシェルプロンプト |
 | `task` | `chroma-task.ch` | Taskwarriorタスク管理（**高度な実装**） |
-| `tmux` | `chroma-tmux.ch` | ターミナルマルチプレクサ |
 | `wget` | `chroma-wget.ch` | ファイルダウンローダー |
 | `yazi` | `chroma-yazi.ch` | ターミナルファイルマネージャ |
 | `zk` | `chroma-zk.ch` | Zettelkastenノート管理 |

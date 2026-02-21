@@ -50,7 +50,7 @@
 │   ├── taskwarrior/            # Task management
 │   │   ├── hooks/              # Python hooks + cache system
 │   │   └── CACHE_ARCHITECTURE.md # Documentation
-│   ├── tmux/                   # Terminal multiplexer
+│   ├── zellij/                 # Terminal multiplexer
 │   ├── yazi/                   # File manager
 │   ├── nushell/                # Modern shell (see architecture/nushell.md)
 │   │   ├── autoload/           # Modular configuration
