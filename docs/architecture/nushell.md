@@ -175,7 +175,9 @@ This configuration replaces the previous Zsh setup. Key changes:
 
 ## Local Overrides
 
-Create `~/.config/nushell/local.nu` for machine-specific settings:
+Use `~/.config/nushell/local.nu` for machine-specific settings.
+Home Manager activation auto-creates this file as empty if missing.
+Add overrides as needed:
 
 ```nushell
 # ~/.config/nushell/local.nu
