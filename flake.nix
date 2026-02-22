@@ -11,6 +11,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     agenix.url = "github:ryantm/agenix";
+    agenix.inputs.darwin.follows = "nix-darwin";
+    agenix.inputs.home-manager.follows = "home-manager";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 

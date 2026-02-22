@@ -12,6 +12,8 @@ in
 
   imports = [
     ./modules/activation.nix
+    ./modules/alacritty.nix
+    ./modules/zellij.nix
     ./modules/xdg_config_files.nix
   ];
 
