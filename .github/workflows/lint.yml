@@ -20,6 +20,13 @@ jobs:
             echo "No shell scripts found"
             exit 0
           fi
+          case "$shell_files" in
+            *"dot_config/opencode/test_nushell_integration.sh"*) ;;
+            *)
+              echo "Missing expected script in ShellCheck target: dot_config/opencode/test_nushell_integration.sh" >&2
+              exit 1
+              ;;
+          esac
           printf '%s\n' "$shell_files" | xargs shellcheck
       - name: Install shfmt
         run: |
@@ -34,6 +41,13 @@ jobs:
             echo "No shell scripts found"
             exit 0
           fi
+          case "$shell_files" in
+            *"dot_config/opencode/test_nushell_integration.sh"*) ;;
+            *)
+              echo "Missing expected script in shfmt target: dot_config/opencode/test_nushell_integration.sh" >&2
+              exit 1
+              ;;
+          esac
           printf '%s\n' "$shell_files" | xargs shfmt -l | tee /tmp/shfmt_unformatted || true
           if [ -s /tmp/shfmt_unformatted ]; then
             echo "shfmt detected unformatted files:" >&2

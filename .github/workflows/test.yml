@@ -41,6 +41,9 @@ jobs:
       - name: Run OpenCode tests
         run: |
           uv run --with-requirements requirements.txt --with pytest --directory dot_config/opencode pytest
+      - name: Run OpenCode Nushell integration script
+        run: |
+          bash dot_config/opencode/test_nushell_integration.sh
 
   validate-nix:
     runs-on: ubuntu-latest

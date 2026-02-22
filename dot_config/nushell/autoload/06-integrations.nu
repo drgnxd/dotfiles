@@ -1,8 +1,10 @@
 
 # Integrations wrappers (lazy-loaded cache generation)
 
+const integrations_module_path = ($nu.home-dir | path join ".config" "nushell" "modules" "integrations.nu")
+
 export def integrations-cache-update [] {
-    overlay use $integrations_module
+    overlay use $integrations_module_path
     integrations_cache_update
 }
 

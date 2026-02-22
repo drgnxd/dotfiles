@@ -15,7 +15,7 @@ echo
 
 # Test 1: YAML syntax
 echo "Test 1: YAML syntax validation"
-if uv run python -c "import yaml; yaml.safe_load(open('skills/essential/languages.yaml'))" 2>/dev/null; then
+if uv run --with-requirements requirements.txt python -c "import yaml; yaml.safe_load(open('skills/essential/languages.yaml'))" 2>/dev/null; then
 	print_ok "languages.yaml is valid"
 else
 	print_err "languages.yaml has syntax errors"
@@ -33,7 +33,7 @@ fi
 
 # Test 3: Nushell skill loading
 echo "Test 3: Nushell skill loading"
-if uv run python -c "
+if uv run --with-requirements requirements.txt python -c "
 from skills_loader import SkillsLoader
 result = SkillsLoader().load_for_task('Create a nushell script')
 assert 'nushell' in result.lower()
@@ -46,7 +46,7 @@ fi
 
 # Test 4: Token budget
 echo "Test 4: Token budget check"
-if uv run python -c "
+if uv run --with-requirements requirements.txt python -c "
 from skills_loader import SkillsLoader
 import re
 result = SkillsLoader().load_for_task('Design nushell pipeline')

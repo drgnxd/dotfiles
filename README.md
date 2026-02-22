@@ -74,6 +74,19 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 hx ~/.config/git/config.local
 ```
 
+### Agenix Recipients (Optional)
+
+If you use `agenix`, set your SSH public key in `secrets/secrets.nix` before rekeying:
+
+```nix
+let
+  macbook = "ssh-ed25519 AAAA...your-key...";
+in
+...
+```
+
+An empty key list keeps fresh clones and CI checks portable; `agenix -r` requires at least one real recipient key.
+
 ### Pre-commit Hooks (Optional)
 
 pre-commit is optional. CI runs the same security scan and config validation.
