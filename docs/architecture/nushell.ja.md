@@ -50,6 +50,8 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが `autoload/00-constants.nu` で定義したモジュール定数経由で `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、ハードコードされたパス依存を避けます。
 
+`config.nu` は意図的に `06-integrations.nu`、`08-taskwarrior.nu`、`09-lima.nu` を先に読み込み、その後で `07-source-tools.nu` を読み込みます。`07-source-tools.nu` は `integrations-cache-update` と `task_preview_enable` を呼ぶ消費側ステージのため、これらのコマンド定義後に実行する必要があります。
+
 ## 主な機能
 
 ### 1. XDG Base Directory準拠

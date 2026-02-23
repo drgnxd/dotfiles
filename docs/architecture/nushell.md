@@ -50,6 +50,8 @@ No user-specific path rewrites are needed when moving between machines/users, as
 
 Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with module constants exported from `autoload/00-constants.nu`. This keeps startup fast while avoiding hardcoded path assumptions.
 
+`config.nu` intentionally loads `06-integrations.nu`, then wrapper modules (`08-taskwarrior.nu`, `09-lima.nu`), and finally `07-source-tools.nu`. `07-source-tools.nu` is a consumer stage that triggers `integrations-cache-update` and `task_preview_enable`, so it must run after those command definitions are present.
+
 ## Key Features
 
 ### 1. XDG Base Directory Compliance

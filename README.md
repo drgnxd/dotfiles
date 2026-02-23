@@ -74,6 +74,15 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 hx ~/.config/git/config.local
 ```
 
+### OpenCode Provider Override (Optional)
+
+The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
+For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
+
+- During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`.
+- If it is empty, the managed template is copied instead.
+- A starter file is created at `~/.config/opencode/opencode.local.json.example`.
+
 ### Agenix Recipients (Optional)
 
 If you use `agenix`, set your SSH public key in `secrets/secrets.nix` before rekeying:
@@ -202,7 +211,7 @@ Modern shell with structured data and modular configuration:
 
 ### Helix language-server (LSP) support
 
-This configuration enables additional language-server integrations for the Helix editor and documents the matching Nix packages. The repository now includes recommended LSPs such as `pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, and `texlab`. See `dot_config/helix/` for editor settings and `home/packages.nix` for package declarations.
+This configuration enables additional language-server integrations for the Helix editor and documents the matching Nix packages. The repository includes recommended LSPs such as `pyright`, `ruff`, `marksman`, `taplo`, `lua-language-server`, `yaml-language-server`, and `texlab` via Nix packages. For Rust, `rust-analyzer` is expected via `rustup` (`rustup component add rust-analyzer`). See `dot_config/helix/` for editor settings and `home/packages.nix` for package declarations.
 
 ## License
 

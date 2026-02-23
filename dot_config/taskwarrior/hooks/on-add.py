@@ -1,19 +1,11 @@
 #!/usr/bin/env -S uv run --quiet --script
 """
-Taskwarrior on-add/on-modify hook.
+Taskwarrior on-add hook.
 
-This entrypoint is shared by both on-add.py and on-modify.py.
-It forwards the newest task JSON to Taskwarrior and updates the cache.
+Delegates to the shared hook entrypoint implementation.
 """
 
-import sys
-import os
-
-# Add hooks directory to Python path for imports
-hooks_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, hooks_dir)
-
-from update_cache import process_hook_input  # noqa: E402
+from hook_entrypoint import run_hook_entrypoint
 
 if __name__ == "__main__":
-    process_hook_input()
+    run_hook_entrypoint()
