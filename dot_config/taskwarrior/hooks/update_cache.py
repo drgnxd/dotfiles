@@ -64,7 +64,8 @@ def should_skip_update(now: float) -> bool:
         last_update = os.path.getmtime(LAST_UPDATE_PATH)
     except FileNotFoundError:
         return False
-    except OSError:
+    except OSError as error:
+        log_hook_error("Failed to read update marker mtime", error)
         return False
     return now - last_update < MIN_UPDATE_INTERVAL_SECONDS
 

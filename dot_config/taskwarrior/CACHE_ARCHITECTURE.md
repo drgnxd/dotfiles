@@ -58,6 +58,9 @@ task add "New task"  または  task 1 done
     ├─ on-add.py
     └─ on-modify.py
     ↓
+[共有エントリーポイント]
+    hook_entrypoint.py
+    ↓
 [共通ライブラリ]
     update_cache.py
     ├─ task status:pending -WAITING export
@@ -117,7 +120,8 @@ task add "New task"  または  task 1 done
 **場所**: `dot_config/taskwarrior/hooks/`
 
 **役割**:
-- `update_cache.py`をimportして`process_hook_input()`を呼び出すのみ
+- `hook_entrypoint.py` を呼び出して共通処理に委譲
+- `hook_entrypoint.py` は `update_cache.py` をimportして`process_hook_input()`を呼び出す
 - コード重複を排除
 - 追加時・変更時の両フックで同一処理を使う
 
@@ -312,7 +316,9 @@ with open(os.path.join(cache_dir, "projects.list"), "w") as f:
 | ファイルパス | 役割 |
 |-------------|------|
 | `dot_config/taskwarrior/hooks/update_cache.py` | キャッシュ更新ライブラリ |
+| `dot_config/taskwarrior/hooks/hook_entrypoint.py` | フック共通エントリーポイント |
 | `dot_config/taskwarrior/hooks/on-add.py` | 新規タスク追加時のフック |
+| `dot_config/taskwarrior/hooks/on-modify.py` | タスク変更時のフック |
 | `archive/zsh/fsh/chroma-task.ch` | Syntax Highlighting定義 |
 | `archive/zsh/dot_functions` | Zshヘルパー関数 |
 | `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` | キャッシュ（IDリスト） |

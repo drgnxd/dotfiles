@@ -1,5 +1,6 @@
 # Integrations cache consumer (source-only)
 # Cache generation happens in modules/integrations.nu via integrations-cache-update.
+# This file is sourced after 06/08/09 wrappers in config.nu on purpose.
 
 const starship_file = ($nu.home-dir | path join ".cache" "nushell-init" "starship.nu")
 const zoxide_file = ($nu.home-dir | path join ".cache" "nushell-init" "zoxide.nu")

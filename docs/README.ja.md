@@ -67,6 +67,15 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 hx ~/.config/git/config.local
 ```
 
+### OpenCode プロバイダー上書き（任意）
+
+OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
+マシン固有のプロバイダー設定は `~/.config/opencode/opencode.local.json` を編集してください。
+
+- activation 時に `~/.config/opencode/opencode.local.json` が空でなければ、その内容を `~/.config/opencode/opencode.json` にコピーします。
+- 空の場合は、リポジトリ管理のテンプレートをコピーします。
+- 初期サンプルは `~/.config/opencode/opencode.local.json.example` に配置されます。
+
 ### pre-commit フック（任意）
 
 pre-commit は任意です。CI では同等のセキュリティスキャンと設定検証を実行します。
@@ -181,7 +190,7 @@ darwin-rebuild switch --flake .#macbook
 
 ### Helix の Language Server (LSP) サポート
 
-この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `rust-analyzer`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPが含まれます。エディタ設定は `dot_config/helix/`、パッケージ定義は `home/packages.nix` を参照してください。
+この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPは Nix パッケージで提供します。Rust の `rust-analyzer` は `rustup` 前提（`rustup component add rust-analyzer`）です。エディタ設定は `dot_config/helix/`、パッケージ定義は `home/packages.nix` を参照してください。
 
 ## ライセンス
 

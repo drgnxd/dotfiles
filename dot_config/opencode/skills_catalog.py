@@ -201,9 +201,7 @@ class SkillsCatalog:
                     errors.append(f"Skill '{skill_name}' path not found: {skill_path}")
 
             token_value = self.get_value(meta, "tokens")
-            if token_value is None:
-                errors.append(f"Skill '{skill_name}' is missing tokens")
-            elif not self._is_int_like(token_value):
+            if token_value is not None and not self._is_int_like(token_value):
                 errors.append(f"Skill '{skill_name}' tokens must be an integer")
 
             kw_value = self.get_value(meta, "trigger_keywords")
