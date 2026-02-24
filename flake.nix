@@ -16,13 +16,25 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nixpkgs, nix-darwin, home-manager, agenix, ... }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      nix-darwin,
+      home-manager,
+      agenix,
+      ...
+    }:
     let
       system = "aarch64-darwin";
+      pkgs = nixpkgs.legacyPackages.${system};
+      user = "drgnxd";
+      hostname = "macbook";
     in
     {
-      darwinConfigurations."macbook" = nix-darwin.lib.darwinSystem {
+      darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
         inherit system;
+        specialArgs = { inherit inputs user hostname; };
         modules = [
           ./hosts/macbook
           home-manager.darwinModules.home-manager
@@ -31,10 +43,38 @@
             nixpkgs.hostPlatform = system;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.drgnxd = import ./home;
-            home-manager.extraSpecialArgs = { inherit inputs; };
+            home-manager.users.${user} = import ./home;
+            home-manager.extraSpecialArgs = { inherit inputs user; };
           }
         ];
+      };
+
+      formatter.${system} = pkgs.nixfmt;
+
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          nixfmt
+          statix
+          deadnix
+        ];
+      };
+
+      checks.${system} = {
+        formatting = pkgs.runCommand "check-formatting" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
+          cd ${self}
+          find . -name '*.nix' -exec nixfmt --check {} +
+          touch $out
+        '';
+        lint-statix = pkgs.runCommand "check-statix" { nativeBuildInputs = [ pkgs.statix ]; } ''
+          cd ${self}
+          statix check .
+          touch $out
+        '';
+        lint-deadnix = pkgs.runCommand "check-deadnix" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
+          cd ${self}
+          deadnix --fail .
+          touch $out
+        '';
       };
     };
 }

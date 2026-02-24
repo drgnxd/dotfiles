@@ -1,19 +1,36 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  user,
+  ...
+}:
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
 in
 {
-  home.username = "drgnxd";
-  home.homeDirectory = "/Users/drgnxd";
+  home.username = user;
+  home.homeDirectory = "/Users/${user}";
   home.stateVersion = "24.11";
 
   programs.home-manager.enable = true;
 
   imports = [
-    ./modules/activation.nix
+    ./modules/activation/directories.nix
+    ./modules/activation/app_config.nix
+    ./modules/activation/macos_defaults.nix
+    ./modules/activation/launch_agents.nix
     ./modules/alacritty.nix
+    ./modules/atuin.nix
+    ./modules/bat.nix
+    ./modules/direnv.nix
+    ./modules/fzf.nix
+    ./modules/gh.nix
+    ./modules/git.nix
+    ./modules/starship.nix
     ./modules/zellij.nix
+    ./modules/zoxide.nix
     ./modules/xdg_config_files.nix
   ];
 
@@ -28,8 +45,9 @@ in
 
   home.packages = packages.packages;
 
-  warnings = lib.optional (packages.missing != [])
-    ("Missing nix packages: " + (lib.concatStringsSep ", " packages.missing));
+  warnings = lib.optional (packages.missing != [ ]) (
+    "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)
+  );
 
   home.file = {
     ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";

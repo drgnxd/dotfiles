@@ -1,30 +1,41 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  user,
+  ...
+}:
 
 let
-  user = "drgnxd";
-  home_dir = "/Users/drgnxd";
+  home_dir = "/Users/${user}";
 
   # Helper: managed LaunchAgent with environment variables, logging, and umask
-  mkManagedAgent = { name, programArgs }: {
-    serviceConfig = {
-      ProgramArguments = programArgs;
-      EnvironmentVariables = {
-        LANG = "en_US.UTF-8";
-        LC_ALL = "en_US.UTF-8";
+  mkManagedAgent =
+    { name, programArgs }:
+    {
+      serviceConfig = {
+        ProgramArguments = programArgs;
+        EnvironmentVariables = {
+          LANG = "en_US.UTF-8";
+          LC_ALL = "en_US.UTF-8";
+        };
+        RunAtLoad = true;
+        KeepAlive = false;
+        ProcessType = "Interactive";
+        StandardOutPath = "${home_dir}/.local/state/launchagents/${name}/stdout.log";
+        StandardErrorPath = "${home_dir}/.local/state/launchagents/${name}/stderr.log";
+        Umask = 77;
       };
-      RunAtLoad = true;
-      KeepAlive = false;
-      ProcessType = "Interactive";
-      StandardOutPath = "${home_dir}/.local/state/launchagents/${name}/stdout.log";
-      StandardErrorPath = "${home_dir}/.local/state/launchagents/${name}/stderr.log";
-      Umask = 77;
     };
-  };
 
   # Helper: simple login app LaunchAgent (open -a)
   mkLoginApp = appName: {
     serviceConfig = {
-      ProgramArguments = [ "/usr/bin/open" "-a" appName ];
+      ProgramArguments = [
+        "/usr/bin/open"
+        "-a"
+        appName
+      ];
       RunAtLoad = true;
       KeepAlive = false;
       ProcessType = "Interactive";
@@ -36,6 +47,99 @@ in
   nixpkgs.config.allowUnfree = true;
 
   system.stateVersion = 5;
+
+  # ── macOS system defaults (declarative) ──────────────────────────────
+  system.defaults = {
+    NSGlobalDomain = {
+      # Save/print dialogs
+      NSNavPanelExpandedStateForSaveMode = true;
+      NSNavPanelExpandedStateForSaveMode2 = true;
+      PMPrintingExpandedStateForPrint = true;
+      PMPrintingExpandedStateForPrint2 = true;
+
+      # Locale & units
+      AppleMeasurementUnits = "Centimeters";
+      AppleMetricUnits = 1;
+      AppleTemperatureUnit = "Celsius";
+
+      # Disable auto-corrections
+      NSAutomaticSpellingCorrectionEnabled = false;
+      NSAutomaticCapitalizationEnabled = false;
+      NSAutomaticQuoteSubstitutionEnabled = false;
+      NSAutomaticDashSubstitutionEnabled = false;
+      NSAutomaticPeriodSubstitutionEnabled = false;
+
+      # Show file extensions everywhere
+      AppleShowAllExtensions = true;
+
+      # Keyboard
+      KeyRepeat = 1;
+      InitialKeyRepeat = 15;
+      ApplePressAndHoldEnabled = false;
+    };
+
+    dock = {
+      autohide = true;
+      autohide-delay = 0.0;
+      autohide-time-modifier = 0.0;
+      show-recents = false;
+      static-only = true;
+      tilesize = 48;
+    };
+
+    finder = {
+      AppleShowAllFiles = true;
+      _FXShowPosixPathInTitle = true;
+      ShowStatusBar = true;
+      ShowPathbar = true;
+      _FXSortFoldersFirst = true;
+      FXDefaultSearchScope = "SCcf";
+    };
+
+    screencapture = {
+      disable-shadow = true;
+      type = "png";
+      location = "~/Desktop/Screenshots";
+    };
+
+    # Settings without dedicated nix-darwin options
+    CustomUserPreferences = {
+      NSGlobalDomain = {
+        AppleLanguages = [
+          "en-JP"
+          "ja-JP"
+        ];
+        AppleLocale = "en_JP";
+        AppleICUDateFormatStrings = {
+          "1" = "yyyy/MM/dd";
+        };
+        "com.apple.mouse.scaling" = 7;
+        "com.apple.trackpad.scaling" = 7;
+        "com.apple.keyboard.fnState" = 1;
+      };
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+      "com.apple.dock" = {
+        workspaces-swoosh-animation-off = true;
+      };
+      "com.apple.controlcenter" = {
+        "NSStatusItem Visible Battery" = false;
+        "NSStatusItem Visible BentoBox" = true;
+        "NSStatusItem Visible NowPlaying" = false;
+        "NSStatusItem Visible ScreenMirroring" = false;
+        "NSStatusItem Visible WiFi" = false;
+      };
+      "com.apple.menuextra.clock" = {
+        IsAnalog = false;
+        ShowAMPM = true;
+        ShowDate = true;
+        ShowDayOfWeek = true;
+        ShowSeconds = true;
+      };
+    };
+  };
 
   # Ensure XDG base directories are set system-wide so Nushell (and other tools)
   # find configs at ~/.config/ instead of macOS ~/Library/Application Support/
@@ -67,7 +171,6 @@ in
       "pearcleaner"
       "sol"
       "stats"
-      "font-hackgen-nerd"
 
       "gimp"
       "google-chrome"
@@ -91,8 +194,9 @@ in
     };
   };
 
-  fonts.packages = [
-    pkgs.hackgen-font
+  fonts.packages = with pkgs; [
+    hackgen-font
+    hackgen-nf-font
   ];
 
   users.users.${user}.home = home_dir;
@@ -106,20 +210,28 @@ in
     };
     maccy = mkManagedAgent {
       name = "maccy";
-      programArgs = [ "/usr/bin/open" "-a" "Maccy" ];
+      programArgs = [
+        "/usr/bin/open"
+        "-a"
+        "Maccy"
+      ];
     };
     stats = mkManagedAgent {
       name = "stats";
-      programArgs = [ "/usr/bin/open" "-a" "Stats" ];
+      programArgs = [
+        "/usr/bin/open"
+        "-a"
+        "Stats"
+      ];
     };
 
     # Simple login apps: open -a at login
-    login-alacritty  = mkLoginApp "Alacritty";
-    login-floorp     = mkLoginApp "Floorp";
+    login-alacritty = mkLoginApp "Alacritty";
+    login-floorp = mkLoginApp "Floorp";
     login-proton-mail = mkLoginApp "Proton Mail";
     login-proton-pass = mkLoginApp "Proton Pass";
-    login-protonvpn  = mkLoginApp "ProtonVPN";
-    login-sol        = mkLoginApp "Sol";
+    login-protonvpn = mkLoginApp "ProtonVPN";
+    login-sol = mkLoginApp "Sol";
   };
 
   age.secrets = lib.mkMerge [

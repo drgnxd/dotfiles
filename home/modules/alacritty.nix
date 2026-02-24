@@ -19,7 +19,10 @@
 
       window = {
         decorations = "buttonless";
-        padding = { x = 10; y = 10; };
+        padding = {
+          x = 10;
+          y = 10;
+        };
         opacity = 0.75;
         option_as_alt = "OnlyLeft";
       };
@@ -35,7 +38,10 @@
       env.TERM = "xterm-256color";
 
       colors = {
-        primary = { background = "#002b36"; foreground = "#839496"; };
+        primary = {
+          background = "#002b36";
+          foreground = "#839496";
+        };
 
         normal = {
           black = "#073642";
@@ -66,7 +72,10 @@
           mods = "Command";
           command = {
             program = "/bin/sh";
-            args = [ "-c" "\${XDG_CONFIG_HOME:-$HOME/.config}/alacritty/toggle_blur.sh" ];
+            args = [
+              "-c"
+              "\${XDG_CONFIG_HOME:-$HOME/.config}/alacritty/toggle_blur.sh"
+            ];
           };
         }
       ];
