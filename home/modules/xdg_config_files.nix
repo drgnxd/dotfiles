@@ -1,7 +1,23 @@
-{ lib, osConfig ? {}, ... }:
+{
+  lib,
+  osConfig ? { },
+  ...
+}:
 
 let
-  clean_source = { src, exclude_names ? [] }:
+  # Helper: map a relative path string to an xdg.configFile entry
+  mkConfigFile = path: {
+    name = path;
+    value = {
+      source = ../../dot_config/${path};
+    };
+  };
+
+  clean_source =
+    {
+      src,
+      exclude_names ? [ ],
+    }:
     let
       excluded_names = [
         ".DS_Store"
@@ -10,36 +26,26 @@ let
         ".venv"
         "__pycache__"
         "CACHEDIR.TAG"
-      ] ++ exclude_names;
+      ]
+      ++ exclude_names;
     in
-      lib.cleanSourceWith {
-        inherit src;
-        filter = path: type:
-          lib.cleanSourceFilter path type
-          && !(lib.elem (builtins.baseNameOf path) excluded_names);
-      };
+    lib.cleanSourceWith {
+      inherit src;
+      filter =
+        path: type:
+        lib.cleanSourceFilter path type && !(lib.elem (builtins.baseNameOf path) excluded_names);
+    };
 
   terminal_configs = import ./xdg_terminal_files.nix;
-
   editor_configs = import ./xdg_editor_files.nix;
-
   nushell_configs = import ./xdg_nushell_files.nix;
-
   yazi_configs = import ./xdg_yazi_files.nix;
-
   desktop_configs = import ./xdg_desktop_files.nix;
 
-  simple_config_files =
-    terminal_configs
-    ++ editor_configs
-    ++ nushell_configs
-    ++ yazi_configs
-    ++ desktop_configs;
+  all_config_paths =
+    terminal_configs ++ editor_configs ++ nushell_configs ++ yazi_configs ++ desktop_configs;
 
-  simple_config_attrs = builtins.listToAttrs (map (entry: {
-    name = entry.target;
-    value = { source = entry.source; };
-  }) simple_config_files);
+  simple_config_attrs = builtins.listToAttrs (map mkConfigFile all_config_paths);
 
   taskwarrior_source = clean_source { src = ../../dot_config/taskwarrior; };
 
