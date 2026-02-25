@@ -16,31 +16,27 @@ export def --wrapped y [...args] {
 export def zk-sync [] {
     let notebook_dir = ($env | get ZK_NOTEBOOK_DIR?)
     if ($notebook_dir | is-empty) {
-        print --stderr "ZK_NOTEBOOK_DIR is not set"
-        return 1
+        error make { msg: "ZK_NOTEBOOK_DIR is not set" }
     }
     if not ($notebook_dir | path exists) {
-        print --stderr $"Failed to enter ZK_NOTEBOOK_DIR: ($notebook_dir)"
-        return 1
+        error make { msg: $"Failed to enter ZK_NOTEBOOK_DIR: ($notebook_dir)" }
     }
     let git_check = (do { git -C $notebook_dir rev-parse --is-inside-work-tree } | complete)
     if ($git_check.exit_code != 0) {
-        print --stderr $"Not a git repository: ($notebook_dir)"
-        return 1
+        error make { msg: $"Not a git repository: ($notebook_dir)" }
     }
     let status_check = (do { git -C $notebook_dir status --porcelain } | complete)
     if ($status_check.stdout | is-empty) {
         print "No changes to sync"
-        return 0
+        return
     }
     git -C $notebook_dir add .
     let diff_check = (do { git -C $notebook_dir diff --cached --quiet } | complete)
     if ($diff_check.exit_code != 0) {
         let commit_msg = $"Update zettel: (date now | format date '%Y-%m-%d %H:%M')"
-        git -C $notebook_dir commit -m $commit_msg
-        if ($env.LAST_EXIT_CODE != 0) {
-            print --stderr "Commit failed"
-            return 1
+        let commit_result = (do { git -C $notebook_dir commit -m $commit_msg } | complete)
+        if ($commit_result.exit_code != 0) {
+            error make { msg: $"Commit failed: ($commit_result.stderr)" }
         }
     }
     let remote_check = (do { git -C $notebook_dir remote get-url origin } | complete)
@@ -67,48 +63,39 @@ export def save-stats [] {
     let dotfiles_dir = ($env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config"))
     let dest = ($dotfiles_dir | path join "dot_config" "stats" "eu.exelban.Stats.plist")
     if not ($src | path exists) {
-        print --stderr $"Stats plist not found at ($src)"
-        return 1
+        error make { msg: $"Stats plist not found at ($src)" }
     }
     print "Exporting Stats config to XML..."
     let result = (do { plutil -convert xml1 $src -o $dest } | complete)
     if ($result.exit_code != 0) {
-        print --stderr "Failed to convert Stats plist"
-        return 1
+        error make { msg: $"Failed to convert Stats plist: ($result.stderr)" }
     }
     print $"Saved to ($dest)"
 }
 
 # PROTON PASS CLI
 export def ppget [query: string, --field: string = "password"] {
-    if not (has-cmd pass-cli) {
-        print --stderr "Error: pass-cli not found."
-        return 127
-    }
+    require-cmd pass-cli
     let search_result = (do { pass-cli search $query --json } | complete)
     if ($search_result.exit_code != 0) {
-        print --stderr $"Error: Secret '($query)' not found."
-        return 1
+        error make { msg: $"Secret '($query)' not found" }
     }
     let item_id = ($search_result.stdout | from json | get 0.id?)
     if ($item_id | is-empty) or ($item_id == null) {
-        print --stderr $"Error: Secret '($query)' not found."
-        return 1
+        error make { msg: $"Secret '($query)' not found" }
     }
     pass-cli get $item_id --field $field --output text
 }
 
-# SYSTEM UPGRADE
-export def upgrade-all [] {
-    if not (has-cmd nix) {
-        print --stderr "nix not found"
-        return 127
-    }
+# SYSTEM UPGRADE (split into composable steps)
+
+# Nix flake update + system rebuild
+export def upgrade-nix [] {
+    require-cmd nix
 
     let dotfiles_dir = ($env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config"))
     if not ($dotfiles_dir | path exists) {
-        print --stderr $"Dotfiles directory not found: ($dotfiles_dir)"
-        return 1
+        error make { msg: $"Dotfiles directory not found: ($dotfiles_dir)" }
     }
 
     let target = ($env | get -o DOTFILES_FLAKE_TARGET | default "")
@@ -117,8 +104,10 @@ export def upgrade-all [] {
     let flake_ref = $"($dotfiles_dir)#($target_name)"
 
     print "--- Nix flake update ---"
-    nix flake update $dotfiles_dir
-    if ($env.LAST_EXIT_CODE != 0) { return 1 }
+    let update_result = (do { nix flake update $dotfiles_dir } | complete)
+    if ($update_result.exit_code != 0) {
+        error make { msg: $"nix flake update failed: ($update_result.stderr)" }
+    }
 
     if (has-cmd darwin-rebuild) {
         print "--- darwin-rebuild ---"
@@ -127,14 +116,26 @@ export def upgrade-all [] {
         print "--- home-manager ---"
         home-manager switch --flake $flake_ref
     } else {
-        print --stderr "home-manager or darwin-rebuild not found"
-        return 127
+        error make { msg: "Neither darwin-rebuild nor home-manager found" }
     }
+}
+
+# Mac App Store upgrade
+export def upgrade-mac-apps [] {
+    require-cmd mas
+    print "--- Mac App Store ---"
+    let result = (do { mas upgrade } | complete)
+    if ($result.exit_code != 0) {
+        error make { msg: $"mas upgrade failed: ($result.stderr)" }
+    }
+}
+
+# Full system upgrade (orchestrator)
+export def upgrade-all [] {
+    upgrade-nix
 
     if (has-cmd mas) {
-        print "--- Mac App Store ---"
-        mas upgrade
-        if ($env.LAST_EXIT_CODE != 0) { return 1 }
+        upgrade-mac-apps
     }
 }
 
@@ -143,8 +144,7 @@ export alias update = upgrade-all
 # BUNDLE ID HELPER
 export def bundle-id [app_path: string] {
     if not ($app_path | path exists) {
-        print --stderr $"App bundle not found: ($app_path)"
-        return 1
+        error make { msg: $"App bundle not found: ($app_path)" }
     }
     /usr/bin/mdls -name kMDItemCFBundleIdentifier -raw $app_path
 }

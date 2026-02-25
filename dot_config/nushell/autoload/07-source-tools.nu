@@ -2,15 +2,17 @@
 # Cache generation happens in modules/integrations.nu via integrations-cache-update.
 # This file is sourced after 06/08/09 wrappers in config.nu on purpose.
 
+# Load order guards: abort early if dependencies are missing
+require-loaded "integrations-cache-update" "06-integrations.nu"
+require-loaded "task_preview_enable" "08-taskwarrior.nu"
+
 const starship_file = ($nu.home-dir | path join ".cache" "nushell-init" "starship.nu")
 const zoxide_file = ($nu.home-dir | path join ".cache" "nushell-init" "zoxide.nu")
 const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
 const atuin_file = ($nu.home-dir | path join ".cache" "nushell-init" "atuin.nu")
 
-# Refresh cached init scripts first
-if (scope commands | where name == "integrations-cache-update" | is-not-empty) {
-    integrations-cache-update
-}
+# Refresh cached init scripts
+integrations-cache-update
 
 # STARSHIP PROMPT
 if (has-cmd starship) {
@@ -37,6 +39,4 @@ if (has-cmd atuin) {
 }
 
 # Taskwarrior preview (wraps right prompt after prompt tools load)
-if (scope commands | where name == "task_preview_enable" | is-not-empty) {
-    task_preview_enable
-}
+task_preview_enable

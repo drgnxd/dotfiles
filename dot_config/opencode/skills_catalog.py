@@ -15,24 +15,7 @@ class SkillsLoaderError(Exception):
 class SkillsCatalog:
     """Handles catalog loading, validation, and skill lookups."""
 
-    # Key aliases: original name -> [lookup order]
-    _KEY_ALIASES = {
-        "trigger_keywords": ["trigger_keywords", "kw"],
-        "tokens": ["tokens", "tok"],
-        "priority": ["priority", "pri"],
-        "has_tools": ["has_tools", "tools"],
-        "order": ["order", "ord"],
-    }
-
-    _META_KEYS = {
-        "path",
-        "kw",
-        "trigger_keywords",
-        "tok",
-        "tokens",
-        "pri",
-        "priority",
-    }
+    _META_KEYS = {"path", "keywords", "tokens", "priority", "order"}
 
     def __init__(self, base_path: Path):
         self.base_path = base_path
@@ -73,21 +56,16 @@ class SkillsCatalog:
         except Exception:
             return None
 
-    # --- Key Normalization ---
+    # --- Key Access ---
 
-    def get_value(self, meta: Dict, key: str, default: Any = None) -> Any:
-        """Get value from metadata with key aliasing support."""
-        if key in self._KEY_ALIASES:
-            for alias in self._KEY_ALIASES[key]:
-                if alias in meta:
-                    return meta[alias]
-        elif key in meta:
-            return meta[key]
-        return default
+    @staticmethod
+    def get_value(meta: Dict, key: str, default: Any = None) -> Any:
+        """Get value from metadata by canonical key name."""
+        return meta.get(key, default)
 
     def parse_keywords(self, meta: Dict) -> List[str]:
         """Parse keywords from catalog metadata (list or pipe-separated string)."""
-        kw_value = self.get_value(meta, "trigger_keywords", [])
+        kw_value = meta.get("keywords", [])
         if isinstance(kw_value, list):
             return kw_value
         elif isinstance(kw_value, str):
@@ -108,16 +86,16 @@ class SkillsCatalog:
 
     def get_catalog_data(self) -> Dict:
         """Get the catalog data section."""
-        return self.catalog.get("catalog") or self.catalog.get("cat", {})
+        return self.catalog.get("catalog", {})
 
     def get_load_config(self) -> Dict:
         """Get the load strategy configuration."""
-        return self.catalog.get("load_strategy") or self.catalog.get("load", {})
+        return self.catalog.get("load", {})
 
     def get_max_tokens(self) -> int:
         """Get the token budget ceiling."""
         load_cfg = self.get_load_config()
-        return int(load_cfg.get("max_tokens") or load_cfg.get("max_tok", 5000))
+        return int(load_cfg.get("max_tokens", 5000))
 
     # --- Skill Lookups ---
 
@@ -162,7 +140,7 @@ class SkillsCatalog:
 
         load_cfg = self.get_load_config()
         if not isinstance(load_cfg, dict):
-            errors.append("load or load_strategy must be a mapping")
+            errors.append("load must be a mapping")
         else:
             always = load_cfg.get("always")
             if always is None:
@@ -172,15 +150,15 @@ class SkillsCatalog:
             ):
                 errors.append("load.always must be a list of strings")
 
-            max_tokens = load_cfg.get("max_tokens") or load_cfg.get("max_tok")
+            max_tokens = load_cfg.get("max_tokens")
             if max_tokens is None:
-                errors.append("load.max_tokens or load.max_tok is required")
+                errors.append("load.max_tokens is required")
             elif not self._is_int_like(max_tokens):
                 errors.append("load.max_tokens must be an integer")
 
         catalog_data = self.get_catalog_data()
         if not isinstance(catalog_data, dict):
-            errors.append("catalog or cat must be a mapping")
+            errors.append("catalog must be a mapping")
             return errors
 
         skill_names: List[str] = []
@@ -200,11 +178,11 @@ class SkillsCatalog:
                 if not skill_path.exists():
                     errors.append(f"Skill '{skill_name}' path not found: {skill_path}")
 
-            token_value = self.get_value(meta, "tokens")
+            token_value = meta.get("tokens")
             if token_value is not None and not self._is_int_like(token_value):
                 errors.append(f"Skill '{skill_name}' tokens must be an integer")
 
-            kw_value = self.get_value(meta, "trigger_keywords")
+            kw_value = meta.get("keywords")
             if kw_value is not None and not isinstance(kw_value, (list, str)):
                 errors.append(f"Skill '{skill_name}' keywords must be a list or string")
 
@@ -258,16 +236,16 @@ class SkillsCatalog:
                             f"Preset '{preset_name}' references unknown skills: {unknown}"
                         )
 
-        mode_cfg = catalog.get("thinking_mode_auto_detect") or catalog.get("think_mode")
+        mode_cfg = catalog.get("think_mode")
         if not isinstance(mode_cfg, dict):
-            errors.append("think_mode or thinking_mode_auto_detect must be a mapping")
+            errors.append("think_mode must be a mapping")
         else:
             for mode in ("simple", "medium", "complex"):
                 mode_entry = mode_cfg.get(mode)
                 if not isinstance(mode_entry, dict):
                     errors.append(f"Thinking mode '{mode}' must be a mapping")
                     continue
-                patterns = mode_entry.get("patterns") or mode_entry.get("pat")
+                patterns = mode_entry.get("patterns")
                 if not isinstance(patterns, list) or not all(
                     isinstance(item, str) for item in patterns
                 ):

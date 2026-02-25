@@ -62,7 +62,7 @@ class SkillsLoader:
         return self._catalog_mod.load_skill_content(skill_path)
 
     def _get_catalog_value(self, meta: Dict, key: str, default=None):
-        """Get value from catalog with key aliasing support."""
+        """Get value from catalog metadata."""
         return self._catalog_mod.get_value(meta, key, default)
 
     def _parse_keywords(self, meta: Dict) -> List[str]:

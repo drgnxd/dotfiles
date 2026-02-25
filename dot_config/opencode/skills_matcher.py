@@ -3,7 +3,6 @@
 import re
 from typing import Dict, List, Tuple
 
-# Import the catalog value accessor protocol to avoid circular deps
 from skills_catalog import SkillsCatalog
 
 
@@ -47,25 +46,23 @@ class SkillsMatcher:
         Falls back to medium for ambiguous tasks.
         """
         task_lower = task.lower()
-        mode_config = self._catalog.catalog.get(
-            "thinking_mode_auto_detect"
-        ) or self._catalog.catalog.get("think_mode", {})
+        mode_config = self._catalog.catalog.get("think_mode", {})
 
         # Complex first (highest specificity)
         complex_cfg = mode_config.get("complex", {})
-        for pattern in complex_cfg.get("patterns") or complex_cfg.get("pat", []):
+        for pattern in complex_cfg.get("patterns", []):
             if re.search(pattern, task_lower):
                 return ThinkingMode.COMPLEX
 
         # Simple patterns
         simple_cfg = mode_config.get("simple", {})
-        for pattern in simple_cfg.get("patterns") or simple_cfg.get("pat", []):
+        for pattern in simple_cfg.get("patterns", []):
             if re.search(pattern, task_lower):
                 return ThinkingMode.SIMPLE
 
         # Medium patterns
         medium_cfg = mode_config.get("medium", {})
-        for pattern in medium_cfg.get("patterns") or medium_cfg.get("pat", []):
+        for pattern in medium_cfg.get("patterns", []):
             if re.search(pattern, task_lower):
                 return ThinkingMode.MEDIUM
 
@@ -89,13 +86,13 @@ class SkillsMatcher:
                 skills_to_load.append((skill_name, meta))
 
         def priority_key(x: Tuple[str, Dict]) -> Tuple[int, int]:
-            pri = self._catalog.get_value(x[1], "priority")
-            raw_order = self._catalog.get_value(x[1], "order", 99)
+            pri = x[1].get("priority")
+            raw_order = x[1].get("order", 99)
             try:
                 order_val = int(raw_order)
             except (TypeError, ValueError):
                 order_val = 99
-            pri_val = 0 if pri in ("high", "hi") else 1
+            pri_val = 0 if pri == "high" else 1
             return (pri_val, order_val)
 
         skills_to_load.sort(key=priority_key)

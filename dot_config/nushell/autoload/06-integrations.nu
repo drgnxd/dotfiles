@@ -4,6 +4,9 @@
 const integrations_module_path = ($nu.home-dir | path join ".config" "nushell" "modules" "integrations.nu")
 
 export def integrations-cache-update [] {
+    # overlay use must live in the same scope as the command call;
+    # a helper def cannot propagate overlays back to its caller.
+    # Calling overlay use when already active is a no-op, so no guard needed.
     overlay use $integrations_module_path
     integrations_cache_update
 }
