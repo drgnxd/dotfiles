@@ -2,13 +2,13 @@
 
 load: {always: [skills_core.yaml, ja, think], max_tokens: 5000}
 
-cat:
-  think: {path: essential/thinking_framework.yaml, order: 1, kw: "analyze|design|compare|eval|complex|sec|migrate|arch", pri: hi}
-  langs: {path: essential/languages.yaml, order: 2, kw: "nushell|python|bash|javascript|rust|\\.nu|\\.py|\\.sh|\\.js|\\.rs"}
-  prac: {path: essential/practices.yaml, order: 3, kw: "code|test|review|refactor|debug"}
-  infra: {path: specialized/infrastructure.yaml, order: 4, kw: "git|docker|linux|db|container|commit"}
-  research: {path: specialized/research.yaml, order: 5, kw: "research|study|investigation", tools: tools/research/}
-  ja: {path: specialized/japanese.yaml, order: 6, kw: "japanese|translate|translation"}
+catalog:
+  think: {path: essential/thinking_framework.yaml, order: 1, keywords: "analyze|design|compare|eval|complex|sec|migrate|arch", priority: high}
+  langs: {path: essential/languages.yaml, order: 2, keywords: "nushell|python|bash|javascript|rust|\\.nu|\\.py|\\.sh|\\.js|\\.rs"}
+  prac: {path: essential/practices.yaml, order: 3, keywords: "code|test|review|refactor|debug"}
+  infra: {path: specialized/infrastructure.yaml, order: 4, keywords: "git|docker|linux|db|container|commit"}
+  research: {path: specialized/research.yaml, order: 5, keywords: "research|study|investigation", tools: tools/research/}
+  ja: {path: specialized/japanese.yaml, order: 6, keywords: "japanese|translate|translation"}
 
 presets:
   py_dev: [think, langs, prac]
@@ -18,6 +18,6 @@ presets:
   general: [think, prac]
 
 think_mode:
-  simple: {pat: ["^ls", "^cat", "^echo", "^pwd", "show", "list", "^get"], budget: 50}
-  medium: {pat: ["create", "write", "refactor", "fix", "update", "impl"], budget: 300}
-  complex: {pat: ["design", "arch", "migrate", "sec", "audit", "research", "compare.+vs", "eval"], budget: 750}
+  simple: {patterns: ["^ls", "^cat", "^echo", "^pwd", "show", "list", "^get"], budget: 50}
+  medium: {patterns: ["create", "write", "refactor", "fix", "update", "impl"], budget: 300}
+  complex: {patterns: ["design", "arch", "migrate", "sec", "audit", "research", "compare.+vs", "eval"], budget: 750}

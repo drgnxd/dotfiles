@@ -41,9 +41,9 @@ class TestCatalogValidation:
         self, loader: SkillsLoader
     ) -> None:
         """All always-load skill names must exist as catalog keys."""
-        load_cfg = loader.catalog.get("load_strategy") or loader.catalog.get("load", {})
+        load_cfg = loader.catalog.get("load", {})
         always = load_cfg.get("always", [])
-        catalog_data = loader.catalog.get("catalog") or loader.catalog.get("cat", {})
+        catalog_data = loader.catalog.get("catalog", {})
 
         for name in always:
             if name == "skills_core.yaml":
@@ -226,7 +226,7 @@ class TestAlwaysLoad:
 
     def test_no_duplication(self, loader: SkillsLoader) -> None:
         """Skills already in task list should not be duplicated."""
-        catalog_data = loader.catalog.get("catalog") or loader.catalog.get("cat", {})
+        catalog_data = loader.catalog.get("catalog", {})
         think_meta = catalog_data.get("think", {})
 
         task_skills = [("think", think_meta)]
@@ -281,7 +281,7 @@ class TestLoadForTask:
 
     def test_all_skills_loadable(self, loader: SkillsLoader) -> None:
         """All skill files referenced in catalog should be loadable."""
-        catalog_data = loader.catalog.get("catalog") or loader.catalog.get("cat", {})
+        catalog_data = loader.catalog.get("catalog", {})
         for skill_name, meta in catalog_data.items():
             if not isinstance(meta, dict):
                 continue
@@ -382,12 +382,12 @@ class TestEdgeCases:
         assert result is None
 
     def test_parse_keywords_from_list(self, loader: SkillsLoader) -> None:
-        meta = {"kw": ["python", "py"]}
+        meta = {"keywords": ["python", "py"]}
         result = loader._parse_keywords(meta)
         assert result == ["python", "py"]
 
     def test_parse_keywords_from_pipe_string(self, loader: SkillsLoader) -> None:
-        meta = {"kw": "python|bash|rust"}
+        meta = {"keywords": "python|bash|rust"}
         result = loader._parse_keywords(meta)
         assert result == ["python", "bash", "rust"]
 
@@ -397,10 +397,10 @@ class TestEdgeCases:
         assert result == []
 
     def test_catalog_is_flat_detection(self, loader: SkillsLoader) -> None:
-        flat = {"skill1": {"path": "a.yaml", "tok": 100}}
+        flat = {"skill1": {"path": "a.yaml", "tokens": 100}}
         assert loader._catalog_is_flat(flat) is True
 
-        categorized = {"category1": {"skill1": {"path": "a.yaml", "tok": 100}}}
+        categorized = {"category1": {"skill1": {"path": "a.yaml", "tokens": 100}}}
         # The inner dict has meta keys, so first value check returns True
         # Actually _catalog_is_flat checks the top-level values
         # categorized top-level value is {"skill1": {...}} which doesn't have meta keys

@@ -4,10 +4,9 @@ export def lima_start [vm_name: string] {
     require-cmd "limactl"
 
     print $"Starting Lima VM: ($vm_name)..."
-    ^limactl start $vm_name
-    if ($env.LAST_EXIT_CODE != 0) {
-        print --stderr $"Error: Failed to start VM '($vm_name)'"
-        return 1
+    let result = (do { ^limactl start $vm_name } | complete)
+    if ($result.exit_code != 0) {
+        error make { msg: $"Failed to start VM '($vm_name)': ($result.stderr)" }
     }
 
     let ctx_name = $"($vm_name)-context"
@@ -54,7 +53,7 @@ export def lima_delete [
         let confirm = (input "Are you sure? (yes/no): ")
         if $confirm != "yes" {
             print "Deletion cancelled."
-            return 0
+            return
         }
     }
 
@@ -85,9 +84,7 @@ export def lima_docker_context [vm_name: string] {
     let socket_path = ($env.LIMA_HOME | path join $vm_name "sock" "docker.sock")
 
     if not ($socket_path | path exists) {
-        print --stderr $"Warning: Docker socket not found at: ($socket_path)"
-        print --stderr "Make sure the VM is running and has Docker enabled."
-        return 1
+        error make { msg: $"Docker socket not found at ($socket_path). Make sure the VM is running and has Docker enabled." }
     }
 
     let ctx_check = (do { docker context inspect $ctx_name } | complete)

@@ -1,5 +1,8 @@
 
 # Taskwarrior preview wrapper (lazy-loaded)
+# Note: overlay use is scoped to the def block in which it is called.
+# It cannot be factored into a helper def and propagated back to the caller.
+# Each def that needs the overlay must call `overlay use` directly.
 
 def task_preview_message [] {
     let msg = ($env | get --optional TASK_PREVIEW_MESSAGE | default '')

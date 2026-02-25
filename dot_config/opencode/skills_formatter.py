@@ -29,11 +29,9 @@ class SkillsFormatter:
 
     def format_thinking_header(self, mode: str) -> str:
         """Format thinking mode header for output."""
-        mode_config_root = self._catalog.get(
-            "thinking_mode_auto_detect"
-        ) or self._catalog.get("think_mode", {})
+        mode_config_root = self._catalog.get("think_mode", {})
         mode_config = mode_config_root.get(mode, {})
-        overhead = mode_config.get("overhead_budget") or mode_config.get("budget", "?")
+        overhead = mode_config.get("budget", "?")
         return (
             f"\n# Thinking Mode: {mode.upper()}\n# Overhead budget: {overhead} tokens\n"
         )
