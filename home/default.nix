@@ -20,7 +20,6 @@ in
     ./modules/activation/directories.nix
     ./modules/activation/app_config.nix
     ./modules/activation/macos_defaults.nix
-    ./modules/activation/launch_agents.nix
     ./modules/alacritty.nix
     ./modules/atuin.nix
     ./modules/bat.nix
