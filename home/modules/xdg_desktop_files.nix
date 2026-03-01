@@ -1,10 +1,3 @@
 [
-  "hammerspoon/init.lua"
-  "hammerspoon/window.lua"
-  "hammerspoon/cheatsheet.lua"
-  "hammerspoon/reload.lua"
-  "hammerspoon/input_switcher.lua"
-  "hammerspoon/browser_control.lua"
-  "hammerspoon/caffeine.lua"
   "stats/eu.exelban.Stats.plist"
 ]
