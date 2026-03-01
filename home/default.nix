@@ -27,10 +27,15 @@ in
     ./modules/fzf.nix
     ./modules/gh.nix
     ./modules/git.nix
+    ./modules/hammerspoon.nix
+    ./modules/helix.nix
+    ./modules/nushell.nix
+    ./modules/nushell-integrations.nix
+    ./modules/shellcheck.nix
     ./modules/starship.nix
+    ./modules/yazi.nix
     ./modules/zellij.nix
     ./modules/zoxide.nix
-    ./modules/nushell-integrations.nix
     ./modules/xdg_config_files.nix
   ];
 

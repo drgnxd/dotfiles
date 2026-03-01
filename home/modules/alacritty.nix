@@ -1,6 +1,8 @@
 { config, ... }:
 
 {
+  xdg.configFile."alacritty/blur.toml".source = ../../dot_config/alacritty/blur.toml;
+
   programs.alacritty = {
     enable = true;
     settings = {

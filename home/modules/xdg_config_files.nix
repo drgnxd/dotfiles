@@ -36,14 +36,9 @@ let
         lib.cleanSourceFilter path type && !(lib.elem (builtins.baseNameOf path) excluded_names);
     };
 
-  terminal_configs = import ./xdg_terminal_files.nix;
-  editor_configs = import ./xdg_editor_files.nix;
-  nushell_configs = import ./xdg_nushell_files.nix;
-  yazi_configs = import ./xdg_yazi_files.nix;
   desktop_configs = import ./xdg_desktop_files.nix;
 
-  all_config_paths =
-    terminal_configs ++ editor_configs ++ nushell_configs ++ yazi_configs ++ desktop_configs;
+  all_config_paths = desktop_configs;
 
   simple_config_attrs = builtins.listToAttrs (map mkConfigFile all_config_paths);
 
