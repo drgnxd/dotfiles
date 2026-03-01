@@ -29,13 +29,16 @@
 │   ├── default.nix             # home-manager エントリーポイント（モジュール読込）
 │   ├── packages.nix            # パッケージ一覧
 │   └── modules/
-│       ├── activation.nix      # activation フックとユーザー設定
-│       ├── xdg_config_files.nix # xdg.configFile の集約
-│       ├── xdg_terminal_files.nix # ターミナル/CLI の割当
-│       ├── xdg_editor_files.nix # エディタの割当
-│       ├── xdg_nushell_files.nix # Nushell の割当
-│       ├── xdg_yazi_files.nix  # Yazi の割当
-│       └── xdg_desktop_files.nix # デスクトップ系アプリの割当
+│       ├── activation/         # activation フック（directories, app_config, macos_defaults）
+│       ├── xdg_config_files.nix # taskwarrior / npmrc / toggle_blur.sh
+│       ├── xdg_desktop_files.nix # Stats plist のみ
+│       ├── alacritty.nix       # blur.toml + toggle_blur.sh + ターミナル設定
+│       ├── git.nix             # git / delta + config.local.example
+│       ├── hammerspoon.nix     # Lua スクリプト
+│       ├── helix.nix           # config.toml / languages.toml / テーマ
+│       ├── nushell.nix         # autoload + modules ファイル
+│       ├── shellcheck.nix      # shellcheckrc
+│       └── yazi.nix            # 設定 + flavor
 ├── dot_config/                 # 設定ファイルのソース（XDG）
 │   ├── alacritty/              # ターミナルエミュレータ
 │   ├── bat/                    # シンタックスハイライト cat
