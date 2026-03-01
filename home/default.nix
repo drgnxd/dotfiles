@@ -30,6 +30,7 @@ in
     ./modules/starship.nix
     ./modules/zellij.nix
     ./modules/zoxide.nix
+    ./modules/nushell-integrations.nix
     ./modules/xdg_config_files.nix
   ];
 

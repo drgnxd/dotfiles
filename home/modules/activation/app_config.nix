@@ -51,11 +51,10 @@ in
     fi
   '';
 
+  # Only carapace needs a runtime cache stub (Plan A).
+  # starship/zoxide/atuin are Nix-built (Plan B) via nushell-integrations.nix.
   home.activation.ensureNushellInitCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p "$HOME/.cache/nushell-init"
-    touch "$HOME/.cache/nushell-init/starship.nu"
-    touch "$HOME/.cache/nushell-init/zoxide.nu"
     touch "$HOME/.cache/nushell-init/carapace.nu"
-    touch "$HOME/.cache/nushell-init/atuin.nu"
   '';
 }

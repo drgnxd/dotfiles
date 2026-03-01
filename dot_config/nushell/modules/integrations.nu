@@ -1,4 +1,11 @@
-# Integrations cache generator (lazy-loaded)
+# Integrations cache generator — Plan A (runtime hash sync)
+#
+# Only carapace requires runtime caching because it embeds
+# $XDG_CONFIG_HOME paths and panics without $HOME access,
+# making it incompatible with the Nix sandbox.
+#
+# Plan B tools (starship, zoxide, atuin) are built at nix-build
+# time via home/modules/nushell-integrations.nix.
 
 def tool_path [tool: string] {
     which $tool | get path.0?
@@ -65,12 +72,9 @@ export def integrations_cache_update [] {
         mkdir $cache_dir
     }
 
-    # Tool definitions: [tool_name, cache_filename, init_command_args]
+    # Plan A: only carapace needs runtime caching
     let tools = [
-        ["starship",  "starship.nu",  ["starship", "init", "nu"]]
-        ["zoxide",    "zoxide.nu",    ["zoxide", "init", "nushell"]]
-        ["carapace",  "carapace.nu",  ["carapace", "_carapace", "nushell"]]
-        ["atuin",     "atuin.nu",     ["atuin", "init", "nu"]]
+        ["carapace", "carapace.nu", ["carapace", "_carapace", "nushell"]]
     ]
 
     for tool_entry in $tools {

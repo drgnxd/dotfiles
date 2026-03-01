@@ -1,17 +1,26 @@
-# Integrations cache consumer (source-only)
-# Cache generation happens in modules/integrations.nu via integrations-cache-update.
-# This file is sourced after 06/08/09 wrappers in config.nu on purpose.
+# Integrations consumer (source-only)
+#
+# Plan B (Nix-built, deterministic):
+#   starship, zoxide, atuin — init scripts generated at nix-build time
+#   and deployed to ~/.config/nushell/generated/*.nu
+#
+# Plan A (runtime hash sync):
+#   carapace — requires $HOME access, cached at runtime
+#   via modules/integrations.nu → integrations-cache-update
 
 # Load order guards: abort early if dependencies are missing
 require-loaded "integrations-cache-update" "06-integrations.nu"
 require-loaded "task_preview_enable" "08-taskwarrior.nu"
 
-const starship_file = ($nu.home-dir | path join ".cache" "nushell-init" "starship.nu")
-const zoxide_file = ($nu.home-dir | path join ".cache" "nushell-init" "zoxide.nu")
-const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
-const atuin_file = ($nu.home-dir | path join ".cache" "nushell-init" "atuin.nu")
+# Plan B: Nix-managed init scripts (read-only, always up-to-date after rebuild)
+const starship_file = ($nu.home-dir | path join ".config" "nushell" "generated" "starship.nu")
+const zoxide_file = ($nu.home-dir | path join ".config" "nushell" "generated" "zoxide.nu")
+const atuin_file = ($nu.home-dir | path join ".config" "nushell" "generated" "atuin.nu")
 
-# Refresh cached init scripts
+# Plan A: runtime-cached init script
+const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
+
+# Refresh carapace cache (Plan A only — Plan B tools need no runtime work)
 integrations-cache-update
 
 # STARSHIP PROMPT
