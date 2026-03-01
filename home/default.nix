@@ -37,6 +37,7 @@ in
     ./modules/zellij.nix
     ./modules/zoxide.nix
     ./modules/xdg_config_files.nix
+    ./modules/xdg_desktop_files.nix
   ];
 
   xdg.enable = true;
