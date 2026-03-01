@@ -28,7 +28,7 @@
 │   ├── packages.nix            # Package list
 │   └── modules/
 │       ├── activation/         # Activation hooks (directories, app_config, macos_defaults)
-│       ├── xdg_config_files.nix # taskwarrior / npmrc / toggle_blur.sh
+│       ├── xdg_config_files.nix # taskwarrior / npmrc
 │       ├── xdg_desktop_files.nix # Stats plist
 │       ├── alacritty.nix       # blur.toml + toggle_blur.sh + terminal config
 │       ├── git.nix             # git / delta + config.local.example
