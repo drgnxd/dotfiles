@@ -27,13 +27,16 @@
 │   ├── default.nix             # home-manager entrypoint (imports modules)
 │   ├── packages.nix            # Package list
 │   └── modules/
-│       ├── activation.nix      # Activation hooks and user defaults
-│       ├── xdg_config_files.nix # XDG configFile composition
-│       ├── xdg_terminal_files.nix # Terminal/CLI config mappings
-│       ├── xdg_editor_files.nix # Editor config mappings
-│       ├── xdg_nushell_files.nix # Nushell config mappings
-│       ├── xdg_yazi_files.nix  # Yazi config mappings
-│       └── xdg_desktop_files.nix # Desktop app config mappings
+│       ├── activation/         # Activation hooks (directories, app_config, macos_defaults)
+│       ├── xdg_config_files.nix # taskwarrior / npmrc / toggle_blur.sh
+│       ├── xdg_desktop_files.nix # Stats plist
+│       ├── alacritty.nix       # blur.toml + toggle_blur.sh + terminal config
+│       ├── git.nix             # git / delta + config.local.example
+│       ├── hammerspoon.nix     # Lua scripts
+│       ├── helix.nix           # config.toml / languages.toml / theme
+│       ├── nushell.nix         # autoload + modules files
+│       ├── shellcheck.nix      # shellcheckrc
+│       └── yazi.nix            # config + flavor
 ├── dot_config/                 # Config sources (XDG)
 │   ├── alacritty/              # Terminal emulator
 │   ├── bat/                    # Syntax-highlighted cat
@@ -135,8 +138,9 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 - `flake.nix` ties nix-darwin, home-manager, and agenix together
 - `hosts/macbook/default.nix` owns system-level configuration
 - `home/default.nix` composes user-level modules
-- `home/modules/activation.nix` manages user defaults, launch-agent handling, and app setup hooks
-- `home/modules/xdg_config_files.nix` composes XDG file mappings from focused `xdg_*_files.nix` lists
+- `home/modules/activation/` manages user defaults, launch-agent handling, and app setup hooks
+- `home/modules/xdg_config_files.nix` handles taskwarrior, npmrc, and toggle_blur.sh
+- Tool-specific modules (`alacritty.nix`, `git.nix`, `hammerspoon.nix`, etc.) own their own configFile entries
 
 **Secrets**:
 - Encrypted with `agenix` in `secrets/*.age`
@@ -298,6 +302,6 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 
 ---
 
-**Last Updated**: 2026-01
+**Last Updated**: 2026-03
 **Author**: drgnxd
 **License**: MIT
