@@ -38,3 +38,6 @@ dot_config/npm/
 
 # Build outputs
 result/
+
+# Nushell Plan B generated init scripts (created by Nix build or CI stubs)
+dot_config/nushell/generated/
