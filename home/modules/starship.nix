@@ -6,7 +6,7 @@
 
   programs.starship = {
     enable = true;
-    # Nushell integration is managed via custom caching in nushell config
+    # Init script built via nushell-integrations.nix (Plan B derivation)
     enableNushellIntegration = false;
   };
 }

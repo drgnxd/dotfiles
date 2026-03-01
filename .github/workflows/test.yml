@@ -16,11 +16,14 @@ jobs:
         run: brew install nushell
       - name: Prepare Nushell cache
         run: |
+          # Plan A: runtime cache for carapace
           mkdir -p "$HOME/.cache/nushell-init"
-          touch "$HOME/.cache/nushell-init/starship.nu"
-          touch "$HOME/.cache/nushell-init/zoxide.nu"
           touch "$HOME/.cache/nushell-init/carapace.nu"
-          touch "$HOME/.cache/nushell-init/atuin.nu"
+          # Plan B: Nix-generated stubs (in prod these are derivation outputs)
+          mkdir -p "$HOME/.config/nushell/generated"
+          touch "$HOME/.config/nushell/generated/starship.nu"
+          touch "$HOME/.config/nushell/generated/zoxide.nu"
+          touch "$HOME/.config/nushell/generated/atuin.nu"
       - name: Symlink nushell config to XDG location
         run: |
           cp "$GITHUB_WORKSPACE/dot_config/nushell/local.nu.example" "$GITHUB_WORKSPACE/dot_config/nushell/local.nu"
