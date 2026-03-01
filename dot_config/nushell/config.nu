@@ -93,18 +93,21 @@ $env.config.keybindings = (
 source ($config_dir | path join 'autoload' '00-constants.nu')
 source ($config_dir | path join 'autoload' '00-helpers.nu')
 
+# Tool modules (eager-loaded) — must precede autoload wrappers that call their exports
+source ($config_dir | path join 'modules' 'integrations.nu')
+source ($config_dir | path join 'modules' 'taskwarrior.nu')
+source ($config_dir | path join 'modules' 'lima.nu')
+
 # Modules (Dependencies) - Load these FIRST
 source ($config_dir | path join 'autoload' '03-aliases.nu')
 source ($config_dir | path join 'autoload' '04-functions.nu')
 source ($config_dir | path join 'autoload' '05-completions.nu')
 
-# Integrations wrapper must be loaded before source-tools because
-# source-tools triggers `integrations-cache-update` if available.
+# Integrations wrapper — defines integrations-cache-update (calls module export directly)
 source ($config_dir | path join 'autoload' '06-integrations.nu')
 
-# Task/Lima wrappers are intentionally loaded before source-tools.
-# source-tools is the consumer stage and runs `task_preview_enable`
-# after prompt init scripts have been sourced.
+# Task/Lima wrappers — thin defs that delegate to eagerly-loaded module exports.
+# Must be loaded before 07-source-tools.nu which calls task_preview_enable.
 source ($config_dir | path join 'autoload' '08-taskwarrior.nu')
 source ($config_dir | path join 'autoload' '09-lima.nu')
 
