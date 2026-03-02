@@ -9,10 +9,14 @@ let
     "eza"
     "fd"
     "grex"
+    "hexyl"
+    "hyperfine"
     "jaq"
     "ncdu"
+    "procs"
     "ripgrep"
     "sd"
+    "tealdeer"
     "tree"
     "wget"
     "xh"
@@ -53,7 +57,9 @@ let
 
   dev_tools = [
     "boost"
+    "clang-tools"
     "cmake"
+    "lldb"
   ];
 
   languages = [

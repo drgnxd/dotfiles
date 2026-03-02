@@ -26,11 +26,11 @@ This repository contains configurations for my macOS environment, including:
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta, git-lfs), lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
+*   **Development Tools:** Git (with delta, git-lfs), clang-tools, lldb, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, smartmontools, direnv, shellcheck, pearcleaner, mas
+*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, hexyl, hyperfine, procs, smartmontools, direnv, shellcheck, pearcleaner, mas
 *   **Version Managers:** uv (Python), node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
