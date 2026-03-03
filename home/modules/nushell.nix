@@ -12,7 +12,7 @@
     "nushell/autoload/04-functions.nu".source = ../../dot_config/nushell/autoload/04-functions.nu;
     "nushell/autoload/05-completions.nu".source = ../../dot_config/nushell/autoload/05-completions.nu;
     "nushell/autoload/06-integrations.nu".source = ../../dot_config/nushell/autoload/06-integrations.nu;
-    "nushell/autoload/07-source-tools.nu".source = ../../dot_config/nushell/autoload/07-source-tools.nu;
+    "nushell/autoload/10-source-tools.nu".source = ../../dot_config/nushell/autoload/10-source-tools.nu;
     "nushell/autoload/08-taskwarrior.nu".source = ../../dot_config/nushell/autoload/08-taskwarrior.nu;
     "nushell/autoload/09-lima.nu".source = ../../dot_config/nushell/autoload/09-lima.nu;
     "nushell/modules/integrations.nu".source = ../../dot_config/nushell/modules/integrations.nu;
