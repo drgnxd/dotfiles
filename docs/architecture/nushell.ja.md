@@ -18,9 +18,9 @@ dot_config/nushell/
     ├── 04-functions.nu     # カスタム関数とラッパー
     ├── 05-completions.nu   # コマンド補完
     ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
-    ├── 07-source-tools.nu  # キャッシュ読み込み
     ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
-    └── 09-lima.nu          # Lima/Dockerの遅延ラッパー
+    ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
+    └── 10-source-tools.nu  # キャッシュ読み込み
 └── modules/
     ├── integrations.nu     # キャッシュ生成（オンデマンド）
     ├── taskwarrior.nu      # Taskwarriorプレビュー＋キャッシュ更新
@@ -50,7 +50,7 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが `autoload/00-constants.nu` で定義したモジュール定数経由で `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、ハードコードされたパス依存を避けます。
 
-`config.nu` は意図的に `06-integrations.nu`、`08-taskwarrior.nu`、`09-lima.nu` を先に読み込み、その後で `07-source-tools.nu` を読み込みます。`07-source-tools.nu` は `integrations-cache-update` と `task_preview_enable` を呼ぶ消費側ステージのため、これらのコマンド定義後に実行する必要があります。
+`config.nu` は意図的に `06-integrations.nu`、`08-taskwarrior.nu`、`09-lima.nu` を先に読み込み、その後で `10-source-tools.nu` を読み込みます。`10-source-tools.nu` は `integrations-cache-update` と `task_preview_enable` を呼ぶ消費側ステージのため、これらのコマンド定義後に実行する必要があります。
 
 ## 主な機能
 
@@ -144,7 +144,7 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Atuin** - シェル履歴同期
 - **Direnv** - 環境管理（起動時に読み込み、キャッシュなし）
 
-キャッシュ生成は`integrations-cache-update`でオンデマンド実行します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/07-source-tools.nu`で読み込みます。
+キャッシュ生成は`integrations-cache-update`でオンデマンド実行します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/10-source-tools.nu`で読み込みます。
 
 ## 設定値
 

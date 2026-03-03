@@ -107,12 +107,12 @@ source ($config_dir | path join 'autoload' '05-completions.nu')
 source ($config_dir | path join 'autoload' '06-integrations.nu')
 
 # Task/Lima wrappers — thin defs that delegate to eagerly-loaded module exports.
-# Must be loaded before 07-source-tools.nu which calls task_preview_enable.
+# Must be loaded before 10-source-tools.nu which calls task_preview_enable.
 source ($config_dir | path join 'autoload' '08-taskwarrior.nu')
 source ($config_dir | path join 'autoload' '09-lima.nu')
 
 # Tools / Consumers - Load these LAST
-source ($config_dir | path join 'autoload' '07-source-tools.nu')
+source ($config_dir | path join 'autoload' '10-source-tools.nu')
 
 # Local config (optional)
 try { source ($config_dir | path join 'local.nu') }

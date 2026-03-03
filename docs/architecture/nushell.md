@@ -18,9 +18,9 @@ dot_config/nushell/
     ├── 04-functions.nu     # Custom functions & wrappers
     ├── 05-completions.nu   # Command completions
     ├── 06-integrations.nu  # Lazy wrapper for integration cache updates
-    ├── 07-source-tools.nu  # Sources cached init scripts
     ├── 08-taskwarrior.nu   # Lazy wrapper for task preview and task command
-    └── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
+    ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
+    └── 10-source-tools.nu  # Sources cached init scripts
 └── modules/
     ├── integrations.nu    # Cache generation (on demand)
     ├── taskwarrior.nu     # Task preview + cache refresh
@@ -50,7 +50,7 @@ No user-specific path rewrites are needed when moving between machines/users, as
 
 Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with module constants exported from `autoload/00-constants.nu`. This keeps startup fast while avoiding hardcoded path assumptions.
 
-`config.nu` intentionally loads `06-integrations.nu`, then wrapper modules (`08-taskwarrior.nu`, `09-lima.nu`), and finally `07-source-tools.nu`. `07-source-tools.nu` is a consumer stage that triggers `integrations-cache-update` and `task_preview_enable`, so it must run after those command definitions are present.
+`config.nu` intentionally loads `06-integrations.nu`, then wrapper modules (`08-taskwarrior.nu`, `09-lima.nu`), and finally `10-source-tools.nu`. `10-source-tools.nu` is a consumer stage that triggers `integrations-cache-update` and `task_preview_enable`, so it must run after those command definitions are present.
 
 ## Key Features
 
@@ -144,7 +144,7 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Atuin** - Shell history sync
 - **Direnv** - Environment management (loaded at startup; no cache)
 
-Cache generation runs on demand via `integrations-cache-update`. Generated init scripts are cached in `~/.cache/nushell-init` and sourced by `autoload/07-source-tools.nu`.
+Cache generation runs on demand via `integrations-cache-update`. Generated init scripts are cached in `~/.cache/nushell-init` and sourced by `autoload/10-source-tools.nu`.
 
 ## Configuration Settings
 
