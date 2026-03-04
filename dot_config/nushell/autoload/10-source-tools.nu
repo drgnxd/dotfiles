@@ -20,6 +20,39 @@ const atuin_file = ($nu.home-dir | path join ".config" "nushell" "generated" "at
 # Plan A: runtime-cached init script
 const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
 
+# DIRENV
+if (has-cmd direnv) {
+    let envrc_file = (do {
+        let direnv_file = ($env | get -o DIRENV_FILE | default "")
+        if ($direnv_file | is-not-empty) and ($direnv_file | path exists) {
+            $direnv_file
+        } else {
+            mut dir = ($env | get -o PWD | default $nu.home-dir | path expand)
+            loop {
+                let candidate = ($dir | path join ".envrc")
+                if ($candidate | path exists) {
+                    break $candidate
+                }
+                let parent = ($dir | path dirname)
+                if $parent == $dir {
+                    break null
+                }
+                $dir = $parent
+            }
+        }
+    })
+
+    if $envrc_file != null {
+        let direnv_init = (do { direnv export json } | complete)
+        if ($direnv_init.exit_code == 0) {
+            let direnv_json = ($direnv_init.stdout | from json)
+            if ($direnv_json | is-not-empty) {
+                $direnv_json | load-env
+            }
+        }
+    }
+}
+
 # Refresh carapace cache (Plan A only — Plan B tools need no runtime work)
 integrations-cache-update
 
