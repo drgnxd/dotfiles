@@ -28,17 +28,20 @@ if (has-cmd direnv) {
             $direnv_file
         } else {
             mut dir = ($env | get -o PWD | default $nu.home-dir | path expand)
+            mut found = null
             loop {
                 let candidate = ($dir | path join ".envrc")
                 if ($candidate | path exists) {
-                    break $candidate
+                    $found = $candidate
+                    break
                 }
                 let parent = ($dir | path dirname)
                 if $parent == $dir {
-                    break null
+                    break
                 }
                 $dir = $parent
             }
+            $found
         }
     })
 
