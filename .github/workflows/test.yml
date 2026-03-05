@@ -58,6 +58,7 @@ jobs:
         run: |
           nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.system.stateVersion
           nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.stateVersion
+          nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
           nix flake check --no-build --no-write-lock-file
 
   security-scan:
