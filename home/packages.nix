@@ -42,11 +42,16 @@ let
   lsp_servers = [
     "pyright"
     "ruff"
+    "copilot-language-server"
     "marksman"
     "taplo"
     "lua-language-server"
     "yaml-language-server"
     "texlab"
+    "bash-language-server"
+    "dockerfile-language-server"
+    "steel-language-server"
+    "tinymist"
   ];
 
   git_tools = [
@@ -67,6 +72,7 @@ let
     "nodejs"
     "uv"
     "R"
+    # rustup provides rust-analyzer; avoid a separate package to prevent conflicts.
     "rustup"
   ];
 
