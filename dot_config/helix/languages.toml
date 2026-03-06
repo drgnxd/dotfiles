@@ -11,6 +11,8 @@ command = "steel-language-server"
 command = "copilot-language-server"
 args = ["--stdio"]
 
+# Managed by Nix: add "copilot-language-server" to home/packages.nix.
+
 [language-server.copilot.config]
 editorInfo = { name = "Helix", version = "25.07" }
 editorPluginInfo = { name = "helix-copilot", version = "0.1.0" }
