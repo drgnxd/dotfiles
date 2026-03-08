@@ -12,15 +12,6 @@
           "name": "gemma3-tool-fix"
         }
       }
-    },
-    "openai": {
-      "npm": "@ai-sdk/openai",
-      "name": "OpenAI",
-      "models": {
-        "gpt-5": {
-          "name": "gpt-5"
-        }
-      }
     }
   },
   "mcp": {
@@ -39,5 +30,8 @@
   },
   "tools": {
     "searxng_*": true
-  }
+  },
+  "plugin": [
+    "@mohak34/opencode-notifier@latest"
+  ]
 }
