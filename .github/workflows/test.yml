@@ -37,17 +37,14 @@ jobs:
         run: |
           nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'xdg-dirs | to json'
 
-  test-opencode:
+  validate-opencode:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7
-      - name: Run OpenCode tests
+      - name: Validate OpenCode rules, instructions, and skills
         run: |
-          uv run --with-requirements requirements.txt --with pytest --directory dot_config/opencode pytest
-      - name: Run OpenCode Nushell integration script
-        run: |
-          bash dot_config/opencode/test_nushell_integration.sh
+          uv run --directory dot_config/opencode python validate_opencode_setup.py
 
   validate-nix:
     runs-on: ubuntu-latest
@@ -137,10 +134,6 @@ jobs:
               raise SystemExit(1)
           print("YAML/TOML validation passed")
           PY
-      - name: Validate OpenCode skills catalog
-        run: |
-          uv run --with-requirements requirements.txt --directory dot_config/opencode python skills_loader.py --validate
-
   test-taskwarrior:
     runs-on: ubuntu-latest
     steps:
