@@ -3,6 +3,10 @@
 let
   opencode_template = ../../../dot_config/opencode/opencode.json;
   opencode_local_example = ../../../dot_config/opencode/opencode.local.json.example;
+  opencode_agents_template = ../../../dot_config/opencode/AGENTS.md;
+  opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
+  opencode_package_template = ../../../dot_config/opencode/package.json;
+  opencode_tools_template = ../../../dot_config/opencode/tools;
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
@@ -33,6 +37,17 @@ in
     else
       /bin/cp -f "${opencode_template}" "$opencode_target"
     fi
+  '';
+
+  home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''
+    opencode_dir="$(dirname "${opencode_target}")"
+    mkdir -p "$opencode_dir"
+    mkdir -p "$opencode_dir/tools"
+
+    /bin/cp -f "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
+    /bin/cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
+    /bin/cp -f "${opencode_package_template}" "$opencode_dir/package.json"
+    /bin/cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
   '';
 
   home.activation.ensureTaskwarriorLocalRc = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
