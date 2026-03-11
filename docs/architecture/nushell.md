@@ -11,16 +11,16 @@ dot_config/nushell/
 ├── env.nu                  # ~/.config/nushell/env.nu
 ├── config.nu               # ~/.config/nushell/config.nu
 ├── autoload/
-    ├── 00-helpers.nu       # Shared helper functions
-    ├── 01-env.nu           # Environment variables & XDG paths
-    ├── 02-path.nu          # PATH configuration with path-add helper
-    ├── 03-aliases.nu       # Command aliases with fallbacks
-    ├── 04-functions.nu     # Custom functions & wrappers
-    ├── 05-completions.nu   # Command completions
-    ├── 06-integrations.nu  # Lazy wrapper for integration cache updates
-    ├── 08-taskwarrior.nu   # Lazy wrapper for task preview and task command
-    ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
-    └── 10-source-tools.nu  # Sources cached init scripts
+│   ├── 00-helpers.nu       # Shared helper functions
+│   ├── 01-env.nu           # Environment variables & XDG paths
+│   ├── 02-path.nu          # PATH configuration with path-add helper
+│   ├── 03-aliases.nu       # Command aliases with fallbacks
+│   ├── 04-functions.nu     # Custom functions & wrappers
+│   ├── 05-completions.nu   # Command completions
+│   ├── 06-integrations.nu  # Lazy wrapper for integration cache updates
+│   ├── 08-taskwarrior.nu   # Lazy wrapper for task preview and task command
+│   ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
+│   └── 10-source-tools.nu  # Sources cached init scripts
 └── modules/
     ├── integrations.nu    # Cache generation (on demand)
     ├── taskwarrior.nu     # Task preview + cache refresh

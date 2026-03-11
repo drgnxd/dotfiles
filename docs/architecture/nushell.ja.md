@@ -11,16 +11,16 @@ dot_config/nushell/
 ├── env.nu                  # ~/.config/nushell/env.nu
 ├── config.nu               # ~/.config/nushell/config.nu
 ├── autoload/
-    ├── 00-helpers.nu       # 共通ヘルパー
-    ├── 01-env.nu           # 環境変数とXDGパス
-    ├── 02-path.nu          # path-addヘルパーを使ったPATH設定
-    ├── 03-aliases.nu       # フォールバック付きエイリアス
-    ├── 04-functions.nu     # カスタム関数とラッパー
-    ├── 05-completions.nu   # コマンド補完
-    ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
-    ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
-    ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
-    └── 10-source-tools.nu  # キャッシュ読み込み
+│   ├── 00-helpers.nu       # 共通ヘルパー
+│   ├── 01-env.nu           # 環境変数とXDGパス
+│   ├── 02-path.nu          # path-addヘルパーを使ったPATH設定
+│   ├── 03-aliases.nu       # フォールバック付きエイリアス
+│   ├── 04-functions.nu     # カスタム関数とラッパー
+│   ├── 05-completions.nu   # コマンド補完
+│   ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
+│   ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
+│   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
+│   └── 10-source-tools.nu  # キャッシュ読み込み
 └── modules/
     ├── integrations.nu     # キャッシュ生成（オンデマンド）
     ├── taskwarrior.nu      # Taskwarriorプレビュー＋キャッシュ更新
