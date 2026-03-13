@@ -77,11 +77,14 @@ hx ~/.config/git/config.local
 ### OpenCode Provider Override (Optional)
 
 The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
+Dynamic Context Pruning defaults are managed from `dot_config/opencode/dcp.json`.
 For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
 
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`.
 - If it is empty, the managed template is copied instead.
 - A starter file is created at `~/.config/opencode/opencode.local.json.example`.
+- The managed OpenCode plugin list includes `@mohak34/opencode-notifier@latest`, `opencode-supermemory@latest`, and `@tarquinen/opencode-dcp@latest`.
+- If you keep a non-empty `~/.config/opencode/opencode.local.json`, make sure its `plugin` array still includes the managed plugins you want enabled.
 
 ### Agenix Recipients (Optional)
 

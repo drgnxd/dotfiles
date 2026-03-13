@@ -70,11 +70,14 @@ hx ~/.config/git/config.local
 ### OpenCode プロバイダー上書き（任意）
 
 OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
+Dynamic Context Pruning の既定設定は `dot_config/opencode/dcp.json` で管理しています。
 マシン固有のプロバイダー設定は `~/.config/opencode/opencode.local.json` を編集してください。
 
 - activation 時に `~/.config/opencode/opencode.local.json` が空でなければ、その内容を `~/.config/opencode/opencode.json` にコピーします。
 - 空の場合は、リポジトリ管理のテンプレートをコピーします。
 - 初期サンプルは `~/.config/opencode/opencode.local.json.example` に配置されます。
+- 管理対象の OpenCode plugin 一覧には `@mohak34/opencode-notifier@latest`、`opencode-supermemory@latest`、`@tarquinen/opencode-dcp@latest` を含めています。
+- `~/.config/opencode/opencode.local.json` を空でない状態で使う場合は、必要な plugin が `plugin` 配列に残るようにしてください。
 
 ### pre-commit フック（任意）
 
