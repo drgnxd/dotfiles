@@ -105,6 +105,7 @@ source ($config_dir | path join 'autoload' '05-completions.nu')
 
 # Integrations wrapper — defines integrations-cache-update (calls module export directly)
 source ($config_dir | path join 'autoload' '06-integrations.nu')
+source ($config_dir | path join 'autoload' '07-abbreviations.nu')
 
 # Task/Lima wrappers — thin defs that delegate to eagerly-loaded module exports.
 # Must be loaded before 10-source-tools.nu which calls task_preview_enable.
