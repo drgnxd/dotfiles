@@ -6,6 +6,7 @@ local M = {}
 local filters = {}
 local app_watcher = nil
 local sol_hotkey_tap = nil
+local alacritty_ctrl_g_tap = nil
 
 -- English Input Source ID (Update this according to your environment)
 local english_input_id = "com.apple.keylayout.ABC"
@@ -23,6 +24,7 @@ local activation_apps = {
 
 local key_down_event = hs.eventtap.event.types.keyDown
 local space_key_code = hs.keycodes.map.space
+local g_key_code = hs.keycodes.map.g
 
 local function switch_to_english()
   if hs.keycodes.currentSourceID() ~= english_input_id then
@@ -67,6 +69,32 @@ local function watch_sol_hotkey()
   sol_hotkey_tap:start()
 end
 
+local function watch_alacritty_ctrl_g()
+  if not g_key_code then
+    return
+  end
+
+  alacritty_ctrl_g_tap = hs.eventtap.new({ key_down_event }, function(event)
+    if event:getKeyCode() ~= g_key_code then
+      return false
+    end
+
+    local frontmost_app = hs.application.frontmostApplication()
+    if not frontmost_app or frontmost_app:name() ~= "Alacritty" then
+      return false
+    end
+
+    local flags = event:getFlags()
+    if flags.ctrl and not flags.alt and not flags.cmd and not flags.shift and not flags.fn then
+      switch_to_english()
+    end
+
+    return false
+  end)
+
+  alacritty_ctrl_g_tap:start()
+end
+
 function M.init()
   -- Create window filter for each app
   for index, app_name in ipairs(window_focus_apps) do
@@ -75,6 +103,7 @@ function M.init()
 
   watch_app_activation()
   watch_sol_hotkey()
+  watch_alacritty_ctrl_g()
 end
 
 return M
