@@ -1,0 +1,31 @@
+# Languages
+
+bash:
+  - set -euo pipefail | quote "${vars}" | validate input
+  - ok: readonly V="${1}"; [[ -n "$V" ]] || exit 1
+  - no: V=$1; rm -rf $V
+
+python:
+  - pep8|types|pathlib|no_mut_defaults|uv_only
+  - uv: {venv: uv venv, install: uv pip install X, run: uv run script.py}
+  - no: pip|python -m venv|virtualenv
+  - import: [stdlib, 3rd, local]
+  - line: 88
+
+js:
+  - const/let>var | === | async/await>callbacks | avoid any
+  - ok: const d = await fetch(u).then(r => r.json())
+
+rust:
+  - rustfmt+clippy | Result/Option>unwrap | iter>index
+  - ok: "fn read(p: &Path) -> Result<String>"
+
+nushell:
+  - structured_data|pipes|immutable|explicit_types
+  - table: ls | where size > 1mb | select name size
+  - transform: open data.json | each { |x| $x.value * 2 }
+  - err: do { cmd } | complete | if $in.exit_code != 0 { error make {...} }
+  - file: open data.csv | from csv | save output.json
+  - env: $env.PATH = ($env.PATH | append "/path")
+  - interop: ^bash-cmd | bash -c 'script'
+  - avoid: eval | unchecked run-external
