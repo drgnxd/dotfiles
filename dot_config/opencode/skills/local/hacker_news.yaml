@@ -1,0 +1,164 @@
+# Hacker News Tech Catchup Skill
+# Local only - not tracked in repository
+
+hacker_news_catchup:
+  description: |
+    Collect top-ranked stories from Hacker News for efficient tech trend catchup.
+    Detect differences from previous collection and generate reports only when updates exist.
+
+  api:
+    base_url: https://hacker-news.firebaseio.com/v0
+    endpoints:
+      top_stories: /topstories.json
+      item_detail: /item/{id}.json
+    rate_limit: 1req/sec  # Respect Firebase Realtime DB limits
+
+  collection:
+    top_n: 30
+    min_score: 50
+    tech_keywords:
+      - programming
+      - software
+      - developer
+      - code
+      - github
+      - api
+      - database
+      - framework
+      - library
+      - security
+      - ai
+      - machine learning
+      - cloud
+      - devops
+      - javascript
+      - python
+      - rust
+      - go
+      - typescript
+      - web
+
+  diff_detection:
+    state_file: ./data/hackernews/last_run.json
+    criteria:
+      new_stories: true
+      score_change_threshold: 20
+      comments_change_threshold: 10
+      rank_change_threshold: 5
+
+  output:
+    report_dir: ~/dev/info
+    auto_create_dir: true
+    filename_format: "{{date_compact}}.md"
+    latest_link: ~/dev/info/latest.md
+    console_output: true
+    generate_empty: false
+
+  language:
+    output: japanese  # japanese or english
+    
+  report:
+    sections:
+      - header: "## HN テックキャッチアップ - {{date}}"
+      - summary:
+          content: "新着: {{new_count}}件 / 更新: {{updated_count}}件 / 合計: {{total_count}}件"
+      - highlights:
+          title: "### ハイライト（スコア上位5件）"
+          max_items: 5
+          criteria: highest_score_or_significant_change
+          format: |
+            {rank}. **{title}**（{score}ポイント）
+               - URL: {url}
+               - ランク: #{rank} | 投稿者: {by} | コメント: {descendants}件
+               - 要約: {summary}
+      - new_stories:
+          title: "### 新着ストーリー"
+          group_by: domain
+          sort_by: score_desc
+          format: |
+            - **[{rank}] {title}**
+              - {domain} | スコア: {score} | コメント: {descendants}件
+              - URL: {url}
+              - 要約: {summary}
+      - updated_stories:
+          title: "### 更新されたストーリー"
+          show_changes: [score_delta, comments_delta, rank_delta]
+          format: "- **[{rank}] {title}**\n  - 変更: {changes}"
+          change_format:
+            score: "スコア: {delta:+d}"
+            comments: "コメント: {delta:+d}"
+            rank_up: "ランク: ↑{delta}"
+            rank_down: "ランク: ↓{delta}"
+      - trends:
+          title: "### ドメイン傾向"
+          domains: top_5_by_frequency
+          format: "- {domain}: {count}件"
+    
+    footer: |
+      ---
+      
+      *生成日時: {{datetime}}*
+      *データソース: Hacker News API*
+      
+    messages:
+      no_updates: "前回からの更新はありません"
+      first_run: "初回実行: 全ストーリーを新着として記録しました"
+
+  content_summarization:
+    enabled: true
+    method: fetch_and_summarize
+    guidelines:
+      - Summarize core content appropriately without strict length limits
+      - Include technical key points, conclusions, and practical impact
+      - Prioritize readability and natural summary length
+    include:
+      - main_point
+      - key_findings
+      - technical_details
+      - practical_impact
+    fallback: use_hn_comments_summary
+    
+  story_fields:
+    - rank
+    - title
+    - url
+    - score
+    - by
+    - time
+    - descendants
+    - domain
+    - summary
+
+  workflow:
+    1_fetch:
+      - fetch_top_stories_ids
+      - fetch_details_for_top_n
+      - filter_by_score_and_keywords
+    2_summarize:
+      - fetch_article_content
+      - generate_summary
+      - add_metadata
+    3_compare:
+      - load_previous_state
+      - detect_new_stories
+      - detect_updated_stories
+      - calculate_changes
+    4_generate:
+      - if_changes_exist:
+          - format_report
+          - save_current_state
+          - output_report
+      - if_no_changes:
+          - output: "前回からの更新はありません"
+
+  state_format:
+    version: 1
+    structure:
+      timestamp: ISO8601
+      stories:
+        - id: int
+          title: str
+          score: int
+          descendants: int
+          rank: int
+          hash: str

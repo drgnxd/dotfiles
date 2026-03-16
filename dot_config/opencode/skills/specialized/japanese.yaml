@@ -1,0 +1,8 @@
+# Japanese
+
+ja:
+  default: ja
+  tone: polite_desu_masu
+  struct: [short_direct, active_voice, concrete_verbs]
+  tech: [code_stays_en, explain_acronym_once, keep_established_terms]
+  fmt: [short_bullets, code_fences, avoid_decoration]
