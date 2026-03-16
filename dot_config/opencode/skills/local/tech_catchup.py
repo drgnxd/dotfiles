@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Hacker News Tech Catchup - All top 30 stories"""
 
-import json, time, hashlib
+import json
+import time
 from datetime import datetime
 from pathlib import Path
 from urllib.request import urlopen
