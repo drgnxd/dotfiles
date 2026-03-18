@@ -69,6 +69,42 @@ jobs:
           nix build .#checks.x86_64-linux.lint-statix --no-link
           nix build .#checks.x86_64-linux.lint-deadnix --no-link
 
+  doc-pair-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check EN/JA doc pairs exist
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+
+          pairs = [
+              ("docs/ARCHITECTURE.md", "docs/ARCHITECTURE.ja.md"),
+              ("docs/architecture/nushell.md", "docs/architecture/nushell.ja.md"),
+              ("docs/architecture/platform-support.md", "docs/architecture/platform-support.ja.md"),
+              ("docs/architecture/security-model.md", "docs/architecture/security-model.ja.md"),
+              ("docs/architecture/taskwarrior.md", "docs/architecture/taskwarrior.ja.md"),
+              ("docs/architecture/xdg-compliance.md", "docs/architecture/xdg-compliance.ja.md"),
+              ("docs/scripts/README.darwin.md", "docs/scripts/README.darwin.ja.md"),
+              ("README.md", "docs/README.ja.md"),
+          ]
+
+          errors = []
+          for en, ja in pairs:
+              en_exists = Path(en).exists()
+              ja_exists = Path(ja).exists()
+              if en_exists and not ja_exists:
+                  errors.append(f"Missing JA: {ja} (EN exists: {en})")
+              elif ja_exists and not en_exists:
+                  errors.append(f"Missing EN: {en} (JA exists: {ja})")
+
+          if errors:
+              for e in errors:
+                  print(f"WARNING: {e}", file=sys.stderr)
+          print(f"Doc pair check: {len(pairs)} pairs, {len(errors)} mismatches")
+          PY
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
