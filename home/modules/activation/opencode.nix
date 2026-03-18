@@ -8,6 +8,14 @@ let
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
+  opencode_skills_essential = ../../../dot_config/opencode/skills/essential;
+  opencode_skills_specialized = ../../../dot_config/opencode/skills/specialized;
+  opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
+  opencode_skills_core = ../../../dot_config/opencode/skills_core.yaml;
+  opencode_skills_catalog = ../../../dot_config/opencode/skills_catalog.yaml;
+  opencode_skills_loader = ../../../dot_config/opencode/skills_loader.py;
+  opencode_requirements = ../../../dot_config/opencode/requirements.txt;
+  opencode_command_dir = ../../../dot_config/opencode/command;
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
@@ -42,11 +50,29 @@ in
     opencode_dir="$(dirname "${opencode_target}")"
     mkdir -p "$opencode_dir"
     mkdir -p "$opencode_dir/tools"
+    mkdir -p "$opencode_dir/skills/essential"
+    mkdir -p "$opencode_dir/skills/specialized"
+    mkdir -p "$opencode_dir/skills/tools"
+    mkdir -p "$opencode_dir/command"
 
     /bin/cp -f "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
     /bin/cp -f "${opencode_dcp_template}" "$opencode_dir/dcp.json"
     /bin/cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
     /bin/cp -f "${opencode_package_template}" "$opencode_dir/package.json"
     /bin/cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
+
+    # Skills (exclude skills/local/ — user-managed)
+    /bin/cp -Rf "${opencode_skills_essential}/." "$opencode_dir/skills/essential/"
+    /bin/cp -Rf "${opencode_skills_specialized}/." "$opencode_dir/skills/specialized/"
+    /bin/cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
+
+    # Loader and catalog
+    /bin/cp -f "${opencode_skills_core}" "$opencode_dir/skills_core.yaml"
+    /bin/cp -f "${opencode_skills_catalog}" "$opencode_dir/skills_catalog.yaml"
+    /bin/cp -f "${opencode_skills_loader}" "$opencode_dir/skills_loader.py"
+    /bin/cp -f "${opencode_requirements}" "$opencode_dir/requirements.txt"
+
+    # Commands
+    /bin/cp -Rf "${opencode_command_dir}/." "$opencode_dir/command/"
   '';
 }
