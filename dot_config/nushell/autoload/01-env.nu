@@ -109,7 +109,6 @@ $env.OLLAMA_MODELS = ($env.XDG_DATA_HOME | path join "ollama" "models")
 $env.OLLAMA_FLASH_ATTENTION = "1"
 $env.OLLAMA_KV_CACHE_TYPE = "q8_0"
 $env.OLLAMA_KEEP_ALIVE = "5m"
-$env.OLLAMA_ORIGINS = "moz-extension://*"
 
 # History files
 $env.LESSHISTFILE = ($env.XDG_STATE_HOME | path join "less" "history")

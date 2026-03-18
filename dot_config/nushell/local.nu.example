@@ -11,3 +11,7 @@
 
 # Example: prepend a machine-local tool path
 # $env.PATH = ($env.PATH | prepend "/opt/custom/bin" | uniq)
+
+# Ollama browser extension access
+# Get your extension UUID from about:debugging#/runtime/this-firefox
+# $env.OLLAMA_ORIGINS = "moz-extension://YOUR-EXTENSION-UUID-HERE"
