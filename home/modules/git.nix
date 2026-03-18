@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   xdg.configFile."git/config.local.example".source = ../../dot_config/git/config.local.example;

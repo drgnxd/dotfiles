@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Keep legacy config path for custom Nushell STARSHIP_CONFIG

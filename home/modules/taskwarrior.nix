@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 let
   src = ../../dot_config/taskwarrior;
