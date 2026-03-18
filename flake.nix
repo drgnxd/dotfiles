@@ -27,9 +27,13 @@
     }:
     let
       system = "aarch64-darwin";
-      pkgs = nixpkgs.legacyPackages.${system};
       user = "drgnxd";
       hostname = "macbook";
+      supportedSystems = [
+        "aarch64-darwin"
+        "x86_64-linux"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     in
     {
       darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
@@ -49,32 +53,46 @@
         ];
       };
 
-      formatter.${system} = pkgs.nixfmt;
+      formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
 
-      devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          nixfmt
-          statix
-          deadnix
-        ];
-      };
+      devShells = forAllSystems (
+        sys:
+        let
+          p = nixpkgs.legacyPackages.${sys};
+        in
+        {
+          default = p.mkShell {
+            packages = with p; [
+              nixfmt
+              statix
+              deadnix
+            ];
+          };
+        }
+      );
 
-      checks.${system} = {
-        formatting = pkgs.runCommand "check-formatting" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
-          cd ${self}
-          find . -name '*.nix' -exec nixfmt --check {} +
-          touch $out
-        '';
-        lint-statix = pkgs.runCommand "check-statix" { nativeBuildInputs = [ pkgs.statix ]; } ''
-          cd ${self}
-          statix check .
-          touch $out
-        '';
-        lint-deadnix = pkgs.runCommand "check-deadnix" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
-          cd ${self}
-          deadnix --fail .
-          touch $out
-        '';
-      };
+      checks = forAllSystems (
+        sys:
+        let
+          p = nixpkgs.legacyPackages.${sys};
+        in
+        {
+          formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt ]; } ''
+            cd ${self}
+            find . -name '*.nix' -exec nixfmt --check {} +
+            touch $out
+          '';
+          lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''
+            cd ${self}
+            statix check .
+            touch $out
+          '';
+          lint-deadnix = p.runCommand "check-deadnix" { nativeBuildInputs = [ p.deadnix ]; } ''
+            cd ${self}
+            deadnix --fail .
+            touch $out
+          '';
+        }
+      );
     };
 }

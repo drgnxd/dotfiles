@@ -58,6 +58,17 @@ jobs:
           nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
           nix flake check --no-build --no-write-lock-file
 
+  lint-nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Run Nix lint checks
+        run: |
+          nix build .#checks.x86_64-linux.formatting --no-link
+          nix build .#checks.x86_64-linux.lint-statix --no-link
+          nix build .#checks.x86_64-linux.lint-deadnix --no-link
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
