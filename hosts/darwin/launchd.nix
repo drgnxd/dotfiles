@@ -4,7 +4,6 @@
 # nix-darwin manages the agents; activation scripts disable duplicate
 # "Launch at Login" agents that apps create on their own.
 {
-  config,
   lib,
   user,
   ...
