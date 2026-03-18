@@ -48,3 +48,11 @@ jobs:
       - name: Run ruff
         run: |
           uv tool run ruff check dot_config/taskwarrior/hooks dot_config/opencode
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          config: .typos.toml
