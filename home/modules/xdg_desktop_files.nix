@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   xdg.configFile."stats/eu.exelban.Stats.plist".source =
