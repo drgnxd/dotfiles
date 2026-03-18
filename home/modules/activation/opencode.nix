@@ -11,8 +11,6 @@ let
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
-  taskwarrior_local_rc = "${config.xdg.configHome}/taskwarrior.local.rc";
-  nushell_local_nu = "${config.xdg.configHome}/nushell/local.nu";
 in
 {
   home.activation.ensureOpencodeLocalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -50,28 +48,5 @@ in
     /bin/cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
     /bin/cp -f "${opencode_package_template}" "$opencode_dir/package.json"
     /bin/cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
-  '';
-
-  home.activation.ensureTaskwarriorLocalRc = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    taskwarrior_local_rc="${taskwarrior_local_rc}"
-    if [ ! -f "$taskwarrior_local_rc" ]; then
-      mkdir -p "$(dirname "$taskwarrior_local_rc")"
-      touch "$taskwarrior_local_rc"
-    fi
-  '';
-
-  home.activation.ensureNushellLocalNu = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    nushell_local_nu="${nushell_local_nu}"
-    if [ ! -f "$nushell_local_nu" ]; then
-      mkdir -p "$(dirname "$nushell_local_nu")"
-      touch "$nushell_local_nu"
-    fi
-  '';
-
-  # Only carapace needs a runtime cache stub (Plan A).
-  # starship/zoxide/atuin are Nix-built (Plan B) via nushell-integrations.nix.
-  home.activation.ensureNushellInitCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p "$HOME/.cache/nushell-init"
-    touch "$HOME/.cache/nushell-init/carapace.nu"
   '';
 }
