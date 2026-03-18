@@ -1,0 +1,12 @@
+[default.extend-words]
+nix = "nix"
+nu = "nu"
+ser = "ser"
+
+[files]
+extend-exclude = [
+  "flake.lock",
+  "*.plist",
+  ".secrets.baseline",
+  "dot_config/opencode/node_modules/",
+]
