@@ -138,6 +138,15 @@ def --env nu_abbr_insert_space [] {
     commandline set-cursor $next.cursor
 }
 
+def --env nu_abbr_submit [] {
+    let buffer = (try { commandline } catch { '' })
+    let cursor = (try { commandline get-cursor } catch { ($buffer | str length) })
+    let next = (nu_abbr_expand_buffer $buffer $cursor --submit)
+
+    commandline edit --replace $next.buffer
+    commandline set-cursor $next.cursor
+}
+
 let nu_abbr_keybindings = [
     {
         name: nu_abbr_space
@@ -145,6 +154,16 @@ let nu_abbr_keybindings = [
         keycode: space
         mode: [emacs vi_insert]
         event: { send: executehostcommand cmd: 'nu_abbr_insert_space' }
+    }
+    {
+        name: nu_abbr_enter
+        modifier: none
+        keycode: enter
+        mode: [emacs vi_insert]
+        event: [
+            { send: executehostcommand cmd: 'nu_abbr_submit' }
+            { send: enter }
+        ]
     }
 ]
 
