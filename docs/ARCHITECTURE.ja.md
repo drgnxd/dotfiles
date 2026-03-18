@@ -29,8 +29,9 @@
 │   ├── default.nix             # home-manager エントリーポイント（モジュール読込）
 │   ├── packages.nix            # パッケージ一覧
 │   └── modules/
-│       ├── activation/         # activation フック（directories, app_config, macos_defaults）
-│       ├── xdg_config_files.nix # taskwarrior / npmrc
+│       ├── activation/         # activation フック（directories, opencode, nushell_local, taskwarrior_local, macos_defaults）
+│       ├── taskwarrior.nix     # Taskwarrior 設定 + 実行可能フック
+│       ├── xdg_config_files.nix # npmrc のみ
 │       ├── xdg_desktop_files.nix # Stats plist のみ
 │       ├── alacritty.nix       # blur.toml + toggle_blur.sh + ターミナル設定
 │       ├── git.nix             # git / delta + config.local.example

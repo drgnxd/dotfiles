@@ -142,9 +142,11 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Zoxide** - Smart directory jumping
 - **Carapace** - Command completions
 - **Atuin** - Shell history sync
-- **Direnv** - Environment management (loaded at startup; no cache)
+- **Direnv** - Environment management via a PWD change hook (no cache)
 
 Cache generation runs on demand via `integrations-cache-update`. Generated init scripts are cached in `~/.cache/nushell-init` and sourced by `autoload/10-source-tools.nu`.
+
+Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically.
 
 ## Configuration Settings
 
@@ -186,6 +188,8 @@ Add overrides as needed:
 $env.MY_LOCAL_VAR = "value"
 alias mylocal = echo "local alias"
 ```
+
+Security-sensitive values should live here. In particular, `OLLAMA_ORIGINS` is intentionally not set in `autoload/01-env.nu`; set a specific browser extension UUID in `local.nu` when needed.
 
 This file is automatically sourced at the end of `config.nu`.
 
