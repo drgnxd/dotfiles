@@ -35,6 +35,7 @@ in
     ./modules/nushell-integrations.nix
     ./modules/shellcheck.nix
     ./modules/starship.nix
+    ./modules/taskwarrior.nix
     ./modules/yazi.nix
     ./modules/zellij.nix
     ./modules/zoxide.nix
