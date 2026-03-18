@@ -10,34 +10,46 @@
 { config, pkgs, ... }:
 
 let
-  mkNushellInit = name: pkg: cmd:
-    pkgs.runCommand "${name}-nushell-init" {
-      nativeBuildInputs = [ pkg ];
-    } ''
-      ${builtins.concatStringsSep " " cmd} > $out
-    '';
+  mkNushellInit =
+    name: pkg: cmd:
+    pkgs.runCommand "${name}-nushell-init"
+      {
+        nativeBuildInputs = [ pkg ];
+      }
+      ''
+        ${builtins.concatStringsSep " " cmd} > $out
+      '';
 
   # atuin init writes under $HOME while generating its script, so use a
   # temporary writable HOME here.  Keep this separate from mkNushellInit to
   # make the workaround explicit and avoid accidental removal later.
-  mkNushellInitHome = name: pkg: cmd:
-    pkgs.runCommand "${name}-nushell-init" {
-      nativeBuildInputs = [ pkg ];
-    } ''
-      export HOME="$TMPDIR"
-      ${builtins.concatStringsSep " " cmd} > $out
-    '';
+  mkNushellInitHome =
+    name: pkg: cmd:
+    pkgs.runCommand "${name}-nushell-init"
+      {
+        nativeBuildInputs = [ pkg ];
+      }
+      ''
+        export HOME="$TMPDIR"
+        ${builtins.concatStringsSep " " cmd} > $out
+      '';
 
   starshipInit = mkNushellInit "starship" config.programs.starship.package [
-    "starship" "init" "nu"
+    "starship"
+    "init"
+    "nu"
   ];
 
   zoxideInit = mkNushellInit "zoxide" config.programs.zoxide.package [
-    "zoxide" "init" "nushell"
+    "zoxide"
+    "init"
+    "nushell"
   ];
 
   atuinInit = mkNushellInitHome "atuin" config.programs.atuin.package [
-    "atuin" "init" "nu"
+    "atuin"
+    "init"
+    "nu"
   ];
 in
 {
