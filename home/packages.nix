@@ -17,7 +17,10 @@ let
     "ripgrep"
     "sd"
     "tealdeer"
+    "tokei"
     "tree"
+    "typos"
+    "watchexec"
     "wget"
     "xh"
   ];
@@ -31,7 +34,7 @@ let
   ];
 
   gui_apps = [
-    "floorp-bin"
+    # Floorp: managed via homebrew cask (not in nixpkgs for darwin)
     "maccy"
   ];
 
@@ -55,23 +58,28 @@ let
   ];
 
   git_tools = [
+    "git-absorb"
+    "git-cliff"
     "git-crypt"
     "git-lfs"
     "lazygit"
   ];
 
   dev_tools = [
+    "ast-grep"
     "boost"
     "clang-tools"
     "cmake"
     "lldb"
+    "nix-diff"
+    "nix-tree"
   ];
 
   languages = [
     "guile"
     "nodejs"
     "uv"
-    "R"
+    "R" # nixpkgs attr: pkgs.R (GNU R)
     # rustup provides rust-analyzer; avoid a separate package to prevent conflicts.
     "rustup"
   ];
@@ -83,6 +91,7 @@ let
   ];
 
   security = [
+    "age"
     "gnupg"
   ];
 

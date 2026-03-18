@@ -141,6 +141,7 @@ in
       "stats"
 
       "gimp"
+      "floorp"
       "google-chrome"
       "libreoffice"
 
