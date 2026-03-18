@@ -19,8 +19,8 @@ in
   imports = [
     ./modules/activation/directories.nix
     ./modules/activation/opencode.nix
-    ./modules/activation/nushell_local.nix
-    ./modules/activation/taskwarrior_local.nix
+    ./modules/activation/nushell_ensure.nix
+    ./modules/activation/taskwarrior_ensure.nix
     ./modules/activation/macos_defaults.nix
     ./modules/alacritty.nix
     ./modules/atuin.nix
