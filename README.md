@@ -18,7 +18,7 @@ This repository contains configurations for my macOS environment, including:
     *   Includes all previous Zsh functionality migrated to Nushell
 *   **Legacy Shell:** Zsh configuration archived under `archive/zsh` (see git history if needed)
 *   **Terminal:** Alacritty with Solarized Dark theme
-*   **Browser:** Floorp (Privacy-focused Firefox-based browser)
+*   **Browser:** Floorp (Privacy-focused Firefox-based browser, managed via Homebrew cask)
 *   **Terminal Multiplexer:** Zellij
 *   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
@@ -26,11 +26,11 @@ This repository contains configurations for my macOS environment, including:
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta, git-lfs), clang-tools, lldb, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
+*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), clang-tools, lldb, ast-grep, nix-diff, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, hexyl, hyperfine, procs, smartmontools, direnv, shellcheck, pearcleaner, mas
+*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas
 *   **Version Managers:** uv (Python), node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 

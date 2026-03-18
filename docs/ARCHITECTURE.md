@@ -27,8 +27,9 @@
 │   ├── default.nix             # home-manager entrypoint (imports modules)
 │   ├── packages.nix            # Package list
 │   └── modules/
-│       ├── activation/         # Activation hooks (directories, app_config, macos_defaults)
-│       ├── xdg_config_files.nix # taskwarrior / npmrc
+│       ├── activation/         # Activation hooks (directories, opencode, nushell_local, taskwarrior_local, macos_defaults)
+│       ├── taskwarrior.nix     # Taskwarrior files + executable hook scripts
+│       ├── xdg_config_files.nix # npmrc only
 │       ├── xdg_desktop_files.nix # Stats plist
 │       ├── alacritty.nix       # blur.toml + toggle_blur.sh + terminal config
 │       ├── git.nix             # git / delta + config.local.example
@@ -138,8 +139,9 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 - `flake.nix` ties nix-darwin, home-manager, and agenix together
 - `hosts/macbook/default.nix` owns system-level configuration
 - `home/default.nix` composes user-level modules
-- `home/modules/activation/` manages user defaults, launch-agent handling, and app setup hooks
-- `home/modules/xdg_config_files.nix` handles taskwarrior, npmrc, and toggle_blur.sh
+- `home/modules/activation/` manages user defaults, launch-agent handling, OpenCode sync, and local-file bootstrap hooks
+- `home/modules/taskwarrior.nix` links Taskwarrior config files and sets executable bits for hook scripts
+- `home/modules/xdg_config_files.nix` handles npmrc only
 - Tool-specific modules (`alacritty.nix`, `git.nix`, `hammerspoon.nix`, etc.) own their own configFile entries
 
 **Secrets**:

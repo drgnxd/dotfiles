@@ -142,9 +142,11 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Zoxide** - スマートディレクトリジャンプ
 - **Carapace** - コマンド補完
 - **Atuin** - シェル履歴同期
-- **Direnv** - 環境管理（起動時に読み込み、キャッシュなし）
+- **Direnv** - 環境管理（PWD 変更フックで自動適用、キャッシュなし）
 
 キャッシュ生成は`integrations-cache-update`でオンデマンド実行します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/10-source-tools.nu`で読み込みます。
+
+Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。
 
 ## 設定値
 
@@ -186,6 +188,8 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 $env.MY_LOCAL_VAR = "value"
 alias mylocal = echo "local alias"
 ```
+
+セキュリティ上センシティブな値はこの `local.nu` に置いてください。特に `OLLAMA_ORIGINS` は `autoload/01-env.nu` では設定せず、必要な拡張機能 UUID を `local.nu` で明示設定する設計です。
 
 このファイルは`config.nu`の最後で自動的に読み込まれます。
 
