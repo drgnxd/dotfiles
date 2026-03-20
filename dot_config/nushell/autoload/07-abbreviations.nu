@@ -155,16 +155,6 @@ let nu_abbr_keybindings = [
         mode: [emacs vi_insert]
         event: { send: executehostcommand cmd: 'nu_abbr_insert_space' }
     }
-    {
-        name: nu_abbr_enter
-        modifier: none
-        keycode: enter
-        mode: [emacs vi_insert]
-        event: [
-            { send: executehostcommand cmd: 'nu_abbr_submit' }
-            { send: enter }
-        ]
-    }
 ]
 
 $env.config.keybindings = (
