@@ -17,6 +17,55 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
+LEGACY_SKILL_DIRS = {"essential", "specialized", "tools", "local"}
+
+
+def _validate_skill_frontmatter(skill_file: Path, errors: list[str]) -> None:
+    try:
+        content = skill_file.read_text(encoding="utf-8")
+    except OSError as exc:
+        errors.append(f"Failed to read {skill_file}: {exc}")
+        return
+
+    lines = content.splitlines()
+    if len(lines) < 3 or lines[0].strip() != "---":
+        errors.append(f"{skill_file} must start with YAML frontmatter")
+        return
+
+    closing_idx = None
+    for idx, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            closing_idx = idx
+            break
+
+    if closing_idx is None:
+        errors.append(f"{skill_file} frontmatter is missing closing ---")
+        return
+
+    fields: dict[str, str] = {}
+    for raw_line in lines[1:closing_idx]:
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        fields[key.strip()] = value.strip()
+
+    name = fields.get("name", "")
+    description = fields.get("description", "")
+    if not name:
+        errors.append(f"{skill_file} frontmatter must include non-empty name")
+    if not description:
+        errors.append(f"{skill_file} frontmatter must include non-empty description")
+
+
+def _validate_skill_subdirectory(skill_dir: Path, errors: list[str]) -> None:
+    skill_file = skill_dir / "SKILL.md"
+    if not skill_file.exists():
+        errors.append(f"{skill_dir} must contain SKILL.md")
+        return
+    _validate_skill_frontmatter(skill_file, errors)
 
 
 def validate_config(errors: list[str]) -> None:
@@ -93,6 +142,39 @@ def validate_tools(errors: list[str]) -> None:
             errors.append(f"{tool_file} does not appear to export an OpenCode tool")
 
 
+def validate_skills(errors: list[str]) -> None:
+    skills_dir = BASE_DIR / "skills"
+    if not skills_dir.exists() or not skills_dir.is_dir():
+        errors.append(f"Missing required skills directory: {skills_dir}")
+        return
+
+    subdirs = sorted(path for path in skills_dir.iterdir() if path.is_dir())
+    if not subdirs:
+        errors.append("skills/ must contain at least one subdirectory")
+        return
+
+    native_subdirs = [path for path in subdirs if path.name not in LEGACY_SKILL_DIRS]
+    if not native_subdirs:
+        errors.append("skills/ must contain at least one native skill subdirectory")
+        return
+
+    for skill_dir in native_subdirs:
+        _validate_skill_subdirectory(skill_dir, errors)
+
+
+def validate_skills_local(errors: list[str]) -> None:
+    skills_local_dir = BASE_DIR / "skills" / "local"
+    if not skills_local_dir.exists():
+        return
+    if not skills_local_dir.is_dir():
+        errors.append(f"skills/local exists but is not a directory: {skills_local_dir}")
+        return
+
+    local_subdirs = sorted(path for path in skills_local_dir.iterdir() if path.is_dir())
+    for skill_dir in local_subdirs:
+        _validate_skill_subdirectory(skill_dir, errors)
+
+
 def validate_agents_file(errors: list[str]) -> None:
     agents_path = BASE_DIR / "AGENTS.md"
     if not agents_path.exists():
@@ -111,6 +193,8 @@ def main() -> int:
     validate_dcp_config(errors)
     validate_package(errors)
     validate_tools(errors)
+    validate_skills(errors)
+    validate_skills_local(errors)
 
     if errors:
         for error in errors:

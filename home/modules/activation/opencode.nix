@@ -8,6 +8,13 @@ let
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
+  opencode_skill_core_dir = ../../../dot_config/opencode/skills/core;
+  opencode_skill_languages_dir = ../../../dot_config/opencode/skills/languages;
+  opencode_skill_practices_dir = ../../../dot_config/opencode/skills/practices;
+  opencode_skill_thinking_dir = ../../../dot_config/opencode/skills/thinking;
+  opencode_skill_infrastructure_dir = ../../../dot_config/opencode/skills/infrastructure;
+  opencode_skill_research_dir = ../../../dot_config/opencode/skills/research;
+  opencode_skill_japanese_dir = ../../../dot_config/opencode/skills/japanese;
   opencode_skills_essential = ../../../dot_config/opencode/skills/essential;
   opencode_skills_specialized = ../../../dot_config/opencode/skills/specialized;
   opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
@@ -50,6 +57,14 @@ in
     opencode_dir="$(dirname "${opencode_target}")"
     mkdir -p "$opencode_dir"
     mkdir -p "$opencode_dir/tools"
+    mkdir -p "$opencode_dir/skills/core"
+    mkdir -p "$opencode_dir/skills/languages"
+    mkdir -p "$opencode_dir/skills/practices"
+    mkdir -p "$opencode_dir/skills/thinking"
+    mkdir -p "$opencode_dir/skills/infrastructure"
+    mkdir -p "$opencode_dir/skills/research"
+    mkdir -p "$opencode_dir/skills/japanese"
+    mkdir -p "$opencode_dir/skills/local"
     mkdir -p "$opencode_dir/skills/essential"
     mkdir -p "$opencode_dir/skills/specialized"
     mkdir -p "$opencode_dir/skills/tools"
@@ -60,6 +75,15 @@ in
     /bin/cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
     /bin/cp -f "${opencode_package_template}" "$opencode_dir/package.json"
     /bin/cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
+
+    # Native skills
+    /bin/cp -f "${opencode_skill_core_dir}/SKILL.md" "$opencode_dir/skills/core/SKILL.md"
+    /bin/cp -f "${opencode_skill_languages_dir}/SKILL.md" "$opencode_dir/skills/languages/SKILL.md"
+    /bin/cp -f "${opencode_skill_practices_dir}/SKILL.md" "$opencode_dir/skills/practices/SKILL.md"
+    /bin/cp -f "${opencode_skill_thinking_dir}/SKILL.md" "$opencode_dir/skills/thinking/SKILL.md"
+    /bin/cp -f "${opencode_skill_infrastructure_dir}/SKILL.md" "$opencode_dir/skills/infrastructure/SKILL.md"
+    /bin/cp -f "${opencode_skill_research_dir}/SKILL.md" "$opencode_dir/skills/research/SKILL.md"
+    /bin/cp -f "${opencode_skill_japanese_dir}/SKILL.md" "$opencode_dir/skills/japanese/SKILL.md"
 
     # Skills (exclude skills/local/ — user-managed)
     /bin/cp -Rf "${opencode_skills_essential}/." "$opencode_dir/skills/essential/"
