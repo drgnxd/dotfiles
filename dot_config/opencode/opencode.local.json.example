@@ -17,10 +17,27 @@
       "npm": "@ai-sdk/openai",
       "name": "OpenAI",
       "models": {
-        "gpt-5": {
-          "name": "gpt-5"
+        "gpt-5.3-codex": {
+          "name": "gpt-5.3-codex"
         }
       }
+    }
+  },
+  "model": "copilot/gpt-5.3-codex",
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git *": "allow",
+      "nix *": "allow",
+      "darwin-rebuild *": "allow",
+      "uv *": "allow",
+      "nu *": "allow"
+    },
+    "edit": {
+      "*": "allow"
+    },
+    "skill": {
+      "*": "allow"
     }
   },
   "mcp": {

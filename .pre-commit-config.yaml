@@ -18,4 +18,4 @@ repos:
         name: Validate OpenCode minimal setup
         entry: uv run --directory dot_config/opencode python validate_opencode_setup.py
         language: system
-        files: ^dot_config/opencode/(AGENTS\.md|dcp\.json|opencode\.json|opencode\.local\.json\.example|package\.json|skills_core\.yaml|skills_catalog\.yaml|skills_loader\.py|validate_opencode_setup\.py|tools/.*\.(ts|js)|skills/.*\.yaml|command/.*\.md)$
+        files: ^dot_config/opencode/(AGENTS\.md|dcp\.json|opencode\.json|opencode\.local\.json\.example|package\.json|skills_core\.yaml|skills_catalog\.yaml|skills_loader\.py|validate_opencode_setup\.py|tools/.*\.(ts|js)|skills/.*\.yaml|skills/.*/(SKILL\.md)|command/.*\.md)$

@@ -1,6 +1,6 @@
 # Makefile for local development (using uv)
 
-.PHONY: help venv install run test validate test-thinking check-uv clean
+.PHONY: help venv install run test validate validate-skills migrate-skills test-thinking check-uv clean
 
 help:
 	@echo "Make targets:"
@@ -9,6 +9,8 @@ help:
 	@echo "  run      - run skills_loader.py inside venv"
 	@echo "  test     - run quick smoke test"
 	@echo "  validate - validate YAML syntax and structure"
+	@echo "  validate-skills - validate OpenCode native skill setup"
+	@echo "  migrate-skills - print native SKILL.md migration notice"
 	@echo "  test-thinking - test thinking mode detection"
 	@echo "  check-uv - check for forbidden pip/venv commands"
 	@echo "  clean    - remove .venv"
@@ -39,6 +41,12 @@ validate: install
 	@test -f skills_core.yaml || echo "✗ skills_core.yaml missing"
 	@test -f skills_catalog.yaml || echo "✗ skills_catalog.yaml missing"
 	@echo "✓ File structure valid"
+
+validate-skills: install
+	@uv run python validate_opencode_setup.py
+
+migrate-skills:
+	@echo "Skills have been migrated to native SKILL.md format."
 
 test-thinking: install
 	@echo "=== Testing Thinking Mode Detection ==="
