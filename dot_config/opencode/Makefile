@@ -6,12 +6,12 @@ help:
 	@echo "Make targets:"
 	@echo "  venv     - create Python virtualenv (.venv) using uv"
 	@echo "  install  - create venv and install dependencies using uv"
-	@echo "  run      - run skills_loader.py inside venv"
-	@echo "  test     - run quick smoke test"
-	@echo "  validate - validate YAML syntax and structure"
+	@echo "  run      - show native SKILL.md usage guidance"
+	@echo "  test     - run OpenCode setup validation"
+	@echo "  validate - validate OpenCode setup"
 	@echo "  validate-skills - validate OpenCode native skill setup"
 	@echo "  migrate-skills - print native SKILL.md migration notice"
-	@echo "  test-thinking - test thinking mode detection"
+	@echo "  test-thinking - verify thinking skill file exists"
 	@echo "  check-uv - check for forbidden pip/venv commands"
 	@echo "  clean    - remove .venv"
 
@@ -24,23 +24,13 @@ install: venv
 	@echo "Dependencies installed"
 
 run: install
-	@uv run python skills_loader.py
+	@echo "Native skills are loaded by OpenCode from skills/*/SKILL.md"
 
 test: install
-	@echo "=== Testing Python task ==="
-	@uv run python -c "from skills_loader import SkillsLoader; print(SkillsLoader().load_for_task('Create a Python script')[:500])"
-	@echo ""
-	@echo "=== Testing Docker task ==="
-	@uv run python -c "from skills_loader import SkillsLoader; print(SkillsLoader().load_for_task('Set up Docker container')[:500])"
+	@uv run python validate_opencode_setup.py
 
 validate: install
-	@echo "=== Validating YAML files ==="
-	@uv run python -c "import yaml; from pathlib import Path; [yaml.safe_load(f.read_text()) for f in Path('skills').rglob('*.yaml')]; print('✓ All YAML files valid')"
-	@echo "=== Checking file structure ==="
-	@test -f AGENTS.md || echo "✗ AGENTS.md missing"
-	@test -f skills_core.yaml || echo "✗ skills_core.yaml missing"
-	@test -f skills_catalog.yaml || echo "✗ skills_catalog.yaml missing"
-	@echo "✓ File structure valid"
+	@uv run python validate_opencode_setup.py
 
 validate-skills: install
 	@uv run python validate_opencode_setup.py
@@ -49,8 +39,8 @@ migrate-skills:
 	@echo "Skills have been migrated to native SKILL.md format."
 
 test-thinking: install
-	@echo "=== Testing Thinking Mode Detection ==="
-	@uv run python -c "from skills_loader import SkillsLoader, ThinkingMode; loader = SkillsLoader(); assert loader._detect_thinking_mode('ls -la') == ThinkingMode.SIMPLE, 'FAIL: simple'; assert loader._detect_thinking_mode('Create a Python script') == ThinkingMode.MEDIUM, 'FAIL: medium'; assert loader._detect_thinking_mode('Design a microservices architecture') == ThinkingMode.COMPLEX, 'FAIL: complex'; print('OK: Simple mode detection'); print('OK: Medium mode detection'); print('OK: Complex mode detection')"
+	@test -f skills/thinking/SKILL.md
+	@echo "OK: thinking skill is present"
 
 check-uv:
 	@echo "=== Checking for forbidden pip/venv commands ==="
