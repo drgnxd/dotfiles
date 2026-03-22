@@ -15,12 +15,7 @@ let
   opencode_skill_infrastructure_dir = ../../../dot_config/opencode/skills/infrastructure;
   opencode_skill_research_dir = ../../../dot_config/opencode/skills/research;
   opencode_skill_japanese_dir = ../../../dot_config/opencode/skills/japanese;
-  opencode_skills_essential = ../../../dot_config/opencode/skills/essential;
-  opencode_skills_specialized = ../../../dot_config/opencode/skills/specialized;
   opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
-  opencode_skills_core = ../../../dot_config/opencode/skills_core.yaml;
-  opencode_skills_catalog = ../../../dot_config/opencode/skills_catalog.yaml;
-  opencode_skills_loader = ../../../dot_config/opencode/skills_loader.py;
   opencode_requirements = ../../../dot_config/opencode/requirements.txt;
   opencode_command_dir = ../../../dot_config/opencode/command;
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
@@ -65,8 +60,6 @@ in
     mkdir -p "$opencode_dir/skills/research"
     mkdir -p "$opencode_dir/skills/japanese"
     mkdir -p "$opencode_dir/skills/local"
-    mkdir -p "$opencode_dir/skills/essential"
-    mkdir -p "$opencode_dir/skills/specialized"
     mkdir -p "$opencode_dir/skills/tools"
     mkdir -p "$opencode_dir/command"
 
@@ -85,15 +78,10 @@ in
     /bin/cp -f "${opencode_skill_research_dir}/SKILL.md" "$opencode_dir/skills/research/SKILL.md"
     /bin/cp -f "${opencode_skill_japanese_dir}/SKILL.md" "$opencode_dir/skills/japanese/SKILL.md"
 
-    # Skills (exclude skills/local/ — user-managed)
-    /bin/cp -Rf "${opencode_skills_essential}/." "$opencode_dir/skills/essential/"
-    /bin/cp -Rf "${opencode_skills_specialized}/." "$opencode_dir/skills/specialized/"
+    # Tools (exclude skills/local/ — user-managed)
     /bin/cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
 
-    # Loader and catalog
-    /bin/cp -f "${opencode_skills_core}" "$opencode_dir/skills_core.yaml"
-    /bin/cp -f "${opencode_skills_catalog}" "$opencode_dir/skills_catalog.yaml"
-    /bin/cp -f "${opencode_skills_loader}" "$opencode_dir/skills_loader.py"
+    # Dependencies
     /bin/cp -f "${opencode_requirements}" "$opencode_dir/requirements.txt"
 
     # Commands
