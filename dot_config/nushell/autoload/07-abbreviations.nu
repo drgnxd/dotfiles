@@ -1,13 +1,36 @@
-# Fish-like alias expansion for the line editor.
+# Fish-like abbreviation expansion for the line editor.
+#
+# Expands aliases typed at command position when Space or Enter is pressed.
+# Space: expand in place, insert space, continue editing.
+# Enter: expand in place, execute immediately.
+#
+# Key design decisions:
+# - Uses a SINGLE executehostcommand per keybinding (Nushell #12045:
+#   multiple executehostcommand events only execute the first one).
+# - Enter uses `commandline edit --replace --accept` to atomically
+#   replace the buffer and execute, avoiding the need for a separate
+#   `{ send: enter }` event (which caused the "long-press Enter" bug).
+# - Space handling inserts the space character inside the same function
+#   to avoid the multi-event issue.
 
 const nu_abbr_command_wrappers = [sudo doas command builtin env time noglob]
 const nu_abbr_token_boundaries = ['|' ';' '&' '(' ')' '[' ']' '{' '}']
+const nu_abbr_explicit_map = {
+    lg: 'lazygit'
+    oc: 'opencode'
+    ocd: 'opencode --continue'
+    t: 'task'
+}
 
 def nu_abbr_alias_map [] {
-    scope aliases
-    | reduce -f {} { |row, acc|
-        $acc | merge { ($row.name): $row.expansion }
-    }
+    let alias_map = (
+        scope aliases
+        | reduce -f {} { |row, acc|
+            $acc | merge { ($row.name): $row.expansion }
+        }
+    )
+
+    $alias_map | merge $nu_abbr_explicit_map
 }
 
 def nu_abbr_is_word_boundary [char: string] {
@@ -143,8 +166,7 @@ def --env nu_abbr_submit [] {
     let cursor = (try { commandline get-cursor } catch { ($buffer | str length) })
     let next = (nu_abbr_expand_buffer $buffer $cursor --submit)
 
-    commandline edit --replace $next.buffer
-    commandline set-cursor $next.cursor
+    commandline edit --replace --accept $next.buffer
 }
 
 let nu_abbr_keybindings = [
@@ -154,6 +176,13 @@ let nu_abbr_keybindings = [
         keycode: space
         mode: [emacs vi_insert]
         event: { send: executehostcommand cmd: 'nu_abbr_insert_space' }
+    }
+    {
+        name: nu_abbr_enter
+        modifier: none
+        keycode: enter
+        mode: [emacs vi_insert]
+        event: { send: executehostcommand cmd: 'nu_abbr_submit' }
     }
 ]
 
