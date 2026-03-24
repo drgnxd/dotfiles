@@ -4,7 +4,7 @@
 - [Nushell 設定](architecture/nushell.ja.md) - モジュール構成のモダンなシェル
 - [XDG Base Directory 準拠](architecture/xdg-compliance.ja.md)
 - [セキュリティモデルとガードフラグ](architecture/security-model.ja.md)
-- [プラットフォームサポート](architecture/platform-support.ja.md)
+- [プラットフォームサポート](architecture/platform-support.ja.md) - macOS（nix-darwin）+ Linux（standalone home-manager）
 - [Taskwarrior 統合](architecture/taskwarrior.ja.md)
 - [開発ワークフロー](architecture/workflow.ja.md)
 - [トラブルシューティング](architecture/troubleshooting.ja.md)

@@ -10,5 +10,16 @@
 **アプリ**:
 - nixpkgs で不足する GUI アプリは nix-darwin の `homebrew` で管理
 
-## Linux
-Linux は現在対象外です。
+## Linux (x86_64-linux)
+**パッケージマネージャー**: Nix（standalone home-manager）
+
+**使い方**:
+```bash
+home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+```
+
+利用前に `flake.nix` の `user` と `linuxHostname` を環境に合わせて設定してください。
+
+**サポート対象**: すべての CLI ツール、Nushell、Helix、Git、Taskwarrior、Yazi、Zellij、OpenCode、Starship、Zoxide、Atuin、Carapace、Direnv、Alacritty（macOS 専用ウィンドウ機能を除く）。
+
+**Linux で未提供**: Hammerspoon、Stats、Sol、Maccy、macOS system defaults、LaunchAgents、Homebrew casks。Linux デスクトップ統合の代替は Phase 2 ロードマップを参照してください。

@@ -95,6 +95,13 @@ git add <new-files>
 nix eval --no-write-lock-file .#darwinConfigurations.darwin.config.home-manager.users.author.home.activationPackage.drvPath
 ```
 
+### Linux (standalone home-manager)
+
+```bash
+nix build .#homeConfigurations."author@linux-dev".activationPackage --no-link
+home-manager switch --flake .#author@linux-dev
+```
+
 ### Scripts
 **Cloud symlink setup** (interactive, guarded):
 ```bash

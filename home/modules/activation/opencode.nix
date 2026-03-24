@@ -32,7 +32,7 @@ in
       touch "$opencode_local_override"
     fi
     if [ ! -f "$opencode_local_example_target" ]; then
-      /bin/cp -f "${opencode_local_example}" "$opencode_local_example_target"
+      cp -f "${opencode_local_example}" "$opencode_local_example_target"
     fi
   '';
 
@@ -42,9 +42,9 @@ in
     opencode_dir="$(dirname "$opencode_target")"
     mkdir -p "$opencode_dir"
     if [ -s "$opencode_local_override" ]; then
-      /bin/cp -f "$opencode_local_override" "$opencode_target"
+      cp -f "$opencode_local_override" "$opencode_target"
     else
-      /bin/cp -f "${opencode_template}" "$opencode_target"
+      cp -f "${opencode_template}" "$opencode_target"
     fi
   '';
 
@@ -63,28 +63,28 @@ in
     mkdir -p "$opencode_dir/skills/tools"
     mkdir -p "$opencode_dir/command"
 
-    /bin/cp -f "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
-    /bin/cp -f "${opencode_dcp_template}" "$opencode_dir/dcp.json"
-    /bin/cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
-    /bin/cp -f "${opencode_package_template}" "$opencode_dir/package.json"
-    /bin/cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
+    cp -f "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
+    cp -f "${opencode_dcp_template}" "$opencode_dir/dcp.json"
+    cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
+    cp -f "${opencode_package_template}" "$opencode_dir/package.json"
+    cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
 
     # Native skills
-    /bin/cp -f "${opencode_skill_core_dir}/SKILL.md" "$opencode_dir/skills/core/SKILL.md"
-    /bin/cp -f "${opencode_skill_languages_dir}/SKILL.md" "$opencode_dir/skills/languages/SKILL.md"
-    /bin/cp -f "${opencode_skill_practices_dir}/SKILL.md" "$opencode_dir/skills/practices/SKILL.md"
-    /bin/cp -f "${opencode_skill_thinking_dir}/SKILL.md" "$opencode_dir/skills/thinking/SKILL.md"
-    /bin/cp -f "${opencode_skill_infrastructure_dir}/SKILL.md" "$opencode_dir/skills/infrastructure/SKILL.md"
-    /bin/cp -f "${opencode_skill_research_dir}/SKILL.md" "$opencode_dir/skills/research/SKILL.md"
-    /bin/cp -f "${opencode_skill_japanese_dir}/SKILL.md" "$opencode_dir/skills/japanese/SKILL.md"
+    cp -f "${opencode_skill_core_dir}/SKILL.md" "$opencode_dir/skills/core/SKILL.md"
+    cp -f "${opencode_skill_languages_dir}/SKILL.md" "$opencode_dir/skills/languages/SKILL.md"
+    cp -f "${opencode_skill_practices_dir}/SKILL.md" "$opencode_dir/skills/practices/SKILL.md"
+    cp -f "${opencode_skill_thinking_dir}/SKILL.md" "$opencode_dir/skills/thinking/SKILL.md"
+    cp -f "${opencode_skill_infrastructure_dir}/SKILL.md" "$opencode_dir/skills/infrastructure/SKILL.md"
+    cp -f "${opencode_skill_research_dir}/SKILL.md" "$opencode_dir/skills/research/SKILL.md"
+    cp -f "${opencode_skill_japanese_dir}/SKILL.md" "$opencode_dir/skills/japanese/SKILL.md"
 
     # Tools (exclude skills/local/ — user-managed)
-    /bin/cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
+    cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
 
     # Dependencies
-    /bin/cp -f "${opencode_requirements}" "$opencode_dir/requirements.txt"
+    cp -f "${opencode_requirements}" "$opencode_dir/requirements.txt"
 
     # Commands
-    /bin/cp -Rf "${opencode_command_dir}/." "$opencode_dir/command/"
+    cp -Rf "${opencode_command_dir}/." "$opencode_dir/command/"
   '';
 }
