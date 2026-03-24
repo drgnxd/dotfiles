@@ -1,8 +1,9 @@
-{ config, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   xdg.configFile = {
     "alacritty/blur.toml".source = ../../dot_config/alacritty/blur.toml;
+  } // lib.optionalAttrs pkgs.stdenv.isDarwin {
     "alacritty/toggle_blur.sh" = {
       source = ../../dot_config/alacritty/executable_toggle_blur.sh;
       executable = true;
@@ -15,7 +16,7 @@
       general.import = [ "blur.toml" ];
 
       terminal.shell = {
-        program = "/etc/profiles/per-user/${config.home.username}/bin/nu";
+        program = "${config.home.profileDirectory}/bin/nu";
         args = [
           "-l"
           "--config"
@@ -26,11 +27,12 @@
       };
 
       window = {
-        decorations = "buttonless";
         padding = {
           x = 10;
           y = 10;
         };
+      } // lib.optionalAttrs pkgs.stdenv.isDarwin {
+        decorations = "buttonless";
         opacity = 0.75;
         option_as_alt = "OnlyLeft";
       };
@@ -74,7 +76,7 @@
         };
       };
 
-      keyboard.bindings = [
+      keyboard.bindings = lib.optionals pkgs.stdenv.isDarwin [
         {
           key = "B";
           mods = "Command";

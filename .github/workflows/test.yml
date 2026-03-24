@@ -58,6 +58,16 @@ jobs:
           nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
           nix flake check --no-build --no-write-lock-file
 
+  test-home-manager-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Build Linux home-manager configuration
+        run: |
+          # Output key depends on user/linuxHostname variables in flake.nix
+          nix build .#homeConfigurations."drgnxd@linux-dev".activationPackage --no-link --no-write-lock-file
+
   lint-nix:
     runs-on: ubuntu-latest
     steps:

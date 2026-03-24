@@ -95,6 +95,13 @@ git add <new-files>
 nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
 ```
 
+### Linux (standalone home-manager)
+
+```bash
+nix build .#homeConfigurations."drgnxd@linux-dev".activationPackage --no-link
+home-manager switch --flake .#drgnxd@linux-dev
+```
+
 ### Scripts
 **Cloud symlink setup** (interactive, guarded):
 ```bash

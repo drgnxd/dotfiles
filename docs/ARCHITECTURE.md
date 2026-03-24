@@ -4,7 +4,7 @@
 - [Nushell Configuration](architecture/nushell.md) - Modern shell with modular setup
 - [XDG Base Directory Compliance](architecture/xdg-compliance.md)
 - [Security Model and Guard Flags](architecture/security-model.md)
-- [Platform Support](architecture/platform-support.md)
+- [Platform Support](architecture/platform-support.md) - macOS (nix-darwin) + Linux (standalone home-manager)
 - [Taskwarrior Integration](architecture/taskwarrior.md)
 
 ## Design Principles

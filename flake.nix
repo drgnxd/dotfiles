@@ -29,6 +29,15 @@
       system = "aarch64-darwin";
       user = "drgnxd";
       hostname = "macbook";
+      linuxHostname = "linux-dev";
+      darwin_pkgs = import nixpkgs {
+        system = "aarch64-darwin";
+        config.allowUnfree = true;
+      };
+      linux_pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        config.allowUnfree = true;
+      };
       supportedSystems = [
         "aarch64-darwin"
         "x86_64-linux"
@@ -38,19 +47,37 @@
     {
       darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
         inherit system;
-        specialArgs = { inherit inputs user hostname; };
+        specialArgs = {
+          inherit inputs user hostname;
+          pkgs = darwin_pkgs;
+        };
         modules = [
           ./hosts/macbook
           home-manager.darwinModules.home-manager
           agenix.darwinModules.default
           {
             nixpkgs.hostPlatform = system;
+            nixpkgs.config.allowUnfree = true;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.${user} = import ./home;
-            home-manager.extraSpecialArgs = { inherit inputs user; };
+            home-manager.extraSpecialArgs = {
+              inherit inputs user hostname linuxHostname;
+              pkgs = darwin_pkgs;
+            };
           }
         ];
+      };
+
+      homeConfigurations."${user}@${linuxHostname}" = home-manager.lib.homeManagerConfiguration {
+        pkgs = linux_pkgs;
+        modules = [
+          ./home
+        ];
+        extraSpecialArgs = {
+          inherit inputs user hostname linuxHostname;
+          pkgs = linux_pkgs;
+        };
       };
 
       formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);

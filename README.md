@@ -38,7 +38,7 @@ This repository contains configurations for my macOS environment, including:
 
 ### Prerequisites
 
-*   macOS
+*   macOS or Linux (Ubuntu/Fedora/Arch)
 *   Git
 *   Nix (flakes enabled)
 
@@ -47,6 +47,16 @@ This repository contains configurations for my macOS environment, including:
 ```sh
 darwin-rebuild switch --flake ~/.config/nix-config#macbook
 ```
+
+### Linux (standalone home-manager)
+
+Before applying, update `user` and `linuxHostname` at the top of `flake.nix` for your environment.
+
+```sh
+home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+```
+
+Linux support currently covers the core CLI/shell stack and Alacritty. Desktop environment integration is planned for Phase 2.
 
 ## Post-Installation Setup
 
