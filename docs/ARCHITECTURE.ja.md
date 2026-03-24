@@ -62,6 +62,7 @@
 │   │   │   ├── 04-functions.nu # カスタム関数
 │   │   │   ├── 05-completions.nu # コマンド補完
 │   │   │   ├── 06-integrations.nu # 統合ラッパー + Direnv 初期化
+│   │   │   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
 │   │   │   ├── 08-taskwarrior.nu # Taskwarrior プロンプトプレビュー
 │   │   │   ├── 09-lima.nu       # Lima/Docker ヘルパー
 │   │   │   └── 10-source-tools.nu # キャッシュ読み込み

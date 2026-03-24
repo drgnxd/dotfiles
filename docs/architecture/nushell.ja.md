@@ -18,6 +18,7 @@ dot_config/nushell/
 │   ├── 04-functions.nu     # カスタム関数とラッパー
 │   ├── 05-completions.nu   # コマンド補完
 │   ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
+│   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
 │   ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
 │   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
 │   └── 10-source-tools.nu  # キャッシュ読み込み
