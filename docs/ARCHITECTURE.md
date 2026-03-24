@@ -64,6 +64,7 @@
 │   │   │   ├── 04-functions.nu # Custom functions
 │   │   │   ├── 05-completions.nu # Command completions
 │   │   │   ├── 06-integrations.nu # Integrations wrapper + Direnv init
+│   │   │   ├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 │   │   │   ├── 08-taskwarrior.nu # Taskwarrior prompt preview
 │   │   │   ├── 09-lima.nu       # Lima/Docker helpers
 │   │   │   └── 10-source-tools.nu # Source cached tool init
@@ -102,6 +103,7 @@ autoload/
 ├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 ├── 05-completions.nu   # Dynamic completions
 ├── 06-integrations.nu  # Integrations wrapper + Direnv init
+├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 ├── 08-taskwarrior.nu   # Taskwarrior prompt preview
 ├── 09-lima.nu          # Lima/Docker helpers
 └── 10-source-tools.nu  # Source cached tool init

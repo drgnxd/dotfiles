@@ -18,6 +18,7 @@ dot_config/nushell/
 │   ├── 04-functions.nu     # Custom functions & wrappers
 │   ├── 05-completions.nu   # Command completions
 │   ├── 06-integrations.nu  # Lazy wrapper for integration cache updates
+│   ├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 │   ├── 08-taskwarrior.nu   # Lazy wrapper for task preview and task command
 │   ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
 │   └── 10-source-tools.nu  # Sources cached init scripts
