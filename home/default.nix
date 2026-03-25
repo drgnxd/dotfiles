@@ -53,7 +53,8 @@ in
       ./modules/xdg_desktop_files.nix
     ]
     ++ lib.optionals pkgs.stdenv.isLinux [
-      # === Linux only (Phase 2 modules will go here) ===
+      # === Linux only ===
+      ./modules/linux/desktop.nix
     ];
 
   xdg.enable = true;

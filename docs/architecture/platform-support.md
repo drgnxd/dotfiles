@@ -12,6 +12,7 @@
 
 ## Linux (x86_64-linux)
 **Package Manager**: Nix (standalone home-manager)
+**Desktop Environment**: Hyprland (Wayland compositor)
 
 **Usage**:
 ```bash
@@ -20,6 +21,18 @@ home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 
 Set `user` and `linuxHostname` in `flake.nix` before applying on your machine.
 
-**Supported components**: All CLI tools, Nushell, Helix, Git, Taskwarrior, Yazi, Zellij, OpenCode, Starship, Zoxide, Atuin, Carapace, Direnv, Alacritty (without macOS window features).
+**Desktop stack**:
+- Hyprland — tiling window manager (Hammerspoon equivalent)
+- Waybar — status bar (Stats.app equivalent)
+- Wofi — application launcher (Sol equivalent)
+- fcitx5 + mozc — Japanese input
+- cliphist + wl-clipboard — clipboard manager (Maccy equivalent)
+- hypridle + hyprlock — idle management and screen lock
+- mako — notification daemon
+- grim + slurp — screenshots
 
-**Not available on Linux**: Hammerspoon, Stats, Sol, Maccy, macOS system defaults, LaunchAgents, Homebrew casks. See Phase 2 roadmap for Linux desktop environment alternatives.
+**Supported components**: All CLI tools, Nushell, Helix, Git, Taskwarrior, Yazi, Zellij, OpenCode, Starship, Zoxide, Atuin, Carapace, Direnv, Alacritty, and the Linux desktop stack above.
+
+**Keybinding parity**: Window management keybindings (`Ctrl+Alt` + arrows/`U``I``J``K`/`C`/`Enter`) are mirrored from the macOS Hammerspoon configuration for consistent muscle memory.
+
+**Not available on Linux**: macOS system defaults, LaunchAgents, Homebrew casks, and direct Hammerspoon APIs.

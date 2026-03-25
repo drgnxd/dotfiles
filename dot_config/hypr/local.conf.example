@@ -1,0 +1,10 @@
+# Machine-specific Hyprland overrides (not tracked by git)
+#
+# Copy to ~/.config/hypr/local.conf and adjust:
+#   cp ~/.config/nix-config/dot_config/hypr/local.conf.example ~/.config/hypr/local.conf
+#
+# Examples:
+# monitor = DP-1, 2560x1440@144, 0x0, 1
+# monitor = DP-2, 1920x1080@60, 2560x0, 1
+#
+# exec-once = wlsunset -l <your-latitude> -L <your-longitude>

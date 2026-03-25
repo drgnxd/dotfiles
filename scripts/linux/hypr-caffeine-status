@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_file="${XDG_RUNTIME_DIR:-/tmp}/hypr-caffeine-active"
+
+if [ -f "$state_file" ]; then
+    echo "☕"
+else
+    echo "💤"
+fi
