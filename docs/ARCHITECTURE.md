@@ -132,10 +132,35 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 Using `$nu.home-dir` to anchor module paths keeps loading stable even when active config files are loaded from Nix store paths.
 
-### 2. Taskwarrior Integration
+### 2. Linux Desktop Ecosystem (Hyprland)
+
+Linux desktop integration is managed through Home Manager modules under `home/modules/linux/` and XDG config sources under `dot_config/`.
+
+**Desktop components**:
+- Hyprland (`dot_config/hypr/hyprland.conf`)
+- Waybar (`dot_config/waybar/config.jsonc`, `dot_config/waybar/style.css`)
+- Wofi (`dot_config/wofi/config`, `dot_config/wofi/style.css`)
+- Mako (`dot_config/mako/config`)
+- hypridle + hyprlock (`dot_config/hypr/hypridle.conf`, `dot_config/hypr/hyprlock.conf`)
+- fcitx5 + mozc (`home/modules/linux/fcitx5.nix`)
+- Helper scripts (`scripts/linux/hypr-*`)
+
+**Hammerspoon -> Hyprland mapping**:
+
+| macOS (Hammerspoon) | Linux (Hyprland) |
+|---------------------|------------------|
+| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
+| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Auto input switching | fcitx5 `windowrulev2` |
+| Caffeine mode | hypridle toggle script |
+| Cheatsheet (Ctrl+Alt+/) | Wofi dmenu script |
+| Stats.app menubar | Waybar modules |
+| Maccy clipboard | cliphist + wl-clipboard |
+
+### 3. Taskwarrior Integration
 See [Taskwarrior Integration](architecture/taskwarrior.md).
 
-### 3. Nix Integration
+### 4. Nix Integration
 
 **Flake-based entrypoint**:
 - `flake.nix` ties nix-darwin, home-manager, and agenix together
@@ -150,7 +175,7 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 - Encrypted with `agenix` in `secrets/*.age`
 - Decrypted into user config paths during activation
 
-### 4. Container and Virtualization (Docker + Lima)
+### 5. Container and Virtualization (Docker + Lima)
 
 **Architecture**: XDG-compliant container environment without symlinks
 

@@ -128,6 +128,13 @@ if ($env | get -o DOTFILES_FLAKE_TARGET | default "" | is-empty) {
     $env.DOTFILES_FLAKE_TARGET = "macbook"
 }
 
+# Wayland desktop hints (Linux only)
+if (($nu.os-info.name | str downcase) == "linux") {
+    $env.MOZ_ENABLE_WAYLAND = "1"
+    $env.QT_QPA_PLATFORM = "wayland"
+    $env.SDL_VIDEODRIVER = "wayland"
+}
+
 # Editor
 $env.EDITOR = "hx"
 $env.VISUAL = $env.EDITOR

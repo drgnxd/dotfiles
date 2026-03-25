@@ -68,6 +68,37 @@ jobs:
           # Output key depends on user/linuxHostname variables in flake.nix
           nix build .#homeConfigurations."drgnxd@linux-dev".activationPackage --no-link --no-write-lock-file
 
+  validate-linux-desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate desktop config files
+        run: |
+          for f in dot_config/hypr/hyprland.conf \
+                   dot_config/hypr/hyprlock.conf \
+                   dot_config/hypr/hypridle.conf \
+                   dot_config/waybar/config.jsonc \
+                   dot_config/waybar/style.css \
+                   dot_config/wofi/config \
+                   dot_config/wofi/style.css \
+                   dot_config/mako/config; do
+            if [ ! -f "$f" ]; then
+              echo "Missing: $f" >&2
+              exit 1
+            fi
+          done
+          echo "All Linux desktop config files present"
+      - name: Validate Waybar JSON
+        run: |
+          sed 's|//.*||' dot_config/waybar/config.jsonc | python3 -c "import json,sys; json.load(sys.stdin)"
+      - name: Shellcheck helper scripts
+        run: |
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          fi
+          shellcheck scripts/linux/hypr-*
+
   lint-nix:
     runs-on: ubuntu-latest
     steps:

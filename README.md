@@ -1,6 +1,6 @@
 # dotfiles
 
-My personal dotfiles managed with nix-darwin + home-manager.
+My personal dotfiles managed with nix-darwin + standalone home-manager.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ darwin-rebuild switch --flake ~/.config/nix-config#macbook
 
 ## Overview
 
-This repository contains configurations for my macOS environment, including:
+This repository contains configurations for my macOS and Linux environments, including:
 
 *   **Shell:** Nushell (modern shell with structured data, XDG-compliant, modular configuration)
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
@@ -23,6 +23,7 @@ This repository contains configurations for my macOS environment, including:
 *   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Window Manager:** Hammerspoon (macOS only)
+*   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
@@ -56,7 +57,7 @@ Before applying, update `user` and `linuxHostname` at the top of `flake.nix` for
 home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 ```
 
-Linux support currently covers the core CLI/shell stack and Alacritty. Desktop environment integration is planned for Phase 2.
+Linux support includes the core CLI/shell stack, Alacritty, and a Hyprland-based desktop environment.
 
 ## Post-Installation Setup
 
@@ -153,7 +154,7 @@ darwin-rebuild switch --flake .#macbook
 *   `hosts/`: nix-darwin system configuration.
 *   `home/`: Home-manager modules and package definitions.
 *   `secrets/`: agenix encrypted secrets (optional).
-*   `scripts/`: macOS helper scripts managed by Nix.
+*   `scripts/`: Platform helper scripts managed by Nix.
 *   `.pre-commit-config.yaml`: Optional local hooks (detect-secrets, YAML/TOML checks, local validators).
 *   `.secrets.baseline`: detect-secrets baseline for allowlisted findings.
 *   `docs/`: Architecture notes.

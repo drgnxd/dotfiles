@@ -1,0 +1,96 @@
+* {
+    font-family: "HackGen35 Console NF", monospace;
+    font-size: 13px;
+}
+
+window#waybar {
+    background-color: #002b36;
+    color: #839496;
+    border-bottom: 2px solid #073642;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    color: #586e75;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button.active {
+    color: #268bd2;
+    border-bottom: 2px solid #268bd2;
+}
+
+#workspaces button.urgent {
+    color: #dc322f;
+}
+
+#clock {
+    color: #93a1a1;
+    font-weight: bold;
+}
+
+#cpu,
+#memory,
+#temperature,
+#disk,
+#battery,
+#network,
+#pulseaudio,
+#custom-caffeine {
+    padding: 0 8px;
+    color: #839496;
+}
+
+#cpu {
+    color: #2aa198;
+}
+
+#memory {
+    color: #268bd2;
+}
+
+#temperature {
+    color: #b58900;
+}
+
+#temperature.critical {
+    color: #dc322f;
+}
+
+#disk {
+    color: #6c71c4;
+}
+
+#battery {
+    color: #859900;
+}
+
+#battery.warning {
+    color: #b58900;
+}
+
+#battery.critical {
+    color: #dc322f;
+}
+
+#network {
+    color: #2aa198;
+}
+
+#pulseaudio {
+    color: #d33682;
+}
+
+#custom-caffeine {
+    color: #b58900;
+}
+
+#tray {
+    padding: 0 4px;
+}
+
+tooltip {
+    background-color: #073642;
+    border: 1px solid #586e75;
+    color: #839496;
+}

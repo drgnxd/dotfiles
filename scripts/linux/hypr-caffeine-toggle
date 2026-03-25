@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_file="${XDG_RUNTIME_DIR:-/tmp}/hypr-caffeine-active"
+
+if [ -f "$state_file" ]; then
+    rm -f "$state_file"
+
+    if ! pgrep -x hypridle >/dev/null 2>&1; then
+        hypridle >/dev/null 2>&1 &
+    fi
+
+    notify-send "Caffeine" "Sleep enabled" -t 2000
+else
+    touch "$state_file"
+
+    # Keep this version-agnostic by stopping hypridle directly.
+    pkill -x hypridle >/dev/null 2>&1 || true
+
+    notify-send "Caffeine" "Sleep disabled" -t 2000
+fi

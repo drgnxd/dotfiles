@@ -1,0 +1,18 @@
+font=HackGen35 Console NF 12
+background-color=#073642
+text-color=#839496
+border-color=#268bd2
+border-size=2
+border-radius=6
+padding=12
+margin=8
+default-timeout=5000
+group-by=app-name
+
+[urgency=low]
+border-color=#586e75
+
+[urgency=high]
+border-color=#dc322f
+text-color=#dc322f
+default-timeout=0

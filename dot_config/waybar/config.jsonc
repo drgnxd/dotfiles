@@ -1,0 +1,81 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 32,
+    "spacing": 8,
+
+    "modules-left": ["hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": [
+        "tray",
+        "custom/caffeine",
+        "pulseaudio",
+        "network",
+        "cpu",
+        "memory",
+        "temperature",
+        "disk",
+        "battery"
+    ],
+
+    "hyprland/workspaces": {
+        "format": "{id}",
+        "on-click": "activate"
+    },
+    "hyprland/window": {
+        "max-length": 50
+    },
+    "clock": {
+        "format": "{:%Y-%m-%d (%a) %H:%M:%S}",
+        "interval": 1,
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt>{calendar}</tt>"
+    },
+    "cpu": {
+        "format": " {usage}%",
+        "interval": 2
+    },
+    "memory": {
+        "format": "󰍛 {percentage}%",
+        "interval": 2
+    },
+    "temperature": {
+        "format": " {temperatureC}°C",
+        "critical-threshold": 80
+    },
+    "disk": {
+        "format": "󰋊 {percentage_used}%",
+        "path": "/"
+    },
+    "battery": {
+        "format": "{icon} {capacity}%",
+        "format-icons": ["󰂎", "󰁼", "󰁾", "󰂀", "󰁹"],
+        "states": {
+            "warning": 30,
+            "critical": 15
+        }
+    },
+    "network": {
+        "format-wifi": "󰤨 {signalStrength}%",
+        "format-ethernet": "󰈀 {ipaddr}",
+        "format-disconnected": "󰤭"
+    },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰝟",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "pamixer -t"
+    },
+    "custom/caffeine": {
+        "exec": "~/.local/bin/hypr-caffeine-status",
+        "interval": 5,
+        "format": "{}",
+        "on-click": "~/.local/bin/hypr-caffeine-toggle",
+        "tooltip": false
+    },
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    }
+}

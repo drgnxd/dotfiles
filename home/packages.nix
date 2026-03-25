@@ -39,7 +39,18 @@ let
   ];
 
   gui_apps_linux = [
-    # Phase 2: wl-clipboard, rofi-wayland, etc.
+    "wl-clipboard"
+    "cliphist"
+    "wofi"
+    "grim"
+    "slurp"
+    "mako"
+    "wtype"
+    "wlsunset"
+    "brightnessctl"
+    "playerctl"
+    "pamixer"
+    "libnotify"
   ];
 
   gui_apps = if pkgs.stdenv.isDarwin then gui_apps_darwin else gui_apps_linux;

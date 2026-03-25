@@ -78,5 +78,32 @@
 
 ---
 
+## Linux Desktop Ecosystem（Hyprland）
+
+Linux デスクトップ統合は `home/modules/linux/` の Home Manager モジュールと、`dot_config/` の XDG 設定ソースで管理します。
+
+**主要コンポーネント**:
+- Hyprland (`dot_config/hypr/hyprland.conf`)
+- Waybar (`dot_config/waybar/config.jsonc`, `dot_config/waybar/style.css`)
+- Wofi (`dot_config/wofi/config`, `dot_config/wofi/style.css`)
+- Mako (`dot_config/mako/config`)
+- hypridle + hyprlock (`dot_config/hypr/hypridle.conf`, `dot_config/hypr/hyprlock.conf`)
+- fcitx5 + mozc (`home/modules/linux/fcitx5.nix`)
+- 補助スクリプト (`scripts/linux/hypr-*`)
+
+**Hammerspoon -> Hyprland 対応表**:
+
+| macOS (Hammerspoon) | Linux (Hyprland) |
+|---------------------|------------------|
+| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
+| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Auto input switching | fcitx5 `windowrulev2` |
+| Caffeine mode | hypridle toggle script |
+| Cheatsheet (Ctrl+Alt+/) | Wofi dmenu script |
+| Stats.app menubar | Waybar modules |
+| Maccy clipboard | cliphist + wl-clipboard |
+
+---
+
 ## 参考
 - 英語版: [ARCHITECTURE.md](ARCHITECTURE.md)
