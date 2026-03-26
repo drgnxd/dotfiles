@@ -62,7 +62,12 @@
             home-manager.useUserPackages = true;
             home-manager.users.${user} = import ./home;
             home-manager.extraSpecialArgs = {
-              inherit inputs user hostname linuxHostname;
+              inherit
+                inputs
+                user
+                hostname
+                linuxHostname
+                ;
               pkgs = darwin_pkgs;
             };
           }
@@ -75,7 +80,12 @@
           ./home
         ];
         extraSpecialArgs = {
-          inherit inputs user hostname linuxHostname;
+          inherit
+            inputs
+            user
+            hostname
+            linuxHostname
+            ;
           pkgs = linux_pkgs;
         };
       };
