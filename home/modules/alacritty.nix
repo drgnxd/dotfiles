@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   xdg.configFile = {
     "alacritty/blur.toml".source = ../../dot_config/alacritty/blur.toml;
-  } // lib.optionalAttrs pkgs.stdenv.isDarwin {
+  }
+  // lib.optionalAttrs pkgs.stdenv.isDarwin {
     "alacritty/toggle_blur.sh" = {
       source = ../../dot_config/alacritty/executable_toggle_blur.sh;
       executable = true;
@@ -31,7 +37,8 @@
           x = 10;
           y = 10;
         };
-      } // lib.optionalAttrs pkgs.stdenv.isDarwin {
+      }
+      // lib.optionalAttrs pkgs.stdenv.isDarwin {
         decorations = "buttonless";
         opacity = 0.75;
         option_as_alt = "OnlyLeft";
