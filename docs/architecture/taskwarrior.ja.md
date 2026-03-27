@@ -17,7 +17,7 @@
 - デバッグ時は `TASKWARRIOR_HOOK_DEBUG=1` でエラー行を stderr にも出力
 - Nushell のプロンプトプレビューが `desc.list` を参照し、`task` ラッパーがキャッシュ更新を実行
 - Nushell 統合は遅延ロード: `autoload/08-taskwarrior.nu` が初回利用時に `modules/taskwarrior.nu` を読み込み
-- Zsh 統合は `archive/zsh` にアーカイブ済み
+- Zsh 統合は git 履歴にアーカイブ済み
 
 ## パフォーマンス
 - Taskwarrior モジュールはオンデマンドで読み込むため、起動を軽くします

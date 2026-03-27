@@ -17,7 +17,7 @@
 - Set `TASKWARRIOR_HOOK_DEBUG=1` to mirror hook error lines to stderr while debugging.
 - Nushell prompt preview reads `desc.list` for inline task descriptions and wraps `task` to refresh the cache.
 - Nushell integration is lazy-loaded: `autoload/08-taskwarrior.nu` loads `modules/taskwarrior.nu` on first use.
-- Zsh integration is archived under `archive/zsh`.
+- Zsh integration is archived in git history.
 
 ## Performance Notes
 - The Taskwarrior module is loaded on demand to keep shell startup light.
