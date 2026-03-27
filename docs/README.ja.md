@@ -10,7 +10,7 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
     *   詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
     *   主なコマンド: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   以前のZsh機能を全てNushellに移行済み
-*   **レガシーシェル:** Zsh設定は`archive/zsh`にアーカイブ済み（必要に応じてgit履歴を参照）
+*   **レガシーシェル:** Zsh設定はgit履歴にアーカイブ済み
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
 *   **ブラウザ:** Floorp（Firefox系プライバシー重視ブラウザ、Homebrew cask で管理）
 *   **ターミナルマルチプレクサ:** Zellij
@@ -148,12 +148,10 @@ darwin-rebuild switch --flake .#macbook
     *   `starship/`: クロスシェルプロンプトの設定
     *   `stats/`: Stats（システムモニター）の設定
     *   `taskwarrior/`: タスク管理の設定
-    *   `zellij/`: ターミナルマルチプレクサの設定
+    *   `zellij`: `home/modules/zellij.nix` で管理
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
     *   `nushell/`: モダンなシェル設定（詳細は architecture/nushell.ja.md を参照）
         *   `autoload/`: モジュール化された設定ファイル
-*   `archive/`: 旧設定のアーカイブ
-    *   `zsh/`: [アーカイブ済み] Zsh設定（Nushellに移行済み）
 
 ## 機能
 

@@ -37,7 +37,8 @@
 │       ├── helix.nix           # config.toml / languages.toml / theme
 │       ├── nushell.nix         # autoload + modules files
 │       ├── shellcheck.nix      # shellcheckrc
-│       └── yazi.nix            # config + flavor
+│       ├── yazi.nix            # config + flavor
+│       └── zellij.nix          # terminal multiplexer settings
 ├── dot_config/                 # Config sources (XDG)
 │   ├── alacritty/              # Terminal emulator
 │   ├── bat/                    # Syntax-highlighted cat
@@ -54,7 +55,6 @@
 │   ├── taskwarrior/            # Task management
 │   │   ├── hooks/              # Python hooks + cache system
 │   │   └── CACHE_ARCHITECTURE.md # Documentation
-│   ├── zellij/                 # Terminal multiplexer
 │   ├── yazi/                   # File manager
 │   ├── nushell/                # Modern shell (see architecture/nushell.md)
 │   │   ├── autoload/           # Modular configuration
@@ -75,8 +75,6 @@
 ├── secrets/
 │   └── secrets.nix             # agenix key map
 ├── docs/                       # Architecture notes
-├── archive/                    # Archived legacy configs
-│   └── zsh/                    # [ARCHIVED] Legacy Zsh configuration
 ├── README.md                   # Main README (English)
 ├── docs/README.ja.md           # Japanese README
 └── docs/ARCHITECTURE.md        # This file
@@ -291,7 +289,6 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 **Related Documentation**:
 - [Nushell Configuration](architecture/nushell.md)
 - [Taskwarrior Cache Architecture](../dot_config/taskwarrior/CACHE_ARCHITECTURE.md)
-- [FSH Chroma Guide](../archive/zsh/fsh/README.md) (Archived - Zsh)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Commit Convention](COMMIT_CONVENTION.md)
 

@@ -16,7 +16,7 @@ This repository contains configurations for my macOS and Linux environments, inc
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
     *   Key commands: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   Includes all previous Zsh functionality migrated to Nushell
-*   **Legacy Shell:** Zsh configuration archived under `archive/zsh` (see git history if needed)
+*   **Legacy Shell:** Zsh configuration is archived in git history
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser, managed via Homebrew cask)
 *   **Terminal Multiplexer:** Zellij
@@ -169,12 +169,10 @@ darwin-rebuild switch --flake .#macbook
     *   `starship/`: Cross-shell prompt configuration
     *   `stats/`: Configuration for Stats (system monitor)
     *   `taskwarrior/`: Task management configuration
-    *   `zellij/`: Terminal multiplexer configuration
+    *   `zellij`: Configured through `home/modules/zellij.nix`
     *   `yazi/`: Blazing fast terminal file manager with custom theme
     *   `nushell/`: Modern shell configuration (see architecture/nushell.md)
         *   `autoload/`: Modular configuration files
-*   `archive/`: Archived legacy configurations
-    *   `zsh/`: [ARCHIVED] Zsh configuration (migrated to Nushell)
 
 ## Features
 

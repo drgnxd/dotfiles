@@ -127,10 +127,10 @@ task add "New task"  または  task 1 done
 
 ---
 
-### Legacy Zsh統合（アーカイブ）
+### Legacy Zsh統合（git履歴にアーカイブ）
 
 #### Fast Syntax Highlighting (`chroma-task.ch`)
-**場所**: `archive/zsh/fsh/chroma-task.ch`
+**場所**: git履歴（旧Zsh構成）
 
 **動作**:
 1. 初回呼び出し時に`ids.list`をメモリへロード
@@ -145,7 +145,7 @@ task add "New task"  または  task 1 done
 - Zsh配列による高速検索（`${CHROMA_TASK_IDS[(Ie)$__wrd]}`）
 
 #### Zsh Functions (`dot_functions`)（アーカイブ）
-**場所**: `archive/zsh/dot_functions`
+**場所**: git履歴（旧Zsh構成）
 
 **主要関数**:
 
@@ -319,8 +319,8 @@ with open(os.path.join(cache_dir, "projects.list"), "w") as f:
 | `dot_config/taskwarrior/hooks/hook_entrypoint.py` | フック共通エントリーポイント |
 | `dot_config/taskwarrior/hooks/on-add.py` | 新規タスク追加時のフック |
 | `dot_config/taskwarrior/hooks/on-modify.py` | タスク変更時のフック |
-| `archive/zsh/fsh/chroma-task.ch` | Syntax Highlighting定義 |
-| `archive/zsh/dot_functions` | Zshヘルパー関数 |
+| `git history (legacy zsh fsh chroma-task.ch)` | Syntax Highlighting定義（履歴参照） |
+| `git history (legacy zsh dot_functions)` | Zshヘルパー関数（履歴参照） |
 | `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/ids.list` | キャッシュ（IDリスト） |
 | `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/desc.list` | キャッシュ（説明付き） |
 

@@ -39,7 +39,8 @@
 │       ├── helix.nix           # config.toml / languages.toml / テーマ
 │       ├── nushell.nix         # autoload + modules ファイル
 │       ├── shellcheck.nix      # shellcheckrc
-│       └── yazi.nix            # 設定 + flavor
+│       ├── yazi.nix            # 設定 + flavor
+│       └── zellij.nix          # ターミナルマルチプレクサ設定
 ├── dot_config/                 # 設定ファイルのソース（XDG）
 │   ├── alacritty/              # ターミナルエミュレータ
 │   ├── bat/                    # シンタックスハイライト cat
@@ -52,7 +53,6 @@
 │   ├── starship/               # シェルプロンプト
 │   ├── stats/                  # システムモニター
 │   ├── taskwarrior/            # タスク管理
-│   ├── zellij/                 # ターミナルマルチプレクサ
 │   ├── yazi/                   # ファイルマネージャー
 │   ├── nushell/                # モダンなシェル設定
 │   │   ├── autoload/           # モジュール化された設定
@@ -73,7 +73,7 @@
 ├── secrets/
 │   └── secrets.nix             # agenix キーマップ
 ├── docs/                       # ドキュメント
-└── archive/                    # 旧設定のアーカイブ
+└── docs/ARCHITECTURE.ja.md     # このファイル
 ```
 
 ---
