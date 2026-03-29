@@ -118,6 +118,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           import sys
 
           pairs = [
@@ -126,6 +127,8 @@ jobs:
               ("docs/architecture/platform-support.md", "docs/architecture/platform-support.ja.md"),
               ("docs/architecture/security-model.md", "docs/architecture/security-model.ja.md"),
               ("docs/architecture/taskwarrior.md", "docs/architecture/taskwarrior.ja.md"),
+              ("docs/architecture/workflow.md", "docs/architecture/workflow.ja.md"),
+              ("docs/architecture/troubleshooting.md", "docs/architecture/troubleshooting.ja.md"),
               ("docs/architecture/xdg-compliance.md", "docs/architecture/xdg-compliance.ja.md"),
               ("docs/scripts/README.darwin.md", "docs/scripts/README.darwin.ja.md"),
               ("README.md", "docs/README.ja.md"),
@@ -139,6 +142,18 @@ jobs:
                   errors.append(f"Missing JA: {ja} (EN exists: {en})")
               elif ja_exists and not en_exists:
                   errors.append(f"Missing EN: {en} (JA exists: {ja})")
+
+          benchmark_dir = Path("docs/benchmarks")
+          benchmark_name = re.compile(r"^\d{4}-\d{2}-\d{2}(?:-[a-z0-9-]+)?\.md$")
+          if benchmark_dir.exists():
+              for report in benchmark_dir.glob("*.md"):
+                  if report.name == "README.md":
+                      continue
+                  if not benchmark_name.match(report.name):
+                      errors.append(
+                          "Invalid benchmark filename: "
+                          f"{report} (expected YYYY-MM-DD.md or YYYY-MM-DD-<slug>.md)"
+                      )
 
           if errors:
               for e in errors:
