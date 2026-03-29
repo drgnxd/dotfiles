@@ -6,6 +6,8 @@
 - [Security Model and Guard Flags](architecture/security-model.md)
 - [Platform Support](architecture/platform-support.md) - macOS (nix-darwin) + Linux (standalone home-manager)
 - [Taskwarrior Integration](architecture/taskwarrior.md)
+- [Development Workflow](architecture/workflow.md)
+- [Troubleshooting](architecture/troubleshooting.md)
 
 ## Design Principles
 - XDG compliance for predictable config locations
