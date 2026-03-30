@@ -146,8 +146,15 @@ let
     ++ misc
   );
 
-  existing = lib.filter (name: builtins.hasAttr name pkgs) all_names;
-  missing = lib.filter (name: !(builtins.hasAttr name pkgs)) all_names;
+  # tryEval catches both missing attrs and broken/unfree evaluation failures.
+  existing = lib.filter (name:
+    let result = builtins.tryEval (pkgs.${name});
+    in result.success
+  ) all_names;
+  missing = lib.filter (name:
+    let result = builtins.tryEval (pkgs.${name});
+    in !(result.success)
+  ) all_names;
 in
 {
   packages = map (name: pkgs.${name}) existing;

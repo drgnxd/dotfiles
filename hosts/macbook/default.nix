@@ -10,6 +10,9 @@ let
 in
 {
   imports = [ ./launchd.nix ];
+  # Disable nix-darwin's Nix daemon management.
+  # Nix is installed and managed externally (e.g., Determinate Nix installer).
+  # Enabling this would conflict with the external installation.
   nix.enable = false;
   nixpkgs.config.allowUnfree = true;
 
