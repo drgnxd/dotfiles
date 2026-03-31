@@ -11,13 +11,28 @@ def tool_path [tool: string] {
     which $tool | get path.0?
 }
 
+def hash_command [] {
+    if (which shasum | is-not-empty) {
+        "shasum"
+    } else if (which sha256sum | is-not-empty) {
+        "sha256sum"
+    } else {
+        null
+    }
+}
+
 def cache_is_stale [tool: string, cache_file: path] {
     let resolved_tool_path = (tool_path $tool)
     if $resolved_tool_path == null {
         return false
     }
 
-    let hash_result = (do { ^shasum -a 256 $resolved_tool_path } | complete)
+    let hash_cmd = (hash_command)
+    if $hash_cmd == null {
+        return false
+    }
+    let hash_args = if $hash_cmd == "shasum" { ["-a" "256" $resolved_tool_path] } else { [$resolved_tool_path] }
+    let hash_result = (do { ^$hash_cmd ...$hash_args } | complete)
     if ($hash_result.exit_code != 0) {
         return false
     }
@@ -41,7 +56,12 @@ def write_cache_hash [tool: string, cache_file: path] {
         return
     }
 
-    let hash_result = (do { ^shasum -a 256 $resolved_tool_path } | complete)
+    let hash_cmd = (hash_command)
+    if $hash_cmd == null {
+        return
+    }
+    let hash_args = if $hash_cmd == "shasum" { ["-a" "256" $resolved_tool_path] } else { [$resolved_tool_path] }
+    let hash_result = (do { ^$hash_cmd ...$hash_args } | complete)
     if ($hash_result.exit_code != 0) {
         return
     }
