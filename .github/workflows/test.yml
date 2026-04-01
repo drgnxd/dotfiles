@@ -33,6 +33,19 @@ jobs:
       - name: Source autoload modules
         run: |
           nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'version'
+      - name: Check Nushell file syntax
+        run: |
+          if nu --help 2>&1 | grep -q -- '--check'; then
+            for f in dot_config/nushell/autoload/*.nu \
+                     dot_config/nushell/modules/*.nu \
+                     dot_config/nushell/env.nu \
+                     dot_config/nushell/config.nu; do
+              echo "Checking: $f"
+              nu --check "$f" || exit 1
+            done
+          else
+            echo "nu --check not available in this version, skipping"
+          fi
       - name: Verify XDG dirs
         run: |
           nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'xdg-dirs | to json'
@@ -67,6 +80,15 @@ jobs:
         run: |
           # Output key depends on user/linuxHostname variables in flake.nix
           nix build .#homeConfigurations."drgnxd@linux-dev".activationPackage --no-link --no-write-lock-file
+      - name: Verify activation package drv path
+        run: |
+          drv=$(nix eval --raw --no-write-lock-file \
+            .#homeConfigurations."drgnxd@linux-dev".activationPackage.drvPath)
+          if [ -z "$drv" ]; then
+            echo "ERROR: activationPackage.drvPath is empty" >&2
+            exit 1
+          fi
+          echo "activationPackage.drvPath: $drv"
 
   validate-linux-desktop:
     runs-on: ubuntu-latest
@@ -91,13 +113,7 @@ jobs:
       - name: Validate Waybar JSON
         run: |
           sed 's|//.*||' dot_config/waybar/config.jsonc | python3 -c "import json,sys; json.load(sys.stdin)"
-      - name: Shellcheck helper scripts
-        run: |
-          if ! command -v shellcheck >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y shellcheck
-          fi
-          shellcheck scripts/linux/hypr-*
+      # shellcheck for scripts/linux/hypr-* is handled in lint.yml
 
   lint-nix:
     runs-on: ubuntu-latest
