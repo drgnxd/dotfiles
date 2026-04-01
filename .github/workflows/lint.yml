@@ -20,6 +20,11 @@ jobs:
             exit 0
           fi
           git ls-files -z '*.sh' | xargs -0 -r shellcheck
+      - name: ShellCheck extensionless scripts
+        run: |
+          if [ -d scripts/linux ]; then
+            shellcheck scripts/linux/hypr-*
+          fi
       - name: Install shfmt
         run: |
           sudo apt-get update
@@ -48,6 +53,16 @@ jobs:
       - name: Run ruff
         run: |
           uv tool run ruff check dot_config/taskwarrior/hooks dot_config/opencode
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install actionlint
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-bash.sh)
+      - name: Run actionlint
+        run: ./actionlint
 
   typos:
     runs-on: ubuntu-latest
