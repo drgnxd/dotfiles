@@ -18,6 +18,21 @@ let
   opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
   opencode_requirements = ../../../dot_config/opencode/requirements.txt;
   opencode_command_dir = ../../../dot_config/opencode/command;
+  managedSkills = {
+    core = opencode_skill_core_dir;
+    languages = opencode_skill_languages_dir;
+    practices = opencode_skill_practices_dir;
+    thinking = opencode_skill_thinking_dir;
+    infrastructure = opencode_skill_infrastructure_dir;
+    research = opencode_skill_research_dir;
+    japanese = opencode_skill_japanese_dir;
+  };
+  syncSkillCommands = builtins.concatStringsSep "\n" (
+    lib.mapAttrsToList (name: src: ''
+      mkdir -p "$opencode_dir/skills/${name}"
+      cp -f "${src}/SKILL.md" "$opencode_dir/skills/${name}/SKILL.md"
+    '') managedSkills
+  );
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
@@ -70,13 +85,7 @@ in
     cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
 
     # Native skills
-    cp -f "${opencode_skill_core_dir}/SKILL.md" "$opencode_dir/skills/core/SKILL.md"
-    cp -f "${opencode_skill_languages_dir}/SKILL.md" "$opencode_dir/skills/languages/SKILL.md"
-    cp -f "${opencode_skill_practices_dir}/SKILL.md" "$opencode_dir/skills/practices/SKILL.md"
-    cp -f "${opencode_skill_thinking_dir}/SKILL.md" "$opencode_dir/skills/thinking/SKILL.md"
-    cp -f "${opencode_skill_infrastructure_dir}/SKILL.md" "$opencode_dir/skills/infrastructure/SKILL.md"
-    cp -f "${opencode_skill_research_dir}/SKILL.md" "$opencode_dir/skills/research/SKILL.md"
-    cp -f "${opencode_skill_japanese_dir}/SKILL.md" "$opencode_dir/skills/japanese/SKILL.md"
+    ${syncSkillCommands}
 
     # Tools (exclude skills/local/ — user-managed)
     cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
