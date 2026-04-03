@@ -9,7 +9,7 @@ $EDITOR dot_config/nushell/autoload/03-aliases.nu
 # Apply changes
 darwin-rebuild switch --flake ~/.config/nix-config#macbook
 
-# Build only (validation)
+# Build only (for verification)
 darwin-rebuild build --flake ~/.config/nix-config#macbook
 ```
 
@@ -34,7 +34,7 @@ git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
 # Apply configuration
 darwin-rebuild switch --flake ~/.config/nix-config#macbook
 
-# Add user-specific config (optional)
+# Add user-specific configuration (optional)
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 $EDITOR ~/.config/git/config.local
 ```
