@@ -85,19 +85,11 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 hx ~/.config/git/config.local
 ```
 
-### OpenCode Provider Override (Optional)
+### Agenix Recipients (Required for Secrets)
 
-The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
-Dynamic Context Pruning defaults are managed from `dot_config/opencode/dcp.json`.
-For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
-
-- During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`.
-- If it is empty, the managed template is copied instead.
-- A starter file is created at `~/.config/opencode/opencode.local.json.example`.
-- The managed OpenCode plugin list includes `@mohak34/opencode-notifier@latest`, `opencode-supermemory@latest`, and `@tarquinen/opencode-dcp@latest`.
-- If you keep a non-empty `~/.config/opencode/opencode.local.json`, make sure its `plugin` array still includes the managed plugins you want enabled.
-
-### Agenix Recipients (Optional)
+> **Note**: Without a valid SSH public key in `secrets/secrets.nix`, encrypted secrets
+> (git config, npmrc, gh hosts) will not be decrypted during activation. The system
+> builds normally, but these features will be unavailable.
 
 If you use `agenix`, set your SSH public key in `secrets/secrets.nix` before rekeying:
 
@@ -109,6 +101,18 @@ in
 ```
 
 An empty key list keeps fresh clones and CI checks portable; `agenix -r` requires at least one real recipient key.
+
+### OpenCode Provider Override (Optional)
+
+The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
+Dynamic Context Pruning defaults are managed from `dot_config/opencode/dcp.json`.
+For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
+
+- During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`.
+- If it is empty, the managed template is copied instead.
+- A starter file is created at `~/.config/opencode/opencode.local.json.example`.
+- The managed OpenCode plugin list includes `@mohak34/opencode-notifier@latest`, `opencode-supermemory@latest`, and `@tarquinen/opencode-dcp@latest`.
+- If you keep a non-empty `~/.config/opencode/opencode.local.json`, make sure its `plugin` array still includes the managed plugins you want enabled.
 
 ### Pre-commit Hooks (Optional)
 

@@ -79,6 +79,12 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 hx ~/.config/git/config.local
 ```
 
+### Agenix 受信者設定（シークレット利用に必要）
+
+> **注意**: `secrets/secrets.nix` に有効な SSH 公開鍵を設定しないと、暗号化されたシークレット
+>（git config、npmrc、gh hosts）はアクティベーション時に復号されません。システム自体は
+> 正常にビルドされますが、これらの機能は利用できません。
+
 ### OpenCode プロバイダー上書き（任意）
 
 OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
