@@ -150,16 +150,16 @@ let
   existing = lib.filter (
     name:
     let
-      result = builtins.tryEval (pkgs.${name});
+      result = builtins.tryEval pkgs.${name};
     in
     result.success
   ) all_names;
   missing = lib.filter (
     name:
     let
-      result = builtins.tryEval (pkgs.${name});
+      result = builtins.tryEval pkgs.${name};
     in
-    !(result.success)
+    !result.success
   ) all_names;
 in
 {
