@@ -147,13 +147,19 @@ let
   );
 
   # tryEval catches both missing attrs and broken/unfree evaluation failures.
-  existing = lib.filter (name:
-    let result = builtins.tryEval (pkgs.${name});
-    in result.success
+  existing = lib.filter (
+    name:
+    let
+      result = builtins.tryEval (pkgs.${name});
+    in
+    result.success
   ) all_names;
-  missing = lib.filter (name:
-    let result = builtins.tryEval (pkgs.${name});
-    in !(result.success)
+  missing = lib.filter (
+    name:
+    let
+      result = builtins.tryEval (pkgs.${name});
+    in
+    !(result.success)
   ) all_names;
 in
 {
