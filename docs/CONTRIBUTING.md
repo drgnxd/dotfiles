@@ -144,6 +144,16 @@ Local, machine-specific overrides live outside the repo (examples):
 - Comment complex calculations
 - Module pattern (`local M = {}; return M`)
 
+## Software Policy
+
+This repository prefers OSS-licensed tools (MIT, Apache 2.0, GPL, MPL, etc.)
+when adding new dependencies. Existing tools are grandfathered regardless of license.
+
+When proposing a new tool:
+1. Verify its license is OSS-compatible
+2. Note the license in the PR description
+3. If a proprietary tool is unavoidable, document the justification in the commit body
+
 ---
 
 ## Pull Request Process
