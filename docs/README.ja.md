@@ -211,6 +211,16 @@ darwin-rebuild switch --flake .#macbook
 
 この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPは Nix パッケージで提供します。Rust の `rust-analyzer` は `rustup` 前提（`rustup component add rust-analyzer`）です。エディタ設定は `dot_config/helix/`、パッケージ定義は `home/packages.nix` を参照してください。
 
+## ソフトウェアポリシー
+
+新しいツールを追加する場合は OSS ライセンス（MIT、Apache 2.0、GPL、MPL 等）を優先します。
+既存のツールはライセンスに関わらず維持します。
+
+新規ツール提案時:
+1. ライセンスが OSS 互換であることを確認
+2. PR の説明にライセンスを記載
+3. プロプライエタリツールがやむを得ない場合は、コミット本文に理由を記載
+
 ## ライセンス
 
 MIT License
