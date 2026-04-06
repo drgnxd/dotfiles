@@ -2,7 +2,6 @@
 
 let
   opencode_template = ../../../dot_config/opencode/opencode.json;
-  opencode_dcp_template = ../../../dot_config/opencode/dcp.json;
   opencode_local_example = ../../../dot_config/opencode/opencode.local.json.example;
   opencode_agents_template = ../../../dot_config/opencode/AGENTS.md;
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
@@ -79,7 +78,6 @@ in
     mkdir -p "$opencode_dir/command"
 
     cp -f "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
-    cp -f "${opencode_dcp_template}" "$opencode_dir/dcp.json"
     cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
     cp -f "${opencode_package_template}" "$opencode_dir/package.json"
     cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"

@@ -3,7 +3,6 @@
 
 This script enforces the minimal OpenCode structure used here:
 - AGENTS.md at config root
-- dcp.json for Dynamic Context Pruning defaults
 - opencode.json with valid schema
 - package.json for custom tool dependencies
 - tools/*.ts for custom tools
@@ -84,26 +83,6 @@ def validate_config(errors: list[str]) -> None:
         errors.append(
             "opencode.json should set $schema to https://opencode.ai/config.json"
         )
-
-
-def validate_dcp_config(errors: list[str]) -> None:
-    dcp_path = BASE_DIR / "dcp.json"
-    if not dcp_path.exists():
-        errors.append(f"Missing required config file: {dcp_path}")
-        return
-
-    try:
-        config = json.loads(dcp_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        errors.append(f"Invalid JSON in {dcp_path}: {exc}")
-        return
-
-    expected_schema = (
-        "https://raw.githubusercontent.com/"
-        "Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json"
-    )
-    if config.get("$schema") != expected_schema:
-        errors.append(f"dcp.json should set $schema to {expected_schema}")
 
 
 def validate_package(errors: list[str]) -> None:
@@ -190,7 +169,6 @@ def main() -> int:
 
     validate_agents_file(errors)
     validate_config(errors)
-    validate_dcp_config(errors)
     validate_package(errors)
     validate_tools(errors)
     validate_skills(errors)
