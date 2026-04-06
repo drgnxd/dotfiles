@@ -19,7 +19,6 @@
   },
   "plugin": [
     "@mohak34/opencode-notifier@latest",
-    "opencode-supermemory@latest",
-    "@tarquinen/opencode-dcp@latest"
+    "opencode-supermemory@latest"
   ]
 }
