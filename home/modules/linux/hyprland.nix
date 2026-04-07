@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
+
+let
+  hypr_local_conf = "${config.xdg.configHome}/hypr/local.conf";
+in
 
 {
   wayland.windowManager.hyprland = {
@@ -16,4 +20,12 @@
     hyprlock
     hypridle
   ];
+
+  home.activation.ensureHyprLocalConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    hypr_local_conf="${hypr_local_conf}"
+    if [ ! -f "$hypr_local_conf" ]; then
+      mkdir -p "$(dirname "$hypr_local_conf")"
+      touch "$hypr_local_conf"
+    fi
+  '';
 }
