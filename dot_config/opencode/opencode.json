@@ -3,20 +3,6 @@
   "instructions": [
     "AGENTS.md"
   ],
-  "provider": {
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama (local)",
-      "options": {
-        "baseURL": "http://localhost:11434/v1"
-      },
-      "models": {
-        "gemma3-tool-fix": {
-          "name": "gemma3-tool-fix"
-        }
-      }
-    }
-  },
   "plugin": [
     "@mohak34/opencode-notifier@latest",
     "opencode-supermemory@latest"
