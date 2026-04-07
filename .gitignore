@@ -33,6 +33,7 @@ dot_local/state/
 **/*local*
 !dot_config/nushell/local.nu.example
 !dot_config/opencode/opencode.local.json.example
+!dot_config/hypr/local.conf.example
 **/hosts.yml
 dot_config/npm/
 

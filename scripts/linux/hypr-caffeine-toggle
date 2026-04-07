@@ -7,7 +7,11 @@ if [ -f "$state_file" ]; then
     rm -f "$state_file"
 
     if ! pgrep -x hypridle >/dev/null 2>&1; then
-        hypridle >/dev/null 2>&1 &
+        if command -v setsid >/dev/null 2>&1; then
+            setsid hypridle >/dev/null 2>&1 < /dev/null &
+        else
+            nohup hypridle >/dev/null 2>&1 &
+        fi
     fi
 
     notify-send "Caffeine" "Sleep enabled" -t 2000
