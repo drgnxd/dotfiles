@@ -16,7 +16,12 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-LEGACY_SKILL_DIRS = {"essential", "specialized", "tools", "local"}
+LEGACY_SKILL_DIRS = {
+    "essential",
+    "specialized",
+    "tools",
+    "local",  # user-managed, not a native skill container
+}
 
 
 def _validate_skill_frontmatter(skill_file: Path, errors: list[str]) -> None:
@@ -150,6 +155,11 @@ def validate_skills_local(errors: list[str]) -> None:
         return
 
     local_subdirs = sorted(path for path in skills_local_dir.iterdir() if path.is_dir())
+    if not local_subdirs:
+        return
+
+    # Top-level files in skills/local (for example standalone YAML snippets) are
+    # allowed; only native-style subdirectories must provide SKILL.md.
     for skill_dir in local_subdirs:
         _validate_skill_subdirectory(skill_dir, errors)
 

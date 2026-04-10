@@ -9,4 +9,4 @@ Usage: `uv run python synthesize.py --input file1.md,file2.md --output synthesis
 ## report_generator.py
 Usage: `uv run python report_generator.py --synthesis synthesis.md --output report.md`
 
-Refer to ../specialized/research.yaml for workflow details.
+Refer to ../../research/SKILL.md for workflow details.
