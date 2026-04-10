@@ -14,6 +14,7 @@ let
   opencode_skill_infrastructure_dir = ../../../dot_config/opencode/skills/infrastructure;
   opencode_skill_research_dir = ../../../dot_config/opencode/skills/research;
   opencode_skill_japanese_dir = ../../../dot_config/opencode/skills/japanese;
+  opencode_skill_local_dir = ../../../dot_config/opencode/skills/local;
   opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
   opencode_requirements = ../../../dot_config/opencode/requirements.txt;
   opencode_command_dir = ../../../dot_config/opencode/command;
@@ -85,8 +86,9 @@ in
     # Native skills
     ${syncSkillCommands}
 
-    # Tools (exclude skills/local/ — user-managed)
+    # Tools and default local assets (non-destructive for user-managed files)
     cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
+    cp -Rn "${opencode_skill_local_dir}/." "$opencode_dir/skills/local/"
 
     # Dependencies
     cp -f "${opencode_requirements}" "$opencode_dir/requirements.txt"
