@@ -1,3 +1,4 @@
+# Darwin-only: npmrc deployment via agenix
 {
   lib,
   osConfig ? { },

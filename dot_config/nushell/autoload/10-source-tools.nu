@@ -20,22 +20,6 @@ const atuin_file = ($nu.home-dir | path join ".config" "nushell" "generated" "at
 # Plan A: runtime-cached init script
 const carapace_file = ($nu.home-dir | path join ".cache" "nushell-init" "carapace.nu")
 
-# DIRENV (hooks into PWD change for automatic env loading)
-if (has-cmd direnv) {
-    $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
-        let existing = ($config | get -o hooks.env_change.PWD | default [])
-        $existing | append {||
-            let direnv_out = (do { direnv export json } | complete)
-            if ($direnv_out.exit_code == 0) and ($direnv_out.stdout | is-not-empty) {
-                let env_changes = ($direnv_out.stdout | from json)
-                if ($env_changes | is-not-empty) {
-                    $env_changes | load-env
-                }
-            }
-        }
-    })
-}
-
 # Refresh carapace cache (Plan A only — Plan B tools need no runtime work)
 integrations-cache-update
 
@@ -61,6 +45,21 @@ if (has-cmd atuin) {
     if ($atuin_file | path exists) {
         source $atuin_file
     }
+}
+
+# DIRENV (hooks into PWD change for automatic env loading)
+if (has-cmd direnv) {
+    $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
+        [ {||
+            let direnv_out = (do { direnv export json } | complete)
+            if ($direnv_out.exit_code == 0) and ($direnv_out.stdout | is-not-empty) {
+                let env_changes = ($direnv_out.stdout | from json)
+                if ($env_changes | is-not-empty) {
+                    $env_changes | load-env
+                }
+            }
+        } ]
+    })
 }
 
 # Taskwarrior preview (wraps right prompt after prompt tools load)
