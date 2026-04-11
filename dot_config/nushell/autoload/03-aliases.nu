@@ -5,39 +5,6 @@
 # MODERN CORE COMMANDS (with fallbacks)
 # =============================================================================
 
-# ls -> eza (with icons and git status) - DISABLED
-# export def ls [...args] {
-#     if (has-cmd eza) {
-#         eza --icons --git ...$args
-#     } else {
-#         ^ls ...$args
-#     }
-# }
-#
-# export def ll [...args] {
-#     if (has-cmd eza) {
-#         eza --icons --git -l ...$args
-#     } else {
-#         ^ls -l ...$args
-#     }
-# }
-#
-# export def la [...args] {
-#     if (has-cmd eza) {
-#         eza --icons --git -la ...$args
-#     } else {
-#         ^ls -la ...$args
-#     }
-# }
-#
-# export def lt [...args] {
-#     if (has-cmd eza) {
-#         eza --icons --git --tree ...$args
-#     } else {
-#         ^ls -R ...$args
-#     }
-# }
-
 # grep -> ripgrep
 export def --wrapped g [...args] {
     cmd-or-fallback rg grep ...$args

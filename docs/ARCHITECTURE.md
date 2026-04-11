@@ -20,66 +20,69 @@
 ## Directory Structure
 
 ```
-~/.config/nix-config/           # Nix flake repository
-├── flake.nix                   # Entry point (nix-darwin + home-manager)
-├── flake.lock                  # Pinned inputs
-├── hosts/
-│   └── macbook/default.nix     # nix-darwin system configuration
-├── home/
-│   ├── default.nix             # home-manager entrypoint (imports modules)
-│   ├── packages.nix            # Package list
-│   └── modules/
-│       ├── activation/         # Activation hooks (directories, opencode, nushell_local, taskwarrior_local, macos_defaults)
-│       ├── taskwarrior.nix     # Taskwarrior files + executable hook scripts
-│       ├── xdg_config_files.nix # npmrc only
-│       ├── xdg_desktop_files.nix # Stats plist
-│       ├── alacritty.nix       # blur.toml + toggle_blur.sh + terminal config
-│       ├── git.nix             # git / delta + config.local.example
-│       ├── hammerspoon.nix     # Lua scripts
-│       ├── helix.nix           # config.toml / languages.toml / theme
-│       ├── nushell.nix         # autoload + modules files
-│       ├── shellcheck.nix      # shellcheckrc
-│       ├── yazi.nix            # config + flavor
-│       └── zellij.nix          # terminal multiplexer settings
-├── dot_config/                 # Config sources (XDG)
-│   ├── alacritty/              # Terminal emulator
-│   ├── bat/                    # Syntax-highlighted cat
-│   ├── gh/                     # GitHub CLI
-│   ├── git/                    # Version control
-│   │   ├── config              # Main config
-│   │   └── config.local.example # User-specific template
-│   ├── hammerspoon/            # macOS automation (Lua)
-│   ├── helix/                  # Text editor
-│   ├── npm/                    # Node.js packages
-│   ├── opencode/               # AI coding agent
-│   ├── starship/               # Shell prompt
-│   ├── stats/                  # System monitor (plist)
-│   ├── taskwarrior/            # Task management
-│   │   ├── hooks/              # Python hooks + cache system
-│   │   └── CACHE_ARCHITECTURE.md # Documentation
-│   ├── yazi/                   # File manager
-│   ├── nushell/                # Modern shell (see architecture/nushell.md)
-│   │   ├── autoload/           # Modular configuration
-│   │   │   ├── 01-env.nu       # Environment variables
-│   │   │   ├── 02-path.nu      # PATH configuration
-│   │   │   ├── 03-aliases.nu   # Command aliases
-│   │   │   ├── 04-functions.nu # Custom functions
-│   │   │   ├── 05-completions.nu # Command completions
-│   │   │   ├── 06-integrations.nu # Integrations wrapper + Direnv init
-│   │   │   ├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
-│   │   │   ├── 08-taskwarrior.nu # Taskwarrior prompt preview
-│   │   │   ├── 09-lima.nu       # Lima/Docker helpers
-│   │   │   └── 10-source-tools.nu # Source cached tool init
-│   │   ├── env.nu              # Entry point
-│   │   └── config.nu           # Main config
-├── scripts/
-│   └── darwin/setup_cloud_symlinks.sh # Optional CloudStorage symlink helper
-├── secrets/
-│   └── secrets.nix             # agenix key map
-├── docs/                       # Architecture notes
-├── README.md                   # Main README (English)
-├── docs/README.ja.md           # Japanese README
-└── docs/ARCHITECTURE.md        # This file
+~/.config/nix-config/                # Nix flake repository
+|- flake.nix                         # Entry point (nix-darwin + home-manager)
+|- flake.lock                        # Pinned inputs
+|- hosts/
+|  |- macbook/
+|  |  |- default.nix                 # nix-darwin system configuration
+|  |  `- launchd.nix                 # launchd agents/services
+|- home/
+|  |- default.nix                    # home-manager entrypoint (imports modules)
+|  |- packages.nix                   # Package list
+|  `- modules/
+|     |- activation/
+|     |  |- directories.nix          # Ensure local config/cache directories
+|     |  |- macos_defaults.nix       # User defaults (Darwin only)
+|     |  |- nushell_ensure.nix       # Ensure local Nushell overlays
+|     |  |- opencode.nix             # Sync OpenCode assets/rules
+|     |  `- taskwarrior_ensure.nix   # Ensure local Taskwarrior overlays
+|     |- linux/
+|     |  |- desktop.nix              # Linux desktop module aggregator
+|     |  |- hyprland.nix             # Hyprland compositor config
+|     |  |- waybar.nix               # Waybar status bar config
+|     |  `- fcitx5.nix               # fcitx5/mozc input method
+|     |- alacritty.nix               # Terminal config + helper scripts
+|     |- atuin.nix                   # Atuin shell history
+|     |- bat.nix                     # bat pager config
+|     |- direnv.nix                  # direnv integration
+|     |- fzf.nix                     # fzf integration
+|     |- gh.nix                      # GitHub CLI config
+|     |- git.nix                     # git/delta + local template
+|     |- hammerspoon.nix             # Hammerspoon Lua scripts
+|     |- helix.nix                   # Helix config + theme
+|     |- nushell.nix                 # Nushell files (autoload/modules)
+|     |- nushell-integrations.nix    # Build generated Nushell init scripts
+|     |- shellcheck.nix              # shellcheckrc
+|     |- starship.nix                # Starship prompt settings
+|     |- taskwarrior.nix             # Taskwarrior files + executable hooks
+|     |- xdg_config_files.nix        # Darwin-only npmrc deployment
+|     |- xdg_desktop_files.nix       # Darwin desktop/Stats plist
+|     |- yazi.nix                    # Yazi file manager config
+|     |- zellij.nix                  # Zellij terminal multiplexer
+|     `- zoxide.nix                  # zoxide integration
+|- dot_config/                       # Config sources (XDG)
+|  |- alacritty/
+|  |- bat/
+|  |- gh/
+|  |- git/
+|  |- hammerspoon/
+|  |- helix/
+|  |- npm/
+|  |- nushell/
+|  |- opencode/
+|  |- starship/
+|  |- stats/
+|  |- taskwarrior/
+|  `- yazi/
+|- scripts/
+|  `- darwin/setup_cloud_symlinks.sh # Optional CloudStorage symlink helper
+|- secrets/
+|  `- secrets.nix                    # agenix key map
+|- docs/                             # Architecture and operation notes
+|- README.md                         # Main README (English)
+|- docs/README.ja.md                 # Japanese README
+`- docs/ARCHITECTURE.md              # This file
 ```
 
 ---
@@ -97,16 +100,16 @@ See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 **Modular Architecture**:
 ```
 autoload/
-├── 01-env.nu           # XDG paths, ENV_CONVERSIONS
-├── 02-path.nu          # PATH with path-add helper
-├── 03-aliases.nu       # Conditional command aliases
-├── 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
-├── 05-completions.nu   # Dynamic completions
-├── 06-integrations.nu  # Integrations wrapper + Direnv init
-├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
-├── 08-taskwarrior.nu   # Taskwarrior prompt preview
-├── 09-lima.nu          # Lima/Docker helpers
-└── 10-source-tools.nu  # Source cached tool init
+|- 01-env.nu           # XDG paths, ENV_CONVERSIONS
+|- 02-path.nu          # PATH with path-add helper
+|- 03-aliases.nu       # Conditional command aliases
+|- 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
+|- 05-completions.nu   # Dynamic completions
+|- 06-integrations.nu  # Integrations wrapper
+|- 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
+|- 08-taskwarrior.nu   # Taskwarrior prompt preview
+|- 09-lima.nu          # Lima/Docker helpers
+`- 10-source-tools.nu  # Source cached tool init + direnv PWD hook
 ```
 
 **Key Features**:
@@ -158,6 +161,7 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 | Maccy clipboard | cliphist + wl-clipboard |
 
 ### 3. Taskwarrior Integration
+
 See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 ### 4. Nix Integration
@@ -165,11 +169,11 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 **Flake-based entrypoint**:
 - `flake.nix` ties nix-darwin, home-manager, and agenix together
 - `hosts/macbook/default.nix` owns system-level configuration
+- `hosts/macbook/launchd.nix` owns launchd agents/services
 - `home/default.nix` composes user-level modules
-- `home/modules/activation/` manages user defaults, launch-agent handling, OpenCode sync, and local-file bootstrap hooks
-- `home/modules/taskwarrior.nix` links Taskwarrior config files and sets executable bits for hook scripts
-- `home/modules/xdg_config_files.nix` handles npmrc only
-- Tool-specific modules (`alacritty.nix`, `git.nix`, `hammerspoon.nix`, etc.) own their own configFile entries
+- `home/modules/activation/` manages user defaults, OpenCode sync, and local-file bootstrap hooks
+- `home/modules/linux/` groups Linux desktop modules (Hyprland/Waybar/fcitx5)
+- Tool-specific modules (`alacritty.nix`, `bat.nix`, `atuin.nix`, `zoxide.nix`, `direnv.nix`, `fzf.nix`, `gh.nix`, `starship.nix`, etc.) own their config
 
 **Secrets**:
 - Encrypted with `agenix` in `secrets/*.age`
@@ -188,17 +192,17 @@ $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
 **Directory Structure**:
 ```
 ~/.config/docker/
-  ├── config.json           # Docker CLI config (contexts, auth)
-  └── contexts/             # Docker context definitions
-      └── meta/*/meta.json  # Context metadata (endpoints)
+  |- config.json           # Docker CLI config (contexts, auth)
+  `- contexts/             # Docker context definitions
+     `- meta/*/meta.json   # Context metadata (endpoints)
 
 ~/.local/share/lima/
-  ├── _config/              # Lima global config
-  └── <vm-name>/            # VM instances (e.g., myvm, dev, prod)
-      ├── lima.yaml         # VM configuration (CPUs, memory, mounts)
-      ├── sock/docker.sock  # Docker socket (if Docker enabled in VM)
-      ├── diffdisk          # VM disk image
-      └── ...               # VM runtime data
+  |- _config/              # Lima global config
+  `- <vm-name>/            # VM instances (e.g., myvm, dev, prod)
+     |- lima.yaml          # VM configuration (CPUs, memory, mounts)
+     |- sock/docker.sock   # Docker socket (if Docker enabled in VM)
+     |- diffdisk           # VM disk image
+     `- ...                # VM runtime data
 ```
 
 **Management Functions** (`dot_config/nushell/autoload/09-lima.nu`):
@@ -246,19 +250,24 @@ lima-stop dev
 ## Key Technical Decisions
 
 ### 1. XDG Base Directory
+
 See [XDG Base Directory Compliance](architecture/xdg-compliance.md).
 
 ### 2. Guard Flags Over Prompts
+
 See [Security Model and Guard Flags](architecture/security-model.md).
 
 ### 3. Declarative macOS Configuration
+
 - System defaults and launch agents via nix-darwin
 - User-level configuration via home-manager
 
 ### 4. Taskwarrior Cache System
+
 See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 ### 5. No Symlinks for Docker/Lima
+
 - Pure environment variable approach
 - Less indirection and easier debugging
 
@@ -267,11 +276,13 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 ## Performance Optimizations
 
 ### 1. Nushell Startup
+
 - Deterministic autoload order for fast init
 - Cached tool init sourced from `~/.cache/nushell-init`
 - Minimal runtime checks for optional tools
 
 ### 2. Taskwarrior
+
 - Cache refresh is throttled and asynchronous (see taskwarrior doc)
 
 ---
@@ -306,8 +317,8 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 - **Completions**: Per-command completion definitions
 - **Custom Themes**: 26 FSH chromas for syntax highlighting
 
-**Migration Date**: 2026-01  
-**Status**: Superseded by Nushell configuration  
+**Migration Date**: 2026-01
+**Status**: Superseded by Nushell configuration
 **Access**: Available in git history if needed
 
 **Key Differences from Zsh**:
@@ -330,6 +341,6 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 
 ---
 
-**Last Updated**: 2026-03
+**Last Updated**: 2026-04
 **Author**: drgnxd
 **License**: MIT

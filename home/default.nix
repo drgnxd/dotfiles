@@ -40,12 +40,12 @@ in
     ./modules/yazi.nix
     ./modules/zellij.nix
     ./modules/zoxide.nix
-    ./modules/xdg_config_files.nix
   ]
   ++ lib.optionals pkgs.stdenv.isDarwin [
     # === macOS only ===
     ./modules/activation/macos_defaults.nix
     ./modules/hammerspoon.nix
+    ./modules/xdg_config_files.nix
     ./modules/xdg_desktop_files.nix
   ]
   ++ lib.optionals pkgs.stdenv.isLinux [
