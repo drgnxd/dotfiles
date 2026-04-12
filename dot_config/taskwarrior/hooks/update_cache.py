@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --quiet --script
+#!/usr/bin/env python3
 """
 Taskwarrior cache update module.
 

@@ -36,6 +36,15 @@ jobs:
       - name: Check Nushell file syntax
         run: |
           if nu --help 2>&1 | grep -q -- '--check'; then
+            mode="check"
+          elif nu --help 2>&1 | grep -q -- '--ide-check <int>'; then
+            mode="ide-check"
+          else
+            echo "No syntax check flag available, skipping"
+            exit 0
+          fi
+
+          if [ "$mode" = "check" ]; then
             for f in dot_config/nushell/autoload/*.nu \
                      dot_config/nushell/modules/*.nu \
                      dot_config/nushell/env.nu \
@@ -44,7 +53,20 @@ jobs:
               nu --check "$f" || exit 1
             done
           else
-            echo "nu --check not available in this version, skipping"
+            for f in dot_config/nushell/autoload/*.nu \
+                     dot_config/nushell/modules/*.nu \
+                     dot_config/nushell/env.nu \
+                     dot_config/nushell/config.nu; do
+              echo "Checking: $f"
+              output=$(nu --ide-check 1000 "$f" 2>&1)
+              if [ -n "$output" ]; then
+                echo "$output"
+              fi
+              if echo "$output" | grep -q '"severity":"Error"'; then
+                echo "Syntax diagnostics reported for: $f" >&2
+                exit 1
+              fi
+            done
           fi
       - name: Verify XDG dirs
         run: |
@@ -76,18 +98,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v31
+      - name: Detect home configuration name
+        id: detect
+        run: |
+          names_json=$(nix eval --json --no-write-lock-file \
+            .#homeConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["drgnxd@linux-dev"]')
+          name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "drgnxd@linux-dev")' <<< "$names_json")
+          echo "name=$name" >> "$GITHUB_OUTPUT"
       - name: Build Linux home-manager configuration
         run: |
-          # Output key depends on user/linuxHostname variables in flake.nix
-          nix build .#homeConfigurations."drgnxd@linux-dev".activationPackage --no-link --no-write-lock-file
+          nix build .#homeConfigurations."${{ steps.detect.outputs.name }}".activationPackage --no-link --no-write-lock-file
       - name: Verify activation package drv path
         run: |
+          name="${{ steps.detect.outputs.name }}"
           drv=$(nix eval --raw --no-write-lock-file \
-            .#homeConfigurations."drgnxd@linux-dev".activationPackage.drvPath)
+            .#homeConfigurations."$name".activationPackage.drvPath)
           if [ -z "$drv" ]; then
             echo "ERROR: activationPackage.drvPath is empty" >&2
             exit 1
           fi
+          echo "home configuration: $name"
           echo "activationPackage.drvPath: $drv"
 
   validate-linux-desktop:
