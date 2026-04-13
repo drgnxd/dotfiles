@@ -1,6 +1,6 @@
 # Makefile for local development (using uv)
 
-.PHONY: help venv install run test validate validate-skills migrate-skills test-thinking check-uv clean
+.PHONY: help venv install run test validate validate-skills check-uv clean
 
 help:
 	@echo "Make targets:"
@@ -10,8 +10,6 @@ help:
 	@echo "  test     - run OpenCode setup validation"
 	@echo "  validate - validate OpenCode setup"
 	@echo "  validate-skills - validate OpenCode native skill setup"
-	@echo "  migrate-skills - print native SKILL.md migration notice"
-	@echo "  test-thinking - verify thinking skill file exists"
 	@echo "  check-uv - check for forbidden pip/venv commands"
 	@echo "  clean    - remove .venv"
 
@@ -34,13 +32,6 @@ validate: install
 
 validate-skills: install
 	@uv run python validate_opencode_setup.py
-
-migrate-skills:
-	@echo "Skills have been migrated to native SKILL.md format."
-
-test-thinking: install
-	@test -f skills/thinking/SKILL.md
-	@echo "OK: thinking skill is present"
 
 check-uv:
 	@echo "=== Checking for forbidden pip/venv commands ==="
