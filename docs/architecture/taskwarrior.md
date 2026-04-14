@@ -16,11 +16,12 @@
 - Hook runtime errors are written to `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/hook_errors.log` without blocking task operations.
 - Set `TASKWARRIOR_HOOK_DEBUG=1` to mirror hook error lines to stderr while debugging.
 - Nushell prompt preview reads `desc.list` for inline task descriptions and wraps `task` to refresh the cache.
-- Nushell integration is lazy-loaded: `autoload/08-taskwarrior.nu` loads `modules/taskwarrior.nu` on first use.
+- Nushell integration is eager-loaded: `config.nu` sources `modules/taskwarrior.nu` (implementation) and `autoload/08-taskwarrior.nu` (wrapper) during startup.
+- 2026-02-27 benchmark showed lazy-load had no measurable benefit; eager loading has lower variance.
 - Zsh integration is archived in git history.
 
 ## Performance Notes
-- The Taskwarrior module is loaded on demand to keep shell startup light.
+- The Taskwarrior module and wrapper are sourced at startup for deterministic command availability.
 - Hook updates are throttled (5-second minimum interval) to reduce latency.
 - Nushell preview reads cache only when task IDs are present in the command line.
 - The Nushell `task` wrapper refreshes the cache after each invocation (via `uv` when available).

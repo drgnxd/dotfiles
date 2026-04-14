@@ -16,11 +16,12 @@
 - フック内部エラーは `${XDG_CACHE_HOME:-~/.cache}/taskwarrior/hook_errors.log` に記録し、Taskwarrior 操作は継続
 - デバッグ時は `TASKWARRIOR_HOOK_DEBUG=1` でエラー行を stderr にも出力
 - Nushell のプロンプトプレビューが `desc.list` を参照し、`task` ラッパーがキャッシュ更新を実行
-- Nushell 統合は遅延ロード: `autoload/08-taskwarrior.nu` が初回利用時に `modules/taskwarrior.nu` を読み込み
+- Nushell 統合は積極読み込み: `config.nu` が起動時に `modules/taskwarrior.nu`（実体）と `autoload/08-taskwarrior.nu`（wrapper）を source します
+- 2026-02-27 のベンチマークで遅延ロードの有意な効果は確認できず、積極読み込みのほうが分散が小さいことが分かりました
 - Zsh 統合は git 履歴にアーカイブ済み
 
 ## パフォーマンス
-- Taskwarrior モジュールはオンデマンドで読み込むため、起動を軽くします
+- Taskwarrior モジュールと wrapper は起動時に source し、コマンド可用性を安定化します
 - フック更新は5秒スロットリングで連続実行を抑制
 - Nushell のプレビューはコマンドラインにIDがある場合のみキャッシュを読む
 - Nushell の `task` ラッパーは実行後にキャッシュを更新（`uv` がある場合）
