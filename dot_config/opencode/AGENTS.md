@@ -26,4 +26,4 @@ Project `AGENTS.md` files override these rules.
 - Constants: UPPER_SNAKE
 - Classes: PascalCase
 
-**Last updated**: 2026-03
+**Last updated**: 2026-04

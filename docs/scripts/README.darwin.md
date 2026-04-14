@@ -12,16 +12,21 @@ This directory documents the remaining macOS helper scripts. Most system configu
 
 - `hosts/macbook/default.nix`
   - System defaults and security hardening
-  - LaunchAgents and login item behavior
   - Homebrew casks/MAS for GUI apps
+
+- `hosts/macbook/launchd.nix`
+  - nix-darwin LaunchAgent definitions and login app startup
+  - Separately defines home-manager activation hooks that disable app-created legacy `LaunchAtLogin` agents (Stats/Hammerspoon)
 
 - `home/default.nix`
   - Home Manager user entrypoint (imports user modules)
 
-- `home/modules/activation.nix`
-  - User-level defaults (Finder/Dock/menu bar)
-  - Stats.app configuration import
-  - Legacy LaunchAtLogin agents for Stats/Hammerspoon are disabled and archived to prevent duplicate app launches
+- `home/modules/activation/`
+  - `directories.nix` (local directories bootstrap)
+  - `macos_defaults.nix` (user-level defaults requiring `defaults -currentHost`)
+  - `nushell_ensure.nix` (ensure `local.nu` and Nushell cache directories)
+  - `opencode.nix` (OpenCode config and rules sync)
+  - `taskwarrior_ensure.nix` (ensure local Taskwarrior overlay files)
 
 ## Usage
 ```bash

@@ -12,16 +12,21 @@
 
 - `hosts/macbook/default.nix`
   - システム設定とセキュリティ
-  - LaunchAgents とログイン時起動
   - GUI アプリの cask/MAS 管理
+
+- `hosts/macbook/launchd.nix`
+  - nix-darwin による LaunchAgent 定義とログイン時アプリ起動
+  - これとは別に、home-manager activation フックでアプリ側が作る旧 `LaunchAtLogin` Agent（Stats/Hammerspoon）を無効化
 
 - `home/default.nix`
   - Home Manager のユーザー設定エントリーポイント（各モジュールを読込）
 
-- `home/modules/activation.nix`
-  - ユーザー設定（Finder/Dock/メニューバー）
-  - Stats.app 設定のインポート
-  - Stats/Hammerspoon の旧 LaunchAtLogin Agent を無効化・退避し、二重起動を防止
+- `home/modules/activation/`
+  - `directories.nix`（ローカルディレクトリ作成）
+  - `macos_defaults.nix`（`defaults -currentHost` が必要なユーザー設定）
+  - `nushell_ensure.nix`（`local.nu` と Nushell キャッシュディレクトリの保証）
+  - `opencode.nix`（OpenCode 設定とルール同期）
+  - `taskwarrior_ensure.nix`（Taskwarrior のローカル上書きファイル保証）
 
 ## 使用例
 ```bash
