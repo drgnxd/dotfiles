@@ -30,7 +30,13 @@ dot_local/state/
 **/.ruff_cache/
 
 # Secret/local configs
-**/*local*
+**/*.local
+**/*.local.*
+**/local.nu
+**/local.conf
+**/config.local
+**/opencode.local.json
+**/taskwarrior.local.rc
 !dot_config/nushell/local.nu.example
 !dot_config/opencode/opencode.local.json.example
 !dot_config/hypr/local.conf.example
