@@ -1,3 +1,5 @@
+# Single source of truth: programs.bat.config.
+# Keep bat settings in Nix to avoid drift with static files.
 _:
 
 {

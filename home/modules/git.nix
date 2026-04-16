@@ -1,3 +1,5 @@
+# Single source of truth: programs.git.settings + programs.delta.options.
+# Keep generated Git/Delta config in Nix; only local override template is static.
 _:
 
 {
