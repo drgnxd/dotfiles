@@ -1,3 +1,5 @@
+# Single source of truth: programs.gh.settings.
+# Keep GH CLI config generated from Nix to prevent dual management drift.
 _:
 
 {

@@ -1,7 +1,8 @@
+# Single source of truth: dot_config/starship/starship.toml via xdg.configFile.
+# Plan B Nushell init uses STARSHIP_CONFIG=~/.config/starship/starship.toml.
 _:
 
 {
-  # Keep legacy config path for custom Nushell STARSHIP_CONFIG
   xdg.configFile."starship/starship.toml".source = ../../dot_config/starship/starship.toml;
 
   programs.starship = {

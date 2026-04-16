@@ -63,8 +63,6 @@
 |     `- zoxide.nix                  # zoxide 連携
 |- dot_config/                       # 設定ソース（XDG）
 |  |- alacritty/
-|  |- bat/
-|  |- gh/
 |  |- git/
 |  |- hammerspoon/
 |  |- helix/
