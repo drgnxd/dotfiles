@@ -1,3 +1,7 @@
+# Sync contract for OpenCode assets:
+# - Managed files are refreshed from dotfiles sources on each activation.
+# - User-added files in managed directories are preserved.
+# - Conflicting edits are backed up as `.before-nix` before replacement.
 { config, lib, ... }:
 
 let
@@ -29,8 +33,7 @@ let
   };
   syncSkillCommands = builtins.concatStringsSep "\n" (
     lib.mapAttrsToList (name: src: ''
-      mkdir -p "$opencode_dir/skills/${name}"
-      cp -f "${src}/SKILL.md" "$opencode_dir/skills/${name}/SKILL.md"
+      sync_managed_file "${src}/SKILL.md" "$opencode_dir/skills/${name}/SKILL.md"
     '') managedSkills
   );
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
@@ -65,6 +68,36 @@ in
 
   home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''
     opencode_dir="$(dirname "${opencode_target}")"
+    backup_suffix=".before-nix"
+
+    sync_managed_file() {
+      src_file="$1"
+      dest_file="$2"
+      backup_file="$dest_file$backup_suffix"
+
+      mkdir -p "$(dirname "$dest_file")"
+
+      if [ -e "$dest_file" ] || [ -L "$dest_file" ]; then
+        if diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
+          return 0
+        fi
+        mv -f "$dest_file" "$backup_file"
+      fi
+
+      cp -f "$src_file" "$dest_file"
+    }
+
+    sync_managed_tree() {
+      src_root="$1"
+      dest_root="$2"
+
+      mkdir -p "$dest_root"
+      find "$src_root" -type f | while IFS= read -r src_file; do
+        rel_path="''${src_file#''${src_root}/}"
+        sync_managed_file "$src_file" "$dest_root/$rel_path"
+      done
+    }
+
     mkdir -p "$opencode_dir"
     mkdir -p "$opencode_dir/tools"
     mkdir -p "$opencode_dir/skills/core"
@@ -78,22 +111,22 @@ in
     mkdir -p "$opencode_dir/skills/tools"
     mkdir -p "$opencode_dir/command"
 
-    cp -f "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
-    cp -f "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
-    cp -f "${opencode_package_template}" "$opencode_dir/package.json"
-    cp -Rf "${opencode_tools_template}/." "$opencode_dir/tools/"
+    sync_managed_file "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
+    sync_managed_file "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
+    sync_managed_file "${opencode_package_template}" "$opencode_dir/package.json"
+    sync_managed_tree "${opencode_tools_template}" "$opencode_dir/tools"
 
     # Native skills
     ${syncSkillCommands}
 
     # Tools and default local assets (non-destructive for user-managed files)
-    cp -Rf "${opencode_skills_tools}/." "$opencode_dir/skills/tools/"
+    sync_managed_tree "${opencode_skills_tools}" "$opencode_dir/skills/tools"
     cp -Rn "${opencode_skill_local_dir}/." "$opencode_dir/skills/local/"
 
     # Dependencies
-    cp -f "${opencode_requirements}" "$opencode_dir/requirements.txt"
+    sync_managed_file "${opencode_requirements}" "$opencode_dir/requirements.txt"
 
     # Commands
-    cp -Rf "${opencode_command_dir}/." "$opencode_dir/command/"
+    sync_managed_tree "${opencode_command_dir}" "$opencode_dir/command"
   '';
 }
