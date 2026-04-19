@@ -17,7 +17,7 @@ export def --wrapped f [...args] {
 
 # cat -> bat
 export def --wrapped cat [...args] {
-    cmd-or-fallback bat cat --primary-args ["--paging=never"] ...$args
+    cmd-or-fallback bat cat --primary-args ["--paging=never" "--color=auto"] ...$args
 }
 
 # =============================================================================

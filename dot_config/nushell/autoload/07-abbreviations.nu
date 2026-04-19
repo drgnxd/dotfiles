@@ -22,7 +22,7 @@ const nu_abbr_explicit_map = {
     t: 'task'
 }
 
-def nu_abbr_alias_map [] {
+def nu_abbr_build_alias_map [] {
     let alias_map = (
         scope aliases
         | reduce -f {} { |row, acc|
@@ -31,6 +31,16 @@ def nu_abbr_alias_map [] {
     )
 
     $alias_map | merge $nu_abbr_explicit_map
+}
+
+$env.NU_ABBR_ALIAS_MAP = (nu_abbr_build_alias_map)
+
+def --env nu_abbr_refresh_alias_map [] {
+    $env.NU_ABBR_ALIAS_MAP = (nu_abbr_build_alias_map)
+}
+
+def nu_abbr_alias_map [] {
+    $env.NU_ABBR_ALIAS_MAP
 }
 
 def nu_abbr_is_word_boundary [char: string] {
