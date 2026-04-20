@@ -8,8 +8,6 @@ in
     "taskwarrior/config".source = "${src}/config";
     "taskwarrior/colors.rc".source = "${src}/colors.rc";
     "taskwarrior/reports.rc".source = "${src}/reports.rc";
-    "taskwarrior/CACHE_ARCHITECTURE.md".source = "${src}/CACHE_ARCHITECTURE.md";
-
     "taskwarrior/hooks/on-add.py" = {
       source = "${src}/hooks/on-add.py";
       executable = true;

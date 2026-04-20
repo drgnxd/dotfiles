@@ -20,6 +20,6 @@ alias.in=add project:Inbox
 # ------------------------------------------------------------------------------
 # Includes
 # ------------------------------------------------------------------------------
-include $HOME/.config/taskwarrior/colors.rc
-include $HOME/.config/taskwarrior/reports.rc
-include $HOME/.config/taskwarrior.local.rc
+include ~/.config/taskwarrior/colors.rc
+include ~/.config/taskwarrior/reports.rc
+include ~/.config/taskwarrior.local.rc
