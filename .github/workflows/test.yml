@@ -72,6 +72,17 @@ jobs:
         run: |
           nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'xdg-dirs | to json'
 
+  test-nushell-unit:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nushell
+        run: brew install nushell
+      - name: Run Nushell unit tests
+        run: |
+          nu dot_config/nushell/tests/test_abbreviations.nu
+          nu dot_config/nushell/tests/test_taskwarrior_preview.nu
+
   validate-opencode:
     runs-on: ubuntu-latest
     steps:
@@ -92,6 +103,70 @@ jobs:
           nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.stateVersion
           nix eval --no-write-lock-file .#darwinConfigurations.macbook.config.home-manager.users.drgnxd.home.activationPackage.drvPath
           nix flake check --no-build --no-write-lock-file
+
+  check-flake-lock-age:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Check flake.lock input freshness (advisory)
+        run: |
+          metadata_json=$(nix flake metadata --json --no-write-lock-file)
+          python3 - <<'PY' "$metadata_json"
+          import datetime as dt
+          import json
+          import sys
+
+          data = json.loads(sys.argv[1])
+          nodes = data.get("locks", {}).get("nodes", {})
+          target_inputs = ["nixpkgs", "home-manager", "nix-darwin", "agenix"]
+          stale_days = 90
+          now = dt.datetime.now(dt.timezone.utc)
+          stale = []
+
+          for name in target_inputs:
+              node = nodes.get(name)
+              if not node:
+                  continue
+              locked = node.get("locked", {})
+              last_modified = locked.get("lastModified")
+              if not isinstance(last_modified, int):
+                  continue
+
+              modified = dt.datetime.fromtimestamp(last_modified, tz=dt.timezone.utc)
+              age_days = (now - modified).days
+              if age_days > stale_days:
+                  stale.append((name, age_days, modified.date().isoformat()))
+
+          if stale:
+              print("WARNING: stale flake inputs detected (>90 days):", file=sys.stderr)
+              for name, age_days, modified_date in stale:
+                  print(
+                      f"- {name}: {age_days} days old (lastModified={modified_date})",
+                      file=sys.stderr,
+                  )
+          PY
+
+  check-missing-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Fail on home/packages.nix warnings
+        run: |
+          warnings_json=$(nix eval --json --no-write-lock-file .#homeConfigurations."drgnxd@linux-dev".config.warnings)
+          python3 - <<'PY' "$warnings_json"
+          import json
+          import sys
+
+          warnings = json.loads(sys.argv[1])
+          if warnings:
+              print("home configuration warnings detected:", file=sys.stderr)
+              for warning in warnings:
+                  print(f"- {warning}", file=sys.stderr)
+              raise SystemExit(1)
+          print("home configuration warnings: none")
+          PY
 
   test-home-manager-linux:
     runs-on: ubuntu-latest
