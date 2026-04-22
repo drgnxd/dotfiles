@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  solarized_dark = import ../themes/solarized-dark.nix;
+in
 {
   xdg.configFile = {
     "alacritty/blur.toml".source = ../../dot_config/alacritty/blur.toml;
@@ -56,30 +59,30 @@
 
       colors = {
         primary = {
-          background = "#002b36";
-          foreground = "#839496";
+          background = solarized_dark.base03;
+          foreground = solarized_dark.base0;
         };
 
         normal = {
-          black = "#073642";
-          red = "#dc322f";
-          green = "#859900";
-          yellow = "#b58900";
-          blue = "#268bd2";
-          magenta = "#d33682";
-          cyan = "#2aa198";
-          white = "#eee8d5";
+          black = solarized_dark.base02;
+          red = solarized_dark.red;
+          green = solarized_dark.green;
+          yellow = solarized_dark.yellow;
+          blue = solarized_dark.blue;
+          magenta = solarized_dark.magenta;
+          cyan = solarized_dark.cyan;
+          white = solarized_dark.base2;
         };
 
         bright = {
-          black = "#002b36";
-          red = "#cb4b16";
-          green = "#586e75";
-          yellow = "#657b83";
-          blue = "#839496";
-          magenta = "#6c71c4";
-          cyan = "#93a1a1";
-          white = "#fdf6e3";
+          black = solarized_dark.base03;
+          red = solarized_dark.orange;
+          green = solarized_dark.base01;
+          yellow = solarized_dark.base00;
+          blue = solarized_dark.base0;
+          magenta = solarized_dark.violet;
+          cyan = solarized_dark.base1;
+          white = solarized_dark.base3;
         };
       };
 
