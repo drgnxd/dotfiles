@@ -176,6 +176,7 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 **Secrets**:
 - Encrypted with `agenix` in `secrets/*.age`
 - Decrypted into user config paths during activation
+- `secrets/secrets.nix` intentionally keeps an empty-key tracked default for CI compatibility; use `secrets/secrets.example.nix` as the recipient template for real keys
 
 ### 5. Container and Virtualization (Docker + Lima)
 

@@ -91,6 +91,8 @@ hx ~/.config/git/config.local
 > (git config, npmrc, gh hosts) will not be decrypted during activation. The system
 > builds normally, but these features will be unavailable.
 
+Use `secrets/secrets.example.nix` as the template for recipient configuration.
+
 If you use `agenix`, set your SSH public key in `secrets/secrets.nix` before rekeying:
 
 ```nix
