@@ -85,6 +85,8 @@ hx ~/.config/git/config.local
 >（git config、npmrc、gh hosts）はアクティベーション時に復号されません。システム自体は
 > 正常にビルドされますが、これらの機能は利用できません。
 
+受信者設定は `secrets/secrets.example.nix` をテンプレートとして参照してください。
+
 ### OpenCode プロバイダー上書き（任意）
 
 OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
