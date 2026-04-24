@@ -45,6 +45,8 @@ for _, mod_info in ipairs(modules) do
     module.init()
   elseif mod_info.required then
     hs.alert.show("Failed to load required module: " .. mod_info.name)
+  elseif not mod_info.required then
+    print("Optional module not loaded: " .. mod_info.name)
   end
 end
 
