@@ -1,3 +1,5 @@
+# Configuration for tech_catchup.py - NOT an OpenCode native skill.
+# OpenCode skills use SKILL.md with YAML frontmatter.
 # Hacker News Tech Catchup Skill
 # Local only - not tracked in repository
 
