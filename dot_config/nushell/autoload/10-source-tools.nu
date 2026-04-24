@@ -1,5 +1,7 @@
 # Integrations consumer (source-only)
 #
+# requires: 00-helpers, 06-integrations, 08-taskwarrior
+#
 # Plan B (Nix-built, deterministic):
 #   starship, zoxide, atuin — init scripts generated at nix-build time
 #   and deployed to ~/.config/nushell/generated/*.nu

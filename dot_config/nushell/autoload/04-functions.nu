@@ -1,5 +1,6 @@
 # Custom Functions Module
 # Advanced wrappers and utilities
+# requires: 00-helpers
 
 # YAZI FILE MANAGER
 export def --wrapped y [...args] {

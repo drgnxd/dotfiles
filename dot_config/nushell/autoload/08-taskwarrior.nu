@@ -1,4 +1,6 @@
 
+# requires: modules/taskwarrior
+
 # Taskwarrior preview wrapper (eager-loaded via config.nu → modules/taskwarrior.nu)
 
 def task_preview_message [] {

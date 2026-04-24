@@ -1,5 +1,6 @@
 # Aliases Module
 # Modern command replacements and shortcuts
+# requires: 00-helpers
 
 # =============================================================================
 # MODERN CORE COMMANDS (with fallbacks)

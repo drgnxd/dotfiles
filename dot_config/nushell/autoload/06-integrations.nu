@@ -1,4 +1,6 @@
 
+# requires: modules/integrations
+
 # Integrations wrapper (eager-loaded via config.nu → modules/integrations.nu)
 
 export def integrations-cache-update [] {
