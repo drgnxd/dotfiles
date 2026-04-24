@@ -8,7 +8,7 @@ First, run a build to inspect the error details, then fix the relevant Nix file.
 
 **Flake dependencies cannot be resolved**:
 ```bash
-nix flake update --flake ~/.config/nix-config
+cd ~/.config/nix-config && nix flake update
 ```
 Check network status and input update issues.
 

@@ -15,6 +15,7 @@
     QT_IM_MODULE = "fcitx";
     XMODIFIERS = "@im=fcitx";
     SDL_IM_MODULE = "fcitx";
+    # GLFW does not support fcitx5 natively; "ibus" is the accepted compatibility shim
     GLFW_IM_MODULE = "ibus";
   };
 }

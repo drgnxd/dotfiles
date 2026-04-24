@@ -1,6 +1,7 @@
 [default.extend-words]
 nix = "nix"
 nu = "nu"
+# "ser" appears in Rust serde/serialization contexts
 ser = "ser"
 
 [files]

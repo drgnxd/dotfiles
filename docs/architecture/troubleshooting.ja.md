@@ -8,7 +8,7 @@ darwin-rebuild build --flake ~/.config/nix-config#macbook
 
 **flake の依存が解決できない**:
 ```bash
-nix flake update --flake ~/.config/nix-config
+cd ~/.config/nix-config && nix flake update
 ```
 ネットワークや入力更新の問題を確認します。
 
