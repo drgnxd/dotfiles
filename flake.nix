@@ -116,7 +116,7 @@
         {
           formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt-rfc-style ]; } ''
             cd ${self}
-            find . -name '*.nix' -exec nixfmt-rfc-style --check {} +
+            find . -name '*.nix' -exec nixfmt --check {} +
             touch $out
           '';
           lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''
