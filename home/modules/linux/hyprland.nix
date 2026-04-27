@@ -7,16 +7,23 @@
 
 let
   hypr_local_conf = "${config.xdg.configHome}/hypr/local.conf";
+  render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
 in
 
 {
   wayland.windowManager.hyprland = {
     enable = true;
-    extraConfig = builtins.readFile ../../../dot_config/hypr/hyprland.conf;
+    extraConfig = render_with_theme {
+      templatePath = ../../../dot_config/hypr/hyprland.conf;
+      includeBareHex = true;
+    };
   };
 
   xdg.configFile = {
-    "hypr/hyprlock.conf".source = ../../../dot_config/hypr/hyprlock.conf;
+    "hypr/hyprlock.conf".text = render_with_theme {
+      templatePath = ../../../dot_config/hypr/hyprlock.conf;
+      includeBareHex = true;
+    };
     "hypr/hypridle.conf".source = ../../../dot_config/hypr/hypridle.conf;
     "hypr/local.conf.example".source = ../../../dot_config/hypr/local.conf.example;
   };

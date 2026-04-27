@@ -1,4 +1,8 @@
-_:
+{ lib, ... }:
+
+let
+  render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
+in
 
 {
   imports = [
@@ -9,8 +13,12 @@ _:
 
   xdg.configFile = {
     "wofi/config".source = ../../../dot_config/wofi/config;
-    "wofi/style.css".source = ../../../dot_config/wofi/style.css;
-    "mako/config".source = ../../../dot_config/mako/config;
+    "wofi/style.css".text = render_with_theme {
+      templatePath = ../../../dot_config/wofi/style.css;
+    };
+    "mako/config".text = render_with_theme {
+      templatePath = ../../../dot_config/mako/config;
+    };
   };
 
   home.file = {
