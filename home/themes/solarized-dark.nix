@@ -1,12 +1,5 @@
-# Solarized Dark palette used by Nix-generated configs.
-# Static files with hardcoded copies that still need manual propagation:
-# - dot_config/starship/starship.toml
-# - dot_config/waybar/style.css
-# - dot_config/wofi/style.css
-# - dot_config/mako/config
-# - dot_config/hypr/hyprland.conf
-# - dot_config/hypr/hyprlock.conf
-# - dot_config/yazi/flavors/solarized-dark.yazi/flavor.toml
+# Solarized Dark palette single source of truth.
+# Consumers should import this attrset directly or use home/lib/render-theme.nix.
 {
   base03 = "#002b36";
   base02 = "#073642";
