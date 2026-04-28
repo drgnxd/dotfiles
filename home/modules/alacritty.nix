@@ -65,12 +65,14 @@ in
 
         normal = {
           black = solarized_dark.base02;
-          red = solarized_dark.red;
-          green = solarized_dark.green;
-          yellow = solarized_dark.yellow;
-          blue = solarized_dark.blue;
-          magenta = solarized_dark.magenta;
-          cyan = solarized_dark.cyan;
+          inherit (solarized_dark)
+            red
+            green
+            yellow
+            blue
+            magenta
+            cyan
+            ;
           white = solarized_dark.base2;
         };
 
