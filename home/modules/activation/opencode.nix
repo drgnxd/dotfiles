@@ -85,6 +85,7 @@ in
       fi
 
       cp -f "$src_file" "$dest_file"
+      chmod u+w "$dest_file"
     }
 
     sync_managed_tree() {
@@ -128,5 +129,11 @@ in
 
     # Commands
     sync_managed_tree "${opencode_command_dir}" "$opencode_dir/command"
+
+    # Ensure all managed files are user-writable.
+    # /nix/store sources are mode 0444 and propagate via cp; OpenCode writes
+    # back to package.json during dependency installation, so u+w must be
+    # restored post-sync. Idempotent and POSIX-compatible.
+    chmod -R u+w "$opencode_dir"
   '';
 }
