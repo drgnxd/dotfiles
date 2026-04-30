@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v socat >/dev/null 2>&1; then
+    exit 0
+fi
+
+if ! command -v fcitx5-remote >/dev/null 2>&1; then
+    exit 0
+fi
+
+runtime_dir="${XDG_RUNTIME_DIR:-}"
+instance_signature="${HYPRLAND_INSTANCE_SIGNATURE:-}"
+
+if [ -z "$runtime_dir" ] || [ -z "$instance_signature" ]; then
+    exit 0
+fi
+
+socket_path="$runtime_dir/hypr/$instance_signature/.socket2.sock"
+
+if [ ! -S "$socket_path" ]; then
+    exit 0
+fi
+
+set_us_layout() {
+    fcitx5-remote -s keyboard-us >/dev/null 2>&1 || true
+}
+
+handle_event() {
+    local line="$1"
+    local event payload class
+
+    event="${line%%>>*}"
+    payload="${line#*>>}"
+
+    case "$event" in
+        activewindow)
+            class="${payload%%,*}"
+            ;;
+        openwindow)
+            class="$(printf '%s' "$payload" | cut -d',' -f3)"
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    if [[ "$class" =~ ^(Alacritty|wofi)$ ]]; then
+        set_us_layout
+    fi
+}
+
+socat -u UNIX-CONNECT:"$socket_path" - 2>/dev/null | while IFS= read -r line; do
+    handle_event "$line"
+done || true
+
+exit 0

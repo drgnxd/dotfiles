@@ -34,5 +34,9 @@ in
       source = ../../../scripts/linux/hypr-caffeine-status;
       executable = true;
     };
+    ".local/bin/hypr-input-watcher" = {
+      source = ../../../scripts/linux/hypr-input-watcher;
+      executable = true;
+    };
   };
 }
