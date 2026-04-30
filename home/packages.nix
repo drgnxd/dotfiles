@@ -41,6 +41,7 @@ let
   gui_apps_linux = [
     "wl-clipboard"
     "cliphist"
+    "socat"
     "wofi"
     "grim"
     "slurp"
