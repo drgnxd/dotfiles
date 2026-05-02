@@ -39,4 +39,18 @@ in
       executable = true;
     };
   };
+
+  systemd.user.services.hypr-input-watcher = {
+    Unit = {
+      Description = "Hyprland input source auto-switcher (socket2)";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "%h/.local/bin/hypr-input-watcher";
+      Restart = "on-failure";
+      RestartSec = "3s";
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
+  };
 }
