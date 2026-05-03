@@ -51,6 +51,7 @@ let
     "brightnessctl"
     "playerctl"
     "pamixer"
+    "swayosd"
     "libnotify"
   ];
 
