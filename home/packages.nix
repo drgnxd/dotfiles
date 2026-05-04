@@ -45,6 +45,7 @@ let
     "wofi"
     "grim"
     "slurp"
+    "hyprpicker"
     "mako"
     "wtype"
     "wlsunset"
