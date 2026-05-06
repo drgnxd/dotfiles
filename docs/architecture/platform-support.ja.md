@@ -35,4 +35,20 @@ home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 
 **キーバインド互換**: ウィンドウ操作の `Ctrl+Alt` + 矢印/`U``I``J``K`/`C`/`Enter` は macOS の Hammerspoon 設定と揃え、筋肉記憶を維持します。
 
+**Hammerspoon -> Hyprland 対応表**:
+
+| macOS (Hammerspoon) | Linux (Hyprland) |
+|---------------------|------------------|
+| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
+| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Auto input switching | socket2 event watcher (`hypr-input-watcher`, systemd user service) |
+| Browser control (background app) | `dispatch sendshortcut` targeting `class:^(floorp)$` |
+
+### 追加デスクトップユーティリティ
+- SwayOSD（音量 / 輝度 / Caps Lock の OSD）
+- hyprpicker（カラーピッカー — Digital Color Meter 相当）
+- Blur トグルバインド（Super+B）
+- タッチパッドのワークスペーススワイプ（Mission Control 横スワイプ相当）
+- `dispatch sendshortcut` によるバックグラウンドブラウザ制御
+
 **Linux で未提供**: macOS system defaults、LaunchAgents、Homebrew casks、Hammerspoon の直接 API。

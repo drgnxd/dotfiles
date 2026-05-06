@@ -142,9 +142,12 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 - Waybar (`dot_config/waybar/config.jsonc`, `dot_config/waybar/style.css`)
 - Wofi (`dot_config/wofi/config`, `dot_config/wofi/style.css`)
 - Mako (`dot_config/mako/config`)
+- SwayOSD (volume/brightness OSD)
+- Hyprpicker (color picker)
 - hypridle + hyprlock (`dot_config/hypr/hypridle.conf`, `dot_config/hypr/hyprlock.conf`)
 - fcitx5 + mozc (`home/modules/linux/fcitx5.nix`)
-- Helper scripts (`scripts/linux/hypr-*`)
+- hypr-input-watcher (input source auto-switcher in `scripts/linux/`, supervised as a systemd user service)
+- Helper scripts (`scripts/linux/hypr-*`, including `scripts/linux/hypr-input-watcher`)
 
 **Hammerspoon -> Hyprland mapping**:
 

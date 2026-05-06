@@ -35,4 +35,20 @@ Set `user` and `linuxHostname` in `flake.nix` before applying on your machine.
 
 **Keybinding parity**: Window management keybindings (`Ctrl+Alt` + arrows/`U``I``J``K`/`C`/`Enter`) are mirrored from the macOS Hammerspoon configuration for consistent muscle memory.
 
+**Hammerspoon -> Hyprland mapping**:
+
+| macOS (Hammerspoon) | Linux (Hyprland) |
+|---------------------|------------------|
+| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
+| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Auto input switching | socket2 event watcher (`hypr-input-watcher`, systemd user service) |
+| Browser control (background app) | `dispatch sendshortcut` targeting `class:^(floorp)$` |
+
+### Additional desktop utilities
+- SwayOSD (volume / brightness / caps-lock OSD)
+- hyprpicker (color picker — Digital Color Meter equivalent)
+- Blur toggle binding (Super+B)
+- Touchpad workspace swipe (Mission Control horizontal swipe equivalent)
+- Background browser control via `dispatch sendshortcut`
+
 **Not available on Linux**: macOS system defaults, LaunchAgents, Homebrew casks, and direct Hammerspoon APIs.

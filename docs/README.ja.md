@@ -17,7 +17,7 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
 *   **ウィンドウマネージャ:** Hammerspoon (macOSのみ)
-*   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp
+*   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
