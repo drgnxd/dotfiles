@@ -65,6 +65,7 @@ let
   lsp_servers = [
     "pyright"
     "ruff"
+    "nixd"
     "copilot-language-server"
     "marksman"
     "taplo"

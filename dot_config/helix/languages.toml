@@ -25,6 +25,9 @@ args = ["start"]
 command = "docker-langserver"
 args = ["--stdio"]
 
+[language-server.nixd]
+command = "nixd"
+
 [[language]]
 name = "bash"
 scope = "source.bash"
@@ -87,6 +90,10 @@ language-servers = [ "yaml-language-server" ]
 name = "dockerfile"
 language-servers = [ "docker-lsp", "copilot" ]
 auto-format = true
+
+[[language]]
+name = "nix"
+language-servers = [ "nixd", "copilot" ]
 
 [[grammar]]
 name = "scheme"
