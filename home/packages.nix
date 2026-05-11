@@ -42,6 +42,7 @@ let
     "wl-clipboard"
     "cliphist"
     "socat"
+    "networkmanagerapplet"
     "wofi"
     "grim"
     "slurp"
@@ -52,6 +53,7 @@ let
     "brightnessctl"
     "playerctl"
     "pamixer"
+    "pavucontrol"
     "swayosd"
     "libnotify"
   ];

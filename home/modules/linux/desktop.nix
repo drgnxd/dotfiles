@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 let
   render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
@@ -48,6 +48,20 @@ in
     };
     Service = {
       ExecStart = "%h/.local/bin/hypr-input-watcher";
+      Restart = "on-failure";
+      RestartSec = "3s";
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
+  };
+
+  systemd.user.services.swayosd = {
+    Unit = {
+      Description = "SwayOSD server";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.swayosd}/bin/swayosd-server";
       Restart = "on-failure";
       RestartSec = "3s";
     };
