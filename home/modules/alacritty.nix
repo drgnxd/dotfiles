@@ -21,6 +21,7 @@ in
 
   programs.alacritty = {
     enable = true;
+    package = if pkgs.stdenv.isLinux then config.lib.nixGL.wrap pkgs.alacritty else pkgs.alacritty;
     settings = {
       general.import = [ "blur.toml" ];
 

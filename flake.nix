@@ -10,6 +10,9 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixgl.url = "github:nix-community/nixGL";
+    nixgl.inputs.nixpkgs.follows = "nixpkgs";
+
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.darwin.follows = "nix-darwin";
     agenix.inputs.home-manager.follows = "home-manager";
@@ -78,6 +81,10 @@
         pkgs = linux_pkgs;
         modules = [
           ./home
+          {
+            nixGL.packages = inputs.nixgl.packages;
+            nixGL.defaultWrapper = "mesa";
+          }
         ];
         extraSpecialArgs = {
           inherit
