@@ -82,8 +82,8 @@
         modules = [
           ./home
           {
-            nixGL.packages = inputs.nixgl.packages;
-            nixGL.defaultWrapper = "mesa";
+            targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
+            targets.genericLinux.nixGL.defaultWrapper = "mesa";
           }
         ];
         extraSpecialArgs = {

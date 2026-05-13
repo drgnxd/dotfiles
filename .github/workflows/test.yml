@@ -161,7 +161,11 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - name: Fail on home/packages.nix warnings
         run: |
-          warnings_json=$(nix eval --json --no-write-lock-file .#homeConfigurations."author@linux-dev".config.warnings)
+          names_json=$(nix eval --json --no-write-lock-file \
+            .#homeConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["user@linux"]')
+          name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "user@linux")' <<< "$names_json")
+          warnings_json=$(nix eval --json --no-write-lock-file .#homeConfigurations."$name".config.warnings)
+          echo "home configuration: $name"
           python3 - <<'PY' "$warnings_json"
           import json
           import sys
@@ -184,8 +188,8 @@ jobs:
         id: detect
         run: |
           names_json=$(nix eval --json --no-write-lock-file \
-            .#homeConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["author@linux-dev"]')
-          name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "author@linux-dev")' <<< "$names_json")
+            .#homeConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["user@linux"]')
+          name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "user@linux")' <<< "$names_json")
           echo "name=$name" >> "$GITHUB_OUTPUT"
       - name: Build Linux home-manager configuration
         run: |
