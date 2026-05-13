@@ -41,10 +41,10 @@ in
           x = 10;
           y = 10;
         };
+        opacity = 0.75;
       }
       // lib.optionalAttrs pkgs.stdenv.isDarwin {
         decorations = "buttonless";
-        opacity = 0.75;
         option_as_alt = "OnlyLeft";
       };
 
