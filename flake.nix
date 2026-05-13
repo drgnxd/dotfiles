@@ -30,9 +30,9 @@
     }:
     let
       system = "aarch64-darwin";
-      user = "author";
+      user = "user";
       hostname = "darwin";
-      linuxHostname = "linux-dev";
+      linuxHostname = "linux";
       darwin_pkgs = import nixpkgs {
         system = "aarch64-darwin";
         config.allowUnfree = true;
