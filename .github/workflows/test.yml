@@ -99,16 +99,19 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - name: Validate Nix evaluation
         run: |
-          nix eval --no-write-lock-file .#darwinConfigurations.darwin.config.system.stateVersion
+          darwin_names_json=$(nix eval --json --no-write-lock-file \
+            .#darwinConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["darwin"]')
+          darwin_name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "darwin")' <<< "$darwin_names_json")
+          nix eval --no-write-lock-file ".#darwinConfigurations.\"$darwin_name\".config.system.stateVersion"
           users_json=$(nix eval --json --no-write-lock-file \
-            .#darwinConfigurations.darwin.config.users.users --apply 'builtins.attrNames')
+            ".#darwinConfigurations.\"$darwin_name\".config.users.users" --apply 'builtins.attrNames')
           user=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "")' <<< "$users_json")
           if [ -z "$user" ]; then
             echo "ERROR: no user found in darwin users.users" >&2
             exit 1
           fi
-          nix eval --no-write-lock-file ".#darwinConfigurations.darwin.config.home-manager.users.\"$user\".home.stateVersion"
-          nix eval --no-write-lock-file ".#darwinConfigurations.darwin.config.home-manager.users.\"$user\".home.activationPackage.drvPath"
+          nix eval --no-write-lock-file ".#darwinConfigurations.\"$darwin_name\".config.home-manager.users.\"$user\".home.stateVersion"
+          nix eval --no-write-lock-file ".#darwinConfigurations.\"$darwin_name\".config.home-manager.users.\"$user\".home.activationPackage.drvPath"
           nix flake check --no-build --no-write-lock-file
 
   check-flake-lock-age:

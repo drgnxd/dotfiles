@@ -49,9 +49,17 @@ This repository contains configurations for my macOS and Linux environments, inc
 darwin-rebuild switch --flake ~/.config/nix-config#darwin
 ```
 
+### Local identity override (recommended)
+
+Copy the example and set your machine-specific values:
+
+```sh
+cp local/identity.nix.example local/identity.nix
+```
+
 ### Linux (standalone home-manager)
 
-Before applying, update `user` and `linuxHostname` at the top of `flake.nix` for your environment.
+Make sure `local/identity.nix` matches your environment before applying.
 
 ```sh
 home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>

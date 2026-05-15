@@ -19,7 +19,7 @@
 home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 ```
 
-Set `user` and `linuxHostname` in `flake.nix` before applying on your machine.
+Set `local/identity.nix` before applying on your machine.
 
 **Desktop stack**:
 - Hyprland — tiling window manager (Hammerspoon equivalent)

@@ -43,9 +43,17 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 darwin-rebuild switch --flake .#darwin
 ```
 
+### ローカル識別情報の上書き（推奨）
+
+例をコピーして、マシン固有の値を設定してください：
+
+```sh
+cp local/identity.nix.example local/identity.nix
+```
+
 ### Linux（standalone home-manager）
 
-適用前に、`flake.nix` 冒頭の `user` と `linuxHostname` を自分の環境に合わせて変更してください。
+適用前に `local/identity.nix` が環境に合っていることを確認してください。
 
 ```sh
 home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>

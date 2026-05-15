@@ -37,6 +37,7 @@ dot_local/state/
 **/config.local
 **/opencode.local.json
 **/taskwarrior.local.rc
+local/identity.nix
 !dot_config/nushell/local.nu.example
 !dot_config/opencode/opencode.local.json.example
 !dot_config/hypr/local.conf.example

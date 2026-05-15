@@ -19,7 +19,7 @@
 home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 ```
 
-利用前に `flake.nix` の `user` と `linuxHostname` を環境に合わせて設定してください。
+利用前に `local/identity.nix` を環境に合わせて設定してください。
 
 **デスクトップスタック**:
 - Hyprland — タイル型ウィンドウ管理（Hammerspoon 相当）

@@ -30,9 +30,15 @@
     }:
     let
       system = "aarch64-darwin";
-      user = "user";
-      hostname = "darwin";
-      linuxHostname = "linux";
+      identity_path = ./local/identity.nix;
+      identity = if builtins.pathExists identity_path then import identity_path else {
+        user = "user";
+        hostname = "darwin";
+        linux_hostname = "linux";
+      };
+      user = identity.user;
+      hostname = identity.hostname;
+      linuxHostname = identity.linux_hostname;
       darwin_pkgs = import nixpkgs {
         system = "aarch64-darwin";
         config.allowUnfree = true;

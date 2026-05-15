@@ -85,21 +85,21 @@ Use `path:.#...` during refactors so untracked local files are visible to evalua
 
 ```bash
 nix eval --no-write-lock-file path:.#darwinConfigurations.darwin.config.system.stateVersion
-nix eval --no-write-lock-file path:.#darwinConfigurations.darwin.config.home-manager.users.author.home.activationPackage.drvPath
+nix eval --no-write-lock-file path:.#darwinConfigurations.darwin.config.home-manager.users.user.home.activationPackage.drvPath
 ```
 
 Use `.#...` to verify Git-flake behavior before merging. Newly added files must be tracked first:
 
 ```bash
 git add <new-files>
-nix eval --no-write-lock-file .#darwinConfigurations.darwin.config.home-manager.users.author.home.activationPackage.drvPath
+nix eval --no-write-lock-file .#darwinConfigurations.darwin.config.home-manager.users.user.home.activationPackage.drvPath
 ```
 
 ### Linux (standalone home-manager)
 
 ```bash
-nix build .#homeConfigurations."author@linux-dev".activationPackage --no-link
-home-manager switch --flake .#author@linux-dev
+nix build .#homeConfigurations."user@linux".activationPackage --no-link
+home-manager switch --flake .#user@linux
 ```
 
 ### Scripts
