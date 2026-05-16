@@ -118,6 +118,10 @@ let
     "gnupg"
   ];
 
+  linux_cli_tools = lib.optionals pkgs.stdenv.isLinux [
+    "proton-pass-cli"
+  ];
+
   system_tools = [
     "p7zip"
     "smartmontools"
@@ -147,6 +151,7 @@ let
     ++ languages
     ++ document_tools
     ++ security
+    ++ linux_cli_tools
     ++ system_tools
     ++ containers
     ++ misc
