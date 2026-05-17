@@ -30,6 +30,8 @@ dot_local/state/
 **/.ruff_cache/
 
 # Secret/local configs
+flake.local.nix
+**/flake.local.nix
 **/*.local
 **/*.local.*
 **/local.nu

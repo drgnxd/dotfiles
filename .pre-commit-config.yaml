@@ -14,6 +14,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: block-flake-local-nix
+        name: Block flake.local.nix commits
+        entry: bash scripts/block_flake_local_nix.sh
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: validate-opencode-setup
         name: Validate OpenCode minimal setup
         entry: uv run --directory dot_config/opencode python validate_opencode_setup.py
