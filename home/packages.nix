@@ -56,6 +56,9 @@ let
     "pavucontrol"
     "swayosd"
     "libnotify"
+    "proton-pass"
+    "protonmail-desktop"
+    "protonvpn-gui"
   ];
 
   gui_apps = if pkgs.stdenv.isDarwin then gui_apps_darwin else gui_apps_linux;
