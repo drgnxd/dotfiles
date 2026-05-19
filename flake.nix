@@ -40,8 +40,7 @@
             hostname = "darwin";
             linux_hostname = "linux";
           };
-      user = identity.user;
-      hostname = identity.hostname;
+      inherit (identity) user hostname;
       linuxHostname = identity.linux_hostname;
       darwin_pkgs = import nixpkgs {
         system = "aarch64-darwin";
