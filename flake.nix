@@ -40,6 +40,14 @@
             hostname = "darwin";
             linux_hostname = "linux";
           };
+      preferences_path = ./local/preferences.nix;
+      preferences =
+        if builtins.pathExists preferences_path then
+          import preferences_path
+        else
+          {
+            browserClass = "floorp";
+          };
       inherit (identity) user hostname;
       linuxHostname = identity.linux_hostname;
       darwin_pkgs = import nixpkgs {
@@ -79,6 +87,7 @@
                 user
                 hostname
                 linuxHostname
+                preferences
                 ;
               pkgs = darwin_pkgs;
             };
@@ -101,6 +110,7 @@
             user
             hostname
             linuxHostname
+            preferences
             ;
           pkgs = linux_pkgs;
         };
