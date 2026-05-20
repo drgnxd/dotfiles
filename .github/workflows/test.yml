@@ -165,8 +165,18 @@ jobs:
       - name: Fail on home/packages.nix warnings
         run: |
           names_json=$(nix eval --json --no-write-lock-file \
-            .#homeConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["user@linux"]')
-          name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "user@linux")' <<< "$names_json")
+            .#homeConfigurations --apply 'builtins.attrNames')
+          name=$(python3 - <<'PY' "$names_json"
+          import json
+          import sys
+
+          names = json.loads(sys.argv[1])
+          if not names:
+              print("ERROR: no homeConfigurations found", file=sys.stderr)
+              raise SystemExit(1)
+          print(names[0])
+          PY
+          )
           warnings_json=$(nix eval --json --no-write-lock-file .#homeConfigurations."$name".config.warnings)
           echo "home configuration: $name"
           python3 - <<'PY' "$warnings_json"
@@ -191,8 +201,18 @@ jobs:
         id: detect
         run: |
           names_json=$(nix eval --json --no-write-lock-file \
-            .#homeConfigurations --apply 'builtins.attrNames' 2>/dev/null || echo '["user@linux"]')
-          name=$(python3 -c 'import json,sys; data=json.load(sys.stdin); print(data[0] if data else "user@linux")' <<< "$names_json")
+            .#homeConfigurations --apply 'builtins.attrNames')
+          name=$(python3 - <<'PY' "$names_json"
+          import json
+          import sys
+
+          names = json.loads(sys.argv[1])
+          if not names:
+              print("ERROR: no homeConfigurations found", file=sys.stderr)
+              raise SystemExit(1)
+          print(names[0])
+          PY
+          )
           echo "name=$name" >> "$GITHUB_OUTPUT"
       - name: Build Linux home-manager configuration
         run: |
