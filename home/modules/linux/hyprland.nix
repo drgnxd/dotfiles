@@ -2,12 +2,14 @@
   config,
   lib,
   pkgs,
+  preferences ? { },
   ...
 }:
 
 let
   hypr_local_conf = "${config.xdg.configHome}/hypr/local.conf";
   render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
+  browser_class = preferences.browserClass or "floorp";
 in
 
 {
@@ -20,6 +22,13 @@ in
   };
 
   xdg.configFile = {
+    "hypr/browser.conf".text = ''
+      # Managed by Nix: browser sendshortcut bindings
+      bind = CTRL SUPER, j, sendshortcut, , Page_Down, class:^(${browser_class})$
+      bind = CTRL SUPER, k, sendshortcut, , Prior, class:^(${browser_class})$
+      bind = CTRL SUPER, h, sendshortcut, ALT, Left, class:^(${browser_class})$
+      bind = CTRL SUPER, l, sendshortcut, ALT, Right, class:^(${browser_class})$
+    '';
     "hypr/hyprlock.conf".text = render_with_theme {
       templatePath = ../../../dot_config/hypr/hyprlock.conf;
       includeBareHex = true;

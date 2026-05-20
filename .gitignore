@@ -40,6 +40,7 @@ flake.local.nix
 **/opencode.local.json
 **/taskwarrior.local.rc
 local/identity.nix
+local/preferences.nix
 !dot_config/nushell/local.nu.example
 !dot_config/opencode/opencode.local.json.example
 !dot_config/hypr/local.conf.example
