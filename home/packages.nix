@@ -23,6 +23,7 @@ let
     "watchexec"
     "wget"
     "xh"
+    "just"
   ];
 
   shell_tools = [
