@@ -175,8 +175,21 @@ let
     in
     !result.success
   ) all_names;
+  report = {
+    inherit existing missing;
+  };
+  strict_packages = builtins.getEnv "STRICT_PACKAGES" == "1";
+  missing_message = "Missing nix packages: " + (lib.concatStringsSep ", " missing);
+  resolved_existing =
+    if missing != [ ] && strict_packages then
+      throw missing_message
+    else
+      lib.warnIf (missing != [ ]) missing_message existing;
 in
 {
-  packages = map (name: pkgs.${name}) existing;
-  inherit missing;
+  packages = map (name: pkgs.${name}) resolved_existing;
+  inherit missing report;
+  passthru = {
+    inherit report;
+  };
 }
