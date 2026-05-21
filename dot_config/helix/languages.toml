@@ -28,6 +28,16 @@ args = ["--stdio"]
 [language-server.nixd]
 command = "nixd"
 
+[language-server.nixd.config.nixd]
+formatting = { command = ["nixfmt"] }
+# NOTE: These expressions evaluate the local flake; override per host if needed.
+options.nixos.expr = '''
+(builtins.getFlake (toString ./.)).darwinConfigurations.darwin.options
+'''
+options.home-manager.expr = '''
+(builtins.getFlake (toString ./.)).homeConfigurations.user@linux.options
+'''
+
 [[language]]
 name = "bash"
 scope = "source.bash"
@@ -94,6 +104,8 @@ auto-format = true
 [[language]]
 name = "nix"
 language-servers = [ "nixd", "copilot" ]
+auto-format = true
+formatter = { command = "nixfmt" }
 
 [[grammar]]
 name = "scheme"
