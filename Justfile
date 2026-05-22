@@ -13,7 +13,7 @@ check:
 
 # Build Darwin configuration (no activation)
 build-darwin:
-  nix build .#darwinConfigurations.$(nix eval --raw --apply 'builtins.head' '.#darwinConfigurations' --apply 'builtins.attrNames').system --no-link
+  nix build .#darwinConfigurations.$(nix eval --raw --apply '(x: builtins.head (builtins.attrNames x))' .#darwinConfigurations).system --no-link
 
 # Apply Darwin configuration
 switch-darwin:
@@ -21,7 +21,7 @@ switch-darwin:
 
 # Build Linux home-manager configuration
 build-linux:
-  nix build .#homeConfigurations.$(whoami)@$(hostname).activationPackage --no-link
+  nix build .#homeConfigurations.$(nix eval --raw --apply '(x: builtins.head (builtins.attrNames x))' .#homeConfigurations).activationPackage --no-link
 
 # Apply Linux home-manager configuration
 switch-linux:
