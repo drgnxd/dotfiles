@@ -165,14 +165,26 @@ let
   existing = lib.filter (
     name:
     let
-      result = builtins.tryEval pkgs.${name};
+      result =
+        if builtins.hasAttr name pkgs then
+          builtins.tryEval (builtins.getAttr name pkgs)
+        else
+          {
+            success = false;
+          };
     in
     result.success
   ) all_names;
   missing = lib.filter (
     name:
     let
-      result = builtins.tryEval pkgs.${name};
+      result =
+        if builtins.hasAttr name pkgs then
+          builtins.tryEval (builtins.getAttr name pkgs)
+        else
+          {
+            success = false;
+          };
     in
     !result.success
   ) all_names;
