@@ -35,6 +35,7 @@ in
     ./modules/nushell.nix
     ./modules/nushell-integrations.nix
     ./modules/shellcheck.nix
+    ./modules/ssh.nix
     ./modules/starship.nix
     ./modules/taskwarrior.nix
     ./modules/yazi.nix
