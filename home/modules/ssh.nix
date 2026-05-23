@@ -6,25 +6,26 @@
 }:
 
 {
+  # Home Manager generates ~/.ssh/config. Keep agenix secrets to identity keys,
+  # not a full config, so this managed config remains the source of truth.
   programs.ssh = {
     enable = true;
-    compression = false;
-    controlMaster = "auto";
-    controlPath = "~/.ssh/cm-%r@%h:%p";
-    controlPersist = "10m";
-    serverAliveInterval = 60;
-    hashKnownHosts = true;
-    matchBlocks = {
-      "github.com" = {
-        hostname = "github.com";
-        user = "git";
-        identitiesOnly = true;
-      };
+    enableDefaultConfig = false;
+    settings = {
       "*" = {
-        extraOptions = {
-          AddKeysToAgent = "yes";
-          UseKeychain = lib.mkIf pkgs.stdenv.isDarwin "yes";
-        };
+        AddKeysToAgent = "yes";
+        Compression = false;
+        ControlMaster = "auto";
+        ControlPath = "~/.ssh/cm-%r@%h:%p";
+        ControlPersist = "10m";
+        HashKnownHosts = true;
+        ServerAliveInterval = 60;
+        UseKeychain = lib.mkIf pkgs.stdenv.isDarwin "yes";
+      };
+      "github.com" = {
+        HostName = "github.com";
+        IdentitiesOnly = true;
+        User = "git";
       };
     };
   };
