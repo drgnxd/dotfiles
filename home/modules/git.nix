@@ -1,6 +1,6 @@
 # Single source of truth: programs.git.settings + programs.delta.options.
 # Keep generated Git/Delta config in Nix; only local override template is static.
-_:
+{ pkgs, ... }:
 
 {
   xdg.configFile."git/config.local.example".source = ../../dot_config/git/config.local.example;
@@ -33,6 +33,14 @@ _:
     enable = true;
 
     settings = {
+      diff = {
+        external = "${pkgs.difftastic}/bin/difft";
+        tool = "difftastic";
+      };
+      "difftool \"difftastic\"" = {
+        cmd = ''${pkgs.difftastic}/bin/difft "$LOCAL" "$REMOTE"'';
+      };
+      pager.difftool = true;
       core = {
         editor = "hx";
         ignorecase = false;

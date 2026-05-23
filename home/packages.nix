@@ -24,6 +24,7 @@ let
     "wget"
     "xh"
     "just"
+    "difftastic"
   ];
 
   shell_tools = [
@@ -31,6 +32,7 @@ let
     "nushell"
     "shellcheck"
     "taskwarrior3"
+    "taskwarrior-tui"
     "yazi"
   ];
 
@@ -98,6 +100,7 @@ let
     "clang-tools"
     "cmake"
     "lldb"
+    "nh"
     "nix-diff"
     "nix-tree"
   ];
