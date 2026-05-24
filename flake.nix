@@ -146,7 +146,10 @@
             program = "${
               p.writeShellApplication {
                 inherit name;
-                runtimeInputs = [ p.git p.nix ];
+                runtimeInputs = [
+                  p.git
+                  p.nix
+                ];
                 text = script;
               }
             }/bin/${name}";
