@@ -65,6 +65,27 @@
         "type": "github"
       }
     },
+    "home-manager_2": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-hazkey",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778444552,
+        "narHash": "sha256-f18pIiR9q/p1vHY93gmAum7aHhQOG49oGvAB9+lptRo=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "dcebe66f958673729896eec2de4abfd86ef22d21",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -83,6 +104,27 @@
         "owner": "nix-darwin",
         "ref": "master",
         "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
+    "nix-hazkey": {
+      "inputs": {
+        "home-manager": "home-manager_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1779161570,
+        "narHash": "sha256-tXi/0qNtpyWh5yfx6pn+xbZyEL1c+h14Lu89wNq/qSw=",
+        "owner": "aster-void",
+        "repo": "nix-hazkey",
+        "rev": "ffcc1ef42a1b59877dba113bc481347b23734fd6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aster-void",
+        "repo": "nix-hazkey",
         "type": "github"
       }
     },
@@ -109,11 +151,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1779259093,
-        "narHash": "sha256-7DKWmH23hL2eYdkxCKeqj2i+yljTKuU+3Nk1UPHOnxc=",
+        "lastModified": 1779351318,
+        "narHash": "sha256-f+JACbTqzZ+G92DSnXOUGRhGANb8Blh7CoeYOeBF8/U=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d99b013d5d1931ad77fe3912ed218170dec5d9a4",
+        "rev": "4a29d733e8a7d5b824c3d8c958a946a9867b3eb2",
         "type": "github"
       },
       "original": {
@@ -128,6 +170,7 @@
         "agenix": "agenix",
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
+        "nix-hazkey": "nix-hazkey",
         "nixgl": "nixgl",
         "nixpkgs": "nixpkgs"
       }

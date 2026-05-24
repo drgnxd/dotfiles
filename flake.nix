@@ -17,6 +17,9 @@
     agenix.inputs.darwin.follows = "nix-darwin";
     agenix.inputs.home-manager.follows = "home-manager";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+
+    nix-hazkey.url = "github:aster-void/nix-hazkey";
+    nix-hazkey.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

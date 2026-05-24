@@ -1,3 +1,4 @@
 {
   browserClass = "floorp";
+  japaneseInputMethod = "mozc"; # or "hazkey" for live conversion
 }
