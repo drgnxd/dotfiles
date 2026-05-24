@@ -25,7 +25,7 @@ Set `local/identity.nix` before applying on your machine.
 - Hyprland — tiling window manager (Hammerspoon equivalent)
 - Waybar — status bar (Stats.app equivalent)
 - Wofi — application launcher (Sol equivalent)
-- fcitx5 + mozc — Japanese input
+- fcitx5 + mozc (or hazkey) — Japanese input
 - cliphist + wl-clipboard — clipboard manager (Maccy equivalent)
 - hypridle + hyprlock — idle management and screen lock
 - mako — notification daemon
@@ -34,6 +34,8 @@ Set `local/identity.nix` before applying on your machine.
 **Supported components**: All CLI tools, Nushell, Helix, Git, Taskwarrior, Yazi, Zellij, OpenCode, Starship, Zoxide, Atuin, Carapace, Direnv, Alacritty, and the Linux desktop stack above.
 
 **Keybinding parity**: Window management keybindings (`Ctrl+Alt` + arrows/`U``I``J``K`/`C`/`Enter`) are mirrored from the macOS Hammerspoon configuration for consistent muscle memory.
+
+**Hazkey input**: set `japaneseInputMethod = "hazkey"` in `local/preferences.nix` to enable live conversion on Linux. Vulkan remains disabled by default to avoid GPU driver lookup crashes in standalone home-manager; only re-enable on NixOS with proper graphics modules.
 
 **Hammerspoon -> Hyprland mapping**:
 
