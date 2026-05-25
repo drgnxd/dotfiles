@@ -27,7 +27,7 @@ repos:
         files: ^dot_config/opencode/(AGENTS\.md|opencode\.json|opencode\.local\.json\.example|package\.json|validate_opencode_setup\.py|tools/.*\.(ts|js)|skills/.*\.yaml|skills/.*/(SKILL\.md)|command/.*\.md)$
       - id: nixfmt
         name: nixfmt
-        entry: nix run nixpkgs#nixfmt-rfc-style --
+        entry: nix run nixpkgs#nixfmt --
         language: system
         files: \.nix$
       - id: statix
