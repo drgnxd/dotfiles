@@ -5,7 +5,7 @@ default:
 
 # Format all Nix files
 fmt:
-  nix fmt
+  git ls-files -z '*.nix' | xargs -0 nix fmt --
 
 # Run all CI checks locally
 check:
