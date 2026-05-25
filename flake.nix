@@ -119,7 +119,7 @@
         };
       };
 
-      formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt-rfc-style);
+      formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
 
       devShells = forAllSystems (
         sys:
@@ -129,7 +129,7 @@
         {
           default = p.mkShell {
             packages = with p; [
-              nixfmt-rfc-style
+              nixfmt
               statix
               deadnix
             ];
@@ -187,7 +187,7 @@
           p = nixpkgs.legacyPackages.${sys};
         in
         {
-          formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt-rfc-style ]; } ''
+          formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt ]; } ''
             cd ${self}
             find . -name '*.nix' -exec nixfmt --check {} +
             touch $out
