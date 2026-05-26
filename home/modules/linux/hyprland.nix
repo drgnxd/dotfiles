@@ -15,6 +15,7 @@ in
 {
   wayland.windowManager.hyprland = {
     enable = true;
+    configType = "hyprlang";
     extraConfig = render_with_theme {
       templatePath = ../../../dot_config/hypr/hyprland.conf;
       includeBareHex = true;
