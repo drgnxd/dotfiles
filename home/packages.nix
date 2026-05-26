@@ -61,7 +61,7 @@ let
     "libnotify"
     "proton-pass"
     "protonmail-desktop"
-    "protonvpn-gui"
+    "proton-vpn-cli"
   ];
 
   gui_apps = if pkgs.stdenv.isDarwin then gui_apps_darwin else gui_apps_linux;
