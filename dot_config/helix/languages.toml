@@ -35,7 +35,7 @@ options.nixos.expr = '''
 (builtins.getFlake (toString ./.)).darwinConfigurations.darwin.options
 '''
 options.home-manager.expr = '''
-(builtins.getFlake (toString ./.)).homeConfigurations.user@linux.options
+(builtins.getFlake (toString ./.)).homeConfigurations."user@linux".options
 '''
 
 [[language]]
