@@ -159,7 +159,7 @@
           bootstrap-darwin = mkApp "bootstrap-darwin" ''
             set -euo pipefail
             [ -f local/identity.nix ] || {
-              echo "ERROR: create local/identity.nix first (see local/identity.example.nix)" >&2
+              echo "ERROR: create local/identity.nix first (see local/identity.nix.example)" >&2
               exit 1
             }
             sudo nix run nix-darwin -- switch --flake .
@@ -167,7 +167,7 @@
           bootstrap-linux = mkApp "bootstrap-linux" ''
             set -euo pipefail
             [ -f local/identity.nix ] || {
-              echo "ERROR: create local/identity.nix first (see local/identity.example.nix)" >&2
+              echo "ERROR: create local/identity.nix first (see local/identity.nix.example)" >&2
               exit 1
             }
             USER_HOST="$(whoami)@$(hostname)"
