@@ -25,7 +25,7 @@ home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 - Hyprland — タイル型ウィンドウ管理（Hammerspoon 相当）
 - Waybar — ステータスバー（Stats.app 相当）
 - Wofi — アプリランチャー（Sol 相当）
-- fcitx5 + mozc — 日本語入力
+- fcitx5 + mozc（または hazkey）— 日本語入力
 - cliphist + wl-clipboard — クリップボード管理（Maccy 相当）
 - hypridle + hyprlock — アイドル管理と画面ロック
 - mako — 通知デーモン
@@ -34,6 +34,8 @@ home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 **サポート対象**: すべての CLI ツール、Nushell、Helix、Git、Taskwarrior、Yazi、Zellij、OpenCode、Starship、Zoxide、Atuin、Carapace、Direnv、Alacritty、および上記 Linux デスクトップスタック。
 
 **キーバインド互換**: ウィンドウ操作の `Ctrl+Alt` + 矢印/`U``I``J``K`/`C`/`Enter` は macOS の Hammerspoon 設定と揃え、筋肉記憶を維持します。
+
+**Hazkey 入力**: `local/preferences.nix` で `japaneseInputMethod = "hazkey"` を設定すると Linux でライブ変換が有効になります。standalone home-manager 環境では GPU ドライバ解決の不安定さを避けるため Vulkan はデフォルトで無効のまま運用してください。NixOS で適切な graphics モジュールを構成している場合に限り有効化を検討します。
 
 **Hammerspoon -> Hyprland 対応表**:
 
