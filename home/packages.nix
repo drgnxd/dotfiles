@@ -62,6 +62,8 @@ let
     "proton-pass"
     "protonmail-desktop"
     "proton-vpn-cli"
+    "hackgen-font"
+    "hackgen-nf-font"
   ];
 
   gui_apps = if pkgs.stdenv.isDarwin then gui_apps_darwin else gui_apps_linux;

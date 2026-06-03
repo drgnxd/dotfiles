@@ -5,6 +5,8 @@ let
 in
 
 {
+  fonts.fontconfig.enable = true;
+
   imports = [
     ./hyprland.nix
     ./waybar.nix
