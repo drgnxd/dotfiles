@@ -37,7 +37,7 @@ let
   ];
 
   gui_apps_darwin = [
-    # Floorp: managed via homebrew cask (not in nixpkgs for darwin)
+    # Floorp: managed via homebrew cask; Linux uses floorp-bin from nixpkgs
     "maccy"
   ];
 
@@ -64,6 +64,7 @@ let
     "proton-vpn-cli"
     "hackgen-font"
     "hackgen-nf-font"
+    "floorp-bin"
   ];
 
   gui_apps = if pkgs.stdenv.isDarwin then gui_apps_darwin else gui_apps_linux;
