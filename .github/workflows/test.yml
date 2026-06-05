@@ -285,6 +285,7 @@ jobs:
               ("docs/architecture/workflow.md", "docs/architecture/workflow.ja.md"),
               ("docs/architecture/troubleshooting.md", "docs/architecture/troubleshooting.ja.md"),
               ("docs/architecture/xdg-compliance.md", "docs/architecture/xdg-compliance.ja.md"),
+              ("docs/architecture/bootstrap.md", "docs/architecture/bootstrap.ja.md"),
               ("docs/scripts/README.darwin.md", "docs/scripts/README.darwin.ja.md"),
               ("README.md", "docs/README.ja.md"),
           ]

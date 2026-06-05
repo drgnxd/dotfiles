@@ -4,6 +4,8 @@ My personal dotfiles managed with nix-darwin + standalone home-manager.
 
 ## Quick Start
 
+For a fresh machine, see the [Bootstrap Guide](docs/architecture/bootstrap.md).
+
 ```bash
 darwin-rebuild switch --flake ~/.config/nix-config#darwin
 ```

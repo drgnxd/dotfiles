@@ -4,6 +4,8 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 
 ## 概要
 
+フレッシュインストールの手順は [ブートストラップガイド](architecture/bootstrap.ja.md) を参照してください。
+
 このリポジトリには、私の macOS / Linux 環境の設定ファイルが含まれています：
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
