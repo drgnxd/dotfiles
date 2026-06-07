@@ -37,7 +37,7 @@ let
   ];
 
   gui_apps_darwin = [
-    # Floorp: managed via homebrew cask; Linux uses floorp-bin from nixpkgs
+    "floorp-bin"
     "maccy"
   ];
 
