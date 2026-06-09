@@ -311,6 +311,29 @@ jobs:
                           f"{report} (expected YYYY-MM-DD.md or YYYY-MM-DD-<slug>.md)"
                       )
 
+          # --- Structural drift detection (non-blocking) ---
+          heading_re = re.compile(r"^#{1,6} ")
+          fenced_re = re.compile(r"^```")
+          for en, ja in pairs:
+              en_path = Path(en)
+              ja_path = Path(ja)
+              if not en_path.exists() or not ja_path.exists():
+                  continue
+              en_text = en_path.read_text()
+              ja_text = ja_path.read_text()
+              en_headings = len(heading_re.findall(en_text))
+              ja_headings = len(heading_re.findall(ja_text))
+              en_fenced = len(fenced_re.findall(en_text))
+              ja_fenced = len(fenced_re.findall(ja_text))
+              if en_headings != ja_headings or en_fenced != ja_fenced:
+                  diffs = []
+                  if en_headings != ja_headings:
+                      diffs.append(f"headings: EN={en_headings} JA={ja_headings}")
+                  if en_fenced != ja_fenced:
+                      diffs.append(f"fenced blocks: EN={en_fenced} JA={ja_fenced}")
+                  msg = f"::warning title=EN/JA structural drift::{en} vs {ja}: {', '.join(diffs)}"
+                  print(msg, file=sys.stderr)
+
           if errors:
               for e in errors:
                   print(f"WARNING: {e}", file=sys.stderr)
