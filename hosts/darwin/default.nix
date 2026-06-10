@@ -128,6 +128,7 @@ in
       autoUpdate = false;
       upgrade = false;
       cleanup = "zap";
+      extraFlags = [ "--force" ];
     };
     taps = [
       "protonpass/homebrew-tap"
