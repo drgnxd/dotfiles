@@ -8,6 +8,7 @@
 
 let
   use_hazkey = (preferences.japaneseInputMethod or "mozc") == "hazkey";
+  write_xinputrc = preferences.imConfigXinputrc or false;
 in
 
 {
@@ -42,13 +43,18 @@ in
       Install.WantedBy = [ "hyprland-session.target" ];
     };
 
-    home.sessionVariables = {
-      GTK_IM_MODULE = "fcitx";
-      QT_IM_MODULE = "fcitx";
-      XMODIFIERS = "@im=fcitx";
-      SDL_IM_MODULE = "fcitx";
-      # GLFW does not support fcitx5 natively; "ibus" is the accepted compatibility shim
-      GLFW_IM_MODULE = "ibus";
-    };
+    # gnome-session does not source hm-session-vars.sh; environment.d reaches
+    # GNOME/systemd-user and the systemd-managed Hyprland session target.
+    xdg.configFile."environment.d/fcitx5.conf".text = ''
+      GTK_IM_MODULE=fcitx
+      QT_IM_MODULE=fcitx
+      XMODIFIERS=@im=fcitx
+      SDL_IM_MODULE=fcitx
+      GLFW_IM_MODULE=ibus
+    '';
+
+    # Debian/Ubuntu im-config reads ~/.xinputrc on X11 and selects fcitx5 so
+    # XMODIFIERS becomes @im=fcitx. It is inert noise on Wayland Hyprland, so gate it.
+    home.file.".xinputrc" = lib.mkIf write_xinputrc { text = "run_im fcitx5\n"; };
   };
 }
