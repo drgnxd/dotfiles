@@ -74,7 +74,8 @@ nix run path:.#bootstrap-linux
    ```bash
    systemctl --user start hazkey-server
    ```
-   fcitx5 + mozc（デフォルト）の場合、グラフィカルログイン時に fcitx5 が自動起動します。
+   fcitx5 + mozc（デフォルト）の場合、グラフィカルログイン時に fcitx5 が自動起動します。IM 変数は `home.sessionVariables` ではなく `~/.config/environment.d/fcitx5.conf` で配信されます。
+   Debian `im-config` を使う Ubuntu GNOME / X11 ホストでは、activation 前に `local/preferences.nix` へ `imConfigXinputrc = true;` を設定し、activation 後にフル logout/login を実行してください。`XMODIFIERS` は X セッション開始時に固定されるため、fcitx5 の再起動やアプリの開き直しだけでは不十分です。全角/半角キーのない US 配列では、fcitx5 のデフォルト切り替えは `Ctrl+Space` です。
 4. **Floorp** — Linux では `floorp-bin` (nixpkgs)、macOS では Homebrew cask で利用可能です。
 5. **Helix の nixd** — 生成される `~/.config/helix/languages.toml` が実際のホスト設定名を指すようになりました（Phase 7 参照）。手動編集なしでオプション補完が動作します。
 

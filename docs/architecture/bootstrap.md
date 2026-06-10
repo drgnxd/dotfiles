@@ -74,7 +74,8 @@ After the first activation completes:
    ```bash
    systemctl --user start hazkey-server
    ```
-   For fcitx5 + mozc (default), fcitx5 starts automatically on graphical login.
+   For fcitx5 + mozc (default), fcitx5 starts automatically on graphical login. IM variables are delivered through `~/.config/environment.d/fcitx5.conf`, not `home.sessionVariables`.
+   On Ubuntu GNOME / X11 hosts that use Debian `im-config`, set `imConfigXinputrc = true;` in `local/preferences.nix` before activation, then perform a full logout/login after activation. `XMODIFIERS` is fixed at X session start, so restarting fcitx5 or reopening the app is not enough. The default fcitx5 toggle is `Ctrl+Space` for US layouts without a Zenkaku/Hankaku key.
 4. **Floorp** — available on Linux via `floorp-bin` (nixpkgs) and on macOS via Homebrew cask.
 5. **nixd in Helix** — the generated `~/.config/helix/languages.toml` now points at your actual host config names (see Phase 7 note). Option completion works without manual edits.
 

@@ -37,6 +37,8 @@ home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
 
 **Hazkey 入力**: `local/preferences.nix` で `japaneseInputMethod = "hazkey"` を設定すると Linux でライブ変換が有効になります。standalone home-manager 環境では GPU ドライバ解決の不安定さを避けるため Vulkan はデフォルトで無効のまま運用してください。NixOS で適切な graphics モジュールを構成している場合に限り有効化を検討します。
 
+**Fcitx5 入力環境**: fcitx5 の IM 変数は `home.sessionVariables` ではなく `~/.config/environment.d/fcitx5.conf` で配信されるため、GNOME セッションと systemd 管理の Hyprland セッションで同じ値を受け取れます。Debian `im-config` を使う Ubuntu GNOME / X11 ホストでは、`local/preferences.nix` に `imConfigXinputrc = true;` を設定して `run_im fcitx5` を含む `~/.xinputrc` を生成し、その後フル logout/login を実行してください。`XMODIFIERS` は X セッション開始時に固定されるため、fcitx5 の再起動やアプリの開き直しだけでは不十分です。全角/半角キーのない US 配列では、fcitx5 のデフォルト切り替えは `Ctrl+Space` です。
+
 **Hammerspoon -> Hyprland 対応表**:
 
 | macOS (Hammerspoon) | Linux (Hyprland) |
