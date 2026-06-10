@@ -7,6 +7,10 @@ default:
 fmt:
   git ls-files -z '*.nix' | xargs -0 nix fmt --
 
+# Check Nix formatting
+fmt-check:
+  git ls-files -z '*.nix' | xargs -0 nix fmt -- --check
+
 # Run all CI checks locally
 check:
   nix flake check
@@ -45,7 +49,7 @@ lint:
 
 # Show dead Nix code
 dead:
-  nix run nixpkgs#deadnix -- .
+  nix run nixpkgs#deadnix -- --fail .
 
 # Rekey agenix secrets
 rekey:
