@@ -45,6 +45,10 @@ jobs:
             exit 1
           fi
 
+      - name: Check Floorp shared-layer parity drift
+        continue-on-error: true
+        run: scripts/check-floorp-parity.sh
+
   python:
     runs-on: ubuntu-latest
     steps:
