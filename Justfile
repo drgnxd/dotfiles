@@ -17,7 +17,7 @@ check:
 
 # Build Darwin configuration (no activation)
 build-darwin:
-  nix build .#darwinConfigurations.$(nix eval --raw --apply '(x: builtins.head (builtins.attrNames x))' .#darwinConfigurations).system --no-link
+  nix build .#packages.aarch64-darwin.default --no-link
 
 # Apply Darwin configuration
 switch-darwin:
@@ -25,7 +25,7 @@ switch-darwin:
 
 # Build Linux home-manager configuration
 build-linux:
-  nix build .#homeConfigurations.$(nix eval --raw --apply '(x: builtins.head (builtins.attrNames x))' .#homeConfigurations).activationPackage --no-link
+  nix build .#packages.x86_64-linux.default --no-link
 
 # Apply Linux home-manager configuration
 switch-linux:
