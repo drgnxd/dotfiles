@@ -28,6 +28,7 @@ in
     ./modules/atuin.nix
     ./modules/bat.nix
     ./modules/direnv.nix
+    ./modules/floorp.nix
     ./modules/fzf.nix
     ./modules/gh.nix
     ./modules/git.nix
