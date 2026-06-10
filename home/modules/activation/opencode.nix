@@ -11,26 +11,31 @@ let
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
-  opencode_skill_core_dir = ../../../dot_config/opencode/skills/core;
-  opencode_skill_languages_dir = ../../../dot_config/opencode/skills/languages;
-  opencode_skill_practices_dir = ../../../dot_config/opencode/skills/practices;
-  opencode_skill_thinking_dir = ../../../dot_config/opencode/skills/thinking;
-  opencode_skill_infrastructure_dir = ../../../dot_config/opencode/skills/infrastructure;
-  opencode_skill_research_dir = ../../../dot_config/opencode/skills/research;
-  opencode_skill_japanese_dir = ../../../dot_config/opencode/skills/japanese;
+  opencode_skills_dir = ../../../dot_config/opencode/skills;
   opencode_skill_local_dir = ../../../dot_config/opencode/skills/local;
   opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
   opencode_requirements = ../../../dot_config/opencode/requirements.txt;
   opencode_command_dir = ../../../dot_config/opencode/command;
-  managedSkills = {
-    core = opencode_skill_core_dir;
-    languages = opencode_skill_languages_dir;
-    practices = opencode_skill_practices_dir;
-    thinking = opencode_skill_thinking_dir;
-    infrastructure = opencode_skill_infrastructure_dir;
-    research = opencode_skill_research_dir;
-    japanese = opencode_skill_japanese_dir;
-  };
+  skillEntries = builtins.readDir opencode_skills_dir;
+  managedSkillNames = builtins.filter (
+    name:
+    skillEntries.${name} == "directory"
+    && !(builtins.elem name [
+      "local"
+      "tools"
+    ])
+  ) (builtins.attrNames skillEntries);
+  managedSkills = builtins.listToAttrs (
+    map (name: {
+      inherit name;
+      value = opencode_skills_dir + "/${name}";
+    }) managedSkillNames
+  );
+  mkdirSkillCommands = builtins.concatStringsSep "\n" (
+    lib.mapAttrsToList (name: _: ''
+      mkdir -p "$opencode_dir/skills/${name}"
+    '') managedSkills
+  );
   syncSkillCommands = builtins.concatStringsSep "\n" (
     lib.mapAttrsToList (name: src: ''
       sync_managed_file "${src}/SKILL.md" "$opencode_dir/skills/${name}/SKILL.md"
@@ -101,13 +106,7 @@ in
 
     mkdir -p "$opencode_dir"
     mkdir -p "$opencode_dir/tools"
-    mkdir -p "$opencode_dir/skills/core"
-    mkdir -p "$opencode_dir/skills/languages"
-    mkdir -p "$opencode_dir/skills/practices"
-    mkdir -p "$opencode_dir/skills/thinking"
-    mkdir -p "$opencode_dir/skills/infrastructure"
-    mkdir -p "$opencode_dir/skills/research"
-    mkdir -p "$opencode_dir/skills/japanese"
+    ${mkdirSkillCommands}
     mkdir -p "$opencode_dir/skills/local"
     mkdir -p "$opencode_dir/skills/tools"
     mkdir -p "$opencode_dir/command"
