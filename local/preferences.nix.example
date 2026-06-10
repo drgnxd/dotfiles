@@ -1,4 +1,5 @@
 {
   browserClass = "floorp";
   japaneseInputMethod = "mozc"; # or "hazkey" for live conversion
+  imConfigXinputrc = false; # enable on Debian/Ubuntu X11 (im-config) hosts to write ~/.xinputrc (run_im fcitx5) so XMODIFIERS=@im=fcitx; leave false on NixOS / Wayland Hyprland
 }
