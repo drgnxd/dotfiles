@@ -11,7 +11,7 @@ jobs:
   test-nushell:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Install Nushell
         run: brew install nushell
       - name: Symlink nushell config to XDG location
@@ -75,7 +75,7 @@ jobs:
   test-nushell-unit:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Install Nushell
         run: brew install nushell
       - name: Run Nushell unit tests
@@ -86,8 +86,8 @@ jobs:
   validate-opencode:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Validate OpenCode rules, instructions, and skills
         run: |
           uv run --directory dot_config/opencode python validate_opencode_setup.py
@@ -95,8 +95,8 @@ jobs:
   validate-nix-darwin:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
       - name: Validate Nix evaluation
         run: |
           darwin_names_json=$(nix eval --json --no-write-lock-file \
@@ -117,8 +117,8 @@ jobs:
   check-flake-lock-age:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
       - name: Check flake.lock input freshness (advisory)
         run: |
           metadata_json=$(nix flake metadata --json --no-write-lock-file)
@@ -160,8 +160,8 @@ jobs:
   check-missing-packages:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
       - name: Fail on home/packages.nix warnings
         run: |
           names_json=$(nix eval --json --no-write-lock-file \
@@ -195,8 +195,8 @@ jobs:
   test-home-manager-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
       - name: Detect home configuration name
         id: detect
         run: |
@@ -232,7 +232,7 @@ jobs:
   validate-linux-desktop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Validate desktop config files
         run: |
           for f in dot_config/hypr/hyprland.conf \
@@ -257,8 +257,8 @@ jobs:
   lint-nix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # v31.10.6
       - name: Run Nix lint checks
         run: |
           nix build .#checks.x86_64-linux.formatting --no-link
@@ -268,7 +268,7 @@ jobs:
   doc-pair-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Check EN/JA doc pairs exist
         run: |
           python3 - <<'PY'
@@ -344,8 +344,8 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Scan for secrets drift
         run: |
           uv tool run detect-secrets scan --baseline .secrets.baseline
@@ -381,8 +381,8 @@ jobs:
   validate-config:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Validate YAML and TOML syntax
         run: |
           uv run --with pyyaml --directory . python - <<'PY'
@@ -420,8 +420,8 @@ jobs:
   test-taskwarrior:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run Taskwarrior hook tests
         run: |
           uv run --with pytest --directory dot_config/taskwarrior/hooks pytest

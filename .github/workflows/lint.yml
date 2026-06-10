@@ -11,7 +11,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Run ShellCheck
         run: |
           shellcheck --version
@@ -52,8 +52,8 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run ruff
         run: |
           uv tool run ruff check dot_config/taskwarrior/hooks dot_config/opencode
@@ -61,19 +61,27 @@ jobs:
   actionlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Install actionlint
         run: |
-          curl -fsSL -o /tmp/download-actionlint.bash \
-            https://raw.githubusercontent.com/rhysd/actionlint/master/scripts/download-actionlint.bash
-          bash /tmp/download-actionlint.bash
+          version="1.7.12"
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          expected_sha256="8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+          curl -fsSL -o "$archive" \
+            "https://github.com/rhysd/actionlint/releases/download/v${version}/${archive}"
+          actual_sha256="$(sha256sum "$archive" | cut -d ' ' -f 1)"
+          if [ "$actual_sha256" != "$expected_sha256" ]; then
+            echo "actionlint checksum mismatch: $actual_sha256" >&2
+            exit 1
+          fi
+          tar -xzf "$archive" actionlint
       - name: Run actionlint
         run: ./actionlint -color
 
   typos:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: crate-ci/typos@master
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: crate-ci/typos@3e8e1dbf18c56a9ed625484ca941497c73e7da2c # v1.47.2
         with:
           config: .typos.toml
