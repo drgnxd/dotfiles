@@ -1,0 +1,7 @@
+/* Shared, platform-independent Floorp UI layer. */
+
+/* Example: hide the tab close button.
+.tab-close-button {
+  display: none !important;
+}
+*/
