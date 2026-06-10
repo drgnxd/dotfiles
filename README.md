@@ -122,7 +122,8 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`.
 - If it is empty, the managed template is copied instead.
 - A starter file is created at `~/.config/opencode/opencode.local.json.example`.
-- The managed OpenCode plugin list includes `@mohak34/opencode-notifier@latest` and `opencode-supermemory@latest`.
+- The managed OpenCode plugin list pins exact npm versions: `@mohak34/opencode-notifier@0.2.8` and `opencode-supermemory@2.0.6`.
+- To bump a plugin, check the current version in `registry.npmjs.org`, update every plugin spec to the exact `@x.y.z` version, then rebuild the home-manager activation package.
 - If you keep a non-empty `~/.config/opencode/opencode.local.json`, make sure its `plugin` array still includes the managed plugins you want enabled.
 
 ### Pre-commit Hooks (Optional)

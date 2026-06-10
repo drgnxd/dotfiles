@@ -7,7 +7,7 @@ description: Authenticate with Supermemory via browser
 Run this command to authenticate the user with Supermemory:
 
 ```bash
-bunx opencode-supermemory@latest login
+bunx opencode-supermemory@2.0.6 login
 ```
 
 This will:
