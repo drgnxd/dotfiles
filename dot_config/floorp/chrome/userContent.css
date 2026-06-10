@@ -1,0 +1,7 @@
+/* Shared, platform-independent Floorp content UI layer. */
+
+/* Example: reduce motion on all pages.
+* {
+  scroll-behavior: auto !important;
+}
+*/
