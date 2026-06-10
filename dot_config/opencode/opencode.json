@@ -4,7 +4,7 @@
     "AGENTS.md"
   ],
   "plugin": [
-    "@mohak34/opencode-notifier@latest",
-    "opencode-supermemory@latest"
+    "@mohak34/opencode-notifier@0.2.8",
+    "opencode-supermemory@2.0.6"
   ]
 }
