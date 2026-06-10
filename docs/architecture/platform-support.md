@@ -37,6 +37,8 @@ Set `local/identity.nix` before applying on your machine.
 
 **Hazkey input**: set `japaneseInputMethod = "hazkey"` in `local/preferences.nix` to enable live conversion on Linux. Vulkan remains disabled by default to avoid GPU driver lookup crashes in standalone home-manager; only re-enable on NixOS with proper graphics modules.
 
+**Fcitx5 input environment**: fcitx5 IM variables are delivered through `~/.config/environment.d/fcitx5.conf`, not `home.sessionVariables`, so GNOME sessions and systemd-managed Hyprland sessions receive the same values. On Ubuntu GNOME / X11 hosts that use Debian `im-config`, set `imConfigXinputrc = true;` in `local/preferences.nix` to write `~/.xinputrc` with `run_im fcitx5`; then perform a full logout/login because `XMODIFIERS` is fixed at X session start. Restarting fcitx5 or reopening an app is not enough. The default fcitx5 toggle is `Ctrl+Space` for US layouts without a Zenkaku/Hankaku key.
+
 **Hammerspoon -> Hyprland mapping**:
 
 | macOS (Hammerspoon) | Linux (Hyprland) |
