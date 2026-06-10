@@ -53,14 +53,9 @@
           };
       inherit (identity) user hostname;
       linuxHostname = identity.linux_hostname;
-      darwin_pkgs = import nixpkgs {
-        system = "aarch64-darwin";
-        config.allowUnfree = true;
-      };
-      linux_pkgs = import nixpkgs {
-        system = "x86_64-linux";
-        config.allowUnfree = true;
-      };
+      pkgs_lib = import ./nix/pkgs.nix;
+      darwin_pkgs = pkgs_lib.mkPkgs nixpkgs "aarch64-darwin";
+      linux_pkgs = pkgs_lib.mkPkgs nixpkgs "x86_64-linux";
       supportedSystems = [
         "aarch64-darwin"
         "x86_64-linux"
@@ -121,88 +116,10 @@
 
       formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
 
-      devShells = forAllSystems (
-        sys:
-        let
-          p = nixpkgs.legacyPackages.${sys};
-        in
-        {
-          default = p.mkShell {
-            packages = with p; [
-              nixfmt
-              statix
-              deadnix
-            ];
-          };
-        }
-      );
+      devShells = import ./nix/devshells.nix { inherit nixpkgs forAllSystems; };
 
-      apps = forAllSystems (
-        sys:
-        let
-          p = nixpkgs.legacyPackages.${sys};
-          mkApp = name: script: {
-            type = "app";
-            program = "${
-              p.writeShellApplication {
-                inherit name;
-                runtimeInputs = [
-                  p.git
-                  p.nix
-                ];
-                text = script;
-              }
-            }/bin/${name}";
-          };
-        in
-        {
-          bootstrap-darwin = mkApp "bootstrap-darwin" ''
-            set -euo pipefail
-            [ -f local/identity.nix ] || {
-              echo "ERROR: create local/identity.nix first (see local/identity.nix.example)" >&2
-              exit 1
-            }
-            sudo nix run nix-darwin -- switch --flake path:.
-          '';
-          bootstrap-linux = mkApp "bootstrap-linux" ''
-            set -euo pipefail
-            [ -f local/identity.nix ] || {
-              echo "ERROR: create local/identity.nix first (see local/identity.nix.example)" >&2
-              exit 1
-            }
-            USER_HOST="$(whoami)@$(hostname)"
-            nix run home-manager/master -- switch --flake "path:.#$USER_HOST"
-          '';
-          rekey-secrets = mkApp "rekey-secrets" ''
-            set -euo pipefail
-            cd secrets
-            nix run github:ryantm/agenix -- -r
-          '';
-        }
-      );
+      apps = import ./nix/apps.nix { inherit nixpkgs forAllSystems; };
 
-      checks = forAllSystems (
-        sys:
-        let
-          p = nixpkgs.legacyPackages.${sys};
-        in
-        {
-          formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt ]; } ''
-            cd ${self}
-            find . -name '*.nix' -exec nixfmt --check {} +
-            touch $out
-          '';
-          lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''
-            cd ${self}
-            statix check .
-            touch $out
-          '';
-          lint-deadnix = p.runCommand "check-deadnix" { nativeBuildInputs = [ p.deadnix ]; } ''
-            cd ${self}
-            deadnix --fail .
-            touch $out
-          '';
-        }
-      );
+      checks = import ./nix/checks.nix { inherit nixpkgs self forAllSystems; };
     };
 }
