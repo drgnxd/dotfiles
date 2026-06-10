@@ -116,6 +116,11 @@
 
       formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
 
+      packages = {
+        aarch64-darwin.default = self.darwinConfigurations.${hostname}.system;
+        x86_64-linux.default = self.homeConfigurations."${user}@${linuxHostname}".activationPackage;
+      };
+
       devShells = import ./nix/devshells.nix { inherit nixpkgs forAllSystems; };
 
       apps = import ./nix/apps.nix { inherit nixpkgs forAllSystems; };
