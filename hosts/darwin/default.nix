@@ -181,6 +181,7 @@ in
         path = "${home_dir}/.config/gh/hosts.yml";
         owner = user;
         group = "staff";
+        mode = "0400";
       };
     })
     (lib.optionalAttrs (builtins.pathExists ../../secrets/npmrc.age) {
@@ -189,6 +190,7 @@ in
         path = "${home_dir}/.config/npm/npmrc";
         owner = user;
         group = "staff";
+        mode = "0400";
       };
     })
     (lib.optionalAttrs (builtins.pathExists ../../secrets/git-config-local.age) {
@@ -197,6 +199,7 @@ in
         path = "${home_dir}/.config/git/config.local";
         owner = user;
         group = "staff";
+        mode = "0400";
       };
     })
   ];
