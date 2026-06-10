@@ -278,6 +278,7 @@ jobs:
 
           pairs = [
               ("docs/ARCHITECTURE.md", "docs/ARCHITECTURE.ja.md"),
+              ("docs/architecture/floorp.md", "docs/architecture/floorp.ja.md"),
               ("docs/architecture/nushell.md", "docs/architecture/nushell.ja.md"),
               ("docs/architecture/platform-support.md", "docs/architecture/platform-support.ja.md"),
               ("docs/architecture/security-model.md", "docs/architecture/security-model.ja.md"),
