@@ -1,12 +1,12 @@
-# Darwin-only: npmrc deployment via agenix
+# Plaintext npmrc fallback for both platforms when no agenix npmrc secret exists.
 {
+  config,
   lib,
-  osConfig ? { },
   ...
 }:
 
 let
-  use_npmrc_secret = lib.hasAttrByPath [ "age" "secrets" "npmrc" ] osConfig;
+  use_npmrc_secret = lib.hasAttrByPath [ "age" "secrets" "npmrc" ] config;
   has_npmrc_file = builtins.pathExists ../../dot_config/npm/npmrc;
 in
 {
