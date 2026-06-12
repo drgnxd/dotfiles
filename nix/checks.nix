@@ -7,6 +7,7 @@
 forAllSystems (
   sys:
   let
+    lib = nixpkgs.lib;
     p = nixpkgs.legacyPackages.${sys};
   in
   {
@@ -25,5 +26,11 @@ forAllSystems (
       deadnix --fail .
       touch $out
     '';
+  }
+  // lib.optionalAttrs (sys == "aarch64-darwin") {
+    darwin-system = self.packages.aarch64-darwin.default;
+  }
+  // lib.optionalAttrs (sys == "x86_64-linux") {
+    home-activation = self.packages.x86_64-linux.default;
   }
 )
