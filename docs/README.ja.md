@@ -91,11 +91,26 @@ hx ~/.config/git/config.local
 
 ### Agenix 受信者設定（シークレット利用に必要）
 
-> **注意**: `secrets/secrets.nix` に有効な SSH 公開鍵を設定しないと、暗号化されたシークレット
->（git config、npmrc、gh hosts）はアクティベーション時に復号されません。システム自体は
+> **注意**: シークレットは home-manager layer で定義され、macOS と Linux の両方で利用できます。
+> `secrets/secrets.nix` に有効な SSH 公開鍵を設定しないと、暗号化されたシークレット
+>（git config、npmrc、gh hosts）はアクティベーション時に復号されません。設定自体は
 > 正常にビルドされますが、これらの機能は利用できません。
 
 受信者設定は `secrets/secrets.example.nix` をテンプレートとして参照してください。
+
+`agenix` を使う場合は、rekey 前に `secrets/secrets.nix` へ SSH 公開鍵を設定してください。
+
+```nix
+let
+  darwin = "ssh-ed25519 AAAA...your-key...";
+  linux = "ssh-ed25519 AAAA...your-key...";
+in
+...
+```
+
+空の key list は fresh clone と CI check の可搬性を保つためです。`just rekey` には少なくとも 1 つの実受信者 key が必要です。
+
+受信者を変更した後、リポジトリ所有者はローカルで実 key を設定し、`just rekey` を実行する必要があります。既存の `.age` payload は以前の受信者 set 向けに暗号化されており、この agent は秘密鍵を持たないため rekey できません。
 
 ### OpenCode プロバイダー上書き（任意）
 

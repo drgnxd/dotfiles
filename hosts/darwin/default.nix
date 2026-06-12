@@ -1,5 +1,4 @@
 {
-  lib,
   pkgs,
   user,
   ...
@@ -173,36 +172,6 @@ in
 
   users.users.${user}.home = home_dir;
   system.primaryUser = user;
-
-  age.secrets = lib.mkMerge [
-    (lib.optionalAttrs (builtins.pathExists ../../secrets/gh-hosts.age) {
-      gh-hosts = {
-        file = ../../secrets/gh-hosts.age;
-        path = "${home_dir}/.config/gh/hosts.yml";
-        owner = user;
-        group = "staff";
-        mode = "0400";
-      };
-    })
-    (lib.optionalAttrs (builtins.pathExists ../../secrets/npmrc.age) {
-      npmrc = {
-        file = ../../secrets/npmrc.age;
-        path = "${home_dir}/.config/npm/npmrc";
-        owner = user;
-        group = "staff";
-        mode = "0400";
-      };
-    })
-    (lib.optionalAttrs (builtins.pathExists ../../secrets/git-config-local.age) {
-      git-config-local = {
-        file = ../../secrets/git-config-local.age;
-        path = "${home_dir}/.config/git/config.local";
-        owner = user;
-        group = "staff";
-        mode = "0400";
-      };
-    })
-  ];
 
   system.activationScripts.securityHardening.text = ''
     /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText 2>/dev/null || true

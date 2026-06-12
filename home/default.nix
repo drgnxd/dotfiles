@@ -35,6 +35,7 @@ in
     ./modules/helix.nix
     ./modules/nushell.nix
     ./modules/nushell-integrations.nix
+    ./modules/secrets.nix
     ./modules/shellcheck.nix
     ./modules/ssh.nix
     ./modules/starship.nix

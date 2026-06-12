@@ -97,22 +97,27 @@ hx ~/.config/git/config.local
 
 ### Agenix Recipients (Required for Secrets)
 
-> **Note**: Without a valid SSH public key in `secrets/secrets.nix`, encrypted secrets
-> (git config, npmrc, gh hosts) will not be decrypted during activation. The system
-> builds normally, but these features will be unavailable.
+> **Note**: Secrets are defined in the home-manager layer and are available on
+> both macOS and Linux. Without valid SSH public keys in `secrets/secrets.nix`,
+> encrypted secrets (git config, npmrc, gh hosts) will not be decrypted during
+> activation. The configurations build normally, but these features will be
+> unavailable.
 
 Use `secrets/secrets.example.nix` as the template for recipient configuration.
 
-If you use `agenix`, set your SSH public key in `secrets/secrets.nix` before rekeying:
+If you use `agenix`, set your SSH public keys in `secrets/secrets.nix` before rekeying:
 
 ```nix
 let
   darwin = "ssh-ed25519 AAAA...your-key...";
+  linux = "ssh-ed25519 AAAA...your-key...";
 in
 ...
 ```
 
-An empty key list keeps fresh clones and CI checks portable; `agenix -r` requires at least one real recipient key.
+An empty key list keeps fresh clones and CI checks portable; `just rekey` requires at least one real recipient key.
+
+After changing recipients, the repository owner must set the real local keys and run `just rekey`. Existing `.age` payloads were encrypted for the previous recipient set, and this agent cannot rekey them without the private keys.
 
 ### OpenCode Provider Override (Optional)
 
