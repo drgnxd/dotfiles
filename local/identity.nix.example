@@ -2,4 +2,5 @@
   user = "user";
   hostname = "darwin";
   linux_hostname = "linux";
+  # agenixIdentityFile = "~/.ssh/id_ed25519";
 }

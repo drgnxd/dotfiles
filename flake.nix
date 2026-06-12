@@ -28,7 +28,6 @@
       nixpkgs,
       nix-darwin,
       home-manager,
-      agenix,
       ...
     }:
     let
@@ -53,6 +52,7 @@
           };
       inherit (identity) user hostname;
       linuxHostname = identity.linux_hostname;
+      agenixIdentityFile = identity.agenixIdentityFile or null;
       pkgs_lib = import ./nix/pkgs.nix;
       darwin_pkgs = pkgs_lib.mkPkgs nixpkgs "aarch64-darwin";
       linux_pkgs = pkgs_lib.mkPkgs nixpkgs "x86_64-linux";
@@ -66,21 +66,27 @@
       darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
         inherit system;
         specialArgs = {
-          inherit inputs user hostname;
+          inherit
+            agenixIdentityFile
+            inputs
+            user
+            hostname
+            ;
           pkgs = darwin_pkgs;
         };
         modules = [
           ./hosts/darwin
           home-manager.darwinModules.home-manager
-          agenix.darwinModules.default
           {
             nixpkgs.hostPlatform = system;
             nixpkgs.config.allowUnfree = true;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
             home-manager.users.${user} = import ./home;
             home-manager.extraSpecialArgs = {
               inherit
+                agenixIdentityFile
                 inputs
                 user
                 hostname
@@ -96,6 +102,7 @@
       homeConfigurations."${user}@${linuxHostname}" = home-manager.lib.homeManagerConfiguration {
         pkgs = linux_pkgs;
         modules = [
+          inputs.agenix.homeManagerModules.default
           ./home
           {
             targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
@@ -104,6 +111,7 @@
         ];
         extraSpecialArgs = {
           inherit
+            agenixIdentityFile
             inputs
             user
             hostname
