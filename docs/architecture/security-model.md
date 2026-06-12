@@ -6,7 +6,7 @@ Most system changes are applied declaratively through Nix. The only interactive 
 | `FORCE=1` | `scripts/darwin/setup_cloud_symlinks.sh` | Cloud storage symlink creation |
 
 ## Secrets Management
-Secrets are stored in `secrets/*.age` and managed with `agenix`. Do not commit plaintext secrets. Encrypted files are decrypted at activation time to user config paths.
+Secrets are stored in `secrets/*.age`, managed with `agenix`, and defined at the home-manager layer in `home/modules/secrets.nix` for both macOS and Linux. Do not commit plaintext secrets. Encrypted files are decrypted at activation time to user config paths.
 
 ## Rationale
 - Declarative activation replaces ad-hoc scripts

@@ -6,6 +6,10 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 
 フレッシュインストールの手順は [ブートストラップガイド](architecture/bootstrap.ja.md) を参照してください。
 
+```bash
+darwin-rebuild switch --flake ~/.config/nix-config#darwin
+```
+
 このリポジトリには、私の macOS / Linux 環境の設定ファイルが含まれています：
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
@@ -110,7 +114,7 @@ in
 
 空の key list は fresh clone と CI check の可搬性を保つためです。`just rekey` には少なくとも 1 つの実受信者 key が必要です。
 
-受信者を変更した後、リポジトリ所有者はローカルで実 key を設定し、`just rekey` を実行する必要があります。既存の `.age` payload は以前の受信者 set 向けに暗号化されており、この agent は秘密鍵を持たないため rekey できません。
+既存の `.age` payload は以前の受信者 set 向けに暗号化されています。ローカルで実 key を設定した後、`just rekey` を実行して再暗号化してください。rekey には対応する秘密鍵が必要で、key holder が実行する必要があります。
 
 ### OpenCode プロバイダー上書き（任意）
 

@@ -117,7 +117,7 @@ in
 
 An empty key list keeps fresh clones and CI checks portable; `just rekey` requires at least one real recipient key.
 
-After changing recipients, the repository owner must set the real local keys and run `just rekey`. Existing `.age` payloads were encrypted for the previous recipient set, and this agent cannot rekey them without the private keys.
+Existing `.age` payloads were encrypted for the previous recipient set; after setting real recipient keys locally, run `just rekey` to re-encrypt them. Rekeying requires the corresponding private key and must be done by the key holder.
 
 ### OpenCode Provider Override (Optional)
 
