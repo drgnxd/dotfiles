@@ -6,7 +6,7 @@
 | `FORCE=1` | `scripts/darwin/setup_cloud_symlinks.sh` | CloudStorage のシンボリックリンク作成 |
 
 ## 秘密情報管理
-秘密情報は `secrets/*.age` に格納し、`agenix` で管理します。平文の秘密情報はコミットしません。復号はアクティベーション時にユーザーの設定パスへ行います。
+秘密情報は `secrets/*.age` に格納し、`agenix` で管理し、macOS と Linux の両方で `home/modules/secrets.nix` の home-manager layer に定義します。平文の秘密情報はコミットしません。復号はアクティベーション時にユーザーの設定パスへ行います。
 
 ## 目的
 - 変更の宣言的管理により安全性を担保
