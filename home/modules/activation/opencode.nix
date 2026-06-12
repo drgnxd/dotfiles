@@ -1,7 +1,7 @@
-# Sync contract for OpenCode assets:
-# - Managed files are refreshed from dotfiles sources on each activation.
-# - User-added files in managed directories are preserved.
-# - Conflicting edits are backed up as `.before-nix` before replacement.
+# OpenCode asset contract:
+# - Read-only managed assets are store symlinks via xdg.configFile.
+# - OpenCode-writable files stay as real files synced during activation.
+# - Conflicting real files at migrated symlink paths are backed up as `.before-nix`.
 { config, lib, ... }:
 
 let
@@ -31,21 +31,67 @@ let
       value = opencode_skills_dir + "/${name}";
     }) managedSkillNames
   );
-  mkdirSkillCommands = builtins.concatStringsSep "\n" (
-    lib.mapAttrsToList (name: _: ''
-      mkdir -p "$opencode_dir/skills/${name}"
-    '') managedSkills
-  );
-  syncSkillCommands = builtins.concatStringsSep "\n" (
-    lib.mapAttrsToList (name: src: ''
-      sync_managed_file "${src}/SKILL.md" "$opencode_dir/skills/${name}/SKILL.md"
-    '') managedSkills
-  );
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
+  migratedAssetTargets = [
+    "${config.xdg.configHome}/opencode/AGENTS.md"
+    "${config.xdg.configHome}/opencode/opencode-notifier.json"
+    "${config.xdg.configHome}/opencode/requirements.txt"
+    "${config.xdg.configHome}/opencode/command"
+    "${config.xdg.configHome}/opencode/tools"
+    "${config.xdg.configHome}/opencode/skills/tools"
+  ]
+  ++ lib.mapAttrsToList (name: _: "${config.xdg.configHome}/opencode/skills/${name}") managedSkills;
+  migrateManagedAssetCommands = builtins.concatStringsSep "\n" (
+    map (target: ''
+      migrate_managed_asset "${target}"
+    '') migratedAssetTargets
+  );
 in
 {
+  xdg.configFile = {
+    "opencode/AGENTS.md".source = opencode_agents_template;
+    "opencode/opencode-notifier.json".source = opencode_notifier_template;
+    "opencode/requirements.txt".source = opencode_requirements;
+    "opencode/command".source = opencode_command_dir;
+    "opencode/tools".source = opencode_tools_template;
+    "opencode/skills/tools".source = opencode_skills_tools;
+  }
+  // lib.mapAttrs' (
+    name: src: lib.nameValuePair "opencode/skills/${name}" { source = src; }
+  ) managedSkills;
+
+  home.activation.migrateOpencodeManagedAssets = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    is_store_symlink() {
+      target="$1"
+      if [ ! -L "$target" ]; then
+        return 1
+      fi
+
+      link_target="$(readlink "$target")"
+      case "$link_target" in
+        /nix/store/*) return 0 ;;
+        *) return 1 ;;
+      esac
+    }
+
+    migrate_managed_asset() {
+      target="$1"
+      backup="$target.before-nix"
+
+      if [ -e "$target" ] || [ -L "$target" ]; then
+        if is_store_symlink "$target"; then
+          return 0
+        fi
+
+        $DRY_RUN_CMD mv -f "$target" "$backup"
+      fi
+    }
+
+    ${migrateManagedAssetCommands}
+  '';
+
   home.activation.ensureOpencodeLocalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     opencode_local_override="${opencode_local_override}"
     opencode_local_example_target="${opencode_local_example_target}"
@@ -57,6 +103,7 @@ in
     if [ ! -f "$opencode_local_example_target" ]; then
       cp -f "${opencode_local_example}" "$opencode_local_example_target"
     fi
+    chmod u+w "$opencode_local_override" "$opencode_local_example_target"
   '';
 
   home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter [ "ensureOpencodeLocalConfig" ] ''
@@ -69,10 +116,14 @@ in
     else
       cp -f "${opencode_template}" "$opencode_target"
     fi
+    chmod u+w "$opencode_target"
   '';
 
   home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''
-    opencode_dir="$(dirname "${opencode_target}")"
+    opencode_target="${opencode_target}"
+    opencode_local_override="${opencode_local_override}"
+    opencode_local_example_target="${opencode_local_example_target}"
+    opencode_dir="$(dirname "$opencode_target")"
     backup_suffix=".before-nix"
 
     sync_managed_file() {
@@ -93,46 +144,19 @@ in
       chmod u+w "$dest_file"
     }
 
-    sync_managed_tree() {
-      src_root="$1"
-      dest_root="$2"
-
-      mkdir -p "$dest_root"
-      find "$src_root" -type f | while IFS= read -r src_file; do
-        rel_path="''${src_file#''${src_root}/}"
-        sync_managed_file "$src_file" "$dest_root/$rel_path"
-      done
-    }
-
     mkdir -p "$opencode_dir"
-    mkdir -p "$opencode_dir/tools"
-    ${mkdirSkillCommands}
     mkdir -p "$opencode_dir/skills/local"
-    mkdir -p "$opencode_dir/skills/tools"
-    mkdir -p "$opencode_dir/command"
 
-    sync_managed_file "${opencode_agents_template}" "$opencode_dir/AGENTS.md"
-    sync_managed_file "${opencode_notifier_template}" "$opencode_dir/opencode-notifier.json"
     sync_managed_file "${opencode_package_template}" "$opencode_dir/package.json"
-    sync_managed_tree "${opencode_tools_template}" "$opencode_dir/tools"
 
-    # Native skills
-    ${syncSkillCommands}
-
-    # Tools and default local assets (non-destructive for user-managed files)
-    sync_managed_tree "${opencode_skills_tools}" "$opencode_dir/skills/tools"
+    # Default local assets are seeded non-destructively for user-managed files.
     cp -Rn "${opencode_skill_local_dir}/." "$opencode_dir/skills/local/"
 
-    # Dependencies
-    sync_managed_file "${opencode_requirements}" "$opencode_dir/requirements.txt"
-
-    # Commands
-    sync_managed_tree "${opencode_command_dir}" "$opencode_dir/command"
-
-    # Ensure all managed files are user-writable.
-    # /nix/store sources are mode 0444 and propagate via cp; OpenCode writes
-    # back to package.json during dependency installation, so u+w must be
-    # restored post-sync. Idempotent and POSIX-compatible.
-    chmod -R u+w "$opencode_dir"
+    # Keep only the real files OpenCode writes back to user-writable.
+    chmod u+w \
+      "$opencode_target" \
+      "$opencode_local_override" \
+      "$opencode_local_example_target" \
+      "$opencode_dir/package.json"
   '';
 }

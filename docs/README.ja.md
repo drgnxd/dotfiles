@@ -117,12 +117,14 @@ in
 OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
 マシン固有のプロバイダー設定は `~/.config/opencode/opencode.local.json` を編集してください。
 
-- activation 時に `~/.config/opencode/opencode.local.json` が空でなければ、その内容を `~/.config/opencode/opencode.json` にコピーします。
-- 空の場合は、リポジトリ管理のテンプレートをコピーします。
-- 初期サンプルは `~/.config/opencode/opencode.local.json.example` に配置されます。
+- read-only assets は Nix store から symlink されます: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `tools/`, `skills/tools/`, 管理対象 skill directories。変更する場合は `dot_config/opencode/` を編集し、rebuild または switch で反映してください。
+- writable files は activation 時に実ファイルとして同期します: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`。
+- activation 時に `~/.config/opencode/opencode.local.json` が空でなければ、その内容を `~/.config/opencode/opencode.json` にコピーします。空の場合はリポジトリ管理のテンプレートをコピーします。
+- `skills/local/` は user-owned のまま、local skills 用に非破壊で seed します。
 - 管理対象の OpenCode plugin 一覧は npm の exact version に固定します: `@mohak34/opencode-notifier@0.2.8`、`opencode-supermemory@2.0.6`。
 - plugin を更新する場合は `registry.npmjs.org` で現行バージョンを確認し、全ての plugin spec を exact `@x.y.z` version に更新してから home-manager activation package を再ビルドしてください。
 - `~/.config/opencode/opencode.local.json` を空でない状態で使う場合は、必要な plugin が `plugin` 配列に残るようにしてください。
+- rollback procedure: OpenCode が symlink directory 内で書き込みに失敗した場合は、その path を `home/modules/activation/opencode.nix` の activation sync list に戻してください。
 
 ### pre-commit フック（任意）
 
