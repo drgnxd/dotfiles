@@ -124,12 +124,14 @@ After changing recipients, the repository owner must set the real local keys and
 The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
 For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
 
-- During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`.
-- If it is empty, the managed template is copied instead.
-- A starter file is created at `~/.config/opencode/opencode.local.json.example`.
+- Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `tools/`, `skills/tools/`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
+- Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, and `package.json`.
+- During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`; otherwise the managed template is copied instead.
+- `skills/local/` stays user-owned and is seeded non-destructively for local skills.
 - The managed OpenCode plugin list pins exact npm versions: `@mohak34/opencode-notifier@0.2.8` and `opencode-supermemory@2.0.6`.
 - To bump a plugin, check the current version in `registry.npmjs.org`, update every plugin spec to the exact `@x.y.z` version, then rebuild the home-manager activation package.
-- If you keep a non-empty `~/.config/opencode/opencode.local.json`, make sure its `plugin` array still includes the managed plugins you want enabled.
+- If `~/.config/opencode/opencode.local.json` is non-empty, make sure its `plugin` array still includes the managed plugins you want enabled.
+- Rollback procedure: if OpenCode fails to write inside a symlinked directory, move that path back to the activation sync list in `home/modules/activation/opencode.nix`.
 
 ### Pre-commit Hooks (Optional)
 
