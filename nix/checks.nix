@@ -7,7 +7,7 @@
 forAllSystems (
   sys:
   let
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
     p = nixpkgs.legacyPackages.${sys};
   in
   {
