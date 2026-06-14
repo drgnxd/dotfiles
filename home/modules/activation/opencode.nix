@@ -1,6 +1,8 @@
 # OpenCode asset contract:
 # - Read-only managed assets are store symlinks via xdg.configFile.
 # - OpenCode-writable files stay as real files synced during activation.
+# - Custom tools are synced as real files because Bun resolves imports from
+#   realpaths and store symlinks cannot reach ~/.config/opencode/node_modules.
 # - Conflicting real files at migrated symlink paths are backed up as `.before-nix`.
 { config, lib, ... }:
 
@@ -39,7 +41,6 @@ let
     "${config.xdg.configHome}/opencode/opencode-notifier.json"
     "${config.xdg.configHome}/opencode/requirements.txt"
     "${config.xdg.configHome}/opencode/command"
-    "${config.xdg.configHome}/opencode/tools"
     "${config.xdg.configHome}/opencode/skills/tools"
   ]
   ++ lib.mapAttrsToList (name: _: "${config.xdg.configHome}/opencode/skills/${name}") managedSkills;
@@ -55,7 +56,6 @@ in
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
     "opencode/requirements.txt".source = opencode_requirements;
     "opencode/command".source = opencode_command_dir;
-    "opencode/tools".source = opencode_tools_template;
     "opencode/skills/tools".source = opencode_skills_tools;
   }
   // lib.mapAttrs' (
@@ -117,6 +117,37 @@ in
       cp -f "${opencode_template}" "$opencode_target"
     fi
     chmod u+w "$opencode_target"
+  '';
+
+  home.activation.syncOpencodeTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    tools_src="${opencode_tools_template}"
+    tools_dest="${config.xdg.configHome}/opencode/tools"
+
+    # Bun resolves imports from a file's realpath; a Nix-store symlink makes
+    # ~/.config/opencode/node_modules unreachable from custom tools. Sync real files.
+    if [ -L "$tools_dest" ]; then
+      $DRY_RUN_CMD rm -f "$tools_dest"
+    fi
+    $DRY_RUN_CMD mkdir -p "$tools_dest"
+
+    for src_file in "$tools_src"/*; do
+      [ -e "$src_file" ] || continue
+      base="$(basename "$src_file")"
+      dest_file="$tools_dest/$base"
+      if [ -f "$dest_file" ] && diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
+        continue
+      fi
+      $DRY_RUN_CMD cp -fL "$src_file" "$dest_file"
+      $DRY_RUN_CMD chmod u+w "$dest_file"
+    done
+
+    for dest_file in "$tools_dest"/*; do
+      [ -e "$dest_file" ] || continue
+      base="$(basename "$dest_file")"
+      if [ ! -e "$tools_src/$base" ]; then
+        $DRY_RUN_CMD rm -f "$dest_file"
+      fi
+    done
   '';
 
   home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''
