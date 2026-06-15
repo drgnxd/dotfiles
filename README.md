@@ -124,8 +124,9 @@ Existing `.age` payloads were encrypted for the previous recipient set; after se
 The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
 For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
 
-- Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `tools/`, `skills/tools/`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
-- Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, and `package.json`.
+- Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `skills/tools/`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
+- Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, and `tools/`.
+- `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`; otherwise the managed template is copied instead.
 - `skills/local/` stays user-owned and is seeded non-destructively for local skills.
 - The managed OpenCode plugin list pins exact npm versions: `@mohak34/opencode-notifier@0.2.8` and `opencode-supermemory@2.0.6`.
