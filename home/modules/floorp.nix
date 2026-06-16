@@ -17,6 +17,7 @@ let
     else
       "${config.home.homeDirectory}/.floorp";
   settings = import ./floorp/settings.nix;
+  awk = "${pkgs.gawk}/bin/awk";
   mkUserJs =
     prefs:
     lib.concatStringsSep "\n" (
@@ -53,7 +54,7 @@ in
       }
 
       next_profile_index() {
-        awk '
+        ${awk} '
           /^\[Profile[0-9]+\]$/ {
             index_value = substr($0, 9, length($0) - 9) + 0
             if (index_value >= max) {
@@ -66,7 +67,7 @@ in
 
       normalize_profiles_ini() {
         tmp_file="$profiles_ini.tmp.$$"
-        awk '
+        ${awk} '
           function set_line(key, value,    i, found) {
             found = 0
             for (i = 1; i <= count; i++) {
@@ -140,7 +141,7 @@ in
 
       normalize_installs_ini() {
         tmp_file="$installs_ini.tmp.$$"
-        awk '
+        ${awk} '
           function flush_section(    i) {
             if (count == 0) {
               return
