@@ -14,6 +14,10 @@ forAllSystems (
         nixfmt
         statix
         deadnix
+        shfmt
+        actionlint
+        typos
+        taplo
       ];
     };
   }
