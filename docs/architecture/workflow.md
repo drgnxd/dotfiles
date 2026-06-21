@@ -7,10 +7,10 @@ cd ~/.config/nix-config
 $EDITOR dot_config/nushell/autoload/03-aliases.nu
 
 # Apply changes
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 
 # Build only (for verification)
-darwin-rebuild build --flake ~/.config/nix-config#darwin
+darwin-rebuild build --flake ~/.config/nix-config
 ```
 
 ## 2. Git Management
@@ -32,7 +32,7 @@ git push origin main
 git clone https://github.com/example/dotfiles.git ~/.config/nix-config
 
 # Apply configuration
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 
 # Add user-specific configuration (optional)
 cp ~/.config/git/config.local.example ~/.config/git/config.local

@@ -7,7 +7,7 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 フレッシュインストールの手順は [ブートストラップガイド](architecture/bootstrap.ja.md) を参照してください。
 
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 ```
 
 このリポジトリには、私の macOS / Linux 環境の設定ファイルが含まれています：
@@ -46,7 +46,7 @@ darwin-rebuild switch --flake ~/.config/nix-config#darwin
 ### 適用
 
 ```sh
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 ### ローカル識別情報の上書き（推奨）
@@ -80,7 +80,7 @@ bash scripts/check_dependencies.sh
 不足しているコマンドがある場合は、`darwin-rebuild` を再実行してパッケージを適用してください：
 
 ```sh
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 ### Git設定
@@ -160,14 +160,14 @@ uv tool run detect-secrets scan --baseline .secrets.baseline
 2. 適用：
 
 ```sh
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 #### 入力更新
 
 ```sh
 nix flake update
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 ## ディレクトリ構造

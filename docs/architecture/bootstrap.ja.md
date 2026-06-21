@@ -81,6 +81,6 @@ nix run path:.#bootstrap-linux
 
 ### 既知の注意事項
 
-* **ホストごとの nixd 設定** — Helix に配信される `languages.toml` は、プレースホルダーの設定名（`darwinConfigurations.darwin`、`homeConfigurations."user@linux"`）を、 `local/identity.nix` の実際の `hostname` と `user@linuxHostname` に自動で置換します。手動操作は不要です。
+* **ホストごとの nixd 設定** — Helix に配信される `languages.toml` は、プレースホルダーの設定名（`darwinConfigurations.<hostname>`、`homeConfigurations."<user>@<linuxHostname>"`）を、 `local/identity.nix` の実際の `hostname` と `user@linuxHostname` に自動で置換します。手動操作は不要です。
 * **Linux の Vulkan** — standalone home-manager 環境では GPU ドライバ解決の不安定さを避けるため、hazkey 用の Vulkan はデフォルトで無効です。NixOS で適切な graphics モジュールを構成している場合にのみ有効化を検討してください。
 * **シークレット** — agenix を使う場合、`secrets/secrets.nix` に SSH 公開鍵を追加し、`nix run .#rekey-secrets` を実行してください。

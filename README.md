@@ -7,7 +7,7 @@ My personal dotfiles managed with nix-darwin + standalone home-manager.
 For a fresh machine, see the [Bootstrap Guide](docs/architecture/bootstrap.md).
 
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 ```
 
 ## Overview
@@ -48,7 +48,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 ### Apply Configuration
 
 ```sh
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 ```
 
 ### Local identity override (recommended)
@@ -82,7 +82,7 @@ bash scripts/check_dependencies.sh
 If any commands are missing, re-run darwin-rebuild to install packages:
 
 ```sh
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 ### Git Configuration
@@ -162,14 +162,14 @@ Package definitions live in `home/packages.nix`.
 2. Apply changes:
 
 ```sh
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 #### Updating Inputs
 
 ```sh
 nix flake update
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .
 ```
 
 ## Structure

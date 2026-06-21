@@ -81,6 +81,6 @@ After the first activation completes:
 
 ### Known Notes
 
-* **Per-host nixd override** — the `languages.toml` delivered to Helix substitutes placeholder config names (`darwinConfigurations.darwin`, `homeConfigurations."user@linux"`) with your actual `hostname` and `user@linuxHostname` from `local/identity.nix`. This is handled automatically; no manual action required.
+* **Per-host nixd override** — the `languages.toml` delivered to Helix substitutes placeholder config names (`darwinConfigurations.<hostname>`, `homeConfigurations."<user>@<linuxHostname>"`) with your actual `hostname` and `user@linuxHostname` from `local/identity.nix`. This is handled automatically; no manual action required.
 * **Vulkan on Linux** — disabled by default for hazkey to avoid GPU driver lookup crashes in standalone home-manager. Only re-enable on NixOS with proper graphics modules.
 * **Secrets** — if you use agenix, add your SSH public key to `secrets/secrets.nix` and run `nix run .#rekey-secrets`.
