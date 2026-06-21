@@ -13,7 +13,7 @@
 git clone git@github.com:example/dotfiles.git ~/.config/nix-config
 
 # Apply configuration
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 ```
 
 ---
@@ -26,7 +26,7 @@ Packages are defined in `home/packages.nix`.
 1. Edit `home/packages.nix`
 2. Apply:
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config#darwin
+darwin-rebuild switch --flake ~/.config/nix-config
 ```
 
 ### macOS Apps (Casks/MAS)
@@ -71,12 +71,12 @@ docs(readme): update installation instructions
 ### Before Committing
 1. **Build**
    ```bash
-   darwin-rebuild build --flake ~/.config/nix-config#darwin
+   darwin-rebuild build --flake ~/.config/nix-config
    ```
 
 2. **Apply to test system**
    ```bash
-   darwin-rebuild switch --flake ~/.config/nix-config#darwin
+   darwin-rebuild switch --flake ~/.config/nix-config
    ```
 
 ### Nix eval sanity checks
@@ -84,22 +84,22 @@ docs(readme): update installation instructions
 Use `path:.#...` during refactors so untracked local files are visible to evaluation:
 
 ```bash
-nix eval --no-write-lock-file path:.#darwinConfigurations.darwin.config.system.stateVersion
-nix eval --no-write-lock-file path:.#darwinConfigurations.darwin.config.home-manager.users.user.home.activationPackage.drvPath
+nix eval --no-write-lock-file path:.#darwinConfigurations.<hostname>.config.system.stateVersion
+nix eval --no-write-lock-file path:.#darwinConfigurations.<hostname>.config.home-manager.users.<user>.home.activationPackage.drvPath
 ```
 
 Use `.#...` to verify Git-flake behavior before merging. Newly added files must be tracked first:
 
 ```bash
 git add <new-files>
-nix eval --no-write-lock-file .#darwinConfigurations.darwin.config.home-manager.users.user.home.activationPackage.drvPath
+nix eval --no-write-lock-file .#darwinConfigurations.<hostname>.config.home-manager.users.<user>.home.activationPackage.drvPath
 ```
 
 ### Linux (standalone home-manager)
 
 ```bash
-nix build .#homeConfigurations."user@linux".activationPackage --no-link
-home-manager switch --flake .#user@linux
+nix build .#homeConfigurations."<user>@<linuxHostname>".activationPackage --no-link
+home-manager switch --flake .#<user>@<linuxHostname>
 ```
 
 ### Scripts
