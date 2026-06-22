@@ -16,6 +16,7 @@ in
   nixpkgs.config.allowUnfree = true;
 
   system.stateVersion = 5;
+  system.startup.chime = false;
 
   # ── macOS system defaults (declarative) ──────────────────────────────
   system.defaults = {
