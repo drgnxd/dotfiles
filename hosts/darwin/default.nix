@@ -18,6 +18,11 @@ in
   system.stateVersion = 5;
   system.startup.chime = false;
 
+  security.pam.services.sudo_local = {
+    touchIdAuth = true; # Touch ID for sudo in Terminal
+    reattach = true; # Touch ID inside tmux/screen/Zellij sessions
+  };
+
   # ── macOS system defaults (declarative) ──────────────────────────────
   system.defaults = {
     NSGlobalDomain = {
@@ -46,6 +51,11 @@ in
       KeyRepeat = 1;
       InitialKeyRepeat = 15;
       ApplePressAndHoldEnabled = false;
+    };
+
+    screensaver = {
+      askForPassword = true;
+      askForPasswordDelay = 0;
     };
 
     dock = {
