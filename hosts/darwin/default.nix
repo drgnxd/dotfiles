@@ -23,6 +23,14 @@ in
     reattach = true; # Touch ID inside tmux/screen/Zellij sessions
   };
 
+  networking.applicationFirewall = {
+    enable = true;
+    enableStealthMode = true;
+    blockAllIncoming = false;
+    allowSigned = true;
+    allowSignedApp = true;
+  };
+
   # ── macOS system defaults (declarative) ──────────────────────────────
   system.defaults = {
     NSGlobalDomain = {
@@ -56,6 +64,11 @@ in
     screensaver = {
       askForPassword = true;
       askForPasswordDelay = 0;
+    };
+
+    loginwindow = {
+      GuestEnabled = false;
+      DisableConsoleAccess = true;
     };
 
     dock = {
@@ -187,13 +200,7 @@ in
   system.activationScripts.securityHardening.text = ''
     /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText 2>/dev/null || true
 
-    /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on || true
-    /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on || true
-    /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on || true
-    /usr/bin/pkill -HUP socketfilterfw 2>/dev/null || true
-
     /usr/sbin/systemsetup -setremotelogin off || true
     /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off || true
-    /usr/sbin/sysadminctl -guestAccount off || true
   '';
 }
