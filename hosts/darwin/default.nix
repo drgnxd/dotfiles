@@ -17,6 +17,7 @@ in
 
   system.stateVersion = 5;
   system.startup.chime = false;
+  time.timeZone = "Asia/Tokyo";
 
   security.pam.services.sudo_local = {
     touchIdAuth = true; # Touch ID for sudo in Terminal
@@ -75,6 +76,7 @@ in
       autohide = true;
       autohide-delay = 0.0;
       autohide-time-modifier = 0.0;
+      mru-spaces = false;
       show-recents = false;
       static-only = true;
       tilesize = 48;
@@ -202,5 +204,9 @@ in
 
     /usr/sbin/systemsetup -setremotelogin off || true
     /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off || true
+  '';
+
+  system.activationScripts.postActivation.text = ''
+    /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
   '';
 }
