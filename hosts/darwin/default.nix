@@ -156,7 +156,7 @@ in
       extraFlags = [ "--force" ];
     };
     taps = [
-      "protonpass/homebrew-tap"
+      "protonpass/tap"
     ];
     brews = [
       "mas"
@@ -198,6 +198,15 @@ in
 
   users.users.${user}.home = home_dir;
   system.primaryUser = user;
+
+  system.activationScripts.extraActivation.text = ''
+    if [ -x /opt/homebrew/bin/brew ]; then
+      /usr/bin/sudo --user=${user} --set-home /usr/bin/env -u XDG_CONFIG_HOME \
+        /opt/homebrew/bin/brew trust --tap protonpass/tap >/dev/null
+      /usr/bin/sudo --user=${user} --set-home /usr/bin/env -u XDG_CONFIG_HOME \
+        /opt/homebrew/bin/brew trust --formula protonpass/tap/pass-cli >/dev/null
+    fi
+  '';
 
   system.activationScripts.securityHardening.text = ''
     /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText 2>/dev/null || true
