@@ -16,6 +16,7 @@
 
 - `hosts/darwin/launchd.nix`
   - nix-darwin による LaunchAgent 定義とログイン時アプリ起動
+  - `remap-capslock-to-control` は login/boot 時に `hidutil` の CapsLock-to-Control mapping を再適用します。native `system.keyboard` option は reboot/re-login で揮発するため意図的に使用しません
   - これとは別に、home-manager activation フックでアプリ側が作る旧 `LaunchAtLogin` Agent（Stats/Hammerspoon）を無効化
 
 - `home/default.nix`
