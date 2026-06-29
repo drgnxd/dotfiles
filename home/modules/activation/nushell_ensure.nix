@@ -1,16 +1,11 @@
 { config, lib, ... }:
 
 let
+  activationLib = import ../../lib/activation.nix { inherit lib; };
   nushell_local_nu = "${config.xdg.configHome}/nushell/local.nu";
 in
 {
-  home.activation.ensureNushellLocalNu = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    nushell_local_nu="${nushell_local_nu}"
-    if [ ! -f "$nushell_local_nu" ]; then
-      mkdir -p "$(dirname "$nushell_local_nu")"
-      touch "$nushell_local_nu"
-    fi
-  '';
+  home.activation.ensureNushellLocalNu = activationLib.mkEnsureLocalFile nushell_local_nu;
 
   # Only carapace needs a runtime cache stub (Plan A).
   # starship/zoxide/atuin are Nix-built (Plan B) via nushell-integrations.nix.

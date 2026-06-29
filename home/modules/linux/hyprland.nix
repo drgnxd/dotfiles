@@ -7,6 +7,7 @@
 }:
 
 let
+  activationLib = import ../../lib/activation.nix { inherit lib; };
   hypr_local_conf = "${config.xdg.configHome}/hypr/local.conf";
   render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
   browser_class = preferences.browserClass or "floorp";
@@ -43,11 +44,5 @@ in
     hypridle
   ];
 
-  home.activation.ensureHyprLocalConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    hypr_local_conf="${hypr_local_conf}"
-    if [ ! -f "$hypr_local_conf" ]; then
-      mkdir -p "$(dirname "$hypr_local_conf")"
-      touch "$hypr_local_conf"
-    fi
-  '';
+  home.activation.ensureHyprLocalConf = activationLib.mkEnsureLocalFile hypr_local_conf;
 }
