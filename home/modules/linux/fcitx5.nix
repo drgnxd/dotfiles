@@ -7,6 +7,7 @@
 }:
 
 let
+  systemdUser = import ../../lib/systemd-user.nix;
   use_hazkey = (preferences.japaneseInputMethod or "mozc") == "hazkey";
   write_xinputrc = preferences.imConfigXinputrc or false;
 in
@@ -29,19 +30,12 @@ in
     # only on NixOS with a proper hardware.opengl/graphics module.
     home.packages = lib.mkIf use_hazkey [ inputs.nix-hazkey.packages.${pkgs.system}.hazkey-settings ];
 
-    systemd.user.services.hazkey-server = lib.mkIf use_hazkey {
-      Unit = {
-        Description = "Hazkey IME server";
-        PartOf = [ "graphical-session.target" ];
-        After = [ "graphical-session.target" ];
-      };
-      Service = {
-        ExecStart = "${inputs.nix-hazkey.packages.${pkgs.system}.hazkey-server}/bin/hazkey-server";
-        Restart = "on-failure";
-        RestartSec = "3s";
-      };
-      Install.WantedBy = [ "hyprland-session.target" ];
-    };
+    systemd.user.services.hazkey-server = lib.mkIf use_hazkey (
+      systemdUser.mkGraphicalUserService {
+        description = "Hazkey IME server";
+        execStart = "${inputs.nix-hazkey.packages.${pkgs.system}.hazkey-server}/bin/hazkey-server";
+      }
+    );
 
     # gnome-session does not source hm-session-vars.sh; environment.d reaches
     # GNOME/systemd-user and the systemd-managed Hyprland session target.
