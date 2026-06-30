@@ -61,6 +61,17 @@
         "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      mkExtraSpecialArgs = pkgsArg: {
+        inherit
+          agenixIdentityFile
+          inputs
+          user
+          hostname
+          linuxHostname
+          preferences
+          ;
+        pkgs = pkgsArg;
+      };
     in
     {
       darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
@@ -84,17 +95,7 @@
             home-manager.useUserPackages = true;
             home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
             home-manager.users.${user} = import ./home;
-            home-manager.extraSpecialArgs = {
-              inherit
-                agenixIdentityFile
-                inputs
-                user
-                hostname
-                linuxHostname
-                preferences
-                ;
-              pkgs = darwin_pkgs;
-            };
+            home-manager.extraSpecialArgs = mkExtraSpecialArgs darwin_pkgs;
           }
         ];
       };
@@ -109,17 +110,7 @@
             targets.genericLinux.nixGL.defaultWrapper = "mesa";
           }
         ];
-        extraSpecialArgs = {
-          inherit
-            agenixIdentityFile
-            inputs
-            user
-            hostname
-            linuxHostname
-            preferences
-            ;
-          pkgs = linux_pkgs;
-        };
+        extraSpecialArgs = mkExtraSpecialArgs linux_pkgs;
       };
 
       formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
