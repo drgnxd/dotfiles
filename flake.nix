@@ -122,6 +122,8 @@
         };
       };
 
+      homeConfigurations.${user} = self.homeConfigurations."${user}@${linuxHostname}";
+
       formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
 
       packages = {

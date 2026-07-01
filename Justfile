@@ -25,11 +25,11 @@ switch-darwin:
 
 # Build Linux home-manager configuration
 build-linux:
-  nix build .#packages.x86_64-linux.default --no-link
+  nix build path:.#packages.x86_64-linux.default --no-link
 
 # Apply Linux home-manager configuration
 switch-linux:
-  home-manager switch --flake .
+  home-manager switch --flake path:.
 
 # Update all flake inputs
 update:
