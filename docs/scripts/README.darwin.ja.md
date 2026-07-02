@@ -16,7 +16,6 @@
 
 - `hosts/darwin/launchd.nix`
   - nix-darwin による LaunchAgent 定義とログイン時アプリ起動
-  - `remap-capslock-to-control` は login/boot 時に `hidutil` の CapsLock-to-Control mapping を再適用します。native `system.keyboard` option は reboot/re-login で揮発するため意図的に使用しません
   - これとは別に、home-manager activation フックでアプリ側が作る旧 `LaunchAtLogin` Agent（Stats/Hammerspoon）を無効化
 
 - `home/default.nix`
@@ -24,7 +23,7 @@
 
 - `home/modules/activation/`
   - `directories.nix`（ローカルディレクトリ作成）
-  - `macos_defaults.nix`（`defaults -currentHost` が必要なユーザー設定）
+  - `macos_defaults.nix`（GUIで永続化される CapsLock-to-Control を含む、`defaults -currentHost` が必要なユーザー設定）
   - `nushell_ensure.nix`（`local.nu` と Nushell キャッシュディレクトリの保証）
   - `opencode.nix`（OpenCode 設定とルール同期）
   - `taskwarrior_ensure.nix`（Taskwarrior のローカル上書きファイル保証）
