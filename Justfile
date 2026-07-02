@@ -17,11 +17,11 @@ check:
 
 # Build Darwin configuration (no activation)
 build-darwin:
-  nix build .#packages.aarch64-darwin.default --no-link
+  nix build path:.#packages.aarch64-darwin.default --no-link
 
 # Apply Darwin configuration
 switch-darwin:
-  darwin-rebuild switch --flake .
+  sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 # Build Linux home-manager configuration
 build-linux:
