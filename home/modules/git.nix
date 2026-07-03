@@ -34,6 +34,7 @@
 
     settings = {
       diff = {
+        algorithm = "histogram";
         external = "${pkgs.difftastic}/bin/difft";
         tool = "difftastic";
       };
@@ -48,16 +49,29 @@
         precomposeunicode = true;
       };
       init.defaultBranch = "main";
-      merge.conflictstyle = "diff3";
+      merge.conflictstyle = "zdiff3";
       pull.rebase = false;
+      rerere.enabled = true;
+      rebase = {
+        autosquash = true;
+        autostash = true;
+        updateRefs = true;
+      };
+      branch.sort = "-committerdate";
+      tag.sort = "version:refname";
       push = {
         autoSetupRemote = true;
         default = "simple";
       };
       fetch.prune = true;
+      fetch.fsckobjects = true;
+      transfer.fsckobjects = true;
+      receive.fsckobjects = true;
       gpg.format = "ssh";
       commit.gpgsign = true;
+      commit.verbose = true;
       tag.gpgsign = true;
+      help.autocorrect = "prompt";
       include.path = "config.local";
 
       alias = {
