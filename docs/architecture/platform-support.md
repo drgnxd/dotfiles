@@ -16,7 +16,8 @@
 
 **Usage**:
 ```bash
-home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+cd ~/.config/nix-config
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 Set `local/identity.nix` before applying on your machine.

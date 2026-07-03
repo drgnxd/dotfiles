@@ -6,8 +6,11 @@ My personal dotfiles managed with nix-darwin + standalone home-manager.
 
 For a fresh machine, see the [Bootstrap Guide](docs/architecture/bootstrap.md).
 
+For an existing macOS installation, run from the repository root:
+
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+cd ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ## Overview
@@ -47,8 +50,10 @@ This repository contains configurations for my macOS and Linux environments, inc
 
 ### Apply Configuration
 
+Run switch/build commands from the repository root. `path:.` is intentional so gitignored files such as `local/identity.nix` are visible to Nix evaluation.
+
 ```sh
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### Local identity override (recommended)
@@ -64,7 +69,7 @@ cp local/identity.nix.example local/identity.nix
 Make sure `local/identity.nix` matches your environment before applying.
 
 ```sh
-home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 Linux support includes the core CLI/shell stack, Alacritty, and a Hyprland-based desktop environment.
@@ -82,7 +87,7 @@ bash scripts/check_dependencies.sh
 If any commands are missing, re-run darwin-rebuild to install packages:
 
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### Git Configuration
@@ -162,14 +167,14 @@ Package definitions live in `home/packages.nix`.
 2. Apply changes:
 
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 #### Updating Inputs
 
 ```sh
 nix flake update
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ## Structure

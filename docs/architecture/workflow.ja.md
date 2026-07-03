@@ -7,10 +7,10 @@ cd ~/.config/nix-config
 $EDITOR dot_config/nushell/autoload/03-aliases.nu
 
 # 変更を適用
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 # ビルドのみ（検証用）
-darwin-rebuild build --flake ~/.config/nix-config
+/run/current-system/sw/bin/darwin-rebuild build --flake path:.
 ```
 
 ## 2. Git 管理
@@ -30,9 +30,10 @@ git push origin main
 ```bash
 # リポジトリをクローン
 git clone https://github.com/example/dotfiles.git ~/.config/nix-config
+cd ~/.config/nix-config
 
 # 適用
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 # ユーザー固有設定を追加（任意）
 cp ~/.config/git/config.local.example ~/.config/git/config.local

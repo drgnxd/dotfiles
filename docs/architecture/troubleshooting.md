@@ -2,7 +2,8 @@
 
 **`darwin-rebuild` fails**:
 ```bash
-darwin-rebuild build --flake ~/.config/nix-config
+cd ~/.config/nix-config
+/run/current-system/sw/bin/darwin-rebuild build --flake path:.
 ```
 First, run a build to inspect the error details, then fix the relevant Nix file.
 
@@ -24,6 +25,7 @@ Verify that `secrets/*.age` exists and that keys in `secrets/secrets.nix` are co
 
 **Cask installation fails**:
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+cd ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 Adjust the relevant cask based on the reported error.

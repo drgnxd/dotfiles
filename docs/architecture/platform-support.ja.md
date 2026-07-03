@@ -16,7 +16,8 @@
 
 **使い方**:
 ```bash
-home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+cd ~/.config/nix-config
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 利用前に `local/identity.nix` を環境に合わせて設定してください。
