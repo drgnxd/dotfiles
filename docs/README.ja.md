@@ -6,8 +6,11 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 
 フレッシュインストールの手順は [ブートストラップガイド](architecture/bootstrap.ja.md) を参照してください。
 
+既存の macOS 環境では、リポジトリルートから実行します：
+
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+cd ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 このリポジトリには、私の macOS / Linux 環境の設定ファイルが含まれています：
@@ -45,8 +48,10 @@ darwin-rebuild switch --flake ~/.config/nix-config
 
 ### 適用
 
+switch/build コマンドはリポジトリルートから実行してください。`path:.` は意図的な指定で、gitignore された `local/identity.nix` などを Nix 評価から見えるようにします。
+
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### ローカル識別情報の上書き（推奨）
@@ -62,7 +67,7 @@ cp local/identity.nix.example local/identity.nix
 適用前に `local/identity.nix` が環境に合っていることを確認してください。
 
 ```sh
-home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 Linux サポートは CLI/シェル環境、Alacritty、および Hyprland ベースのデスクトップ環境までを対象としています。
@@ -80,7 +85,7 @@ bash scripts/check_dependencies.sh
 不足しているコマンドがある場合は、`darwin-rebuild` を再実行してパッケージを適用してください：
 
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### Git設定
@@ -160,14 +165,14 @@ uv tool run detect-secrets scan --baseline .secrets.baseline
 2. 適用：
 
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 #### 入力更新
 
 ```sh
 nix flake update
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ## ディレクトリ構造

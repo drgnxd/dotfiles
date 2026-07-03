@@ -2,7 +2,8 @@
 
 **darwin-rebuild が失敗する**:
 ```bash
-darwin-rebuild build --flake ~/.config/nix-config
+cd ~/.config/nix-config
+/run/current-system/sw/bin/darwin-rebuild build --flake path:.
 ```
 まずは build でエラー内容を確認し、該当の Nix ファイルを修正します。
 
@@ -24,6 +25,7 @@ ls secrets
 
 **cask のインストール失敗**:
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+cd ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 エラーに応じて該当 cask を調整します。

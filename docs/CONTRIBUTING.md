@@ -11,9 +11,10 @@
 ```bash
 # Clone into the recommended location
 git clone git@github.com:example/dotfiles.git ~/.config/nix-config
+cd ~/.config/nix-config
 
 # Apply configuration
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ---
@@ -26,7 +27,7 @@ Packages are defined in `home/packages.nix`.
 1. Edit `home/packages.nix`
 2. Apply:
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### macOS Apps (Casks/MAS)
@@ -71,12 +72,12 @@ docs(readme): update installation instructions
 ### Before Committing
 1. **Build**
    ```bash
-   darwin-rebuild build --flake ~/.config/nix-config
+   /run/current-system/sw/bin/darwin-rebuild build --flake path:.
    ```
 
 2. **Apply to test system**
    ```bash
-   darwin-rebuild switch --flake ~/.config/nix-config
+   sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
    ```
 
 ### Nix eval sanity checks
@@ -98,8 +99,8 @@ nix eval --no-write-lock-file .#darwinConfigurations.<hostname>.config.home-mana
 ### Linux (standalone home-manager)
 
 ```bash
-nix build .#homeConfigurations."<user>@<linuxHostname>".activationPackage --no-link
-home-manager switch --flake .#<user>@<linuxHostname>
+nix build path:.#homeConfigurations."<user>@<linuxHostname>".activationPackage --no-link
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 ### Scripts
