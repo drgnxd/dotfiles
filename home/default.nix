@@ -63,7 +63,7 @@ in
   home.sessionVariables = {
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/nix-config";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.isDarwin then hostname else linuxHostname;
-    FLAKE = "${config.home.homeDirectory}/.config/nix-config";
+    NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
   };
 
   home.packages = packages.packages;
