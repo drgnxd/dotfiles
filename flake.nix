@@ -90,7 +90,6 @@
           home-manager.darwinModules.home-manager
           {
             nixpkgs.hostPlatform = system;
-            nixpkgs.config.allowUnfree = true;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
