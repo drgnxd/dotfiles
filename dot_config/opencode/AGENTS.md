@@ -35,6 +35,12 @@ conversation.
 - Before destructive commands (`rm`, `dd`, `mkfs`, `chmod -R`, `>`), explain impact and ask for explicit confirmation.
 - Offer backup before irreversible operations.
 
+## Commits
+- Use Conventional Commits: `type(scope): summary`.
+- One logical change per commit.
+- Work on feature branches; never commit directly to protected branches.
+- Never commit secrets.
+
 ## Language and Tools
 - Use `uv` for Python. Never use `pip`, `virtualenv`, or `python -m venv`.
 - Prefer Nushell for structured data. Use Bash for POSIX or system tasks.
@@ -51,4 +57,4 @@ conversation.
 - Constants: UPPER_SNAKE
 - Classes: PascalCase
 
-**Last updated**: 2026-04
+**Last updated**: 2026-07
