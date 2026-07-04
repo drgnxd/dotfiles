@@ -1,6 +1,6 @@
 ---
 name: infrastructure
-description: Infrastructure operations guidance for git workflow, Docker hardening, Linux administration, database migrations, and security controls.
+description: Use when working on git rebase/branch flow, Docker images, Linux server operations, database schema or migrations, or security hardening.
 ---
 
 # Git Workflow

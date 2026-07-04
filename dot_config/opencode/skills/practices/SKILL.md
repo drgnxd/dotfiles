@@ -1,6 +1,6 @@
 ---
 name: practices
-description: Engineering practice guidelines for Unix design, function boundaries, error handling, testing, code review, refactoring, and debugging workflows.
+description: Use when writing or reviewing code and tests — function design, error handling, testing strategy, code review, refactoring, import order, and debugging workflows.
 ---
 
 # Unix Philosophy
