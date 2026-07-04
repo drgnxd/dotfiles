@@ -39,6 +39,7 @@ in
     ./modules/gh.nix
     ./modules/git.nix
     ./modules/helix.nix
+    ./modules/nix_gc.nix
     ./modules/nushell.nix
     ./modules/nushell-integrations.nix
     ./modules/secrets.nix
