@@ -5,12 +5,7 @@ description: Infrastructure operations guidance for git workflow, Docker hardeni
 
 # Git Workflow
 
-- Use feature branches.
-- Do not commit directly to protected branches.
 - Use rebase workflows only on private/unshared branches.
-- Keep commits scoped to one logical change.
-- Write commit messages that explain intent.
-- Never commit secrets.
 - Preferred flow: inspect with status/diff -> stage intentionally -> sync with pull before push -> resolve conflicts locally.
 
 # Docker
