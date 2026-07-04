@@ -39,3 +39,14 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 $EDITOR ~/.config/git/config.local
 ```
+
+## 自動ガベージコレクション
+この flake では Determinate Nix が Nix daemon を管理し、`hosts/darwin/default.nix` は `nix.enable = false` のままにしています。そのため nix-darwin の `nix.gc` options は機能せず、ガベージコレクションは user-level の Home Manager service としてスケジュールします。
+
+`nix-gc` user unit はローカル時刻の毎週日曜日 05:00 に、次の retention policy で実行されます。
+
+```bash
+nh clean all --keep 5 --keep-since 7d
+```
+
+macOS では launchd logs は `~/.local/state/launchagents/nix-gc/stdout.log` と `~/.local/state/launchagents/nix-gc/stderr.log` に出力されます。Linux では systemd user service logs を `journalctl --user -u nix-gc.service` で確認できます。

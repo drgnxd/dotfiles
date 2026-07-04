@@ -39,3 +39,14 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 $EDITOR ~/.config/git/config.local
 ```
+
+## Automated Garbage Collection
+Determinate Nix owns the Nix daemon in this flake, and `hosts/darwin/default.nix` keeps `nix.enable = false`. That makes nix-darwin `nix.gc` options inert, so garbage collection is scheduled as a user-level Home Manager service instead.
+
+The `nix-gc` user unit runs every Sunday at 05:00 local time with this retention policy:
+
+```bash
+nh clean all --keep 5 --keep-since 7d
+```
+
+On macOS, launchd writes logs to `~/.local/state/launchagents/nix-gc/stdout.log` and `~/.local/state/launchagents/nix-gc/stderr.log`. On Linux, systemd user service logs are available with `journalctl --user -u nix-gc.service`.
