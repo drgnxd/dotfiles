@@ -13,6 +13,9 @@
     nixgl.url = "github:nix-community/nixGL";
     nixgl.inputs.nixpkgs.follows = "nixpkgs";
 
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.darwin.follows = "nix-darwin";
     agenix.inputs.home-manager.follows = "home-manager";
@@ -92,7 +95,10 @@
             nixpkgs.hostPlatform = system;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
+            home-manager.sharedModules = [
+              inputs.agenix.homeManagerModules.default
+              inputs.nix-index-database.homeModules.nix-index
+            ];
             home-manager.users.${user} = import ./home;
             home-manager.extraSpecialArgs = mkExtraSpecialArgs darwin_pkgs;
           }
@@ -103,6 +109,7 @@
         pkgs = linux_pkgs;
         modules = [
           inputs.agenix.homeManagerModules.default
+          inputs.nix-index-database.homeModules.nix-index
           ./home
           {
             targets.genericLinux.nixGL.packages = inputs.nixgl.packages;

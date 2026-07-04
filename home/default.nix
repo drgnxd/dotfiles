@@ -41,6 +41,7 @@ in
     ./modules/helix.nix
     ./modules/jujutsu.nix
     ./modules/nix_gc.nix
+    ./modules/nix_index.nix
     ./modules/nushell.nix
     ./modules/nushell-integrations.nix
     ./modules/secrets.nix
