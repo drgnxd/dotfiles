@@ -39,6 +39,9 @@ conversation.
 - Use `uv` for Python. Never use `pip`, `virtualenv`, or `python -m venv`.
 - Prefer Nushell for structured data. Use Bash for POSIX or system tasks.
 - Reply in Japanese by default. Keep code, paths, commands, and identifiers unchanged.
+- Use polite desu/masu style in Japanese output unless the user requests another tone.
+- Prefer short, direct sentences in active voice; explain an acronym once at first use.
+- All AI-readable files (AGENTS.md, SKILL.md, reference docs) are written in English; only user-facing output is Japanese.
 - Keep responses concise.
 - Only load extra files when strictly necessary for the task.
 
