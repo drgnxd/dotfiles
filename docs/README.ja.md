@@ -30,11 +30,11 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
-*   **開発ツール:** Git（delta・git-lfs・git-absorb・git-cliff統合）、clang-tools、lldb、ast-grep、nix-diff、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）、Guile（GNU Guile）
+*   **開発ツール:** Git（delta・git-lfs・git-absorb・git-cliff統合）、jujutsu（`jj`）、clang-tools、lldb、ast-grep、nix-diff、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）、Guile（GNU Guile）
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
     *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
-*   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas
+*   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor（`nom`）, glow, gping, doggo, viddy
 *   **バージョンマネージャ:** uv (Python)、node、rust
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）, qFlipper（デバイス書き込みツール）
 

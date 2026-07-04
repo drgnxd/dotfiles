@@ -32,11 +32,11 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), clang-tools, lldb, ast-grep, nix-diff, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
+*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), clang-tools, lldb, ast-grep, nix-diff, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas
+*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
 *   **Version Managers:** uv (Python), node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
