@@ -10,6 +10,12 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
+  memory_tools = [
+    (pkgs.writeShellScriptBin "memory-read" (builtins.readFile ../scripts/agent_memory/memory_read.sh))
+    (pkgs.writeShellScriptBin "memory-append" (
+      builtins.readFile ../scripts/agent_memory/memory_append.sh
+    ))
+  ];
 in
 {
   home.username = user;
@@ -66,7 +72,7 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
   };
 
-  home.packages = packages.packages;
+  home.packages = packages.packages ++ memory_tools;
 
   warnings = lib.optional (packages.missing != [ ]) (
     "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)
