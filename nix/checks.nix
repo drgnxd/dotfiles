@@ -2,6 +2,7 @@
   nixpkgs,
   self,
   forAllSystems,
+  treefmtEval,
 }:
 
 forAllSystems (
@@ -11,11 +12,7 @@ forAllSystems (
     p = nixpkgs.legacyPackages.${sys};
   in
   {
-    formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt ]; } ''
-      cd ${self}
-      find . -name '*.nix' -exec nixfmt --check {} +
-      touch $out
-    '';
+    formatting = (treefmtEval sys).config.build.check self;
     lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''
       cd ${self}
       statix check .
