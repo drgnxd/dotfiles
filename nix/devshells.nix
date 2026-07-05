@@ -2,12 +2,14 @@
   nixpkgs,
   forAllSystems,
   treefmtEval,
+  checks,
 }:
 
 forAllSystems (
   sys:
   let
     p = nixpkgs.legacyPackages.${sys};
+    pre-commit-check = checks.${sys}.pre-commit-check;
     treefmt = (treefmtEval sys).config.build.wrapper;
   in
   {
@@ -15,12 +17,8 @@ forAllSystems (
       packages = [
         treefmt
       ]
-      ++ (with p; [
-        statix
-        deadnix
-        actionlint
-        typos
-      ]);
+      ++ pre-commit-check.enabledPackages;
+      inherit (pre-commit-check) shellHook;
     };
   }
 )

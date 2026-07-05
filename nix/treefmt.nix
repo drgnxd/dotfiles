@@ -1,6 +1,5 @@
 # treefmt-nix module: single formatting entry point (nix fmt) and check derivation.
-{ ... }:
-{
+_: {
   projectRootFile = "flake.nix";
   programs.nixfmt.enable = true; # same nixfmt as before (RFC style from unstable)
   programs.shfmt.enable = true; # no indent flag => upstream defaults, matches old CI

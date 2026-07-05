@@ -280,8 +280,7 @@ jobs:
       - name: Run Nix lint checks
         run: |
           nix build .#checks.x86_64-linux.formatting --no-link
-          nix build .#checks.x86_64-linux.lint-statix --no-link
-          nix build .#checks.x86_64-linux.lint-deadnix --no-link
+          nix build .#checks.x86_64-linux.pre-commit-check --no-link
 
   doc-pair-check:
     runs-on: ubuntu-latest

@@ -19,6 +19,9 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
+
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.darwin.follows = "nix-darwin";
     agenix.inputs.home-manager.follows = "home-manager";
@@ -35,6 +38,7 @@
       nix-darwin,
       home-manager,
       treefmt-nix,
+      git-hooks,
       ...
     }:
     let
@@ -133,7 +137,10 @@
         x86_64-linux.default = self.homeConfigurations."${user}@${linuxHostname}".activationPackage;
       };
 
-      devShells = import ./nix/devshells.nix { inherit nixpkgs forAllSystems treefmtEval; };
+      devShells = import ./nix/devshells.nix {
+        inherit nixpkgs forAllSystems treefmtEval;
+        inherit (self) checks;
+      };
 
       apps = import ./nix/apps.nix { inherit nixpkgs forAllSystems; };
 
@@ -143,6 +150,7 @@
           self
           forAllSystems
           treefmtEval
+          git-hooks
           ;
       };
     };
