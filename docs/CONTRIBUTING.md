@@ -15,6 +15,9 @@ cd ~/.config/nix-config
 
 # Apply configuration
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
+
+# Enter once per clone to install flake-managed Git hooks
+nix develop
 ```
 
 ---
@@ -68,6 +71,19 @@ docs(readme): update installation instructions
 ---
 
 ## Testing Locally
+
+### Formatting and Hooks
+
+Run `nix fmt` before committing. It formats the whole tree through treefmt with `nixfmt`, `shfmt`, and `taplo`.
+
+Entering `nix develop` installs the flake-generated pre-commit hooks for the clone. There is no standalone pre-commit YAML config to edit.
+
+CI runs the same derivations through:
+
+```bash
+nix build --no-link --no-write-lock-file path:.#checks.x86_64-linux.formatting
+nix build --no-link --no-write-lock-file path:.#checks.x86_64-linux.pre-commit-check
+```
 
 ### Before Committing
 1. **Build**

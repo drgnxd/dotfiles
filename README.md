@@ -139,15 +139,17 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
 - If `~/.config/opencode/opencode.local.json` is non-empty, make sure its `plugin` array still includes the managed plugins you want enabled.
 - Rollback procedure: if OpenCode fails to write inside a symlinked directory, move that path back to the activation sync list in `home/modules/activation/opencode.nix`.
 
-### Pre-commit Hooks (Optional)
+### Formatting and Git Hooks
 
-pre-commit is optional. CI runs the same security scan and config validation.
+`nix fmt` formats the whole tree through treefmt (`nixfmt`, `shfmt`, and `taplo`).
 
-If you want local hooks:
+Local pre-commit hooks are generated from the flake. Enter the dev shell once per clone to install them:
 
 ```sh
-nix shell nixpkgs#pre-commit -c pre-commit install
+nix develop
 ```
+
+There is no standalone pre-commit YAML config to edit. CI runs the same formatter and hook derivations through `checks.x86_64-linux.{formatting,pre-commit-check}`.
 
 To (re)generate the secrets baseline:
 
@@ -184,7 +186,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   `home/`: Home-manager modules and package definitions.
 *   `secrets/`: agenix encrypted secrets (optional).
 *   `scripts/`: Platform helper scripts managed by Nix.
-*   `.pre-commit-config.yaml`: Optional local hooks (detect-secrets, YAML/TOML checks, local validators).
+*   `nix/`: Flake helper modules for checks, shells, apps, and formatting.
 *   `.secrets.baseline`: detect-secrets baseline for allowlisted findings.
 *   `docs/`: Architecture notes.
 *   `dot_config/`: Configuration files for various tools (XDG Base Directory compliant).
