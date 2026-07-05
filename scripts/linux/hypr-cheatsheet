@@ -3,9 +3,9 @@ set -euo pipefail
 
 config="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprland.conf"
 
-grep -E '^\s*bind\s*=' "$config" \
-    | sed 's/^\s*bind\s*=\s*//' \
-    | awk -F',' '{
+grep -E '^\s*bind\s*=' "$config" |
+  sed 's/^\s*bind\s*=\s*//' |
+  awk -F',' '{
         mods = $1
         key = $2
         gsub(/^ +| +$/, "", mods)
@@ -18,6 +18,6 @@ grep -E '^\s*bind\s*=' "$config" \
         }
         gsub(/^ +| +$/, "", desc)
         printf "%-20s  %s\n", mods " + " key, desc
-    }' \
-    | sort \
-    | wofi --dmenu --prompt "Keybindings" --width 800 --height 600
+    }' |
+  sort |
+  wofi --dmenu --prompt "Keybindings" --width 800 --height 600

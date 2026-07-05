@@ -1,4 +1,2 @@
 [allowlist]
-paths = [
-  '''^\.secrets\.baseline$''',
-]
+paths = ['''^\.secrets\.baseline$''']
