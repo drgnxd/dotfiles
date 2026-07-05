@@ -16,6 +16,9 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
 
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.darwin.follows = "nix-darwin";
     agenix.inputs.home-manager.follows = "home-manager";
@@ -31,6 +34,7 @@
       nixpkgs,
       nix-darwin,
       home-manager,
+      treefmt-nix,
       ...
     }:
     let
@@ -64,6 +68,7 @@
         "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      treefmtEval = sys: treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${sys} ./nix/treefmt.nix;
       mkExtraSpecialArgs = pkgsArg: {
         inherit
           agenixIdentityFile
@@ -121,17 +126,24 @@
 
       homeConfigurations.${user} = self.homeConfigurations."${user}@${linuxHostname}";
 
-      formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
+      formatter = forAllSystems (sys: (treefmtEval sys).config.build.wrapper);
 
       packages = {
         aarch64-darwin.default = self.darwinConfigurations.${hostname}.system;
         x86_64-linux.default = self.homeConfigurations."${user}@${linuxHostname}".activationPackage;
       };
 
-      devShells = import ./nix/devshells.nix { inherit nixpkgs forAllSystems; };
+      devShells = import ./nix/devshells.nix { inherit nixpkgs forAllSystems treefmtEval; };
 
       apps = import ./nix/apps.nix { inherit nixpkgs forAllSystems; };
 
-      checks = import ./nix/checks.nix { inherit nixpkgs self forAllSystems; };
+      checks = import ./nix/checks.nix {
+        inherit
+          nixpkgs
+          self
+          forAllSystems
+          treefmtEval
+          ;
+      };
     };
 }

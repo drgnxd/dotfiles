@@ -25,25 +25,6 @@ jobs:
           if [ -d scripts/linux ]; then
             shellcheck scripts/linux/hypr-*
           fi
-      - name: Install shfmt
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shfmt
-
-      - name: Check shell formatting with shfmt
-        run: |
-          echo "Running shfmt format check..."
-          if [ -z "$(git ls-files '*.sh')" ]; then
-            echo "No shell scripts found"
-            exit 0
-          fi
-          git ls-files -z '*.sh' | xargs -0 -r shfmt -l | tee /tmp/shfmt_unformatted || true
-          if [ -s /tmp/shfmt_unformatted ]; then
-            echo "shfmt detected unformatted files:" >&2
-            cat /tmp/shfmt_unformatted >&2
-            echo "Run: shfmt -w <files> to format them" >&2
-            exit 1
-          fi
 
       - name: Check Floorp shared-layer parity drift
         continue-on-error: true
