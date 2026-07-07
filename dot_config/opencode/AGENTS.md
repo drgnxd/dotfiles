@@ -38,7 +38,9 @@ conversation.
 ## Commits
 - Use Conventional Commits: `type(scope): summary`.
 - One logical change per commit.
-- Work on feature branches; never commit directly to protected branches.
+- Stay on the current branch for trivial documentation, comment, or simple fixes unless the user asks for a new branch.
+- Create a feature branch for substantial, risky, review-bound, or protected-branch work.
+- Never commit directly to protected branches.
 - Never commit secrets.
 
 ## Language and Tools
