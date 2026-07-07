@@ -56,6 +56,4 @@ dot_config/nushell/generated/
 # Opencode
 dot_config/opencode/node_modules/
 dot_config/opencode/opencode-notifier-state.json
-!dot_config/opencode/skills/local/
-!dot_config/opencode/skills/local/**
-dot_config/opencode/skills/local/data/
+dot_config/opencode/skills/local/
