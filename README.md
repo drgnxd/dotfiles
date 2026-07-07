@@ -133,7 +133,6 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
 - Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, and `tools/`.
 - `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`; otherwise the managed template is copied instead.
-- `skills/local/` stays user-owned and is seeded non-destructively for local skills.
 - The managed OpenCode plugin list pins the exact npm version: `@mohak34/opencode-notifier@0.2.8`.
 - To bump a plugin, check the current version in `registry.npmjs.org`, update every plugin spec to the exact `@x.y.z` version, then rebuild the home-manager activation package.
 - If `~/.config/opencode/opencode.local.json` is non-empty, make sure its `plugin` array still includes the managed plugins you want enabled.

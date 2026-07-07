@@ -14,7 +14,6 @@ let
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
   opencode_skills_dir = ../../../dot_config/opencode/skills;
-  opencode_skill_local_dir = ../../../dot_config/opencode/skills/local;
   opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
   opencode_requirements = ../../../dot_config/opencode/requirements.txt;
   opencode_command_dir = ../../../dot_config/opencode/command;
@@ -176,12 +175,8 @@ in
     }
 
     mkdir -p "$opencode_dir"
-    mkdir -p "$opencode_dir/skills/local"
 
     sync_managed_file "${opencode_package_template}" "$opencode_dir/package.json"
-
-    # Default local assets are seeded non-destructively for user-managed files.
-    cp -Rn "${opencode_skill_local_dir}/." "$opencode_dir/skills/local/"
 
     # Keep only the real files OpenCode writes back to user-writable.
     chmod u+w \

@@ -39,7 +39,6 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 - `AGENTS.md`, `command/`, and managed skill directories deploy as read-only Nix-store symlinks.
 - `opencode.json`, `package.json`, and `tools/` deploy as activation-synced real files.
 - `tools/` must remain real files because Bun resolves imports from realpaths and must walk up to `node_modules`.
-- `skills/local/` is user-owned and seeded non-destructively; do not rewrite local skill contents from repo automation.
 
 ## Secrets
 
