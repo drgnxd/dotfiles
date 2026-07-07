@@ -150,9 +150,9 @@ format = "[ | $symbol$allowed]($style)"
 
 # --- Custom (Venv for Nushell) ---
 [custom.venv]
-shell = ["nu", "-c"]
+shell = ["nu", "--no-config-file", "-c"]
 command = "($env.VIRTUAL_ENV | path basename)"
-when = "($env.VIRTUAL_ENV | is-not-empty)"
+when = "($env.VIRTUAL_ENV? | is-not-empty)"
 style = "bg:base02 fg:cyan"
 format = "[ |  $output]($style)"
 
