@@ -27,22 +27,5 @@
     "skill": {
       "*": "allow"
     }
-  },
-  "mcp": {
-    "searxng": {
-      "type": "local",
-      "command": [
-        "env",
-        "SEARXNG_URL=http://localhost:8080",
-        "npx",
-        "-y",
-        "mcp-searxng"
-      ],
-      "enabled": true,
-      "timeout": 15000
-    }
-  },
-  "tools": {
-    "searxng_*": true
   }
 }

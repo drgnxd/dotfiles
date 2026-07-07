@@ -4,8 +4,8 @@
 This script enforces the minimal OpenCode structure used here:
 - AGENTS.md at config root
 - opencode.json with valid schema
-- package.json for custom tool dependencies
-- tools/*.ts for custom tools
+- package.json for optional custom tool dependencies
+- tools/ directory for optional custom tools
 """
 
 from __future__ import annotations
@@ -114,10 +114,6 @@ def validate_tools(errors: list[str]) -> None:
         return
 
     tool_files = sorted(tools_dir.glob("*.ts")) + sorted(tools_dir.glob("*.js"))
-    if not tool_files:
-        errors.append("tools/ must contain at least one .ts or .js custom tool")
-        return
-
     for tool_file in tool_files:
         content = tool_file.read_text(encoding="utf-8")
         if "@opencode-ai/plugin" not in content:
