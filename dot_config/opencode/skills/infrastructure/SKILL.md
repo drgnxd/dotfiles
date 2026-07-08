@@ -1,16 +1,11 @@
 ---
 name: infrastructure
-description: Infrastructure operations guidance for git workflow, Docker hardening, Linux administration, database migrations, and security controls.
+description: Use when working on git rebase/branch flow, Docker images, Linux server operations, database schema or migrations, or security hardening.
 ---
 
 # Git Workflow
 
-- Use feature branches.
-- Do not commit directly to protected branches.
 - Use rebase workflows only on private/unshared branches.
-- Keep commits scoped to one logical change.
-- Write commit messages that explain intent.
-- Never commit secrets.
 - Preferred flow: inspect with status/diff -> stage intentionally -> sync with pull before push -> resolve conflicts locally.
 
 # Docker

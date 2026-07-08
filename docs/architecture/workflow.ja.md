@@ -7,10 +7,10 @@ cd ~/.config/nix-config
 $EDITOR dot_config/nushell/autoload/03-aliases.nu
 
 # 変更を適用
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 # ビルドのみ（検証用）
-darwin-rebuild build --flake ~/.config/nix-config
+/run/current-system/sw/bin/darwin-rebuild build --flake path:.
 ```
 
 ## 2. Git 管理
@@ -30,11 +30,23 @@ git push origin main
 ```bash
 # リポジトリをクローン
 git clone https://github.com/example/dotfiles.git ~/.config/nix-config
+cd ~/.config/nix-config
 
 # 適用
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 # ユーザー固有設定を追加（任意）
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 $EDITOR ~/.config/git/config.local
 ```
+
+## 自動ガベージコレクション
+この flake では Determinate Nix が Nix daemon を管理し、`hosts/darwin/default.nix` は `nix.enable = false` のままにしています。そのため nix-darwin の `nix.gc` options は機能せず、ガベージコレクションは user-level の Home Manager service としてスケジュールします。
+
+`nix-gc` user unit はローカル時刻の毎週日曜日 05:00 に、次の retention policy で実行されます。
+
+```bash
+nh clean all --keep 5 --keep-since 7d
+```
+
+macOS では launchd logs は `~/.local/state/launchagents/nix-gc/stdout.log` と `~/.local/state/launchagents/nix-gc/stderr.log` に出力されます。Linux では systemd user service logs を `journalctl --user -u nix-gc.service` で確認できます。

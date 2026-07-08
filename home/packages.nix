@@ -25,6 +25,10 @@ let
     "xh"
     "just"
     "difftastic"
+    "glow"
+    "gping"
+    "doggo"
+    "viddy"
   ];
 
   shell_tools = [
@@ -106,6 +110,7 @@ let
     "nh"
     "nix-diff"
     "nix-tree"
+    "nix-output-monitor"
   ];
 
   languages = [

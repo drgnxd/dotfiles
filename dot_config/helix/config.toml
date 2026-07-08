@@ -24,7 +24,13 @@ render = { space = "all", tab = "all" }
 characters = { space = "·", tab = "→" }
 
 [editor.statusline]
-left = ["mode", "spinner", "file-name", "read-only-indicator", "file-modification-indicator"]
+left = [
+  "mode",
+  "spinner",
+  "file-name",
+  "read-only-indicator",
+  "file-modification-indicator",
+]
 
 [editor.inline-diagnostics]
 cursor-line = "hint"
@@ -43,14 +49,14 @@ C-e = "goto_line_end_newline"
 "A-b" = "move_prev_word_start"
 
 # Deletion (Readline style)
-C-h = "delete_char_backward"   # Backspace
-C-d = "delete_char_forward"    # Delete
-C-w = "delete_word_backward"   # Word erase
-"A-d" = "delete_word_forward"  # Kill word
-C-k = "kill_to_line_end"       # Kill line end
-C-u = "kill_to_line_start"     # Kill line start
+C-h = "delete_char_backward"  # Backspace
+C-d = "delete_char_forward"   # Delete
+C-w = "delete_word_backward"  # Word erase
+"A-d" = "delete_word_forward" # Kill word
+C-k = "kill_to_line_end"      # Kill line end
+C-u = "kill_to_line_start"    # Kill line start
 # Integration
 C-y = "paste_after"
 
 # Mode control
-C-g = "normal_mode"            # Abort/escape
+C-g = "normal_mode" # Abort/escape

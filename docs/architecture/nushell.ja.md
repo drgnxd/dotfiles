@@ -147,6 +147,8 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 キャッシュ生成は`integrations-cache-update`でオンデマンド実行します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/10-source-tools.nu`で読み込みます。
 
+Plan A（ランタイムハッシュ同期）は Carapace のみに使用します。staleness check は Nix 管理システムでは解決済みの `/nix/store` パスを比較し、Nix 管理外のパスでは SHA-256 にフォールバックします。
+
 Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。
 
 ## 設定値

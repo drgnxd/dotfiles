@@ -11,9 +11,13 @@
 ```bash
 # Clone into the recommended location
 git clone git@github.com:example/dotfiles.git ~/.config/nix-config
+cd ~/.config/nix-config
 
 # Apply configuration
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
+
+# Enter once per clone to install flake-managed Git hooks
+nix develop
 ```
 
 ---
@@ -26,7 +30,7 @@ Packages are defined in `home/packages.nix`.
 1. Edit `home/packages.nix`
 2. Apply:
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### macOS Apps (Casks/MAS)
@@ -68,15 +72,28 @@ docs(readme): update installation instructions
 
 ## Testing Locally
 
+### Formatting and Hooks
+
+Run `nix fmt` before committing. It formats the whole tree through treefmt with `nixfmt`, `shfmt`, and `taplo`.
+
+Entering `nix develop` installs the flake-generated pre-commit hooks for the clone. There is no standalone pre-commit YAML config to edit.
+
+CI runs the same derivations through:
+
+```bash
+nix build --no-link --no-write-lock-file path:.#checks.x86_64-linux.formatting
+nix build --no-link --no-write-lock-file path:.#checks.x86_64-linux.pre-commit-check
+```
+
 ### Before Committing
 1. **Build**
    ```bash
-   darwin-rebuild build --flake ~/.config/nix-config
+   /run/current-system/sw/bin/darwin-rebuild build --flake path:.
    ```
 
 2. **Apply to test system**
    ```bash
-   darwin-rebuild switch --flake ~/.config/nix-config
+   sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
    ```
 
 ### Nix eval sanity checks
@@ -98,8 +115,8 @@ nix eval --no-write-lock-file .#darwinConfigurations.<hostname>.config.home-mana
 ### Linux (standalone home-manager)
 
 ```bash
-nix build .#homeConfigurations."<user>@<linuxHostname>".activationPackage --no-link
-home-manager switch --flake .#<user>@<linuxHostname>
+nix build path:.#homeConfigurations."<user>@<linuxHostname>".activationPackage --no-link
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 ### Scripts

@@ -1,6 +1,6 @@
 ---
 name: research
-description: Deep research workflow with scoped question design, source triangulation, CRAAP evaluation, confidence scoring, and report synthesis.
+description: Use when a task needs multi-source investigation or a research report — scoped question design, source triangulation, CRAAP evaluation, confidence scoring, and synthesis.
 ---
 
 # Deep Research Workflow
