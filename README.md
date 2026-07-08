@@ -6,8 +6,11 @@ My personal dotfiles managed with nix-darwin + standalone home-manager.
 
 For a fresh machine, see the [Bootstrap Guide](docs/architecture/bootstrap.md).
 
+For an existing macOS installation, run from the repository root:
+
 ```bash
-darwin-rebuild switch --flake ~/.config/nix-config
+cd ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ## Overview
@@ -29,11 +32,11 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), clang-tools, lldb, ast-grep, nix-diff, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
+*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), clang-tools, lldb, ast-grep, nix-diff, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas
+*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
 *   **Version Managers:** uv (Python), node, rust
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
@@ -47,8 +50,10 @@ This repository contains configurations for my macOS and Linux environments, inc
 
 ### Apply Configuration
 
+Run switch/build commands from the repository root. `path:.` is intentional so gitignored files such as `local/identity.nix` are visible to Nix evaluation.
+
 ```sh
-darwin-rebuild switch --flake ~/.config/nix-config
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### Local identity override (recommended)
@@ -64,7 +69,7 @@ cp local/identity.nix.example local/identity.nix
 Make sure `local/identity.nix` matches your environment before applying.
 
 ```sh
-home-manager switch --flake ~/.config/nix-config#<user>@<linuxHostname>
+home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 
 Linux support includes the core CLI/shell stack, Alacritty, and a Hyprland-based desktop environment.
@@ -82,7 +87,7 @@ bash scripts/check_dependencies.sh
 If any commands are missing, re-run darwin-rebuild to install packages:
 
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ### Git Configuration
@@ -128,21 +133,22 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
 - Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, and `tools/`.
 - `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`; otherwise the managed template is copied instead.
-- `skills/local/` stays user-owned and is seeded non-destructively for local skills.
-- The managed OpenCode plugin list pins exact npm versions: `@mohak34/opencode-notifier@0.2.8` and `opencode-supermemory@2.0.6`.
+- The managed OpenCode plugin list pins the exact npm version: `@mohak34/opencode-notifier@0.2.8`.
 - To bump a plugin, check the current version in `registry.npmjs.org`, update every plugin spec to the exact `@x.y.z` version, then rebuild the home-manager activation package.
 - If `~/.config/opencode/opencode.local.json` is non-empty, make sure its `plugin` array still includes the managed plugins you want enabled.
 - Rollback procedure: if OpenCode fails to write inside a symlinked directory, move that path back to the activation sync list in `home/modules/activation/opencode.nix`.
 
-### Pre-commit Hooks (Optional)
+### Formatting and Git Hooks
 
-pre-commit is optional. CI runs the same security scan and config validation.
+`nix fmt` formats the whole tree through treefmt (`nixfmt`, `shfmt`, and `taplo`).
 
-If you want local hooks:
+Local pre-commit hooks are generated from the flake. Enter the dev shell once per clone to install them:
 
 ```sh
-nix shell nixpkgs#pre-commit -c pre-commit install
+nix develop
 ```
+
+There is no standalone pre-commit YAML config to edit. CI runs the same formatter and hook derivations through `checks.x86_64-linux.{formatting,pre-commit-check}`.
 
 To (re)generate the secrets baseline:
 
@@ -162,14 +168,14 @@ Package definitions live in `home/packages.nix`.
 2. Apply changes:
 
 ```sh
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 #### Updating Inputs
 
 ```sh
 nix flake update
-darwin-rebuild switch --flake .
+sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
 ## Structure
@@ -179,7 +185,7 @@ darwin-rebuild switch --flake .
 *   `home/`: Home-manager modules and package definitions.
 *   `secrets/`: agenix encrypted secrets (optional).
 *   `scripts/`: Platform helper scripts managed by Nix.
-*   `.pre-commit-config.yaml`: Optional local hooks (detect-secrets, YAML/TOML checks, local validators).
+*   `nix/`: Flake helper modules for checks, shells, apps, and formatting.
 *   `.secrets.baseline`: detect-secrets baseline for allowlisted findings.
 *   `docs/`: Architecture notes.
 *   `dot_config/`: Configuration files for various tools (XDG Base Directory compliant).

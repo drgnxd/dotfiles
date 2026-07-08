@@ -147,6 +147,8 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 Cache generation runs on demand via `integrations-cache-update`. Generated init scripts are cached in `~/.cache/nushell-init` and sourced by `autoload/10-source-tools.nu`.
 
+Plan A (runtime hash sync) is only used for Carapace. Its staleness check compares the resolved `/nix/store` path on Nix-managed systems and falls back to SHA-256 outside Nix-managed paths.
+
 Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically.
 
 ## Configuration Settings

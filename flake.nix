@@ -13,6 +13,15 @@
     nixgl.url = "github:nix-community/nixGL";
     nixgl.inputs.nixpkgs.follows = "nixpkgs";
 
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
+
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.darwin.follows = "nix-darwin";
     agenix.inputs.home-manager.follows = "home-manager";
@@ -28,6 +37,8 @@
       nixpkgs,
       nix-darwin,
       home-manager,
+      treefmt-nix,
+      git-hooks,
       ...
     }:
     let
@@ -61,6 +72,18 @@
         "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      treefmtEval = sys: treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${sys} ./nix/treefmt.nix;
+      mkExtraSpecialArgs = pkgsArg: {
+        inherit
+          agenixIdentityFile
+          inputs
+          user
+          hostname
+          linuxHostname
+          preferences
+          ;
+        pkgs = pkgsArg;
+      };
     in
     {
       darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
@@ -79,22 +102,14 @@
           home-manager.darwinModules.home-manager
           {
             nixpkgs.hostPlatform = system;
-            nixpkgs.config.allowUnfree = true;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
+            home-manager.sharedModules = [
+              inputs.agenix.homeManagerModules.default
+              inputs.nix-index-database.homeModules.nix-index
+            ];
             home-manager.users.${user} = import ./home;
-            home-manager.extraSpecialArgs = {
-              inherit
-                agenixIdentityFile
-                inputs
-                user
-                hostname
-                linuxHostname
-                preferences
-                ;
-              pkgs = darwin_pkgs;
-            };
+            home-manager.extraSpecialArgs = mkExtraSpecialArgs darwin_pkgs;
           }
         ];
       };
@@ -103,38 +118,40 @@
         pkgs = linux_pkgs;
         modules = [
           inputs.agenix.homeManagerModules.default
+          inputs.nix-index-database.homeModules.nix-index
           ./home
           {
             targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
             targets.genericLinux.nixGL.defaultWrapper = "mesa";
           }
         ];
-        extraSpecialArgs = {
-          inherit
-            agenixIdentityFile
-            inputs
-            user
-            hostname
-            linuxHostname
-            preferences
-            ;
-          pkgs = linux_pkgs;
-        };
+        extraSpecialArgs = mkExtraSpecialArgs linux_pkgs;
       };
 
       homeConfigurations.${user} = self.homeConfigurations."${user}@${linuxHostname}";
 
-      formatter = forAllSystems (sys: nixpkgs.legacyPackages.${sys}.nixfmt);
+      formatter = forAllSystems (sys: (treefmtEval sys).config.build.wrapper);
 
       packages = {
         aarch64-darwin.default = self.darwinConfigurations.${hostname}.system;
         x86_64-linux.default = self.homeConfigurations."${user}@${linuxHostname}".activationPackage;
       };
 
-      devShells = import ./nix/devshells.nix { inherit nixpkgs forAllSystems; };
+      devShells = import ./nix/devshells.nix {
+        inherit nixpkgs forAllSystems treefmtEval;
+        inherit (self) checks;
+      };
 
       apps = import ./nix/apps.nix { inherit nixpkgs forAllSystems; };
 
-      checks = import ./nix/checks.nix { inherit nixpkgs self forAllSystems; };
+      checks = import ./nix/checks.nix {
+        inherit
+          nixpkgs
+          self
+          forAllSystems
+          treefmtEval
+          git-hooks
+          ;
+      };
     };
 }

@@ -2,6 +2,8 @@
   nixpkgs,
   self,
   forAllSystems,
+  treefmtEval,
+  git-hooks,
 }:
 
 forAllSystems (
@@ -9,13 +11,25 @@ forAllSystems (
   let
     inherit (nixpkgs) lib;
     p = nixpkgs.legacyPackages.${sys};
+    src = lib.cleanSource self.outPath;
+    treefmt = (treefmtEval sys).config.build.wrapper;
   in
   {
-    formatting = p.runCommand "check-formatting" { nativeBuildInputs = [ p.nixfmt ]; } ''
-      cd ${self}
-      find . -name '*.nix' -exec nixfmt --check {} +
-      touch $out
-    '';
+    formatting = (treefmtEval sys).config.build.check src;
+    pre-commit-check = git-hooks.lib.${sys}.run {
+      inherit src;
+      hooks = {
+        treefmt = {
+          enable = true;
+          package = treefmt;
+        };
+        statix.enable = true;
+        deadnix.enable = true;
+        shellcheck.enable = true;
+        actionlint.enable = true;
+        typos.enable = true;
+      };
+    };
     lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''
       cd ${self}
       statix check .

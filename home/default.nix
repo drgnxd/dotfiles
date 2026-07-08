@@ -10,6 +10,12 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
+  memory_tools = [
+    (pkgs.writeShellScriptBin "memory-read" (builtins.readFile ../scripts/agent_memory/memory_read.sh))
+    (pkgs.writeShellScriptBin "memory-append" (
+      builtins.readFile ../scripts/agent_memory/memory_append.sh
+    ))
+  ];
 in
 {
   home.username = user;
@@ -33,6 +39,9 @@ in
     ./modules/gh.nix
     ./modules/git.nix
     ./modules/helix.nix
+    ./modules/jujutsu.nix
+    ./modules/nix_gc.nix
+    ./modules/nix_index.nix
     ./modules/nushell.nix
     ./modules/nushell-integrations.nix
     ./modules/secrets.nix
@@ -63,10 +72,10 @@ in
   home.sessionVariables = {
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/nix-config";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.isDarwin then hostname else linuxHostname;
-    FLAKE = "${config.home.homeDirectory}/.config/nix-config";
+    NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
   };
 
-  home.packages = packages.packages;
+  home.packages = packages.packages ++ memory_tools;
 
   warnings = lib.optional (packages.missing != [ ]) (
     "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)

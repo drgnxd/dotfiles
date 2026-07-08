@@ -1,6 +1,6 @@
 ---
 name: practices
-description: Engineering practice guidelines for Unix design, function boundaries, error handling, testing, code review, refactoring, and debugging workflows.
+description: Use when writing or reviewing code and tests — function design, error handling, testing strategy, code review, refactoring, import order, and debugging workflows.
 ---
 
 # Unix Philosophy
@@ -62,3 +62,13 @@ except FileNotFoundError as e:
 - Follow sequence: reproduce -> isolate -> validate fix -> add/regress test.
 - Use logs, metrics, traces, and temporary instrumentation.
 - Continuously verify assumptions with evidence.
+
+# Import Order
+
+Use this import grouping order:
+
+1. Standard library
+2. Third-party dependencies
+3. Local project modules
+4. Type-only imports
+5. Static assets/resources

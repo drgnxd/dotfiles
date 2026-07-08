@@ -21,24 +21,38 @@ def hash_command [] {
     }
 }
 
-def cache_is_stale [tool: string, cache_file: path] {
-    let resolved_tool_path = (tool_path $tool)
-    if $resolved_tool_path == null {
-        return false
+def tool_signature [tool: string] {
+    let p = (tool_path $tool)
+    if $p == null {
+        return null
+    }
+
+    let real = ($p | path expand)
+    if ($real | str starts-with "/nix/store/") {
+        return $"path:($real)"
     }
 
     let hash_cmd = (hash_command)
     if $hash_cmd == null {
-        return false
+        return null
     }
-    let hash_args = if $hash_cmd == "shasum" { ["-a" "256" $resolved_tool_path] } else { [$resolved_tool_path] }
+    let hash_args = if $hash_cmd == "shasum" { ["-a" "256" $real] } else { [$real] }
     let hash_result = (do { ^$hash_cmd ...$hash_args } | complete)
     if ($hash_result.exit_code != 0) {
-        return false
+        return null
     }
 
     let tool_hash = ($hash_result.stdout | str trim | split row " " | get 0?)
     if $tool_hash == null {
+        return null
+    }
+
+    $"sha256:($tool_hash)"
+}
+
+def cache_is_stale [tool: string, cache_file: path] {
+    let signature = (tool_signature $tool)
+    if $signature == null {
         return false
     }
 
@@ -47,32 +61,17 @@ def cache_is_stale [tool: string, cache_file: path] {
         return true
     }
 
-    (open $cache_hash_file | str trim) != $tool_hash
+    (open $cache_hash_file | str trim) != $signature
 }
 
 def write_cache_hash [tool: string, cache_file: path] {
-    let resolved_tool_path = (tool_path $tool)
-    if $resolved_tool_path == null {
-        return
-    }
-
-    let hash_cmd = (hash_command)
-    if $hash_cmd == null {
-        return
-    }
-    let hash_args = if $hash_cmd == "shasum" { ["-a" "256" $resolved_tool_path] } else { [$resolved_tool_path] }
-    let hash_result = (do { ^$hash_cmd ...$hash_args } | complete)
-    if ($hash_result.exit_code != 0) {
-        return
-    }
-
-    let tool_hash = ($hash_result.stdout | str trim | split row " " | get 0?)
-    if $tool_hash == null {
+    let signature = (tool_signature $tool)
+    if $signature == null {
         return
     }
 
     let cache_hash_file = ($cache_file | path dirname | path join $"($tool).hash")
-    $tool_hash | save -f $cache_hash_file
+    $signature | save -f $cache_hash_file
 }
 
 export def integrations_cache_update [] {

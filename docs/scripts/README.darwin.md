@@ -16,7 +16,6 @@ This directory documents the remaining macOS helper scripts. Most system configu
 
 - `hosts/darwin/launchd.nix`
   - nix-darwin LaunchAgent definitions and login app startup
-  - `remap-capslock-to-control` re-applies the `hidutil` CapsLock-to-Control mapping at login/boot; the native `system.keyboard` option is intentionally avoided because it is volatile across reboot/re-login
   - Separately defines home-manager activation hooks that disable app-created legacy `LaunchAtLogin` agents (Stats/Hammerspoon)
 
 - `home/default.nix`
@@ -24,7 +23,7 @@ This directory documents the remaining macOS helper scripts. Most system configu
 
 - `home/modules/activation/`
   - `directories.nix` (local directories bootstrap)
-  - `macos_defaults.nix` (user-level defaults requiring `defaults -currentHost`)
+  - `macos_defaults.nix` (user-level defaults requiring `defaults -currentHost`, including GUI-persistent CapsLock-to-Control)
   - `nushell_ensure.nix` (ensure `local.nu` and Nushell cache directories)
   - `opencode.nix` (OpenCode config and rules sync)
   - `taskwarrior_ensure.nix` (ensure local Taskwarrior overlay files)

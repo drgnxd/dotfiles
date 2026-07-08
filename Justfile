@@ -3,13 +3,13 @@ set shell := ["bash", "-cu"]
 default:
   @just --list
 
-# Format all Nix files
+# Format the whole tree with treefmt
 fmt:
-  git ls-files -z '*.nix' | xargs -0 nix fmt --
+  nix fmt
 
-# Check Nix formatting
+# Check whole-tree formatting
 fmt-check:
-  git ls-files -z '*.nix' | xargs -0 nix fmt -- --check
+  nix fmt -- --fail-on-change
 
 # Run all CI checks locally
 check:
@@ -17,11 +17,11 @@ check:
 
 # Build Darwin configuration (no activation)
 build-darwin:
-  nix build .#packages.aarch64-darwin.default --no-link
+  nix build path:.#packages.aarch64-darwin.default --no-link
 
 # Apply Darwin configuration
 switch-darwin:
-  darwin-rebuild switch --flake .
+  sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 # Build Linux home-manager configuration
 build-linux:

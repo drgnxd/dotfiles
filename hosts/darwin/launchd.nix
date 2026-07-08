@@ -95,20 +95,6 @@ in
       ];
     };
 
-    # Avoid system.keyboard remap: hidutil mappings are volatile across reboot/re-login.
-    # RunAtLoad reapplies at login/boot; external-keyboard hot-plug is not covered.
-    remap-capslock-to-control = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/hidutil"
-          "property"
-          "--set"
-          ''{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}''
-        ];
-        RunAtLoad = true;
-      };
-    };
-
     # Simple login apps: open -a at login
     login-alacritty = mkLoginApp "Alacritty";
     login-floorp = mkLoginApp "Floorp";

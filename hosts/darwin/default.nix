@@ -13,7 +13,6 @@ in
   # Nix is installed and managed externally (e.g., Determinate Nix installer).
   # Enabling this would conflict with the external installation.
   nix.enable = false;
-  nixpkgs.config.allowUnfree = true;
 
   system.stateVersion = 5;
   system.startup.chime = false;
