@@ -18,8 +18,13 @@ let XDG_DIRS = (xdg-dirs)
 # =============================================================================
 # LOCALE
 # =============================================================================
-$env.LANG = "en_US.UTF-8"
-$env.LC_ALL = "en_US.UTF-8"
+let locale = if (($nu.os-info.name | str downcase) == "linux") {
+    "C.UTF-8"
+} else {
+    "en_US.UTF-8"
+}
+$env.LANG = $locale
+$env.LC_ALL = $locale
 
 # =============================================================================
 # ENV_CONVERSIONS (for colon-separated environment variables)
