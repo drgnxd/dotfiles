@@ -78,19 +78,8 @@ let
   ];
 
   lsp_servers = [
-    "pyright"
-    "ruff"
     "nixd"
     "copilot-language-server"
-    "marksman"
-    "taplo"
-    "lua-language-server"
-    "yaml-language-server"
-    "texlab"
-    "bash-language-server"
-    "dockerfile-language-server"
-    "steel-language-server"
-    "tinymist"
   ];
 
   git_tools = [
@@ -103,23 +92,15 @@ let
 
   dev_tools = [
     "ast-grep"
-    "boost"
-    "clang-tools"
-    "cmake"
-    "lldb"
     "nh"
     "nix-diff"
+    "nixfmt"
     "nix-tree"
     "nix-output-monitor"
   ];
 
   languages = [
-    "guile"
-    "nodejs"
     "uv"
-    "R" # nixpkgs attr: pkgs.R (GNU R)
-    # rustup provides rust-analyzer; avoid a separate package to prevent conflicts.
-    "rustup"
   ];
 
   document_tools = [

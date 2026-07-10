@@ -1,4 +1,6 @@
 # ~/.config/helix/languages.toml
+# Language-specific servers and formatters are resolved from PATH.
+# Home Manager keeps global Nix tooling; project devShells provide the rest.
 
 [language-server.r]
 command = "R"
@@ -11,7 +13,7 @@ command = "steel-language-server"
 command = "copilot-language-server"
 args = ["--stdio"]
 
-# Managed by Nix: add "copilot-language-server" to home/packages.nix.
+# Global assistant server: keep "copilot-language-server" in home/packages.nix.
 
 [language-server.copilot.config]
 editorInfo = { name = "Helix", version = "25.07" }
@@ -30,7 +32,7 @@ command = "nixd"
 
 [language-server.nixd.config.nixd]
 formatting = { command = ["nixfmt"] }
-# NOTE: These expressions evaluate the local flake; override per host if needed.
+# NOTE: These expressions evaluate the local flake; override per project if needed.
 options.nixos.expr = '''
 (builtins.getFlake (toString ./.)).darwinConfigurations.darwin.options
 '''
