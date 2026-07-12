@@ -117,6 +117,13 @@ autoload/
 - PATH helper with existence checks (`path-add`)
 - Local overrides via `~/.config/nushell/local.nu` (empty file ensured during activation)
 
+**Starship safety prompt**:
+- The Solarized Dark powerline bar shows only operational safety context on the left: host/user when relevant, location, Git state, Nix shell, Direnv, virtual environment, and SSH agent anomalies
+- Exit status, command duration, and background jobs render in `right_format`, away from the typing path
+- Virtual environments use the zero-subprocess `VIRTUAL_ENV_PROMPT` module; tools that omit that variable render nothing, with `VIRTUAL_ENV` available as a future full-path fallback
+- A Nushell `pre_prompt` hook sets `PASS_AGENT_DOWN` only when `SSH_AUTH_SOCK` is unset or its socket path is missing; this socket-existence proxy cannot detect a stale socket left by a dead process
+- The Nix-built Starship init enables a transient prompt that reduces completed prompts to the character and command; because the transient character receives no prior exit status, it may always use the success color
+
 **Module Loading**:
 ```nushell
 # env.nu

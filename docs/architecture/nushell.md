@@ -134,22 +134,32 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `upgrade-all` / `update` - Unified system upgrade
 - `save-stats` - Export Stats.app configuration
 - `bundle-id` - Get macOS app bundle ID
-- `integrations-cache-update` - Regenerate cached init scripts (Starship/Zoxide/Carapace/Atuin)
+- `integrations-cache-update` - Regenerate the runtime-cached Carapace init script
 
 ## Third-Party Integrations
 
-### Cached Integrations
-- **Starship** - Cross-shell prompt
+### Prompt and Tool Integrations
+- **Starship** - Safety-focused cross-shell prompt
 - **Zoxide** - Smart directory jumping
 - **Carapace** - Command completions
 - **Atuin** - Shell history sync
 - **Direnv** - Environment management via a PWD change hook (no cache)
 
-Cache generation runs on demand via `integrations-cache-update`. Generated init scripts are cached in `~/.cache/nushell-init` and sourced by `autoload/10-source-tools.nu`.
+Plan B generates Starship, Zoxide, and Atuin init scripts during the Nix build and deploys them under `~/.config/nushell/generated/`. `autoload/10-source-tools.nu` sources those deterministic files after activation.
 
-Plan A (runtime hash sync) is only used for Carapace. Its staleness check compares the resolved `/nix/store` path on Nix-managed systems and falls back to SHA-256 outside Nix-managed paths.
+Plan A runtime caching is only used for Carapace. `integrations-cache-update` refreshes its init script under `~/.cache/nushell-init`; its staleness check compares the resolved `/nix/store` path on Nix-managed systems and falls back to SHA-256 outside Nix-managed paths.
 
 Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically.
+
+### Starship Prompt Safety Model
+
+The Solarized Dark powerline bar is intentionally quiet during normal operation. The left prompt contains only context whose absence can cause an operational mistake: operating system, SSH/root identity, directory, Git branch and working-tree state, Nix shell, Direnv state, virtual environment, and the SSH-agent anomaly indicator. Language and tool version modules are omitted because the flake pins toolchains. Exit status, command duration, and background jobs appear in `right_format`, away from the typing path.
+
+Virtual environment display uses Starship's `env_var.VIRTUAL_ENV_PROMPT` module and spawns no process per prompt. `uv` and modern activation scripts normally set `VIRTUAL_ENV_PROMPT`; if a tool sets only `VIRTUAL_ENV`, the segment stays hidden. The documented fallback is to configure the module for `VIRTUAL_ENV`, which displays the full environment path.
+
+Before each prompt, a Nushell hook checks whether `SSH_AUTH_SOCK` is set and whether its socket path exists. It sets `PASS_AGENT_DOWN=✗` only for the anomalous state, which produces a red Starship warning, and removes the variable when the socket returns. This is a zero-subprocess stat check, not an agent health check: a stale socket left by a dead agent is a known blind spot.
+
+The Plan B Starship init also sets Nushell's transient prompt commands. Nushell replaces a completed prompt with the Starship character, reducing scrollback to the character plus the command. `starship module character` receives no previous `--status` value through this path, so the transient character may always render with the success color.
 
 ## Configuration Settings
 
