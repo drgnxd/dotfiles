@@ -3,79 +3,35 @@
 add_newline = true
 palette = "solarized_dark"
 
-# Solarized Dark Minimal Linked Bar (Expanded Support + Brew Tools)
+# Explicit timeouts (previously implicit defaults). Starship kills any
+# module command exceeding command_timeout, which silently hides broken
+# modules; making the budget explicit keeps that behavior auditable.
+command_timeout = 500
+scan_timeout = 30
+
+# Left prompt: "where am I / what state am I in" — modules whose absence
+# can cause accidents (wrong host, wrong branch, wrong environment).
+# Language/version modules are intentionally absent: toolchains are
+# pinned by the flake, so the safety signal is "is the dev shell active"
+# (nix_shell / direnv), not a version number.
 format = """
-[](base02)\
+[](base02)\
 $os\
+$username\
+$hostname\
 $directory\
 $git_branch\
 $git_status\
-$sudo\
-$direnv\
-$custom\
-$package\
-$c\
-$cmake\
-$cobol\
-$daml\
-$dart\
-$deno\
-$dotnet\
-$elixir\
-$elm\
-$erlang\
-$fennel\
-$golang\
-$guix_shell\
-$haskell\
-$haxe\
-$helm\
-$java\
-$julia\
-$kotlin\
-$gradle\
-$lua\
-$nim\
-$nodejs\
-$ocaml\
-$opa\
-$perl\
-$php\
-$pulumi\
-$purescript\
-$python\
-$raku\
-$rlang\
-$red\
-$ruby\
-$rust\
-$scala\
-$solidity\
-$swift\
-$typst\
-$terraform\
-$vlang\
-$vagrant\
-$zig\
-$azure\
-$env_var\
-$buf\
 $nix_shell\
-$conda\
-$spack\
-$memory_usage\
-$aws\
-$gcloud\
-$openstack\
-$crystal\
-$docker_context\
-$kubernetes\
-$jobs\
-$status\
-$cmd_duration\
-[](base02)\
+$direnv\
+${env_var.VIRTUAL_ENV_PROMPT}\
+${env_var.PASS_AGENT_DOWN}\
+[](base02)\
 $line_break\
 $character"""
+
+# Right prompt: "what just happened" — off the typing path.
+right_format = """$status$cmd_duration$jobs"""
 
 [palettes.solarized_dark]
 base03 = "#002b36"
@@ -95,18 +51,29 @@ blue = "#268bd2"
 cyan = "#2aa198"
 green = "#859900"
 
-# --- Core ---
-
 [os]
 disabled = false
 style = "bg:base02 fg:base1"
 format = "[$symbol]($style)"
 
 [os.symbols]
-Windows = "󰍲 "
-Ubuntu = "󰌽 "
 Macos = "󰀵 "
 Linux = "󰌽 "
+Ubuntu = "󰌽 "
+
+# Renders only for root or over SSH (show_always = false default behavior).
+[username]
+show_always = false
+style_user = "bg:base02 fg:yellow"
+style_root = "bg:base02 fg:red"
+format = "[$user]($style)"
+
+# Renders only over SSH — guards against running commands on the wrong host.
+[hostname]
+ssh_only = true
+ssh_symbol = "󰣀 "
+style = "bg:base02 fg:yellow"
+format = "[@$hostname $ssh_symbol]($style)"
 
 [directory]
 style = "bg:base02 fg:blue"
@@ -116,7 +83,7 @@ truncation_symbol = "…/"
 read_only = " 󰌾"
 
 [git_branch]
-symbol = ""
+symbol = ""
 style = "bg:base02 fg:violet"
 format = "[[ $symbol $branch ](bg:base02 fg:violet)]($style)"
 
@@ -136,323 +103,53 @@ staged = "+"
 renamed = "»"
 deleted = "✘"
 
-[sudo]
-disabled = false
-style = "bg:base02 fg:red"
-symbol = " "
-format = "[ | $symbol]($style)"
+[nix_shell]
+symbol = " "
+style = "bg:base02 fg:blue"
+format = "[ | $symbol$state]($style)"
 
 [direnv]
 disabled = false
-style = "bg:base02 fg:orange"
 symbol = "▼ "
+style = "bg:base02 fg:orange"
 format = "[ | $symbol$allowed]($style)"
 
-# --- Custom (Venv for Nushell) ---
-[custom.venv]
-shell = ["nu", "--no-config-file", "-c"]
-command = "($env.VIRTUAL_ENV | path basename)"
-when = "($env.VIRTUAL_ENV? | is-not-empty)"
+# Zero-subprocess replacement for the removed [custom.venv] (which spawned
+# `nu` on every prompt). VIRTUAL_ENV_PROMPT is set by uv and modern venv
+# activate scripts; if a venv tool does not set it, nothing renders
+# (fail-quiet). Fallback if needed later: switch variable to VIRTUAL_ENV
+# (renders the full path).
+[env_var.VIRTUAL_ENV_PROMPT]
+symbol = " "
 style = "bg:base02 fg:cyan"
-format = "[ |  $output]($style)"
+format = "[ | $symbol$env_value]($style)"
 
-# --- Runtimes & Tools ---
-
-[package]
-symbol = "󰏗 "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$version]($style)"
-
-[aws]
-symbol = " "
-style = "bg:base02 fg:orange"
-format = "[ | $symbol$profile]($style)"
-
-[buf]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[c]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[cmake]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[cobol]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[conda]
-symbol = " "
-style = "bg:base02 fg:green"
-format = "[ | $symbol$environment]($style)"
-
-[crystal]
-symbol = " "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$version]($style)"
-
-[daml]
-symbol = " "
-style = "bg:base02 fg:yellow"
-format = "[ | $symbol$version]($style)"
-
-[dart]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[deno]
-symbol = " "
-style = "bg:base02 fg:green"
-format = "[ | $symbol$version]($style)"
-
-[dotnet]
-symbol = "󰪮 "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[elixir]
-symbol = " "
-style = "bg:base02 fg:magenta"
-format = "[ | $symbol$version]($style)"
-
-[elm]
-symbol = " "
-style = "bg:base02 fg:cyan"
-format = "[ | $symbol$version]($style)"
-
-[erlang]
-symbol = " "
+# Anomaly-only indicator: set by a Nushell pre_prompt hook when the SSH
+# agent socket is missing (Proton Pass ssh-agent workflow). Silent when
+# healthy, red when broken — catches failed/wrong-key git SSH signing
+# before it happens.
+[env_var.PASS_AGENT_DOWN]
+symbol = "󰌆 "
 style = "bg:base02 fg:red"
-format = "[ | $symbol$version]($style)"
-
-[fennel]
-symbol = " "
-style = "bg:base02 fg:green"
-format = "[ | $symbol$version]($style)"
-
-[gcloud]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$account]($style)"
-
-[golang]
-symbol = " "
-style = "bg:base02 fg:cyan"
-format = "[ | $symbol$version]($style)"
-
-[gradle]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[guix_shell]
-symbol = " "
-style = "bg:base02 fg:yellow"
-format = "[ | $symbol]($style)"
-
-[haskell]
-symbol = " "
-style = "bg:base02 fg:magenta"
-format = "[ | $symbol$version]($style)"
-
-[haxe]
-symbol = " "
-style = "bg:base02 fg:orange"
-format = "[ | $symbol$version]($style)"
-
-[helm]
-symbol = " "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$version]($style)"
-
-[java]
-symbol = " "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$version]($style)"
-
-[julia]
-symbol = " "
-style = "bg:base02 fg:magenta"
-format = "[ | $symbol$version]($style)"
-
-[kotlin]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[lua]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[memory_usage]
-symbol = "󰍛 "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$ram]($style)"
-
-[nim]
-symbol = "󰆥 "
-style = "bg:base02 fg:yellow"
-format = "[ | $symbol$version]($style)"
-
-[nix_shell]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol]($style)"
-
-[nodejs]
-symbol = " "
-style = "bg:base02 fg:green"
-format = "[ | $symbol$version]($style)"
-
-[ocaml]
-symbol = " "
-style = "bg:base02 fg:yellow"
-format = "[ | $symbol$version]($style)"
-
-[opa]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[openstack]
-symbol = " "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$cloud]($style)"
-
-[perl]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[php]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[pulumi]
-symbol = " "
-style = "bg:base02 fg:magenta"
-format = "[ | $symbol$stack]($style)"
-
-[purescript]
-symbol = " "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$version]($style)"
-
-[python]
-symbol = " "
-style = "bg:base02 fg:cyan"
-format = "[ | $symbol$version]($style)"
-
-[raku]
-symbol = " "
-style = "bg:base02 fg:magenta"
-format = "[ | $symbol$version]($style)"
-
-[red]
-symbol = "󰝽 "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$version]($style)"
-
-[rlang]
-symbol = "󰟔 "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[ruby]
-symbol = " "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$version]($style)"
-
-[rust]
-symbol = " "
-style = "bg:base02 fg:orange"
-format = "[ | $symbol$version]($style)"
-
-[scala]
-symbol = " "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$version]($style)"
-
-[solidity]
-symbol = " "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$version]($style)"
-
-[spack]
-symbol = "◇ "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$environment]($style)"
-
-[swift]
-symbol = " "
-style = "bg:base02 fg:orange"
-format = "[ | $symbol$version]($style)"
-
-[terraform]
-symbol = "󱁢 "
-style = "bg:base02 fg:violet"
-format = "[ | $symbol$workspace]($style)"
-
-[typst]
-symbol = "t "
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$version]($style)"
-
-[vagrant]
-symbol = " "
-style = "bg:base02 fg:cyan"
-format = "[ | $symbol$version]($style)"
-
-[vlang]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$version]($style)"
-
-[zig]
-symbol = " "
-style = "bg:base02 fg:yellow"
-format = "[ | $symbol$version]($style)"
-
-# --- Cloud/Containers ---
-
-[docker_context]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$context]($style)"
-
-[kubernetes]
-symbol = "󱃾 "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$context]($style)"
-
-# --- System ---
-
-[jobs]
-symbol = " "
-symbol_threshold = 2
-style = "bg:base02 fg:base1"
-format = "[ | $symbol$number]($style)"
+format = "[ | $symbol$env_value]($style)"
 
 [status]
 disabled = false
-style = "bg:base02 fg:red"
 symbol = "✘ "
-format = "[ | $symbol$status]($style)"
+style = "fg:red"
+format = "[$symbol$status]($style) "
 
 [cmd_duration]
 min_time = 2000
-style = "bg:base02 fg:yellow"
-format = "[ 󰞌 $duration]($style)"
+style = "fg:yellow"
+format = "[󰞌 $duration]($style) "
+
+[jobs]
+symbol = " "
+symbol_threshold = 1
+number_threshold = 1
+style = "fg:base1"
+format = "[$symbol$number]($style)"
 
 [line_break]
 disabled = false
