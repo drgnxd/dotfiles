@@ -32,12 +32,12 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
 *   **Task Management:** Taskwarrior
-*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), clang-tools, lldb, ast-grep, nix-diff, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases), Guile (GNU Guile)
+*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
 *   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
-*   **Version Managers:** uv (Python), node, rust
+*   **Project Environments:** direnv + nix-direnv with `uv` for Python; language runtimes and language-specific LSPs belong in project `devShell`s
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
 
 ## Installation
@@ -253,7 +253,7 @@ Modern shell with structured data and modular configuration:
 
 ### Helix language-server (LSP) support
 
-This configuration enables additional language-server integrations for the Helix editor and documents the matching Nix packages. The repository includes recommended LSPs such as `pyright`, `ruff`, `marksman`, `taplo`, `lua-language-server`, `yaml-language-server`, and `texlab` via Nix packages. For Rust, `rust-analyzer` is expected via `rustup` (`rustup component add rust-analyzer`). See `dot_config/helix/` for editor settings and `home/packages.nix` for package declarations.
+This configuration keeps only general Nix/editor assistance global and resolves language-specific Helix language servers from `PATH`. Project `devShell`s provide the matching tools. This repository's `devShell` includes the language servers and CLI tools needed for its own Python, Lua, shell, Markdown, TOML, Nushell, and OpenCode package files.
 
 ## License
 
