@@ -34,11 +34,15 @@ let
         ${builtins.concatStringsSep " " cmd} > $out
       '';
 
-  starshipInit = mkNushellInit "starship" config.programs.starship.package [
-    "starship"
-    "init"
-    "nu"
-  ];
+  # Nushell >= 0.86 replaces completed prompts with transient output, reducing
+  # scrollback to a character plus the command.
+  starshipInit = pkgs.runCommand "starship-nushell-init" { } ''
+    ${config.programs.starship.package}/bin/starship init nu > $out
+    cat >> $out <<'EOF'
+    $env.TRANSIENT_PROMPT_COMMAND = {|| ^${config.programs.starship.package}/bin/starship module character }
+    $env.TRANSIENT_PROMPT_COMMAND_RIGHT = {|| "" }
+    EOF
+  '';
 
   zoxideInit = mkNushellInit "zoxide" config.programs.zoxide.package [
     "zoxide"
