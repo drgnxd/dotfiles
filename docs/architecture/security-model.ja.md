@@ -13,6 +13,13 @@ Dependabot は GitHub Actions を週次で確認し、minor と patch 更新を 
 
 CI で使う `gitleaks` や `actionlint` などの security / lint tool binary は、`nix run --inputs-from .` により `flake.lock` から解決します。そのため tool version は手動 checksum 編集ではなく、週次の flake.lock 更新に追随します。
 
+## デフォルトブランチ ruleset
+デフォルトブランチは GitHub repository ruleset で保護し、変更は pull request 経由で入り、設定済みの required status checks に合格することを要求します。
+
+repository admin role は、この ruleset の bypass list に `bypass_mode: always` で登録しています。これにより、デフォルトブランチへの直接 push が可能になり、pull-request requirement と required status checks の両方をスキップします。admin による直接 push は CI で gate されません。push 後に CI は走るため、失敗は事後に検出されるだけで、事前には防止されません。デフォルトブランチが壊れると、以後の自動依存関係 pull request は、その依存関係更新とは無関係な理由で CI に失敗します。
+
+Dependabot や flake.lock updater などの自動 pull request は bypass list に入れておらず、required checks による gate を完全に受けます。これは ruleset を置く理由を保つためです。required status checks が設定されていない場合、`gh pr merge --auto` は即時に merge します。
+
 ## 目的
 - 変更の宣言的管理により安全性を担保
 - インタラクティブ操作にのみ明示的な許可を要求
