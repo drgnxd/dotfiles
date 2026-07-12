@@ -117,6 +117,13 @@ autoload/
 - 存在確認付き PATH ヘルパー（`path-add`）
 - `~/.config/nushell/local.nu` によるローカル上書き（activation で空ファイル保証）
 
+**Starship の安全重視プロンプト**:
+- Solarized Dark の powerline bar の左側には、必要な場合のホスト名/ユーザー名、現在地、Git の状態、Nix shell、Direnv、仮想環境、SSH agent の異常だけを表示
+- 終了ステータス、コマンド実行時間、バックグラウンドジョブは入力位置から離して `right_format` に表示
+- 仮想環境は subprocess を起動しない `VIRTUAL_ENV_PROMPT` module で表示する。この変数を設定しないツールでは何も表示せず、必要になれば full path を表示する `VIRTUAL_ENV` を fallback として利用可能
+- Nushell の `pre_prompt` hook は `SSH_AUTH_SOCK` が未設定、または socket path が存在しない場合だけ `PASS_AGENT_DOWN` を設定する。この存在確認では、process 終了後に残った stale socket は検出不能
+- Nix build 時に生成する Starship init で transient prompt を有効にし、実行済み prompt を character と command だけに縮約する。transient character には直前の exit status が渡らないため、常に success color になる場合がある
+
 **Module Loading**:
 ```nushell
 # env.nu
