@@ -30,12 +30,12 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **ノート管理:** zk (Zettelkasten)
 *   **タスク管理:** Taskwarrior
-*   **開発ツール:** Git（delta・git-lfs・git-absorb・git-cliff統合）、jujutsu（`jj`）、clang-tools、lldb、ast-grep、nix-diff、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）、Guile（GNU Guile）
+*   **開発ツール:** Git（delta・git-lfs・git-absorb・git-cliff統合）、jujutsu（`jj`）、ast-grep、nix-diff、nixfmt、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
     *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
 *   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor（`nom`）, glow, gping, doggo, viddy
-*   **バージョンマネージャ:** uv (Python)、node、rust
+*   **プロジェクト環境:** direnv + nix-direnv と Python 用の `uv`。言語ランタイムと言語別 LSP はプロジェクトの `devShell` で管理します
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）, qFlipper（デバイス書き込みツール）
 
 ## インストール
@@ -250,7 +250,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 ### Helix の Language Server (LSP) サポート
 
-この設定では Helix エディタ用の言語サーバ統合を追加し、それに対応する Nix パッケージをドキュメント化しています。`pyright`, `ruff`, `marksman`, `taplo`, `lua-language-server`, `yaml-language-server`, `texlab` などの推奨LSPは Nix パッケージで提供します。Rust の `rust-analyzer` は `rustup` 前提（`rustup component add rust-analyzer`）です。エディタ設定は `dot_config/helix/`、パッケージ定義は `home/packages.nix` を参照してください。
+この設定では一般的な Nix/エディタ支援だけをグローバルに残し、言語別の Helix Language Server は `PATH` から解決します。対応するツールは各プロジェクトの `devShell` が提供します。このリポジトリの `devShell` には、Python、Lua、shell、Markdown、TOML、Nushell、OpenCode の package ファイルに必要な Language Server と CLI ツールを含めています。
 
 ## ソフトウェアポリシー
 
