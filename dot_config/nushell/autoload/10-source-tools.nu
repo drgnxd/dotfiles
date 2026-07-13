@@ -48,49 +48,61 @@ if (has-cmd atuin) {
     }
 }
 
-# DIRENV (hooks into PWD change for automatic env loading)
-if (has-cmd direnv) {
-    $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
-        [ {||
-            let direnv_out = (do { direnv export json } | complete)
-            if $direnv_out.exit_code == 0 {
-                hide-env --ignore-errors DIRENV_BLOCKED
-                if ($direnv_out.stdout | is-not-empty) {
-                    let env_changes = ($direnv_out.stdout | from json)
-                    if ($env_changes | is-not-empty) {
-                        $env_changes | load-env
-                    }
-                }
-            } else {
-                let direnv_status = (do { direnv status --json } | complete)
-                let found_rc = if ($direnv_status.exit_code == 0) and ($direnv_status.stdout | is-not-empty) {
-                    try {
-                        $direnv_status.stdout | from json | get -o state.foundRC
-                    } catch {
-                        null
-                    }
-                } else {
-                    null
-                }
+def --env direnv-sync [] {
+    let direnv_out = (do { ^direnv export json } | complete)
+    if $direnv_out.exit_code == 0 {
+        hide-env --ignore-errors DIRENV_BLOCKED
+        if ($direnv_out.stdout | is-not-empty) {
+            let env_changes = ($direnv_out.stdout | from json)
+            if ($env_changes | is-not-empty) {
+                $env_changes | load-env
+            }
+        }
+    } else {
+        let direnv_status = (do { ^direnv status --json } | complete)
+        let found_rc = if ($direnv_status.exit_code == 0) and ($direnv_status.stdout | is-not-empty) {
+            try {
+                $direnv_status.stdout | from json | get -o state.foundRC
+            } catch {
+                null
+            }
+        } else {
+            null
+        }
 
-                # direnv 2.37 reports foundRC.allowed as 0 when allowed.
-                if ($found_rc != null) and (($found_rc.allowed? | default 0) != 0) {
-                    # Blocked exports still contain cleanup changes. Apply them
-                    # without DIRENV_DIR so stale environments do not look loaded.
-                    hide-env --ignore-errors DIRENV_DIR
-                    if ($direnv_out.stdout | is-not-empty) {
-                        let env_changes = ($direnv_out.stdout | from json | reject -o DIRENV_DIR)
-                        if ($env_changes | is-not-empty) {
-                            $env_changes | load-env
-                        }
-                    }
-                    load-env { DIRENV_BLOCKED: "!" }
-                } else {
-                    hide-env --ignore-errors DIRENV_BLOCKED
+        # direnv 2.37 reports foundRC.allowed as 0 when allowed.
+        if ($found_rc != null) and (($found_rc.allowed? | default 0) != 0) {
+            # Blocked exports still contain cleanup changes. Apply them
+            # without DIRENV_DIR so stale environments do not look loaded.
+            hide-env --ignore-errors DIRENV_DIR
+            if ($direnv_out.stdout | is-not-empty) {
+                let env_changes = ($direnv_out.stdout | from json | reject -o DIRENV_DIR)
+                if ($env_changes | is-not-empty) {
+                    $env_changes | load-env
                 }
             }
-        } ]
+            load-env { DIRENV_BLOCKED: "!" }
+        } else {
+            hide-env --ignore-errors DIRENV_BLOCKED
+        }
+    }
+}
+
+# DIRENV (hooks into PWD change for automatic env loading)
+if (which --all direnv | any { |entry| $entry.type == "external" }) {
+    $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
+        [ {|| direnv-sync } ]
     })
+}
+
+# Refresh immediately after approval without moving direnv onto the prompt path.
+export def --env --wrapped direnv [...args] {
+    ^direnv ...$args
+    let exit_code = $env.LAST_EXIT_CODE
+    let action = ($args | get -o 0 | default "")
+    if ($exit_code == 0) and ($action == "allow") {
+        direnv-sync
+    }
 }
 
 # PASS SSH-AGENT INDICATOR (anomaly-only)

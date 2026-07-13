@@ -146,7 +146,7 @@ Plan B generates Starship, Zoxide, and Atuin init scripts during the Nix build a
 
 Plan A runtime caching is only used for Carapace. `integrations-cache-update` refreshes its init script under `~/.cache/nushell-init`; its staleness check compares the resolved `/nix/store` path on Nix-managed systems and falls back to SHA-256 outside Nix-managed paths.
 
-Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically. The hook exposes loaded state through `DIRENV_DIR` and blocked state through `DIRENV_BLOCKED`; Starship renders both with `env_var` modules, so no direnv subprocess runs per prompt.
+Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically. A thin `direnv` wrapper reruns the same sync after a successful `direnv allow`, making the indicator update without another `cd`. The hook exposes loaded state through `DIRENV_DIR` and blocked state through `DIRENV_BLOCKED`; Starship renders both with `env_var` modules, so no direnv subprocess runs per prompt.
 
 ### Starship Prompt Safety Model
 
