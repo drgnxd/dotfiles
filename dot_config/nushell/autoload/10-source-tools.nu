@@ -1,6 +1,6 @@
 # Integrations consumer (source-only)
 #
-# requires: 00-helpers, 06-integrations, 08-taskwarrior
+# requires: 00-helpers, 06-integrations
 #
 # Plan B (Nix-built, deterministic):
 #   starship, zoxide, atuin — init scripts generated at nix-build time
@@ -12,7 +12,6 @@
 
 # Load order guards: abort early if dependencies are missing
 require-loaded "integrations-cache-update" "06-integrations.nu"
-require-loaded "task_preview_enable" "08-taskwarrior.nu"
 
 # Plan B: Nix-managed init scripts (read-only, always up-to-date after rebuild)
 const starship_file = ($nu.home-dir | path join ".config" "nushell" "generated" "starship.nu")
@@ -49,20 +48,78 @@ if (has-cmd atuin) {
     }
 }
 
-# DIRENV (hooks into PWD change for automatic env loading)
-if (has-cmd direnv) {
-    $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
-        [ {||
-            let direnv_out = (do { direnv export json } | complete)
-            if ($direnv_out.exit_code == 0) and ($direnv_out.stdout | is-not-empty) {
-                let env_changes = ($direnv_out.stdout | from json)
+def --env direnv-sync [] {
+    let direnv_out = (do { ^direnv export json } | complete)
+    if $direnv_out.exit_code == 0 {
+        hide-env --ignore-errors DIRENV_BLOCKED
+        if ($direnv_out.stdout | is-not-empty) {
+            let env_changes = ($direnv_out.stdout | from json)
+            if ($env_changes | is-not-empty) {
+                $env_changes | load-env
+            }
+        }
+    } else {
+        let direnv_status = (do { ^direnv status --json } | complete)
+        let found_rc = if ($direnv_status.exit_code == 0) and ($direnv_status.stdout | is-not-empty) {
+            try {
+                $direnv_status.stdout | from json | get -o state.foundRC
+            } catch {
+                null
+            }
+        } else {
+            null
+        }
+
+        # direnv 2.37 reports foundRC.allowed as 0 when allowed.
+        if ($found_rc != null) and (($found_rc.allowed? | default 0) != 0) {
+            # Blocked exports still contain cleanup changes. Apply them
+            # without DIRENV_DIR so stale environments do not look loaded.
+            hide-env --ignore-errors DIRENV_DIR
+            if ($direnv_out.stdout | is-not-empty) {
+                let env_changes = ($direnv_out.stdout | from json | reject -o DIRENV_DIR)
                 if ($env_changes | is-not-empty) {
                     $env_changes | load-env
                 }
             }
-        } ]
+            load-env { DIRENV_BLOCKED: "!" }
+        } else {
+            hide-env --ignore-errors DIRENV_BLOCKED
+        }
+    }
+}
+
+# DIRENV (hooks into PWD change for automatic env loading)
+if (which --all direnv | any { |entry| $entry.type == "external" }) {
+    $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
+        [ {|| direnv-sync } ]
     })
 }
 
-# Taskwarrior preview (wraps right prompt after prompt tools load)
-task_preview_enable
+# Refresh immediately after approval without moving direnv onto the prompt path.
+export def --env --wrapped direnv [...args] {
+    ^direnv ...$args
+    let exit_code = $env.LAST_EXIT_CODE
+    let action = ($args | get -o 0 | default "")
+    if ($exit_code == 0) and ($action == "allow") {
+        direnv-sync
+    }
+}
+
+# PASS SSH-AGENT INDICATOR (anomaly-only)
+# Sets PASS_AGENT_DOWN when $env.SSH_AUTH_SOCK is unset or its socket file
+# is missing; starship renders it via ${env_var.PASS_AGENT_DOWN}.
+# Socket existence is a liveness proxy: a stale socket (process died, file
+# left behind) is NOT detected. `path exists` is a builtin stat call — no
+# subprocess is spawned, keeping the prompt's zero-spawn budget intact.
+$env.config = ($env.config | upsert hooks.pre_prompt {|config|
+    ($config | get -o hooks.pre_prompt | default []) ++ [
+        {||
+            let sock = ($env.SSH_AUTH_SOCK? | default "")
+            if ($sock | is-empty) or (not ($sock | path exists)) {
+                load-env { PASS_AGENT_DOWN: "✗" }
+            } else {
+                hide-env --ignore-errors PASS_AGENT_DOWN
+            }
+        }
+    ]
+})

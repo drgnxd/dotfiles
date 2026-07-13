@@ -19,7 +19,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 
 *   **Shell:** Nushell (modern shell with structured data, XDG-compliant, modular configuration)
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
-    *   Key commands: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
+    *   Key commands: `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   Includes all previous Zsh functionality migrated to Nushell
 *   **Legacy Shell:** Zsh configuration is archived in git history
 *   **Terminal:** Alacritty with Solarized Dark theme
@@ -31,7 +31,6 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Note Taking:** zk (Zettelkasten)
-*   **Task Management:** Taskwarrior
 *   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
@@ -198,21 +197,12 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `opencode/`: Configuration for OpenCode (AI coding agent)
     *   `starship/`: Cross-shell prompt configuration
     *   `stats/`: Configuration for Stats (system monitor)
-    *   `taskwarrior/`: Task management configuration
     *   `zellij`: Configured through `home/modules/zellij.nix`
     *   `yazi/`: Blazing fast terminal file manager with custom theme
     *   `nushell/`: Modern shell configuration (see architecture/nushell.md)
         *   `autoload/`: Modular configuration files
 
 ## Features
-
-### Taskwarrior
-
-Taskwarrior cache system for fast, shell-agnostic integrations:
-
-*   **Automatic Cache**: Python hooks refresh the cache on every add/modify operation
-*   **Structured Outputs**: ID and description lists optimized for prompt/completion usage
-*   **Legacy UI**: Zsh-specific highlighting/preview features are archived
 
 ### Hammerspoon
 
@@ -240,7 +230,6 @@ Modern shell with structured data and modular configuration:
 *   **Conditional Commands**: Smart fallbacks (`g` uses `rg`/`grep`, `f` uses `fd`/`find`, `cat` uses `bat`/`cat`)
 *   **PATH Helper**: Uses a small `path-add` helper to prepend existing paths in order
 *   **Key Commands**:
-    *   `t` - Taskwarrior
     *   `g` - Ripgrep search
     *   `f` - fd search
     *   `cat` - bat (fallback to cat)

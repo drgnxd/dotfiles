@@ -19,12 +19,10 @@ dot_config/nushell/
 │   ├── 05-completions.nu   # Command completions
 │   ├── 06-integrations.nu  # Lazy wrapper for integration cache updates
 │   ├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
-│   ├── 08-taskwarrior.nu   # Lazy wrapper for task preview and task command
 │   ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
 │   └── 10-source-tools.nu  # Sources cached init scripts
 └── modules/
     ├── integrations.nu    # Cache generation (on demand)
-    ├── taskwarrior.nu     # Task preview + cache refresh
     └── lima.nu            # Lima/Docker commands
 ```
 
@@ -51,7 +49,7 @@ No user-specific path rewrites are needed when moving between machines/users, as
 
 Lazy-loaded integrations live under `modules/` and are pulled in by lightweight wrappers in `autoload/` via `overlay use` with module constants exported from `autoload/00-constants.nu`. This keeps startup fast while avoiding hardcoded path assumptions.
 
-`config.nu` intentionally loads `06-integrations.nu`, then wrapper modules (`08-taskwarrior.nu`, `09-lima.nu`), and finally `10-source-tools.nu`. `10-source-tools.nu` is a consumer stage that triggers `integrations-cache-update` and `task_preview_enable`, so it must run after those command definitions are present.
+`config.nu` intentionally loads `06-integrations.nu`, then `09-lima.nu`, and finally `10-source-tools.nu`. `10-source-tools.nu` is a consumer stage that triggers `integrations-cache-update`, so it must run after that command definition is present.
 
 ## Key Features
 
@@ -117,7 +115,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `g` - Search with ripgrep (fallback to grep)
 
 ### Application Shortcuts
-- `t` - Taskwarrior
 - `lg` - LazyGit
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
@@ -134,22 +131,32 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `upgrade-all` / `update` - Unified system upgrade
 - `save-stats` - Export Stats.app configuration
 - `bundle-id` - Get macOS app bundle ID
-- `integrations-cache-update` - Regenerate cached init scripts (Starship/Zoxide/Carapace/Atuin)
+- `integrations-cache-update` - Regenerate the runtime-cached Carapace init script
 
 ## Third-Party Integrations
 
-### Cached Integrations
-- **Starship** - Cross-shell prompt
+### Prompt and Tool Integrations
+- **Starship** - Safety-focused cross-shell prompt
 - **Zoxide** - Smart directory jumping
 - **Carapace** - Command completions
 - **Atuin** - Shell history sync
-- **Direnv** - Environment management via a PWD change hook (no cache)
+- **Direnv** - Environment management and state detection via a PWD change hook (no cache or per-prompt subprocess)
 
-Cache generation runs on demand via `integrations-cache-update`. Generated init scripts are cached in `~/.cache/nushell-init` and sourced by `autoload/10-source-tools.nu`.
+Plan B generates Starship, Zoxide, and Atuin init scripts during the Nix build and deploys them under `~/.config/nushell/generated/`. `autoload/10-source-tools.nu` sources those deterministic files after activation.
 
-Plan A (runtime hash sync) is only used for Carapace. Its staleness check compares the resolved `/nix/store` path on Nix-managed systems and falls back to SHA-256 outside Nix-managed paths.
+Plan A runtime caching is only used for Carapace. `integrations-cache-update` refreshes its init script under `~/.cache/nushell-init`; its staleness check compares the resolved `/nix/store` path on Nix-managed systems and falls back to SHA-256 outside Nix-managed paths.
 
-Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically.
+Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/10-source-tools.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically. A thin `direnv` wrapper reruns the same sync after a successful `direnv allow`, making the indicator update without another `cd`. The hook exposes loaded state through `DIRENV_DIR` and blocked state through `DIRENV_BLOCKED`; Starship renders both with `env_var` modules, so no direnv subprocess runs per prompt.
+
+### Starship Prompt Safety Model
+
+The Solarized Dark powerline bar is intentionally quiet during normal operation. The left prompt contains only context whose absence can cause an operational mistake: operating system, SSH/root identity, directory, Git branch and working-tree state, Nix shell, Direnv state, virtual environment, and the SSH-agent anomaly indicator. Language and tool version modules are omitted because the flake pins toolchains. Exit status, command duration, and background jobs appear in `right_format`, away from the typing path.
+
+Virtual environment display uses Starship's `env_var.VIRTUAL_ENV_PROMPT` module and spawns no process per prompt. `uv` and modern activation scripts normally set `VIRTUAL_ENV_PROMPT`; if a tool sets only `VIRTUAL_ENV`, the segment stays hidden. The documented fallback is to configure the module for `VIRTUAL_ENV`, which displays the full environment path.
+
+Before each prompt, a Nushell hook checks whether `SSH_AUTH_SOCK` is set and whether its socket path exists. It sets `PASS_AGENT_DOWN=✗` only for the anomalous state, which produces a red Starship warning, and removes the variable when the socket returns. This is a zero-subprocess stat check, not an agent health check: a stale socket left by a dead agent is a known blind spot.
+
+The Plan B Starship init also sets Nushell's transient prompt commands. Nushell replaces a completed prompt with the Starship character, reducing scrollback to the character plus the command. `starship module character` receives no previous `--status` value through this path, so the transient character may always render with the success color.
 
 ## Configuration Settings
 

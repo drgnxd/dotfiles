@@ -29,63 +29,6 @@ $env.config.completions.external = {
     }
 }
 
-# Task preview keybindings
-let task_preview_repaint_keys = (
-    # Generate digit keybindings (0-9) data-driven
-    (0..9 | each { |n|
-        {
-            name: $"task_preview_digit_($n)"
-            modifier: none
-            keycode: $"char_($n)"
-            mode: [emacs vi_insert]
-            event: [
-                { edit: insertchar value: ($n | into string) }
-                { send: executehostcommand cmd: 'task_preview_update' }
-                { send: repaint }
-            ]
-        }
-    })
-    | append [
-        {
-            name: task_preview_backspace
-            modifier: none
-            keycode: backspace
-            mode: [emacs vi_insert]
-            event: [
-                { edit: backspace }
-                { send: executehostcommand cmd: 'task_preview_update' }
-                { send: repaint }
-            ]
-        }
-        {
-            name: task_preview_delete
-            modifier: none
-            keycode: delete
-            mode: [emacs vi_insert]
-            event: [
-                { edit: delete }
-                { send: executehostcommand cmd: 'task_preview_update' }
-                { send: repaint }
-            ]
-        }
-        {
-            name: task_preview_cancel
-            modifier: control
-            keycode: char_c
-            mode: [emacs vi_insert vi_normal]
-            event: [
-                { send: executehostcommand cmd: 'task_preview_clear' }
-                { send: ctrlc }
-            ]
-        }
-    ]
-)
-
-$env.config.keybindings = (
-    ($env.config.keybindings | default [])
-    | append $task_preview_repaint_keys
-)
-
 # =============================================================================
 # AUTOLOAD MODULES
 # =============================================================================
@@ -95,7 +38,6 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 # Tool modules (eager-loaded) — must precede autoload wrappers that call their exports
 source ($config_dir | path join 'modules' 'integrations.nu')
-source ($config_dir | path join 'modules' 'taskwarrior.nu')
 source ($config_dir | path join 'modules' 'lima.nu')
 
 # Modules (Dependencies) - Load these FIRST
@@ -107,9 +49,7 @@ source ($config_dir | path join 'autoload' '05-completions.nu')
 source ($config_dir | path join 'autoload' '06-integrations.nu')
 source ($config_dir | path join 'autoload' '07-abbreviations.nu')
 
-# Task/Lima wrappers — thin defs that delegate to eagerly-loaded module exports.
-# Must be loaded before 10-source-tools.nu which calls task_preview_enable.
-source ($config_dir | path join 'autoload' '08-taskwarrior.nu')
+# Lima wrapper — thin defs that delegate to eagerly-loaded module exports.
 source ($config_dir | path join 'autoload' '09-lima.nu')
 
 # Tools / Consumers - Load these LAST

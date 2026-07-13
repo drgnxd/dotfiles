@@ -75,10 +75,6 @@ $env.NPM_CONFIG_USERCONFIG = ($env.XDG_CONFIG_HOME | path join "npm" "npmrc")
 $env.BUN_INSTALL_CACHE_DIR = ($env.XDG_CACHE_HOME | path join "bun" "install" "cache")
 $env.BUN_RUNTIME_TRANSPILER_CACHE_PATH = ($env.XDG_CACHE_HOME | path join "bun" "runtime-transpiler")
 
-# Taskwarrior
-$env.TASKRC = ($env.XDG_CONFIG_HOME | path join "taskwarrior" "config")
-$env.TASKDATA = ($env.XDG_DATA_HOME | path join "taskwarrior")
-
 # ZK (Zettelkasten)
 $env.ZK_NOTEBOOK_DIR = ($env.HOME | path join "dev" "zettel")
 $env.ZK_EDITOR = "hx"
