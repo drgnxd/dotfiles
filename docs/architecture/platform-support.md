@@ -32,7 +32,7 @@ Set `local/identity.nix` before applying on your machine.
 - mako — notification daemon
 - grim + slurp — screenshots
 
-**Supported components**: All CLI tools, Nushell, Helix, Git, Taskwarrior, Yazi, Zellij, OpenCode, Starship, Zoxide, Atuin, Carapace, Direnv, Alacritty, and the Linux desktop stack above.
+**Supported components**: All CLI tools, Nushell, Helix, Git, Yazi, Zellij, OpenCode, Starship, Zoxide, Atuin, Carapace, Direnv, Alacritty, and the Linux desktop stack above.
 
 **Keybinding parity**: Window management keybindings (`Ctrl+Alt` + arrows/`U``I``J``K`/`C`/`Enter`) are mirrored from the macOS Hammerspoon configuration for consistent muscle memory.
 

@@ -26,7 +26,6 @@ This directory documents the remaining macOS helper scripts. Most system configu
   - `macos_defaults.nix` (user-level defaults requiring `defaults -currentHost`, including GUI-persistent CapsLock-to-Control)
   - `nushell_ensure.nix` (ensure `local.nu` and Nushell cache directories)
   - `opencode.nix` (OpenCode config and rules sync)
-  - `taskwarrior_ensure.nix` (ensure local Taskwarrior overlay files)
 
 ## Usage
 ```bash

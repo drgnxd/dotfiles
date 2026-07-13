@@ -17,7 +17,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
     *   詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
-    *   主なコマンド: `t` (task), `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
+    *   主なコマンド: `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
     *   以前のZsh機能を全てNushellに移行済み
 *   **レガシーシェル:** Zsh設定はgit履歴にアーカイブ済み
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
@@ -29,7 +29,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **ノート管理:** zk (Zettelkasten)
-*   **タスク管理:** Taskwarrior
 *   **開発ツール:** Git（delta・git-lfs・git-absorb・git-cliff統合）、jujutsu（`jj`）、ast-grep、nix-diff、nixfmt、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
     *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
@@ -194,22 +193,12 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `opencode/`: OpenCode (AIコーディングエージェント) の設定
     *   `starship/`: クロスシェルプロンプトの設定
     *   `stats/`: Stats（システムモニター）の設定
-    *   `taskwarrior/`: タスク管理の設定
     *   `zellij`: `home/modules/zellij.nix` で管理
     *   `yazi/`: 高速ターミナルファイルマネージャ（カスタムテーマ）
     *   `nushell/`: モダンなシェル設定（詳細は architecture/nushell.ja.md を参照）
         *   `autoload/`: モジュール化された設定ファイル
 
 ## 機能
-
-### Taskwarrior
-
-シェル非依存のTaskwarriorキャッシュシステム：
-
-*   **自動キャッシュ**: 追加・変更時にPythonフックがキャッシュを更新
-*   **構造化出力**: プロンプト/補完向けにIDと説明のリストを生成
-*   **旧UI**: Zsh専用のハイライト/プレビューはアーカイブ済み
-
 
 ### Hammerspoon
 
@@ -237,7 +226,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **条件付きコマンド**: スマートフォールバック（`g`は`rg`/`grep`、`f`は`fd`/`find`、`cat`は`bat`/`cat`）
 *   **PATHヘルパー**: 既存パスのみを順序通りに先頭追加する`path-add`を使用
 *   **主なコマンド**:
-    *   `t` - Taskwarrior
     *   `g` - Ripgrep検索
     *   `f` - fd検索
     *   `cat` - bat（無い場合はcat）

@@ -26,7 +26,6 @@
   - `macos_defaults.nix`（GUIで永続化される CapsLock-to-Control を含む、`defaults -currentHost` が必要なユーザー設定）
   - `nushell_ensure.nix`（`local.nu` と Nushell キャッシュディレクトリの保証）
   - `opencode.nix`（OpenCode 設定とルール同期）
-  - `taskwarrior_ensure.nix`（Taskwarrior のローカル上書きファイル保証）
 
 ## 使用例
 ```bash
