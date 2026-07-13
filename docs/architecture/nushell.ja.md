@@ -19,12 +19,10 @@ dot_config/nushell/
 │   ├── 05-completions.nu   # コマンド補完
 │   ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
 │   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
-│   ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
 │   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
 │   └── 10-source-tools.nu  # キャッシュ読み込み
 └── modules/
     ├── integrations.nu     # キャッシュ生成（オンデマンド）
-    ├── taskwarrior.nu      # Taskwarriorプレビュー＋キャッシュ更新
     └── lima.nu             # Lima/Dockerコマンド
 ```
 
@@ -51,7 +49,7 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが `autoload/00-constants.nu` で定義したモジュール定数経由で `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、ハードコードされたパス依存を避けます。
 
-`config.nu` は意図的に `06-integrations.nu`、`08-taskwarrior.nu`、`09-lima.nu` を先に読み込み、その後で `10-source-tools.nu` を読み込みます。`10-source-tools.nu` は `integrations-cache-update` と `task_preview_enable` を呼ぶ消費側ステージのため、これらのコマンド定義後に実行する必要があります。
+`config.nu` は意図的に `06-integrations.nu`、`09-lima.nu`、`10-source-tools.nu` の順に読み込みます。`10-source-tools.nu` は `integrations-cache-update` を呼ぶ消費側ステージのため、そのコマンド定義後に実行する必要があります。
 
 ## 主な機能
 
@@ -117,7 +115,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `g` - ripgrepで検索（フォールバックはgrep）
 
 ### アプリケーションショートカット
-- `t` - Taskwarrior
 - `lg` - LazyGit
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
@@ -134,22 +131,32 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `upgrade-all` / `update` - 統合システムアップグレード
 - `save-stats` - Stats.app設定のエクスポート
 - `bundle-id` - macOSアプリのバンドルID取得
-- `integrations-cache-update` - キャッシュ初期化スクリプト再生成（Starship/Zoxide/Carapace/Atuin）
+- `integrations-cache-update` - runtime cache 方式の Carapace init script を再生成
 
 ## サードパーティ統合
 
-### キャッシュ統合ツール
-- **Starship** - クロスシェルプロンプト
+### プロンプトとツール統合
+- **Starship** - 安全性を重視したクロスシェルプロンプト
 - **Zoxide** - スマートディレクトリジャンプ
 - **Carapace** - コマンド補完
 - **Atuin** - シェル履歴同期
-- **Direnv** - 環境管理（PWD 変更フックで自動適用、キャッシュなし）
+- **Direnv** - PWD 変更フックによる環境管理と状態検出（キャッシュと prompt ごとの subprocess はなし）
 
-キャッシュ生成は`integrations-cache-update`でオンデマンド実行します。生成された初期化スクリプトは`~/.cache/nushell-init`にキャッシュされ、`autoload/10-source-tools.nu`で読み込みます。
+Plan B では Starship、Zoxide、Atuin の init script を Nix build 時に生成し、`~/.config/nushell/generated/` 以下へ配備します。activation 後に `autoload/10-source-tools.nu` がこの再現可能な生成物を読み込みます。
 
-Plan A（ランタイムハッシュ同期）は Carapace のみに使用します。staleness check は Nix 管理システムでは解決済みの `/nix/store` パスを比較し、Nix 管理外のパスでは SHA-256 にフォールバックします。
+Plan A の runtime cache は Carapace だけに使用します。`integrations-cache-update` が `~/.cache/nushell-init` 以下の init script を更新します。鮮度確認には、Nix 管理システムでは解決済みの `/nix/store` path を使い、Nix 管理外の path では SHA-256 に fallback します。
 
-Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。
+Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。薄い `direnv` wrapper は `direnv allow` が成功した後に同じ同期を再実行するため、再度 `cd` しなくても indicator が更新されます。hook は読み込み済み状態を `DIRENV_DIR`、blocked 状態を `DIRENV_BLOCKED` で公開し、Starship は両方を `env_var` module で描画するため、prompt ごとに direnv subprocess を起動しません。
+
+### Starship プロンプトの安全設計
+
+Solarized Dark の powerline bar は、正常時は静かに、異常時は目立つように設計しています。左 prompt に表示するのは、欠落すると操作ミスにつながる情報だけです。対象は OS、SSH/root の識別情報、現在地、Git branch と working tree の状態、Nix shell、Direnv、仮想環境、SSH agent の異常表示です。toolchain は flake で固定するため、言語やツールの version module は表示しません。終了ステータス、コマンド実行時間、バックグラウンドジョブは入力位置から離れた `right_format` に表示します。
+
+仮想環境の表示には Starship の `env_var.VIRTUAL_ENV_PROMPT` module を使い、prompt ごとの subprocess は起動しません。`uv` や新しい activation script は通常 `VIRTUAL_ENV_PROMPT` を設定しますが、`VIRTUAL_ENV` だけを設定するツールでは segment を表示しません。その場合は module の対象を `VIRTUAL_ENV` に切り替えることで、仮想環境の full path を表示できます。
+
+各 prompt の直前に Nushell hook が `SSH_AUTH_SOCK` の設定有無と socket path の存在を確認します。異常時だけ `PASS_AGENT_DOWN=✗` を設定して Starship に赤い警告を表示し、socket が戻れば変数を削除します。これは subprocess を使わない stat check であり、agent 自体の状態確認ではありません。process 終了後に残った stale socket を検出できない点は既知の制約です。
+
+Plan B の Starship init は Nushell の transient prompt command も設定します。実行済み prompt を Starship の character に置き換え、scrollback を character と command だけに縮約します。この経路の `starship module character` には直前の `--status` 値が渡らないため、transient character が常に success color になる場合があります。
 
 ## 設定値
 

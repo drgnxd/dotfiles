@@ -63,7 +63,7 @@ Follow [Conventional Commits](./COMMIT_CONVENTION.md):
 
 ### Examples
 ```bash
-feat(nushell): add Taskwarrior cache system
+feat(nushell): add fish-style abbreviations
 fix(hammerspoon): correct window calculation for ultra-wide monitors
 docs(readme): update installation instructions
 ```
@@ -125,12 +125,6 @@ home-manager switch --flake path:.#<user>@<linuxHostname>
 FORCE=1 scripts/darwin/setup_cloud_symlinks.sh
 ```
 
-### Python hooks
-```bash
-uv run --quiet --script dot_config/taskwarrior/hooks/update_cache.py --update-only
-uv run --with pytest --directory dot_config/taskwarrior/hooks pytest -q
-```
-
 ---
 
 ## Security Best Practices
@@ -141,7 +135,6 @@ Secrets are stored in `secrets/*.age` and managed with `agenix`. Do not commit p
 ### Local Overrides
 Local, machine-specific overrides live outside the repo (examples):
 - `~/.config/nushell/local.nu`
-- `~/.config/taskwarrior.local.rc`
 
 ---
 

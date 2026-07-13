@@ -35,8 +35,6 @@ let
     "carapace"
     "nushell"
     "shellcheck"
-    "taskwarrior3"
-    "taskwarrior-tui"
     "yazi"
   ];
 
