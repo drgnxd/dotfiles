@@ -19,7 +19,6 @@ const nu_abbr_explicit_map = {
     lg: 'lazygit'
     oc: 'opencode'
     ocd: 'opencode --continue'
-    t: 'task'
 }
 
 def nu_abbr_build_alias_map [] {
