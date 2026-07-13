@@ -53,10 +53,40 @@ if (has-cmd direnv) {
     $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
         [ {||
             let direnv_out = (do { direnv export json } | complete)
-            if ($direnv_out.exit_code == 0) and ($direnv_out.stdout | is-not-empty) {
-                let env_changes = ($direnv_out.stdout | from json)
-                if ($env_changes | is-not-empty) {
-                    $env_changes | load-env
+            if $direnv_out.exit_code == 0 {
+                hide-env --ignore-errors DIRENV_BLOCKED
+                if ($direnv_out.stdout | is-not-empty) {
+                    let env_changes = ($direnv_out.stdout | from json)
+                    if ($env_changes | is-not-empty) {
+                        $env_changes | load-env
+                    }
+                }
+            } else {
+                let direnv_status = (do { direnv status --json } | complete)
+                let found_rc = if ($direnv_status.exit_code == 0) and ($direnv_status.stdout | is-not-empty) {
+                    try {
+                        $direnv_status.stdout | from json | get -o state.foundRC
+                    } catch {
+                        null
+                    }
+                } else {
+                    null
+                }
+
+                # direnv 2.37 reports foundRC.allowed as 0 when allowed.
+                if ($found_rc != null) and (($found_rc.allowed? | default 0) != 0) {
+                    # Blocked exports still contain cleanup changes. Apply them
+                    # without DIRENV_DIR so stale environments do not look loaded.
+                    hide-env --ignore-errors DIRENV_DIR
+                    if ($direnv_out.stdout | is-not-empty) {
+                        let env_changes = ($direnv_out.stdout | from json | reject -o DIRENV_DIR)
+                        if ($env_changes | is-not-empty) {
+                            $env_changes | load-env
+                        }
+                    }
+                    load-env { DIRENV_BLOCKED: "!" }
+                } else {
+                    hide-env --ignore-errors DIRENV_BLOCKED
                 }
             }
         } ]
