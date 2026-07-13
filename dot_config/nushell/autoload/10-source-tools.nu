@@ -1,6 +1,6 @@
 # Integrations consumer (source-only)
 #
-# requires: 00-helpers, 06-integrations, 08-taskwarrior
+# requires: 00-helpers, 06-integrations
 #
 # Plan B (Nix-built, deterministic):
 #   starship, zoxide, atuin — init scripts generated at nix-build time
@@ -12,7 +12,6 @@
 
 # Load order guards: abort early if dependencies are missing
 require-loaded "integrations-cache-update" "06-integrations.nu"
-require-loaded "task_preview_enable" "08-taskwarrior.nu"
 
 # Plan B: Nix-managed init scripts (read-only, always up-to-date after rebuild)
 const starship_file = ($nu.home-dir | path join ".config" "nushell" "generated" "starship.nu")
@@ -82,6 +81,3 @@ $env.config = ($env.config | upsert hooks.pre_prompt {|config|
         }
     ]
 })
-
-# Taskwarrior preview (wraps right prompt after prompt tools load)
-task_preview_enable

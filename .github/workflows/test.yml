@@ -81,7 +81,6 @@ jobs:
       - name: Run Nushell unit tests
         run: |
           nu dot_config/nushell/tests/test_abbreviations.nu
-          nu dot_config/nushell/tests/test_taskwarrior_preview.nu
 
   validate-opencode:
     runs-on: ubuntu-latest
