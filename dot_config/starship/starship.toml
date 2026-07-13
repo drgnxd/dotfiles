@@ -23,7 +23,8 @@ $directory\
 $git_branch\
 $git_status\
 $nix_shell\
-$direnv\
+${env_var.DIRENV_DIR}\
+${env_var.DIRENV_BLOCKED}\
 ${env_var.VIRTUAL_ENV_PROMPT}\
 ${env_var.PASS_AGENT_DOWN}\
 [](base02)\
@@ -108,11 +109,17 @@ symbol = " "
 style = "bg:base02 fg:blue"
 format = "[ | $symbol$state]($style)"
 
-[direnv]
-disabled = false
+# The built-in [direnv] module cost 72ms per prompt and duplicated the
+# direnv invocation already performed by the Nushell PWD hook.
+[env_var.DIRENV_DIR]
 symbol = "▼ "
 style = "bg:base02 fg:orange"
-format = "[ | $symbol$allowed]($style)"
+format = "[ | $symbol]($style)"
+
+[env_var.DIRENV_BLOCKED]
+symbol = "▼ "
+style = "bg:base02 fg:red"
+format = "[ | $symbol$env_value]($style)"
 
 # Zero-subprocess replacement for the removed [custom.venv] (which spawned
 # `nu` on every prompt). VIRTUAL_ENV_PROMPT is set by uv and modern venv
