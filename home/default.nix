@@ -29,7 +29,6 @@ in
     ./modules/activation/directories.nix
     ./modules/activation/nushell_ensure.nix
     ./modules/activation/opencode.nix
-    ./modules/activation/taskwarrior_ensure.nix
     ./modules/alacritty.nix
     ./modules/atuin.nix
     ./modules/bat.nix
@@ -48,7 +47,6 @@ in
     ./modules/shellcheck.nix
     ./modules/ssh.nix
     ./modules/starship.nix
-    ./modules/taskwarrior.nix
     ./modules/yazi.nix
     ./modules/zellij.nix
     ./modules/zoxide.nix
