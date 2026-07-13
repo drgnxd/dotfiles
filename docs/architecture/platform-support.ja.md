@@ -32,7 +32,7 @@ home-manager switch --flake path:.#<user>@<linuxHostname>
 - mako — 通知デーモン
 - grim + slurp — スクリーンショット
 
-**サポート対象**: すべての CLI ツール、Nushell、Helix、Git、Taskwarrior、Yazi、Zellij、OpenCode、Starship、Zoxide、Atuin、Carapace、Direnv、Alacritty、および上記 Linux デスクトップスタック。
+**サポート対象**: すべての CLI ツール、Nushell、Helix、Git、Yazi、Zellij、OpenCode、Starship、Zoxide、Atuin、Carapace、Direnv、Alacritty、および上記 Linux デスクトップスタック。
 
 **キーバインド互換**: ウィンドウ操作の `Ctrl+Alt` + 矢印/`U``I``J``K`/`C`/`Enter` は macOS の Hammerspoon 設定と揃え、筋肉記憶を維持します。
 

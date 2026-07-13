@@ -5,7 +5,6 @@
 - [XDG Base Directory Compliance](architecture/xdg-compliance.md)
 - [Security Model and Guard Flags](architecture/security-model.md)
 - [Platform Support](architecture/platform-support.md) - macOS (nix-darwin) + Linux (standalone home-manager)
-- [Taskwarrior Integration](architecture/taskwarrior.md)
 - [Development Workflow](architecture/workflow.md)
 - [Troubleshooting](architecture/troubleshooting.md)
 
@@ -35,8 +34,7 @@
 |     |  |- directories.nix          # Ensure local config/cache directories
 |     |  |- macos_defaults.nix       # User defaults (Darwin only)
 |     |  |- nushell_ensure.nix       # Ensure local Nushell overlays
-|     |  |- opencode.nix             # Sync OpenCode assets/rules
-|     |  `- taskwarrior_ensure.nix   # Ensure local Taskwarrior overlays
+|     |  `- opencode.nix             # Sync OpenCode assets/rules
 |     |- linux/
 |     |  |- desktop.nix              # Linux desktop module aggregator
 |     |  |- hyprland.nix             # Hyprland compositor config
@@ -55,7 +53,6 @@
 |     |- nushell-integrations.nix    # Build generated Nushell init scripts
 |     |- shellcheck.nix              # shellcheckrc
 |     |- starship.nix                # Starship prompt settings
-|     |- taskwarrior.nix             # Taskwarrior files + executable hooks
 |     |- xdg_config_files.nix        # Darwin-only npmrc deployment
 |     |- xdg_desktop_files.nix       # Darwin desktop/Stats plist
 |     |- yazi.nix                    # Yazi file manager config
@@ -71,7 +68,6 @@
 |  |- opencode/
 |  |- starship/
 |  |- stats/
-|  |- taskwarrior/
 |  `- yazi/
 |- scripts/
 |  `- darwin/setup_cloud_symlinks.sh # Optional CloudStorage symlink helper
@@ -105,7 +101,6 @@ autoload/
 |- 05-completions.nu   # Dynamic completions
 |- 06-integrations.nu  # Integrations wrapper
 |- 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
-|- 08-taskwarrior.nu   # Taskwarrior prompt preview
 |- 09-lima.nu          # Lima/Docker helpers
 `- 10-source-tools.nu  # Source cached tool init + direnv PWD hook
 ```
@@ -121,6 +116,7 @@ autoload/
 - The Solarized Dark powerline bar shows only operational safety context on the left: host/user when relevant, location, Git state, Nix shell, Direnv, virtual environment, and SSH agent anomalies
 - Exit status, command duration, and background jobs render in `right_format`, away from the typing path
 - Virtual environments use the zero-subprocess `VIRTUAL_ENV_PROMPT` module; tools that omit that variable render nothing, with `VIRTUAL_ENV` available as a future full-path fallback
+- A Nushell PWD hook exposes loaded/blocked Direnv state through `DIRENV_DIR` and `DIRENV_BLOCKED`; Starship `env_var` modules render them without a per-prompt subprocess
 - A Nushell `pre_prompt` hook sets `PASS_AGENT_DOWN` only when `SSH_AUTH_SOCK` is unset or its socket path is missing; this socket-existence proxy cannot detect a stale socket left by a dead process
 - The Nix-built Starship init enables a transient prompt that reduces completed prompts to the character and command; because the transient character receives no prior exit status, it may always use the success color
 
@@ -168,11 +164,7 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 | Stats.app menubar | Waybar modules |
 | Maccy clipboard | cliphist + wl-clipboard |
 
-### 3. Taskwarrior Integration
-
-See [Taskwarrior Integration](architecture/taskwarrior.md).
-
-### 4. Nix Integration
+### 3. Nix Integration
 
 **Flake-based entrypoint**:
 - `flake.nix` ties nix-darwin, home-manager, and agenix together
@@ -188,7 +180,7 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 - Defined at the home-manager layer in `home/modules/secrets.nix`, available on both macOS and Linux, and decrypted into user config paths during activation
 - `secrets/secrets.nix` intentionally keeps an empty-key tracked default for CI compatibility; use `secrets/secrets.example.nix` as the recipient template for real keys
 
-### 5. Container and Virtualization (Docker + Lima)
+### 4. Container and Virtualization (Docker + Lima)
 
 **Architecture**: XDG-compliant container environment without symlinks
 
@@ -271,11 +263,7 @@ See [Security Model and Guard Flags](architecture/security-model.md).
 - System defaults and launch agents via nix-darwin
 - User-level configuration via home-manager
 
-### 4. Taskwarrior Cache System
-
-See [Taskwarrior Integration](architecture/taskwarrior.md).
-
-### 5. No Symlinks for Docker/Lima
+### 4. No Symlinks for Docker/Lima
 
 - Pure environment variable approach
 - Less indirection and easier debugging
@@ -289,10 +277,6 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 - Deterministic autoload order for fast init
 - Cached tool init sourced from `~/.cache/nushell-init`
 - Minimal runtime checks for optional tools
-
-### 2. Taskwarrior
-
-- Cache refresh is throttled and asynchronous (see taskwarrior doc)
 
 ---
 
@@ -310,7 +294,6 @@ See [Taskwarrior Integration](architecture/taskwarrior.md).
 
 **Related Documentation**:
 - [Nushell Configuration](architecture/nushell.md)
-- [Taskwarrior Cache Architecture](../dot_config/taskwarrior/CACHE_ARCHITECTURE.md)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Commit Convention](COMMIT_CONVENTION.md)
 

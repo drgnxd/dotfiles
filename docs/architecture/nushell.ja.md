@@ -19,12 +19,10 @@ dot_config/nushell/
 │   ├── 05-completions.nu   # コマンド補完
 │   ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
 │   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
-│   ├── 08-taskwarrior.nu   # Taskwarriorプレビュー/コマンドの遅延ラッパー
 │   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
 │   └── 10-source-tools.nu  # キャッシュ読み込み
 └── modules/
     ├── integrations.nu     # キャッシュ生成（オンデマンド）
-    ├── taskwarrior.nu      # Taskwarriorプレビュー＋キャッシュ更新
     └── lima.nu             # Lima/Dockerコマンド
 ```
 
@@ -51,7 +49,7 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが `autoload/00-constants.nu` で定義したモジュール定数経由で `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、ハードコードされたパス依存を避けます。
 
-`config.nu` は意図的に `06-integrations.nu`、`08-taskwarrior.nu`、`09-lima.nu` を先に読み込み、その後で `10-source-tools.nu` を読み込みます。`10-source-tools.nu` は `integrations-cache-update` と `task_preview_enable` を呼ぶ消費側ステージのため、これらのコマンド定義後に実行する必要があります。
+`config.nu` は意図的に `06-integrations.nu`、`09-lima.nu`、`10-source-tools.nu` の順に読み込みます。`10-source-tools.nu` は `integrations-cache-update` を呼ぶ消費側ステージのため、そのコマンド定義後に実行する必要があります。
 
 ## 主な機能
 
@@ -117,7 +115,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `g` - ripgrepで検索（フォールバックはgrep）
 
 ### アプリケーションショートカット
-- `t` - Taskwarrior
 - `lg` - LazyGit
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
@@ -143,13 +140,13 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Zoxide** - スマートディレクトリジャンプ
 - **Carapace** - コマンド補完
 - **Atuin** - シェル履歴同期
-- **Direnv** - 環境管理（PWD 変更フックで自動適用、キャッシュなし）
+- **Direnv** - PWD 変更フックによる環境管理と状態検出（キャッシュと prompt ごとの subprocess はなし）
 
 Plan B では Starship、Zoxide、Atuin の init script を Nix build 時に生成し、`~/.config/nushell/generated/` 以下へ配備します。activation 後に `autoload/10-source-tools.nu` がこの再現可能な生成物を読み込みます。
 
 Plan A の runtime cache は Carapace だけに使用します。`integrations-cache-update` が `~/.cache/nushell-init` 以下の init script を更新します。鮮度確認には、Nix 管理システムでは解決済みの `/nix/store` path を使い、Nix 管理外の path では SHA-256 に fallback します。
 
-Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。
+Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。hook は読み込み済み状態を `DIRENV_DIR`、blocked 状態を `DIRENV_BLOCKED` で公開し、Starship は両方を `env_var` module で描画するため、prompt ごとに direnv subprocess を起動しません。
 
 ### Starship プロンプトの安全設計
 
