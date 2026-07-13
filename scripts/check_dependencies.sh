@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REQUIRED_COMMANDS=(nix git uv nu task)
+REQUIRED_COMMANDS=(nix git uv nu)
 MISSING=()
 
 for cmd in "${REQUIRED_COMMANDS[@]}"; do

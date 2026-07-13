@@ -37,7 +37,7 @@ jobs:
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       - name: Run ruff
         run: |
-          uv tool run ruff check dot_config/taskwarrior/hooks dot_config/opencode
+          uv tool run ruff check dot_config/opencode
 
   actionlint:
     runs-on: ubuntu-latest
