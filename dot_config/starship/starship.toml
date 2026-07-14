@@ -14,8 +14,10 @@ scan_timeout = 30
 # Language/version modules are intentionally absent: toolchains are
 # pinned by the flake, so the safety signal is "is the dev shell active"
 # (nix_shell / direnv), not a version number.
+# Core Powerline caps (E0B2/E0B0) exist in every Nerd Font build;
+# Powerline Extra caps (E0B6/E0B4) do not and can render as boxes.
 format = """
-[](base02)\
+[](base02)\
 $os\
 $username\
 $hostname\
@@ -27,7 +29,7 @@ ${env_var.DIRENV_DIR}\
 ${env_var.DIRENV_BLOCKED}\
 ${env_var.VIRTUAL_ENV_PROMPT}\
 ${env_var.PASS_AGENT_DOWN}\
-[](base02)\
+[](base02)\
 $line_break\
 $character"""
 
