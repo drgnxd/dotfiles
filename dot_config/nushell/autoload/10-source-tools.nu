@@ -54,9 +54,23 @@ def --env direnv-sync [] {
         hide-env --ignore-errors DIRENV_BLOCKED
         if ($direnv_out.stdout | is-not-empty) {
             let env_changes = ($direnv_out.stdout | from json)
-            if ($env_changes | is-not-empty) {
-                $env_changes | load-env
+            let clears_direnv_dir = (
+                ($env_changes | columns | any { |column| $column == "DIRENV_DIR" })
+                and (($env_changes | get -o DIRENV_DIR) == null)
+            )
+            if $clears_direnv_dir {
+                hide-env --ignore-errors DIRENV_DIR
             }
+            let applicable_changes = if $clears_direnv_dir {
+                $env_changes | reject -o DIRENV_DIR
+            } else {
+                $env_changes
+            }
+            if ($applicable_changes | is-not-empty) {
+                $applicable_changes | load-env
+            }
+        } else if $env.DIRENV_DIR? == null {
+            hide-env --ignore-errors DIRENV_DIR
         }
     } else {
         let direnv_status = (do { ^direnv status --json } | complete)
