@@ -113,7 +113,7 @@ autoload/
 - `~/.config/nushell/local.nu` によるローカル上書き（activation で空ファイル保証）
 
 **Starship の安全重視プロンプト**:
-- Solarized Dark の powerline bar の左側には、必要な場合のホスト名/ユーザー名、現在地、Git の状態、Nix shell、Direnv、仮想環境、SSH agent の異常だけを表示
+- プロンプトは両端を丸く揃えた Solarized Dark の単一 adaptive Powerline（落ち着いた `base02` の identity から blue の location へ接続し、optional な green の VCS と cyan の environment も同じ三角形の境界を使用し、orange の dirty state と red の anomaly は該当時だけ内側に表示）で、通常時は意図的に静かに保つ。左側には、必要な場合のホスト名/ユーザー名、現在地、Git の状態、Nix shell、Direnv、仮想環境、SSH agent の異常だけを表示
 - 終了ステータス、コマンド実行時間、バックグラウンドジョブは入力位置から離して `right_format` に表示
 - 仮想環境は subprocess を起動しない `VIRTUAL_ENV_PROMPT` module で表示する。この変数を設定しないツールでは何も表示せず、必要になれば full path を表示する `VIRTUAL_ENV` を fallback として利用可能
 - Nushell の PWD hook は Direnv の読み込み済み/blocked 状態を `DIRENV_DIR` と `DIRENV_BLOCKED` で公開し、Starship の `env_var` module は prompt ごとの subprocess なしで表示する

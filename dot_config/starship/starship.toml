@@ -14,22 +14,19 @@ scan_timeout = 30
 # Language/version modules are intentionally absent: toolchains are
 # pinned by the flake, so the safety signal is "is the dev shell active"
 # (nix_shell / direnv), not a version number.
-# Core Powerline caps (E0B2/E0B0) exist in every Nerd Font build;
-# Powerline Extra caps (E0B6/E0B4) do not and can render as boxes.
+# One adaptive Powerline uses rounded outer caps and triangular boundaries.
+# Blue location is the carrier; optional green VCS and cyan environment lanes
+# return to blue, with orange dirty-state and red anomaly lanes nested within.
 format = """
-[](base02)\
+[](fg:base02)\
 $os\
 $username\
 $hostname\
+[](fg:base02 bg:blue)\
 $directory\
-$git_branch\
-$git_status\
-$nix_shell\
-${env_var.DIRENV_DIR}\
-${env_var.DIRENV_BLOCKED}\
-${env_var.VIRTUAL_ENV_PROMPT}\
-${env_var.PASS_AGENT_DOWN}\
-[](base02)\
+([](fg:blue bg:green)[ ](bg:green)$git_branch([](fg:green bg:orange)[ ](bg:orange)$git_status[](fg:orange bg:green))[](fg:green bg:blue))\
+([](fg:blue bg:cyan)[ ](bg:cyan)$nix_shell${env_var.DIRENV_DIR}${env_var.VIRTUAL_ENV_PROMPT}([](fg:cyan bg:red)[ ](bg:red)${env_var.DIRENV_BLOCKED}${env_var.PASS_AGENT_DOWN}[](fg:red bg:cyan))[](fg:cyan bg:blue))\
+[ ](fg:blue)\
 $line_break\
 $character"""
 
@@ -56,7 +53,7 @@ green = "#859900"
 
 [os]
 disabled = false
-style = "bg:base02 fg:base1"
+style = "fg:base1 bg:base02"
 format = "[$symbol]($style)"
 
 [os.symbols]
@@ -67,33 +64,33 @@ Ubuntu = "󰌽 "
 # Renders only for root or over SSH (show_always = false default behavior).
 [username]
 show_always = false
-style_user = "bg:base02 fg:yellow"
-style_root = "bg:base02 fg:red"
-format = "[$user]($style)"
+style_user = "bold fg:yellow bg:base02"
+style_root = "bold fg:red bg:base02"
+format = "[$user ]($style)"
 
 # Renders only over SSH — guards against running commands on the wrong host.
 [hostname]
 ssh_only = true
 ssh_symbol = "󰣀 "
-style = "bg:base02 fg:yellow"
+style = "bold fg:yellow bg:base02"
 format = "[@$hostname $ssh_symbol]($style)"
 
 [directory]
-style = "bg:base02 fg:blue"
-format = "[ $path ]($style)[$read_only]($style)"
+style = "bold fg:base03 bg:blue"
+format = "[ $path$read_only ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 read_only = " 󰌾"
 
 [git_branch]
 symbol = ""
-style = "bg:base02 fg:violet"
-format = "[[ $symbol $branch ](bg:base02 fg:violet)]($style)"
+style = "fg:base03 bg:green"
+format = "[$symbol$branch ]($style)"
 
 [git_status]
 disabled = false
-style = "bg:base02 fg:orange"
-format = "[$all_status$ahead_behind]($style)"
+style = "bold fg:base3 bg:orange"
+format = "([$all_status$ahead_behind ]($style))"
 conflicted = "="
 ahead = "⇡"
 behind = "⇣"
@@ -107,21 +104,21 @@ renamed = "»"
 deleted = "✘"
 
 [nix_shell]
-symbol = " "
-style = "bg:base02 fg:blue"
-format = "[ | $symbol$state]($style)"
+symbol = " "
+style = "fg:base03 bg:cyan"
+format = "[$symbol$state ]($style)"
 
 # The built-in [direnv] module cost 72ms per prompt and duplicated the
 # direnv invocation already performed by the Nushell PWD hook.
 [env_var.DIRENV_DIR]
 symbol = "▼ "
-style = "bg:base02 fg:orange"
-format = "[ | $symbol]($style)"
+style = "fg:base03 bg:cyan"
+format = "[$symbol]($style)"
 
 [env_var.DIRENV_BLOCKED]
 symbol = "▼ "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$env_value]($style)"
+style = "bold fg:base3 bg:red"
+format = "[$symbol$env_value ]($style)"
 
 # Zero-subprocess replacement for the removed [custom.venv] (which spawned
 # `nu` on every prompt). VIRTUAL_ENV_PROMPT is set by uv and modern venv
@@ -129,9 +126,9 @@ format = "[ | $symbol$env_value]($style)"
 # (fail-quiet). Fallback if needed later: switch variable to VIRTUAL_ENV
 # (renders the full path).
 [env_var.VIRTUAL_ENV_PROMPT]
-symbol = " "
-style = "bg:base02 fg:cyan"
-format = "[ | $symbol$env_value]($style)"
+symbol = " "
+style = "fg:base03 bg:cyan"
+format = "[$symbol$env_value ]($style)"
 
 # Anomaly-only indicator: set by a Nushell pre_prompt hook when the SSH
 # agent socket is missing (Proton Pass ssh-agent workflow). Silent when
@@ -139,8 +136,8 @@ format = "[ | $symbol$env_value]($style)"
 # before it happens.
 [env_var.PASS_AGENT_DOWN]
 symbol = "󰌆 "
-style = "bg:base02 fg:red"
-format = "[ | $symbol$env_value]($style)"
+style = "bold fg:base3 bg:red"
+format = "[$symbol$env_value ]($style)"
 
 [status]
 disabled = false
