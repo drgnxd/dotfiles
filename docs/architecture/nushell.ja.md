@@ -150,7 +150,7 @@ Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` 
 
 ### Starship プロンプトの安全設計
 
-Solarized Dark の powerline bar は、正常時は静かに、異常時は目立つように設計しています。左 prompt に表示するのは、欠落すると操作ミスにつながる情報だけです。対象は OS、SSH/root の識別情報、現在地、Git branch と working tree の状態、Nix shell、Direnv、仮想環境、SSH agent の異常表示です。toolchain は flake で固定するため、言語やツールの version module は表示しません。終了ステータス、コマンド実行時間、バックグラウンドジョブは入力位置から離れた `right_format` に表示します。
+プロンプトは両端を丸く揃えた Solarized Dark の単一 adaptive Powerline（落ち着いた `base02` の identity から blue の location へ接続し、optional な green の VCS と cyan の environment も同じ三角形の境界を使用し、orange の dirty state と red の anomaly は該当時だけ内側に表示）で、通常時は意図的に静かに保ちます。左 prompt に表示するのは、欠落すると操作ミスにつながる情報だけです。対象は OS、SSH/root の識別情報、現在地、Git branch と working tree の状態、Nix shell、Direnv、仮想環境、SSH agent の異常表示です。toolchain は flake で固定するため、言語やツールの version module は表示しません。終了ステータス、コマンド実行時間、バックグラウンドジョブは入力位置から離れた `right_format` に表示します。
 
 仮想環境の表示には Starship の `env_var.VIRTUAL_ENV_PROMPT` module を使い、prompt ごとの subprocess は起動しません。`uv` や新しい activation script は通常 `VIRTUAL_ENV_PROMPT` を設定しますが、`VIRTUAL_ENV` だけを設定するツールでは segment を表示しません。その場合は module の対象を `VIRTUAL_ENV` に切り替えることで、仮想環境の full path を表示できます。
 
