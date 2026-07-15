@@ -13,7 +13,7 @@ let
       # Determinate Nix installs the daemon profile here; launchd/systemd user units
       # do not inherit an interactive PATH, so nix must be reachable explicitly.
       export PATH="$PATH:/nix/var/nix/profiles/default/bin:/usr/bin:/bin"
-      nh clean all --keep 5 --keep-since 7d
+      nh clean user --keep 5 --keep-since 7d
     '';
   };
 in
