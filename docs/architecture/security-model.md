@@ -25,3 +25,5 @@ Automated pull requests, including Dependabot and the flake.lock updater, are no
 - Explicit intent is required for interactive symlink creation
 - Secrets remain encrypted in the repository
 - Dependency automation reduces stale tooling while keeping major version changes under review
+
+[macOS security posture audit](security-audit.md)
