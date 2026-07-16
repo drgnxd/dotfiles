@@ -22,6 +22,11 @@ in
     touchIdAuth = true; # Touch ID for sudo in Terminal
     reattach = true; # Touch ID inside tmux/screen/Zellij sessions
   };
+  # nix-darwin runs Homebrew Bundle through sudo as the primary user. Preserve
+  # the XDG config path only for that RunAs target, not for sudo-to-root calls.
+  security.sudo.extraConfig = ''
+    Defaults>${user} env_keep += "XDG_CONFIG_HOME"
+  '';
 
   networking.applicationFirewall = {
     enable = true;
@@ -132,6 +137,9 @@ in
         ShowDayOfWeek = true;
         ShowSeconds = true;
       };
+      "org.hammerspoon.Hammerspoon" = {
+        MJConfigFile = "${home_dir}/.config/hammerspoon/init.lua";
+      };
     };
   };
 
@@ -142,6 +150,14 @@ in
     XDG_CACHE_HOME = "$HOME/.cache";
     XDG_DATA_HOME = "$HOME/.local/share";
     XDG_STATE_HOME = "$HOME/.local/state";
+  };
+  # GUI applications do not read shell startup files. Seed the per-user
+  # launchd environment so terminal emulators resolve Nushell autoload paths.
+  launchd.user.envVariables = {
+    XDG_CONFIG_HOME = "${home_dir}/.config";
+    XDG_CACHE_HOME = "${home_dir}/.cache";
+    XDG_DATA_HOME = "${home_dir}/.local/share";
+    XDG_STATE_HOME = "${home_dir}/.local/state";
   };
 
   home-manager.backupFileExtension = "before-nix";
@@ -199,11 +215,17 @@ in
   users.users.${user}.home = home_dir;
   system.primaryUser = user;
 
+  system.activationScripts.preActivation.text = ''
+    export XDG_CONFIG_HOME="${home_dir}/.config"
+  '';
+
   system.activationScripts.extraActivation.text = ''
     if [ -x /opt/homebrew/bin/brew ]; then
-      /usr/bin/sudo --user=${user} --set-home /usr/bin/env -u XDG_CONFIG_HOME \
+      /usr/bin/sudo --user=${user} --set-home /usr/bin/env \
+        XDG_CONFIG_HOME="${home_dir}/.config" \
         /opt/homebrew/bin/brew trust --tap protonpass/tap >/dev/null
-      /usr/bin/sudo --user=${user} --set-home /usr/bin/env -u XDG_CONFIG_HOME \
+      /usr/bin/sudo --user=${user} --set-home /usr/bin/env \
+        XDG_CONFIG_HOME="${home_dir}/.config" \
         /opt/homebrew/bin/brew trust --formula protonpass/tap/pass-cli >/dev/null
     fi
   '';
