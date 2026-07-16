@@ -58,3 +58,7 @@ rekey:
 # Show OpenCode subscription usage (pinned npm CLI)
 usage:
   bunx opencode-usage@0.5.15
+
+# Report the read-only macOS security posture
+security-audit *args:
+  scripts/security/audit_darwin.sh {{args}}
