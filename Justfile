@@ -54,3 +54,7 @@ dead:
 # Rekey agenix secrets
 rekey:
   cd secrets && nix run github:ryantm/agenix -- -r
+
+# Show OpenCode subscription usage (pinned npm CLI)
+usage:
+  bunx opencode-usage@0.5.15
