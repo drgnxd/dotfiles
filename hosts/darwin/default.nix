@@ -162,6 +162,7 @@ in
       "pass-cli"
     ];
     casks = [
+      "codexbar"
       "hammerspoon"
       "pearcleaner"
       "sol"
