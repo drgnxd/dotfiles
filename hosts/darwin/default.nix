@@ -151,8 +151,8 @@ in
     XDG_DATA_HOME = "$HOME/.local/share";
     XDG_STATE_HOME = "$HOME/.local/state";
   };
-  # GUI applications do not read shell startup files. Seed the per-user
-  # launchd environment so terminal emulators resolve Nushell autoload paths.
+  # Seed direct user agents. LaunchServices apps may sanitize this environment,
+  # so terminal-specific variables are also declared in the Alacritty config.
   launchd.user.envVariables = {
     XDG_CONFIG_HOME = "${home_dir}/.config";
     XDG_CACHE_HOME = "${home_dir}/.cache";
