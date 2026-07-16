@@ -1,4 +1,4 @@
-_:
+{ config, ... }:
 
 {
   programs.atuin = {
@@ -11,6 +11,8 @@ _:
         "^SecretCommand"
         "^base64"
       ];
+      # Atuin defaults to the legacy ~/.atuin/logs path.
+      logs.dir = "${config.xdg.stateHome}/atuin/logs";
     };
   };
 }
