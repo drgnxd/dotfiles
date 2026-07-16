@@ -31,6 +31,8 @@ Homebrew の trust 操作には `XDG_CONFIG_HOME` を明示し、状態を
 `~/.config/homebrew` 配下に保持します。Hammerspoon は native の
 `MJConfigFile` preference で `~/.config/hammerspoon/init.lua` を読み込み、
 reload watcher は `~/.hammerspoon` ではなく `hs.configdir` を基準にします。
+macOS LaunchServices は per-user launchd environment を確実には引き継がないため、
+Alacritty には XDG path と Home Manager profile PATH を直接設定します。
 
 ## Docker と Lima
 シンボリックリンクではなく環境変数で XDG パスに合わせています。
