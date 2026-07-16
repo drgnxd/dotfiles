@@ -56,7 +56,26 @@ in
         };
       };
 
-      env.TERM = "xterm-256color";
+      env = {
+        TERM = "xterm-256color";
+        XDG_CONFIG_HOME = config.xdg.configHome;
+        XDG_CACHE_HOME = config.xdg.cacheHome;
+        XDG_DATA_HOME = config.xdg.dataHome;
+        XDG_STATE_HOME = config.xdg.stateHome;
+        PATH = lib.concatStringsSep ":" (
+          [ "${config.home.profileDirectory}/bin" ]
+          ++ lib.optionals pkgs.stdenv.isDarwin [
+            "/run/current-system/sw/bin"
+            "/nix/var/nix/profiles/default/bin"
+          ]
+          ++ [
+            "/usr/bin"
+            "/bin"
+            "/usr/sbin"
+            "/sbin"
+          ]
+        );
+      };
 
       colors = {
         primary = {
