@@ -88,8 +88,9 @@
 See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 
 **Entry Points**:
-- `env.nu` - Sources `autoload/01-env.nu` and `autoload/02-path.nu`
-- `config.nu` - Loads autoload modules and local overrides
+- `env.nu` - Standard environment entry point; startup fragments load through native autoload
+- `config.nu` - Configures interactive behavior and prerequisite tool modules
+- `autoload/*.nu` - Loaded once by Nushell in filename order after `config.nu`
 
 **Modular Architecture**:
 ```
@@ -101,7 +102,8 @@ autoload/
 |- 05-completions.nu   # Dynamic completions
 |- 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 |- 09-lima.nu          # Lima/Docker helpers
-`- 10-source-tools.nu  # Source Nix-built tool init + direnv PWD hook
+|- 10-source-tools.nu  # Source Nix-built tool init + direnv PWD hook
+`- 99-local.nu         # Load unmanaged local overrides last
 ```
 
 **Key Features**:
@@ -121,19 +123,11 @@ autoload/
 
 **Module Loading**:
 ```nushell
-# env.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '01-env.nu')
-source ($config_dir | path join 'autoload' '02-path.nu')
-
-# config.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
-...
+$nu.user-autoload-dirs
+# => [..., ~/.config/nushell/autoload]
 ```
 
-Using `$nu.home-dir` to anchor module paths keeps loading stable even when active config files are loaded from Nix store paths.
+Nushell's native user autoload is the only loading path for `autoload/*.nu`, preventing duplicate hooks and keybindings. Numeric prefixes provide deterministic ordering, while `$nu.home-dir` keeps internal paths stable when active files are Nix store symlinks.
 
 ### 2. Linux Desktop Ecosystem (Hyprland)
 

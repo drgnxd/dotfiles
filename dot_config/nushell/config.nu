@@ -1,7 +1,8 @@
 
 # Nushell Configuration
 
-# Use ~/.config/nushell unconditionally (see env.nu for rationale).
+# Home Manager symlinks active files into /nix/store, so anchor module paths
+# to the user's config directory instead of the active file's real path.
 const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 let has_carapace = (which carapace | is-not-empty)
 
@@ -29,28 +30,8 @@ $env.config.completions.external = {
     }
 }
 
-# =============================================================================
-# AUTOLOAD MODULES
-# =============================================================================
+# User startup files under autoload/ are loaded automatically in filename order
+# after config.nu. Do not source them here or hooks and keybindings will duplicate.
 
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
-
-# Tool modules (eager-loaded) — must precede autoload wrappers that call their exports
+# Tool modules (eager-loaded) - must precede autoload wrappers that call their exports
 source ($config_dir | path join 'modules' 'lima.nu')
-
-# Modules (Dependencies) - Load these FIRST
-source ($config_dir | path join 'autoload' '03-aliases.nu')
-source ($config_dir | path join 'autoload' '04-functions.nu')
-source ($config_dir | path join 'autoload' '05-completions.nu')
-
-source ($config_dir | path join 'autoload' '07-abbreviations.nu')
-
-# Lima wrapper — thin defs that delegate to eagerly-loaded module exports.
-source ($config_dir | path join 'autoload' '09-lima.nu')
-
-# Tools / Consumers - Load these LAST
-source ($config_dir | path join 'autoload' '10-source-tools.nu')
-
-# Local config (optional)
-try { source ($config_dir | path join 'local.nu') }
