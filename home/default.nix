@@ -10,14 +10,25 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
+  memory_command =
+    name: subcommand:
+    pkgs.writeShellApplication {
+      inherit name;
+      runtimeInputs = [
+        pkgs.git
+        pkgs.python3
+      ];
+      text = ''
+        exec python3 ${../scripts/agent_memory}/agent_memory.py ${subcommand} "$@"
+      '';
+    };
   memory_tools = [
-    (pkgs.writeShellScriptBin "memory-read" (builtins.readFile ../scripts/agent_memory/memory_read.sh))
-    (pkgs.writeShellScriptBin "memory-append" (
-      builtins.readFile ../scripts/agent_memory/memory_append.sh
-    ))
-    (pkgs.writeShellScriptBin "memory-maintain" (
-      builtins.readFile ../scripts/agent_memory/memory_maintain.sh
-    ))
+    (memory_command "memory-read" "read")
+    (memory_command "memory-append" "append")
+    (memory_command "memory-maintain" "maintain")
+    (memory_command "memory-rescope-legacy" "rescope-legacy")
+    (memory_command "memory-export" "export")
+    (memory_command "memory-import" "import")
   ];
 in
 {

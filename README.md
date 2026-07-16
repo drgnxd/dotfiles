@@ -137,6 +137,39 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
 - If `~/.config/opencode/opencode.local.json` is non-empty, make sure its `plugin` array still includes the managed plugins you want enabled.
 - Rollback procedure: if OpenCode fails to write inside a symlinked directory, move that path back to the activation sync list in `home/modules/activation/opencode.nix`.
 
+### Persistent Agent Memory
+
+Home Manager installs `memory-read`, `memory-append`, `memory-maintain`, `memory-export`, `memory-import`, and `memory-rescope-legacy`. The store uses an append-only, versioned event model:
+
+- SQLite is the transactional operational source of truth.
+- `events.jsonl` is an atomic, Git-friendly portable mirror and recovery source.
+- JSON Schema defines the exchange contract; unknown event fields survive round trips.
+- Full-text search, scope filtering, and a token budget keep irrelevant history out of model context.
+- Existing `memory.md` facts are imported once with their original timestamps and provenance; the legacy file is not deleted.
+- Project identity uses a transport-neutral ID derived from a credential-free Git remote, or a canonical path hash when no remote exists; a basename is never an authorization boundary.
+- The portable log contains private memory as plaintext. Automatic commits run only when the memory directory is itself a Git repository without remotes; set `AGENT_MEMORY_GIT_ALLOW_REMOTE=1` only after reviewing the repository's disclosure policy.
+
+Read global and current-project memory with a task query:
+
+```sh
+memory-read --query "short task description"
+```
+
+Create a self-contained conversion or backup bundle:
+
+```sh
+memory-export --output ./agent-memory-export
+memory-import ./agent-memory-export --dry-run
+```
+
+The bundle contains `manifest.json`, `events.jsonl`, its JSON Schema, and SHA-256 checksums. Import validates the complete bundle before applying events. Embeddings and Markdown views are deliberately excluded from the canonical format because they are derived and can be rebuilt.
+
+Legacy project labels cannot safely identify repositories. Adopt them explicitly from the intended project:
+
+```sh
+memory-rescope-legacy <legacy-project-name>
+```
+
 ### Formatting and Git Hooks
 
 `nix fmt` formats the whole tree through treefmt (`nixfmt`, `shfmt`, and `taplo`).

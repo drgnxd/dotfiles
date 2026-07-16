@@ -10,34 +10,41 @@ Project `AGENTS.md` files override these rules.
 - State uncertainty explicitly when unsure.
 
 ## Memory
-You have a persistent local memory store, reached through three commands on PATH:
-`memory-read`, `memory-append`, and `memory-maintain`. Their storage location, file
-format, and git handling live inside the commands — never hardcode paths or run git
-for memory here, and do not read or write the underlying files directly.
+You have a persistent local memory store, reached through six commands on PATH:
+`memory-read`, `memory-append`, `memory-maintain`, `memory-export`, `memory-import`,
+and `memory-rescope-legacy`. The last command performs explicit legacy project
+migration. Storage, schema migration, and git handling live inside the commands.
+Never hardcode paths, run git for memory, or access the underlying files directly.
 
 At the start of a session, or whenever a request depends on earlier context — the
-user's preferences, ongoing projects, or decisions made before — run `memory-read`
-first, so you build on what is already known instead of asking again.
+user's preferences, ongoing projects, or decisions made before — run
+`memory-read --query "<short task description>"` first. The command includes global
+memory and memory scoped to the current git project, then enforces a context budget.
+Use `--scope global` when project memory must be excluded. Use `--all` only for
+diagnosis or explicit export review.
 
-When `memory-read` reports that maintenance is due, review the returned facts before
-continuing the task. Preserve durable preferences and current project decisions,
-merge duplicates, remove superseded or transient entries, and pass the replacement
-facts to `memory-maintain` on standard input, one plain fact per line. Never include
-Markdown bullets or timestamps. Pass the generation token shown by `memory-read` as
-the sole argument. If the generation changed, run `memory-read` again and repeat the
-review. The command archives the prior memory before an atomic replacement, so do
-not edit the storage files directly.
+When `memory-read` reports that maintenance is due, run `memory-read --maintenance`,
+review the JSONL active projection for the current global and project scope, and
+preserve each retained record's `memory_id` and `scopes`. Edit fields in place, omit
+records that should be retracted, and add new records only with explicit `scopes`.
+Pass that JSONL to `memory-maintain` from the same project and the generation token as
+its sole argument. If the generation changed, repeat the maintenance read. Use
+`--all` on both commands only for an explicit whole-store maintenance operation.
+Maintenance appends update and retraction events; it never rewrites event history.
 
 Record durable knowledge as you work, without waiting to be told. When you learn
 something that would help a future session — a stable preference, a project
 convention, an architectural or tooling decision, or a correction the user makes to
-your approach — run `memory-append "<one concise, self-contained fact>"`. Do the same
-whenever the user explicitly asks you to remember something.
+your approach — run `memory-append "<one concise, self-contained fact>"` from the
+active project. Use `--scope global` for cross-project preferences and `--pin` only
+for a tiny set of facts that must always enter context. Do the same whenever the user
+explicitly asks you to remember something.
 
 Store conservatively. Keep lasting, reusable facts; skip transient chatter, one-off
 task details, and anything sensitive such as credentials, tokens, or private personal
 data. Write one fact per call, phrased to stand on its own without the surrounding
-conversation.
+conversation. Use `memory-export --output <new-directory>` for a portable bundle and
+`memory-import <jsonl-or-bundle> --dry-run` before importing unfamiliar data.
 <!-- agent-memory:managed -->
 
 ## Safety
