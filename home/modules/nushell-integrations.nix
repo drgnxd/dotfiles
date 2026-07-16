@@ -5,8 +5,8 @@
 # time and deployed as read-only config files.  This eliminates the
 # runtime SHA-256 hash-sync cost (~350 ms) for these three tools.
 #
-# Plan A (carapace) remains runtime-cached because it embeds
-# $XDG_CONFIG_HOME paths and panics without access to $HOME.
+# Carapace completion is configured directly in config.nu and does not need
+# generated init output.
 { config, pkgs, ... }:
 
 let

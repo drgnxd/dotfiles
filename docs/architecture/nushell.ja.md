@@ -17,13 +17,11 @@ dot_config/nushell/
 │   ├── 03-aliases.nu       # フォールバック付きエイリアス
 │   ├── 04-functions.nu     # カスタム関数とラッパー
 │   ├── 05-completions.nu   # コマンド補完
-│   ├── 06-integrations.nu  # 統合キャッシュ更新の遅延ラッパー
 │   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
 │   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
-│   └── 10-source-tools.nu  # キャッシュ読み込み
+│   └── 10-source-tools.nu  # Nix build済みinit script読み込み
 └── modules/
-    ├── integrations.nu     # キャッシュ生成（オンデマンド）
-    └── lima.nu             # Lima/Dockerコマンド
+    └── lima.nu              # Lima/Dockerコマンド
 ```
 
 ## モジュール読み込み
@@ -47,9 +45,9 @@ source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 ユーザー名やホームディレクトリが変わっても、手動で固定パスを書き換える必要はありません。
 
-重い処理は`modules/`に分離し、`autoload/`の軽量ラッパーが `autoload/00-constants.nu` で定義したモジュール定数経由で `overlay use` して必要時に読み込みます。これにより起動を軽くしつつ、ハードコードされたパス依存を避けます。
+再利用するツールロジックは `modules/` に置き、`autoload/` の軽量 wrapper から公開します。`config.nu` は Lima module を `09-lima.nu` より先に読み込み、その後 `10-source-tools.nu` で Nix 生成済み integration を読み込みます。
 
-`config.nu` は意図的に `06-integrations.nu`、`09-lima.nu`、`10-source-tools.nu` の順に読み込みます。`10-source-tools.nu` は `integrations-cache-update` を呼ぶ消費側ステージのため、そのコマンド定義後に実行する必要があります。
+Carapace completion は `config.nu` で直接設定します。runtime 生成ファイルを source しないため、`~/.cache` を削除しても Nushell の parse は失敗しません。
 
 ## 主な機能
 
@@ -131,7 +129,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `upgrade-all` / `update` - 統合システムアップグレード
 - `save-stats` - Stats.app設定のエクスポート
 - `bundle-id` - macOSアプリのバンドルID取得
-- `integrations-cache-update` - runtime cache 方式の Carapace init script を再生成
 
 ## サードパーティ統合
 
@@ -142,9 +139,7 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Atuin** - シェル履歴同期
 - **Direnv** - PWD 変更フックによる環境管理と状態検出（キャッシュと prompt ごとの subprocess はなし）
 
-Plan B では Starship、Zoxide、Atuin の init script を Nix build 時に生成し、`~/.config/nushell/generated/` 以下へ配備します。activation 後に `autoload/10-source-tools.nu` がこの再現可能な生成物を読み込みます。
-
-Plan A の runtime cache は Carapace だけに使用します。`integrations-cache-update` が `~/.cache/nushell-init` 以下の init script を更新します。鮮度確認には、Nix 管理システムでは解決済みの `/nix/store` path を使い、Nix 管理外の path では SHA-256 に fallback します。
+Nix は Starship、Zoxide、Atuin の init script を build 時に生成し、`~/.config/nushell/generated/` 以下へ配備します。activation 後に `autoload/10-source-tools.nu` がこの再現可能な生成物を読み込みます。Carapace は `config.nu` で直接定義した external completer を使い、init cache を必要としません。
 
 Direnv は `autoload/10-source-tools.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。薄い `direnv` wrapper は `direnv allow` が成功した後に同じ同期を再実行するため、再度 `cd` しなくても indicator が更新されます。hook は読み込み済み状態を `DIRENV_DIR`、blocked 状態を `DIRENV_BLOCKED` で公開し、Starship は両方を `env_var` module で描画するため、prompt ごとに direnv subprocess を起動しません。
 

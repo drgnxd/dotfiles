@@ -37,7 +37,6 @@ source ($config_dir | path join 'autoload' '00-constants.nu')
 source ($config_dir | path join 'autoload' '00-helpers.nu')
 
 # Tool modules (eager-loaded) — must precede autoload wrappers that call their exports
-source ($config_dir | path join 'modules' 'integrations.nu')
 source ($config_dir | path join 'modules' 'lima.nu')
 
 # Modules (Dependencies) - Load these FIRST
@@ -45,8 +44,6 @@ source ($config_dir | path join 'autoload' '03-aliases.nu')
 source ($config_dir | path join 'autoload' '04-functions.nu')
 source ($config_dir | path join 'autoload' '05-completions.nu')
 
-# Integrations wrapper — defines integrations-cache-update (calls module export directly)
-source ($config_dir | path join 'autoload' '06-integrations.nu')
 source ($config_dir | path join 'autoload' '07-abbreviations.nu')
 
 # Lima wrapper — thin defs that delegate to eagerly-loaded module exports.
