@@ -14,19 +14,22 @@ scan_timeout = 30
 # Language/version modules are intentionally absent: toolchains are
 # pinned by the flake, so the safety signal is "is the dev shell active"
 # (nix_shell / direnv), not a version number.
-# One adaptive Powerline uses rounded outer caps and triangular boundaries.
-# Blue location is the carrier; optional green VCS and cyan environment lanes
-# return to blue, with orange dirty-state and red anomaly lanes nested within.
+# One quiet base02 Neutral Rail uses rounded outer caps. Blue location,
+# green VCS, and cyan environment foregrounds share the carrier; orange
+# dirty-state and red anomaly chips appear only when active.
 format = """
 [](fg:base02)\
 $os\
 $username\
 $hostname\
-[](fg:base02 bg:blue)\
 $directory\
-([](fg:blue bg:green)[ ](bg:green)$git_branch([](fg:green bg:orange)[ ](bg:orange)$git_status[](fg:orange bg:green))[](fg:green bg:blue))\
-([](fg:blue bg:cyan)[ ](bg:cyan)$nix_shell${env_var.DIRENV_DIR}${env_var.VIRTUAL_ENV_PROMPT}([](fg:cyan bg:red)[ ](bg:red)${env_var.DIRENV_BLOCKED}${env_var.PASS_AGENT_DOWN}[](fg:red bg:cyan))[](fg:cyan bg:blue))\
-[ ](fg:blue)\
+$git_branch\
+([](fg:base02 bg:orange)[ ](bg:orange)$git_status[ ](fg:orange bg:base02))\
+$nix_shell\
+${env_var.DIRENV_DIR}\
+${env_var.VIRTUAL_ENV_PROMPT}\
+([](fg:base02 bg:red)[ ](bg:red)${env_var.DIRENV_BLOCKED}${env_var.PASS_AGENT_DOWN}[ ](fg:red bg:base02))\
+[ ](fg:base02)\
 $line_break\
 $character"""
 
@@ -76,15 +79,15 @@ style = "bold fg:yellow bg:base02"
 format = "[@$hostname $ssh_symbol]($style)"
 
 [directory]
-style = "bold fg:base03 bg:blue"
-format = "[ $path$read_only ]($style)"
+style = "bold fg:blue bg:base02"
+format = "[$path$read_only ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 read_only = " 󰌾"
 
 [git_branch]
 symbol = ""
-style = "fg:base03 bg:green"
+style = "fg:green bg:base02"
 format = "[$symbol$branch ]($style)"
 
 [git_status]
@@ -105,14 +108,14 @@ deleted = "✘"
 
 [nix_shell]
 symbol = " "
-style = "fg:base03 bg:cyan"
+style = "fg:cyan bg:base02"
 format = "[$symbol$state ]($style)"
 
 # The built-in [direnv] module cost 72ms per prompt and duplicated the
 # direnv invocation already performed by the Nushell PWD hook.
 [env_var.DIRENV_DIR]
 symbol = "▼ "
-style = "fg:base03 bg:cyan"
+style = "fg:cyan bg:base02"
 format = "[$symbol]($style)"
 
 [env_var.DIRENV_BLOCKED]
@@ -127,7 +130,7 @@ format = "[$symbol$env_value ]($style)"
 # (renders the full path).
 [env_var.VIRTUAL_ENV_PROMPT]
 symbol = " "
-style = "fg:base03 bg:cyan"
+style = "fg:cyan bg:base02"
 format = "[$symbol$env_value ]($style)"
 
 # Anomaly-only indicator: set by a Nushell pre_prompt hook when the SSH
