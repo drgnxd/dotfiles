@@ -113,7 +113,7 @@ autoload/
 - Local overrides via `~/.config/nushell/local.nu` (empty file ensured during activation)
 
 **Starship safety prompt**:
-- The Solarized Dark prompt uses one adaptive Powerline with matching rounded caps: a muted `base02` identity lane flows into blue location, optional green VCS and cyan environment segments use the same triangular boundaries, and nested orange dirty-state and red anomaly segments appear only when active. It stays intentionally quiet during normal operation. The left side shows only operational safety context: host/user when relevant, location, Git state, Nix shell, Direnv, virtual environment, and SSH agent anomalies
+- The Solarized Dark prompt uses a quiet `base02` Neutral Rail with rounded caps: blue location, green VCS, and cyan environment foregrounds share the carrier, while orange dirty-state and red anomaly chips appear only when active. It stays intentionally quiet during normal operation. The left side shows only operational safety context: host/user when relevant, location, Git state, Nix shell, Direnv, virtual environment, and SSH agent anomalies
 - Exit status, command duration, and background jobs render in `right_format`, away from the typing path
 - Virtual environments use the zero-subprocess `VIRTUAL_ENV_PROMPT` module; tools that omit that variable render nothing, with `VIRTUAL_ENV` available as a future full-path fallback
 - A Nushell PWD hook exposes loaded/blocked Direnv state through `DIRENV_DIR` and `DIRENV_BLOCKED`; Starship `env_var` modules render them without a per-prompt subprocess
