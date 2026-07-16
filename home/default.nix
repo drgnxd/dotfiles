@@ -15,6 +15,9 @@ let
     (pkgs.writeShellScriptBin "memory-append" (
       builtins.readFile ../scripts/agent_memory/memory_append.sh
     ))
+    (pkgs.writeShellScriptBin "memory-maintain" (
+      builtins.readFile ../scripts/agent_memory/memory_maintain.sh
+    ))
   ];
 in
 {
