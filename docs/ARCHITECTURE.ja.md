@@ -99,10 +99,9 @@ autoload/
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
 |- 04-functions.nu     # カスタムラッパー（yazi, zk など）
 |- 05-completions.nu   # 動的補完
-|- 06-integrations.nu  # 統合ラッパー
 |- 07-abbreviations.nu # Fish風略語展開（Space/Enter）
 |- 09-lima.nu          # Lima/Docker ヘルパー
-`- 10-source-tools.nu  # キャッシュ済みツール初期化 + direnv PWD フック
+`- 10-source-tools.nu  # Nix build済みツール初期化 + direnv PWD フック
 ```
 
 **Key Features**:
@@ -275,7 +274,8 @@ lima-stop dev
 ### 1. Nushell Startup
 
 - 決定的な autoload 順序で起動を安定化
-- `~/.cache/nushell-init` のキャッシュ済み init を読み込み
+- Nix build 済みの Starship、Zoxide、Atuin init script
+- runtime cache を使わない Carapace 直接補完
 - 任意ツールのランタイムチェックを最小限に抑制
 
 ---

@@ -99,10 +99,9 @@ autoload/
 |- 03-aliases.nu       # Conditional command aliases
 |- 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
 |- 05-completions.nu   # Dynamic completions
-|- 06-integrations.nu  # Integrations wrapper
 |- 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 |- 09-lima.nu          # Lima/Docker helpers
-`- 10-source-tools.nu  # Source cached tool init + direnv PWD hook
+`- 10-source-tools.nu  # Source Nix-built tool init + direnv PWD hook
 ```
 
 **Key Features**:
@@ -275,7 +274,8 @@ See [Security Model and Guard Flags](architecture/security-model.md).
 ### 1. Nushell Startup
 
 - Deterministic autoload order for fast init
-- Cached tool init sourced from `~/.cache/nushell-init`
+- Nix-built Starship, Zoxide, and Atuin init scripts
+- Direct Carapace completion without a runtime cache
 - Minimal runtime checks for optional tools
 
 ---

@@ -19,12 +19,9 @@ jobs:
           cp "$GITHUB_WORKSPACE/dot_config/nushell/local.nu.example" "$GITHUB_WORKSPACE/dot_config/nushell/local.nu"
           mkdir -p "$HOME/.config"
           ln -s "$GITHUB_WORKSPACE/dot_config/nushell" "$HOME/.config/nushell"
-      - name: Prepare Nushell cache
+      - name: Prepare Nix-generated init stubs
         run: |
-          # Plan A: runtime cache for carapace
-          mkdir -p "$HOME/.cache/nushell-init"
-          touch "$HOME/.cache/nushell-init/carapace.nu"
-          # Plan B: Nix-generated stubs (in prod these are derivation outputs)
+          # In production these are derivation outputs.
           # NOTE: must run AFTER symlink so mkdir goes through the symlink into the repo dir
           mkdir -p "$HOME/.config/nushell/generated"
           touch "$HOME/.config/nushell/generated/starship.nu"
