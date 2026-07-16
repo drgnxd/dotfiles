@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://drgnxd.local/agent-memory/event-v1.schema.json",
+  "title": "Agent memory event",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schema_version",
+    "event_id",
+    "event_type",
+    "memory_id",
+    "occurred_at",
+    "recorded_at",
+    "actor",
+    "scopes",
+    "content",
+    "derived_from",
+    "supersedes",
+    "retention"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://drgnxd.local/agent-memory/event-v1.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]+$"
+    },
+    "memory_id": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scope"
+      },
+      "uniqueItems": true
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "retention": {
+      "type": "object",
+      "properties": {
+        "classification": {
+          "type": "string"
+        },
+        "retention_until": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["memory.created", "memory.imported", "memory.updated"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "scopes": {
+            "contains": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "const": "user"
+                }
+              }
+            }
+          },
+          "memory_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "object",
+            "required": ["claim", "memory_type"],
+            "properties": {
+              "claim": {
+                "type": "string",
+                "minLength": 1
+              },
+              "memory_type": {
+                "enum": ["semantic", "episodic", "procedural"]
+              },
+              "pinned": {
+                "type": "boolean"
+              },
+              "confidence": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "valid_from": {
+                "type": ["string", "null"],
+                "format": "date-time"
+              },
+              "valid_to": {
+                "type": ["string", "null"],
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["memory.retracted", "memory.expired"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "memory_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "pattern": "^memory\\."
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "scopes": {
+            "contains": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "const": "user"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
+}

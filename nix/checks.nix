@@ -40,6 +40,19 @@ forAllSystems (
       deadnix --fail .
       touch $out
     '';
+    agent-memory =
+      p.runCommand "check-agent-memory"
+        {
+          nativeBuildInputs = [
+            p.git
+            p.python3
+          ];
+        }
+        ''
+          cd ${self}
+          python3 -m unittest discover -s tests -p 'test_agent_memory.py'
+          touch $out
+        '';
   }
   // lib.optionalAttrs (sys == "aarch64-darwin") {
     darwin-system = self.packages.aarch64-darwin.default;
