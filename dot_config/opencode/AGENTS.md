@@ -10,14 +10,23 @@ Project `AGENTS.md` files override these rules.
 - State uncertainty explicitly when unsure.
 
 ## Memory
-You have a persistent local memory store, reached through two commands on PATH:
-`memory-read` and `memory-append`. Their storage location, file format, and git
-handling live inside the commands — never hardcode paths or run git for memory here,
-and do not read or write the underlying files directly.
+You have a persistent local memory store, reached through three commands on PATH:
+`memory-read`, `memory-append`, and `memory-maintain`. Their storage location, file
+format, and git handling live inside the commands — never hardcode paths or run git
+for memory here, and do not read or write the underlying files directly.
 
 At the start of a session, or whenever a request depends on earlier context — the
 user's preferences, ongoing projects, or decisions made before — run `memory-read`
 first, so you build on what is already known instead of asking again.
+
+When `memory-read` reports that maintenance is due, review the returned facts before
+continuing the task. Preserve durable preferences and current project decisions,
+merge duplicates, remove superseded or transient entries, and pass the replacement
+facts to `memory-maintain` on standard input, one plain fact per line. Never include
+Markdown bullets or timestamps. Pass the generation token shown by `memory-read` as
+the sole argument. If the generation changed, run `memory-read` again and repeat the
+review. The command archives the prior memory before an atomic replacement, so do
+not edit the storage files directly.
 
 Record durable knowledge as you work, without waiting to be told. When you learn
 something that would help a future session — a stable preference, a project
