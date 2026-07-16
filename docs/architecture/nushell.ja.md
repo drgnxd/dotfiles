@@ -19,33 +19,26 @@ dot_config/nushell/
 │   ├── 05-completions.nu   # コマンド補完
 │   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
 │   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
-│   └── 10-source-tools.nu  # Nix build済みinit script読み込み
+│   ├── 10-source-tools.nu  # Nix build済みinit script読み込み
+│   └── 99-local.nu         # 未管理のlocal上書きを最後に読み込み
 └── modules/
     └── lima.nu              # Lima/Dockerコマンド
 ```
 
 ## モジュール読み込み
 
-`env.nu` と `config.nu` は、`$nu.home-dir` から `~/.config/nushell` を組み立てて `config_dir` を求め、その配下を相対的に `source` します：
+Nushell は `~/.config/nushell/autoload` を `$nu.user-autoload-dirs` に含め、`config.nu` の後で `.nu` ファイルをファイル名順に自動で読み込みます：
 
 ```nushell
-# env.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '01-env.nu')
-source ($config_dir | path join 'autoload' '02-path.nu')
-
-# config.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
-...
+$nu.user-autoload-dirs
+# => [..., ~/.config/nushell/autoload]
 ```
 
-この方式により、Home Manager で設定ファイル本体が `/nix/store` 側にあっても、`~/.config/nushell` を基準に安定してモジュール解決できます。
+`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`99-local.nu` でマシン固有の上書きを最後に読み込みます。
 
-ユーザー名やホームディレクトリが変わっても、手動で固定パスを書き換える必要はありません。
+起動ファイル内の path は `$nu.home-dir` を基準にするため、Home Manager の `/nix/store` symlink やユーザー名の違いに応じた書き換えは不要です。
 
-再利用するツールロジックは `modules/` に置き、`autoload/` の軽量 wrapper から公開します。`config.nu` は Lima module を `09-lima.nu` より先に読み込み、その後 `10-source-tools.nu` で Nix 生成済み integration を読み込みます。
+再利用するツールロジックは `modules/` に置き、`autoload/` の軽量 wrapper から公開します。`config.nu` は自動 autoload が `09-lima.nu` に到達する前に Lima module を読み込み、続く `10-source-tools.nu` が Nix 生成済み integration を読み込みます。
 
 Carapace completion は `config.nu` で直接設定します。runtime 生成ファイルを source しないため、`~/.cache` を削除しても Nushell の parse は失敗しません。
 
@@ -196,7 +189,7 @@ alias mylocal = echo "local alias"
 
 セキュリティ上センシティブな値はこの `local.nu` に置いてください。特に `OLLAMA_ORIGINS` は `autoload/01-env.nu` では設定せず、必要な拡張機能 UUID を `local.nu` で明示設定する設計です。
 
-このファイルは`config.nu`の最後で自動的に読み込まれます。
+`autoload/99-local.nu` が、すべての管理対象起動ファイルの後でこのファイルを自動的に読み込みます。
 
 ## 参考
 

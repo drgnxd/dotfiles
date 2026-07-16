@@ -88,8 +88,9 @@
 詳細は [Nushell 設定](architecture/nushell.ja.md) を参照してください。
 
 **Entry Points**:
-- `env.nu` - `autoload/01-env.nu` と `autoload/02-path.nu` を読み込み
-- `config.nu` - autoload モジュールと local 上書きを読み込み
+- `env.nu` - 標準の環境 entry point。起動 fragment は native autoload で読み込み
+- `config.nu` - interactive 動作と前提 tool module を設定
+- `autoload/*.nu` - `config.nu` の後に Nushell がファイル名順で1回だけ読み込み
 
 **Modular Architecture**:
 ```
@@ -101,7 +102,8 @@ autoload/
 |- 05-completions.nu   # 動的補完
 |- 07-abbreviations.nu # Fish風略語展開（Space/Enter）
 |- 09-lima.nu          # Lima/Docker ヘルパー
-`- 10-source-tools.nu  # Nix build済みツール初期化 + direnv PWD フック
+|- 10-source-tools.nu  # Nix build済みツール初期化 + direnv PWD フック
+`- 99-local.nu         # 未管理の local 上書きを最後に読み込み
 ```
 
 **Key Features**:
@@ -121,19 +123,11 @@ autoload/
 
 **Module Loading**:
 ```nushell
-# env.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '01-env.nu')
-source ($config_dir | path join 'autoload' '02-path.nu')
-
-# config.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
-...
+$nu.user-autoload-dirs
+# => [..., ~/.config/nushell/autoload]
 ```
 
-モジュールパスを `$nu.home-dir` 基準に固定することで、実体が Nix store 側でも安定して読み込めます。
+`autoload/*.nu` の読み込み経路を Nushell 標準の user autoload だけにして、hook と keybinding の二重登録を防ぎます。数字 prefix で順序を決定し、内部 path は `$nu.home-dir` 基準にすることで、実体が Nix store symlink でも安定して解決します。
 
 ### 2. Linux Desktop Ecosystem (Hyprland)
 
