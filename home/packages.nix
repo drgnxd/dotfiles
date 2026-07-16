@@ -98,6 +98,7 @@ let
   ];
 
   languages = [
+    "bun"
     "uv"
   ];
 
