@@ -19,33 +19,26 @@ dot_config/nushell/
 │   ├── 05-completions.nu   # Command completions
 │   ├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 │   ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
-│   └── 10-source-tools.nu  # Sources Nix-built init scripts
+│   ├── 10-source-tools.nu  # Sources Nix-built init scripts
+│   └── 99-local.nu         # Loads unmanaged local overrides last
 └── modules/
     └── lima.nu             # Lima/Docker commands
 ```
 
 ## Module Loading
 
-`env.nu` and `config.nu` resolve `config_dir` from `$nu.home-dir` and source modules relative to `~/.config/nushell`:
+Nushell includes `~/.config/nushell/autoload` in `$nu.user-autoload-dirs` and automatically sources its `.nu` files in filename order after `config.nu`:
 
 ```nushell
-# env.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '01-env.nu')
-source ($config_dir | path join 'autoload' '02-path.nu')
-
-# config.nu
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
-source ($config_dir | path join 'autoload' '00-constants.nu')
-source ($config_dir | path join 'autoload' '00-helpers.nu')
-...
+$nu.user-autoload-dirs
+# => [..., ~/.config/nushell/autoload]
 ```
 
-This keeps module lookups anchored to `~/.config/nushell` in Home Manager setups and avoids parse-time failures when active config files live under `/nix/store`.
+`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `99-local.nu` loads machine-specific overrides last.
 
-No user-specific path rewrites are needed when moving between machines/users, as long as `env.nu` and `config.nu` are loaded from the target config directory.
+Paths inside startup files remain anchored to `$nu.home-dir`, so Home Manager's `/nix/store` symlinks and different usernames do not require path rewrites.
 
-Reusable tool logic lives under `modules/` and is exposed by lightweight wrappers in `autoload/`. `config.nu` loads the Lima module before `09-lima.nu`, then loads the Nix-generated integrations in `10-source-tools.nu`.
+Reusable tool logic lives under `modules/` and is exposed by lightweight wrappers in `autoload/`. `config.nu` loads the Lima module before automatic autoload reaches `09-lima.nu`; `10-source-tools.nu` then loads the Nix-generated integrations.
 
 Carapace completion is configured directly in `config.nu`. It does not source runtime-generated files, so deleting `~/.cache` cannot break Nushell parsing.
 
@@ -196,7 +189,7 @@ alias mylocal = echo "local alias"
 
 Security-sensitive values should live here. In particular, `OLLAMA_ORIGINS` is intentionally not set in `autoload/01-env.nu`; set a specific browser extension UUID in `local.nu` when needed.
 
-This file is automatically sourced at the end of `config.nu`.
+`autoload/99-local.nu` automatically sources this file after all managed startup files.
 
 ## References
 

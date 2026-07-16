@@ -27,9 +27,11 @@ jobs:
           touch "$HOME/.config/nushell/generated/starship.nu"
           touch "$HOME/.config/nushell/generated/zoxide.nu"
           touch "$HOME/.config/nushell/generated/atuin.nu"
-      - name: Source autoload modules
+      - name: Load autoload modules once
         run: |
-          nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'version'
+          # Nushell expressions must remain literal.
+          # shellcheck disable=SC2016
+          nu --no-history --execute 'let count = ($env.config.keybindings | where name == nu_abbr_enter | length); if $count != 1 { error make { msg: $"nu_abbr_enter loaded ($count) times" } }; exit'
       - name: Check Nushell file syntax
         run: |
           if nu --help 2>&1 | grep -q -- '--check'; then
@@ -67,7 +69,9 @@ jobs:
           fi
       - name: Verify XDG dirs
         run: |
-          nu --env-config dot_config/nushell/env.nu --config dot_config/nushell/config.nu -c 'xdg-dirs | to json'
+          # Nushell expressions must remain literal.
+          # shellcheck disable=SC2016
+          nu --no-history --execute 'print (xdg-dirs | to json); exit'
 
   test-nushell-unit:
     runs-on: macos-latest

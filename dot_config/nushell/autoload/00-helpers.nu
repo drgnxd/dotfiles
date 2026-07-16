@@ -13,7 +13,7 @@ export def require-cmd [cmd: string] {
 # Assert that a command is in scope (for load-order guards)
 export def require-loaded [name: string, source: string] {
     if (scope commands | where name == $name | is-empty) {
-        error make { msg: $"'($name)' not found. ($source) must be loaded first. Check config.nu source ordering." }
+        error make { msg: $"'($name)' not found. ($source) must be loaded first. Check autoload filename ordering." }
     }
 }
 
