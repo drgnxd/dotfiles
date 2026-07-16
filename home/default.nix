@@ -98,7 +98,6 @@ in
     ".Scilab".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/scilab";
   }
   // lib.optionalAttrs pkgs.stdenv.isDarwin {
-    ".hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/hammerspoon";
     ".local/bin/cloud-symlinks" = {
       source = ../scripts/darwin/setup_cloud_symlinks.sh;
       executable = true;
