@@ -68,6 +68,11 @@ The `claude_delegate` custom tool invokes the installed Claude Code CLI as a
 separate, bounded read-only investigator. It is not an OpenCode provider or
 agent model assignment.
 
+- The primary agent is the default entry point. Do not require mode selection
+  for ordinary conversation, curiosity-driven questions, research, or coding.
+- Use kind `consultation` for a general independent opinion with no tools or
+  workspace access. Use kind `repository` only for targeted read-only codebase
+  inspection.
 - Use it for independent second opinions, targeted repository inspection, and
   concise evidence-based summaries.
 - Give it one specific task and the desired answer format. The primary agent
