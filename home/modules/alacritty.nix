@@ -57,6 +57,7 @@ in
       };
 
       env = {
+        CLAUDE_CONFIG_DIR = "${config.xdg.dataHome}/claude";
         TERM = "xterm-256color";
         XDG_CONFIG_HOME = config.xdg.configHome;
         XDG_CACHE_HOME = config.xdg.cacheHome;

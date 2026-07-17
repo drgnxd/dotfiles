@@ -129,6 +129,7 @@ let
   ];
 
   misc = [
+    "claude-code"
     "ngspice"
     "opencode"
     "ollama"
