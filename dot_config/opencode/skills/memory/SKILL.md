@@ -27,10 +27,17 @@ When `memory-read` reports that maintenance is due:
 
 1. Run `memory-read --maintenance`.
 2. Review the active JSONL projection for the current global and project scope.
-3. Preserve retained records' `memory_id` and `scopes`; edit their fields in
-   place, omit retractions, and give new records explicit `scopes`.
-4. Pass that JSONL to `memory-maintain` from the same project with the supplied
-   generation token as its sole argument.
+3. Preserve every record that should remain active, keeping its `memory_id` and
+   `scopes`. Omit only records that should be retracted. Give new records
+   explicit `scopes`. Omitting an existing record from the maintenance input
+   retracts it.
+4. Pass the edited JSONL projection through standard input and pass the
+   generation token as the sole positional argument:
+
+   ```sh
+   memory-maintain "<generation>" < edited-projection.jsonl
+   ```
+
 5. If the generation changes, repeat the maintenance read.
 
 Maintenance appends update and retraction events; it never rewrites history.
