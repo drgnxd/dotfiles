@@ -125,6 +125,8 @@ in
 OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
 マシン固有のプロバイダー設定は `~/.config/opencode/opencode.local.json` を編集してください。
 
+- `dot_config/opencode/global_rules.md` は、read-only な
+  `~/.config/opencode/AGENTS.md` として配布されます。
 - read-only assets は Nix store から symlink されます: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `skills/tools/`, 管理対象 skill directories。変更する場合は `dot_config/opencode/` を編集し、rebuild または switch で反映してください。
 - writable files は activation 時に実ファイルとして同期します: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `tools/`。
 - `tools/` は Nix store の realpath から `~/.config/opencode/node_modules` へ walk up できず Bun の module resolution が失敗するため、実ファイルとして同期します。
