@@ -130,7 +130,8 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
 
 - `dot_config/opencode/global_rules.md` is deployed read-only as
   `~/.config/opencode/AGENTS.md`.
-- Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `skills/tools/`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
+- Global skills under `dot_config/opencode/skills/` are symlinked read-only from the Nix store. Repository-local skills under `.opencode/skills/` are not deployed globally.
+- Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
 - Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, and `tools/`.
 - `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`; otherwise the managed template is copied instead.

@@ -35,6 +35,10 @@ when present.
 - Do not retry explicit quota, authentication, or unavailable-model failures
   in a loop.
 
+## Tooling
+- Use `uv` for Python dependency and environment management. Do not invoke
+  `pip`, `virtualenv`, or `python -m venv` unless compatibility requires it.
+
 ## Output
 - Reply in Japanese by default. Keep code, commands, paths, and identifiers
   unchanged.
