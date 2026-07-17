@@ -128,6 +128,8 @@ Existing `.age` payloads were encrypted for the previous recipient set; after se
 The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
 For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
 
+- `dot_config/opencode/global_rules.md` is deployed read-only as
+  `~/.config/opencode/AGENTS.md`.
 - Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, `requirements.txt`, `command/`, `skills/tools/`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
 - Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, and `tools/`.
 - `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.

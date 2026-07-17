@@ -2,7 +2,7 @@
 """Validate OpenCode rules, instructions, and skill layout.
 
 This script enforces the minimal OpenCode structure used here:
- - global_rules.md as the deployed AGENTS.md source
+- global_rules.md as the deployed AGENTS.md source
 - opencode.json with valid schema
 - package.json for optional custom tool dependencies
 - tools/ directory for optional custom tools
