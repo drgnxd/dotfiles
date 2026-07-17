@@ -62,6 +62,45 @@ Current free-model policy:
 - Remove a free assignment after repeated tool failures, fabricated paths, or
   material omissions. Report the evidence before changing it.
 
+## Claude Code Delegation
+
+The `claude_delegate` custom tool invokes the installed Claude Code CLI as a
+separate, bounded read-only investigator. It is not an OpenCode provider or
+agent model assignment.
+
+- Use it for independent second opinions, targeted repository inspection, and
+  concise evidence-based summaries.
+- Give it one specific task and the desired answer format. The primary agent
+  remains responsible for evaluating its output and making any changes.
+- The tool permits only `Read`, `Glob`, and `Grep`; never broaden this default
+  to shell, edits, network access, or skip-permission flags.
+- Do not delegate secrets, irreversible actions, implementation work, or tasks
+  requiring interactive clarification.
+- Report CLI quota or authentication failures directly. Do not retry in a loop
+  or silently fall back to a different account.
+
+## Capacity-Aware Selection
+
+OpenCode model assignments are static for a running session. The primary agent
+cannot replace itself dynamically, but it can select appropriate subagents and
+whether to use `claude_delegate`.
+
+1. Classify the task by risk, required capability, independence, and scope.
+2. Check explicit availability signals already observed in the session. Treat
+   `429`, usage-limit, authentication, and unavailable-model errors as facts;
+   do not retry that route in a loop.
+3. Use the smallest eligible route: free `explore` for bounded non-sensitive
+   read-only inspection, `claude_delegate` for an independent read-only second
+   opinion, and Plus agents for edits, high-impact reasoning, and final review.
+4. Escalate free or delegated results that conflict, lack evidence, or affect a
+   high-risk decision to the applicable Plus agent.
+5. State the selected fallback when an explicit capacity failure changes the
+   route.
+
+`opencode stats` is historical usage telemetry only. It does not report the
+remaining ChatGPT Plus or Claude Pro quota. Never infer quota from token counts
+or spend a probe request solely to measure remaining capacity.
+
 GitHub Copilot policy:
 
 - Copilot Student may offer unlimited inline completions while restricting
