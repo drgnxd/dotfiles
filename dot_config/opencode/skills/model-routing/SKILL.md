@@ -1,6 +1,6 @@
 ---
 name: model-routing
-description: Use when OpenCode, ChatGPT, GitHub Copilot, provider plans, model availability, or usage limits change and agent model assignments need review or update.
+description: Use when selecting subagents or claude_delegate, changing model assignments, handling provider capacity failures, or reviewing OpenCode routing.
 ---
 
 # Model Routing

@@ -17,10 +17,11 @@ description: Language-specific coding conventions for Bash, Python, JavaScript, 
 - Prefer `pathlib` over legacy path APIs.
 - Do not use mutable default arguments.
 - Use `uv` workflows:
-  - Create env: `uv venv`
-  - Install deps: `uv pip install <pkg>`
+  - Declare dependencies: `uv add <package>`
+  - Synchronize environments: `uv sync`
   - Run scripts: `uv run script.py`
-- Forbidden tools: `pip`, `python -m venv`, `virtualenv`.
+- Do not invoke `pip`, `python -m venv`, or `virtualenv`. Use `uv pip` only
+  for explicitly required compatibility workflows.
 - Import grouping order: standard library, third-party, local modules.
 - Target line length: 88.
 

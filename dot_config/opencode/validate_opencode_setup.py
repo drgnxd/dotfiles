@@ -2,7 +2,7 @@
 """Validate OpenCode rules, instructions, and skill layout.
 
 This script enforces the minimal OpenCode structure used here:
-- AGENTS.md at config root
+ - global_rules.md as the deployed AGENTS.md source
 - opencode.json with valid schema
 - package.json for optional custom tool dependencies
 - tools/ directory for optional custom tools
@@ -160,20 +160,20 @@ def validate_skills_local(errors: list[str]) -> None:
         _validate_skill_subdirectory(skill_dir, errors)
 
 
-def validate_agents_file(errors: list[str]) -> None:
-    agents_path = BASE_DIR / "AGENTS.md"
-    if not agents_path.exists():
-        errors.append(f"Missing required file: {agents_path}")
+def validate_global_rules(errors: list[str]) -> None:
+    rules_path = BASE_DIR / "global_rules.md"
+    if not rules_path.exists():
+        errors.append(f"Missing required file: {rules_path}")
         return
 
-    if not agents_path.read_text(encoding="utf-8").strip():
-        errors.append("AGENTS.md exists but is empty")
+    if not rules_path.read_text(encoding="utf-8").strip():
+        errors.append("global_rules.md exists but is empty")
 
 
 def main() -> int:
     errors: list[str] = []
 
-    validate_agents_file(errors)
+    validate_global_rules(errors)
     validate_config(errors)
     validate_package(errors)
     validate_tools(errors)
