@@ -9,7 +9,7 @@
 let
   opencode_template = ../../../dot_config/opencode/opencode.json;
   opencode_local_example = ../../../dot_config/opencode/opencode.local.json.example;
-  opencode_agents_template = ../../../dot_config/opencode/AGENTS.md;
+  opencode_agents_template = ../../../dot_config/opencode/global_rules.md;
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
