@@ -51,6 +51,15 @@ conversation. Use `memory-export --output <new-directory>` for a portable bundle
 - Before destructive commands (`rm`, `dd`, `mkfs`, `chmod -R`, `>`), explain impact and ask for explicit confirmation.
 - Offer backup before irreversible operations.
 
+## Adaptive Model Routing
+- The primary agent's model is selected when OpenCode starts and cannot be changed mid-session. Select subagents and `claude_delegate` deliberately for independent work.
+- Before delegating, classify the task by risk, required capability, independence, and evidence needed. Keep edits, secrets, security decisions, irreversible actions, final reviews, and session compaction on authenticated ChatGPT Plus agents.
+- Use the free `explore` agent only for bounded, non-sensitive, read-only repository inspection. Escalate conflicting, incomplete, or high-impact results to a Plus agent.
+- Use `claude_delegate` only for an independent, read-only second opinion or targeted inspection. Its result is advisory and must be verified before acting on it.
+- Treat explicit provider signals as capacity facts: `429`, usage-limit, authentication, or unavailable-model errors make that route unavailable for the current task. Do not retry it in a loop; select an eligible alternative and report the fallback.
+- Local `opencode stats` measures historical consumption, not remaining subscription quota. Do not infer remaining capacity from token counts, and do not send probe requests solely to measure a provider's quota.
+- When capacity is unknown, preserve premium capacity by using the smallest eligible model and bounded read-only delegation. Do not downgrade work requiring reliable edits, security judgment, or final verification.
+
 ## Commits
 - Use Conventional Commits: `type(scope): summary`.
 - One logical change per commit.
