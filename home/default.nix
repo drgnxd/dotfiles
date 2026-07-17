@@ -82,6 +82,7 @@ in
   targets.darwin.linkApps.enable = lib.mkIf pkgs.stdenv.isDarwin true;
 
   home.sessionVariables = {
+    CLAUDE_CONFIG_DIR = "${config.xdg.dataHome}/claude";
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/nix-config";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.isDarwin then hostname else linuxHostname;
     NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
