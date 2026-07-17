@@ -5,9 +5,9 @@
   "default_agent": "build",
   "enabled_providers": [
     "openai",
-    "github-copilot",
     "opencode"
   ],
+  "share": "disabled",
   "provider": {
     "openai": {
       "whitelist": [
