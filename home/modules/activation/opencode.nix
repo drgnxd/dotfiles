@@ -14,18 +14,10 @@ let
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
   opencode_skills_dir = ../../../dot_config/opencode/skills;
-  opencode_skills_tools = ../../../dot_config/opencode/skills/tools;
-  opencode_requirements = ../../../dot_config/opencode/requirements.txt;
-  opencode_command_dir = ../../../dot_config/opencode/command;
   skillEntries = builtins.readDir opencode_skills_dir;
-  managedSkillNames = builtins.filter (
-    name:
-    skillEntries.${name} == "directory"
-    && !(builtins.elem name [
-      "local"
-      "tools"
-    ])
-  ) (builtins.attrNames skillEntries);
+  managedSkillNames = builtins.filter (name: skillEntries.${name} == "directory") (
+    builtins.attrNames skillEntries
+  );
   managedSkills = builtins.listToAttrs (
     map (name: {
       inherit name;
@@ -35,12 +27,17 @@ let
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
+  legacyOpencodeAssets = [
+    "command"
+    "requirements.txt"
+    "skills/tools"
+    "skills/infrastructure"
+    "skills/languages"
+    "skills/practices"
+  ];
   migratedAssetTargets = [
     "${config.xdg.configHome}/opencode/AGENTS.md"
     "${config.xdg.configHome}/opencode/opencode-notifier.json"
-    "${config.xdg.configHome}/opencode/requirements.txt"
-    "${config.xdg.configHome}/opencode/command"
-    "${config.xdg.configHome}/opencode/skills/tools"
   ]
   ++ lib.mapAttrsToList (name: _: "${config.xdg.configHome}/opencode/skills/${name}") managedSkills;
   migrateManagedAssetCommands = builtins.concatStringsSep "\n" (
@@ -53,9 +50,6 @@ in
   xdg.configFile = {
     "opencode/AGENTS.md".source = opencode_agents_template;
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
-    "opencode/requirements.txt".source = opencode_requirements;
-    "opencode/command".source = opencode_command_dir;
-    "opencode/skills/tools".source = opencode_skills_tools;
   }
   // lib.mapAttrs' (
     name: src: lib.nameValuePair "opencode/skills/${name}" { source = src; }
@@ -89,6 +83,29 @@ in
     }
 
     ${migrateManagedAssetCommands}
+  '';
+
+  home.activation.removeLegacyOpencodeAssets = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    opencode_dir="${config.xdg.configHome}/opencode"
+
+    # Remove only store symlinks created by older generations; preserve user files.
+    remove_legacy_store_symlink() {
+      target="$1"
+      if [ ! -L "$target" ]; then
+        return 0
+      fi
+
+      link_target="$(readlink "$target")"
+      case "$link_target" in
+        /nix/store/*) $DRY_RUN_CMD rm -f "$target" ;;
+      esac
+    }
+
+    ${builtins.concatStringsSep "\n" (
+      map (path: ''
+        remove_legacy_store_symlink "$opencode_dir/${path}"
+      '') legacyOpencodeAssets
+    )}
   '';
 
   home.activation.ensureOpencodeLocalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

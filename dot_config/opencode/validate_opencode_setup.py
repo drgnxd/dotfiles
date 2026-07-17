@@ -16,14 +16,7 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-LEGACY_SKILL_DIRS = {
-    "essential",
-    "specialized",
-    "tools",
-    "local",  # user-managed, not a native skill container
-}
-
-
+LOCAL_SKILLS_DIR = BASE_DIR.parents[1] / ".opencode" / "skills"
 def _validate_skill_frontmatter(skill_file: Path, errors: list[str]) -> None:
     try:
         content = skill_file.read_text(encoding="utf-8")
@@ -133,30 +126,21 @@ def validate_skills(errors: list[str]) -> None:
         errors.append("skills/ must contain at least one subdirectory")
         return
 
-    native_subdirs = [path for path in subdirs if path.name not in LEGACY_SKILL_DIRS]
-    if not native_subdirs:
-        errors.append("skills/ must contain at least one native skill subdirectory")
-        return
-
-    for skill_dir in native_subdirs:
+    for skill_dir in subdirs:
         _validate_skill_subdirectory(skill_dir, errors)
 
 
-def validate_skills_local(errors: list[str]) -> None:
-    skills_local_dir = BASE_DIR / "skills" / "local"
-    if not skills_local_dir.exists():
-        return
-    if not skills_local_dir.is_dir():
-        errors.append(f"skills/local exists but is not a directory: {skills_local_dir}")
+def validate_local_skills(errors: list[str]) -> None:
+    if not LOCAL_SKILLS_DIR.exists() or not LOCAL_SKILLS_DIR.is_dir():
+        errors.append(f"Missing repository-local skills directory: {LOCAL_SKILLS_DIR}")
         return
 
-    local_subdirs = sorted(path for path in skills_local_dir.iterdir() if path.is_dir())
-    if not local_subdirs:
+    subdirs = sorted(path for path in LOCAL_SKILLS_DIR.iterdir() if path.is_dir())
+    if not subdirs:
+        errors.append(".opencode/skills/ must contain at least one skill subdirectory")
         return
 
-    # Top-level files in skills/local (for example standalone YAML snippets) are
-    # allowed; only native-style subdirectories must provide SKILL.md.
-    for skill_dir in local_subdirs:
+    for skill_dir in subdirs:
         _validate_skill_subdirectory(skill_dir, errors)
 
 
@@ -178,7 +162,7 @@ def main() -> int:
     validate_package(errors)
     validate_tools(errors)
     validate_skills(errors)
-    validate_skills_local(errors)
+    validate_local_skills(errors)
 
     if errors:
         for error in errors:

@@ -36,7 +36,8 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 ## OpenCode Assets
 
 - Edit OpenCode sources under `dot_config/opencode/`; do not edit deployed files under `~/.config/opencode/`.
-- `AGENTS.md`, `command/`, and managed skill directories deploy as read-only Nix-store symlinks.
+- `dot_config/opencode/global_rules.md` deploys read-only as `~/.config/opencode/AGENTS.md`.
+- Global skills under `dot_config/opencode/skills/` deploy as read-only Nix-store symlinks. Repository-local skills under `.opencode/skills/` do not deploy globally.
 - `opencode.json`, `package.json`, and `tools/` deploy as activation-synced real files.
 - `tools/` must remain real files because Bun resolves imports from realpaths and must walk up to `node_modules`.
 
