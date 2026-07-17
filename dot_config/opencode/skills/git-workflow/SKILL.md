@@ -5,7 +5,8 @@ description: Use before creating commits, branches, rebases, pull requests, or o
 
 # Git Workflow
 
-- Use Conventional Commits: `type(scope): summary`.
+- Follow the active repository's documented commit convention. Use Conventional
+  Commits as a fallback when it defines none.
 - Keep one logical change per commit.
 - Stay on the current branch for trivial documentation, comment, or simple
   fixes unless the user requests a branch.
