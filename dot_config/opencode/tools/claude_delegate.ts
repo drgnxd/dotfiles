@@ -34,7 +34,7 @@ Use kind "consultation" for an independent opinion on a general question. Claude
   args: {
     task: tool.schema.string().min(1).describe("A specific read-only task for Claude Code, including the desired answer format"),
     kind: tool.schema.enum(["consultation", "repository"]).default("repository").describe("Whether Claude should answer a general question without tools or inspect the repository read-only"),
-    model: tool.schema.enum(["haiku", "sonnet"]).default("sonnet").describe("Claude model profile to use for the delegated task"),
+    effort: tool.schema.enum(["low", "medium", "high"]).default("medium").describe("Thinking depth: low for simple questions, medium for standard analysis, high for complex or consequential read-only analysis"),
   },
   async execute(args, context) {
     const repository_task = args.kind === "repository"
@@ -55,7 +55,9 @@ Use kind "consultation" for an independent opinion on a general question. Claude
         "--json-schema",
         JSON.stringify(CLAUDE_SCHEMA),
         "--model",
-        args.model,
+        "sonnet",
+        "--effort",
+        args.effort,
         prompt,
       ],
       {

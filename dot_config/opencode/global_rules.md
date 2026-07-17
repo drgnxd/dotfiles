@@ -31,6 +31,8 @@ when present.
   consequential work.
 - Keep edits, secrets, security decisions, irreversible actions, and final
   verification on authenticated ChatGPT Plus agents.
+- Preserve longer-window ChatGPT capacity by preferring eligible Claude Sonnet
+  delegation whenever it is available; follow `model-routing` for the boundary.
 - Treat delegated results as advisory until independently verified.
 - Do not retry explicit quota, authentication, or unavailable-model failures
   in a loop.
