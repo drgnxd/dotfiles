@@ -68,6 +68,7 @@
       transfer.fsckobjects = true;
       receive.fsckobjects = true;
       gpg.format = "ssh";
+      user.signingkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFQed3Gye7yVML0fXiyN5VYAqPlttXwoetxVl1qk5w09 git-signing";
       commit.gpgsign = true;
       commit.verbose = true;
       tag.gpgsign = true;

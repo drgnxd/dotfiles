@@ -1,6 +1,10 @@
 {
+  # Required: `whoami` on the target machine.
   user = "user";
+  # Required on macOS: `scutil --get LocalHostName`.
   hostname = "darwin";
+  # Required on Linux: `hostname`.
   linux_hostname = "linux";
+  # Optional: only needed when using agenix-managed secrets.
   # agenixIdentityFile = "~/.ssh/id_ed25519";
 }
