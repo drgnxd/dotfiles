@@ -109,5 +109,6 @@ in
   };
 
   xdg.dataFile."claude/CLAUDE.md".source = ../dot_local/share/claude/CLAUDE.md;
+  xdg.dataFile."claude/settings.json".source = ../dot_local/share/claude/settings.json;
 
 }
