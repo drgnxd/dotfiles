@@ -55,13 +55,16 @@ Run switch/build commands from the repository root. `path:.` is intentional so g
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 
-### Local identity override (recommended)
+### Local configuration
 
-Copy the example and set your machine-specific values:
+Copy the templates, then set your machine-specific identity. `preferences.nix` is optional and uses portable defaults when absent.
 
 ```sh
 cp local/identity.nix.example local/identity.nix
+cp local/preferences.nix.example local/preferences.nix
 ```
+
+See [`local/README.md`](local/README.md) for the fields and platform-specific commands.
 
 ### Linux (standalone home-manager)
 

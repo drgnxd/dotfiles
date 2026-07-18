@@ -26,11 +26,12 @@ cd ~/.config/nix-config
 
 ### Step 3: Configure Machine Identity
 
-Copy the example file and edit it for your machine:
+Copy the templates and edit the required identity for your machine. Preferences are optional and use portable defaults when absent:
 
 ```bash
 cp local/identity.nix.example local/identity.nix
-# Edit local/identity.nix with your user, hostname, and linux_hostname
+cp local/preferences.nix.example local/preferences.nix
+# Edit local/identity.nix with your user, hostname, and linux_hostname.
 ```
 
 Example `local/identity.nix`:
@@ -43,7 +44,7 @@ Example `local/identity.nix`:
 }
 ```
 
-**Note**: `local/identity.nix` is gitignored — it never leaves your machine.
+**Note**: `local/identity.nix` and `local/preferences.nix` are gitignored — they never leave your machine. See [`local/README.md`](../../local/README.md) for the concise local configuration reference.
 
 ### Step 4: Bootstrap
 

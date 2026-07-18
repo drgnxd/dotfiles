@@ -26,10 +26,11 @@ cd ~/.config/nix-config
 
 ### 手順 3: マシン固有の識別情報を設定
 
-例をコピーして、自分のマシン用に編集します：
+テンプレートをコピーして、自分のマシンに必要な識別情報を編集します。`preferences.nix` は任意であり、作成しない場合は可搬性を優先した既定値を使います：
 
 ```bash
 cp local/identity.nix.example local/identity.nix
+cp local/preferences.nix.example local/preferences.nix
 # local/identity.nix を編集して user, hostname, linux_hostname を設定
 ```
 
@@ -43,7 +44,7 @@ cp local/identity.nix.example local/identity.nix
 }
 ```
 
-**注意**: `local/identity.nix` は gitignore 対象です。このファイルがマシン外に出ることはありません。
+**注意**: `local/identity.nix` と `local/preferences.nix` は gitignore 対象です。これらのファイルがマシン外に出ることはありません。項目とプラットフォーム別の確認コマンドは [`local/README.md`](../../local/README.md) を参照してください。
 
 ### 手順 4: ブートストラップ実行
 
