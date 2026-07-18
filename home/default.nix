@@ -43,6 +43,7 @@ in
     ./modules/activation/directories.nix
     ./modules/activation/nushell_ensure.nix
     ./modules/activation/opencode.nix
+    ./modules/activation/claude_skills.nix
     ./modules/alacritty.nix
     ./modules/atuin.nix
     ./modules/bat.nix
