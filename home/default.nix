@@ -107,4 +107,6 @@ in
     };
   };
 
+  xdg.dataFile."claude/CLAUDE.md".source = ../dot_local/share/claude/CLAUDE.md;
+
 }
