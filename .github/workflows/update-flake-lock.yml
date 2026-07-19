@@ -19,6 +19,8 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@c70cb8ae92d68c66953db28a26a63db1665bc837 # v3.21.5
       - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
         with:
+          # nixpkgs currently fails to build watchexec on aarch64-darwin.
+          inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl treefmt-nix"
           pr-title: "chore(deps): update flake.lock"
           pr-labels: |
             dependencies
