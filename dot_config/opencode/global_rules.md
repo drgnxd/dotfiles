@@ -18,6 +18,9 @@ when present.
   `memory-append`.
 - Load the `memory` skill for maintenance, migration, import, export, or
   diagnosis.
+- When a coherent non-trivial task changes durable personal context or project
+  state, use the canonical route returned by `memory-read` to promote verified
+  conclusions. Do not duplicate detailed facts in agent-memory.
 
 ## Safety
 - Before an operation that can irreversibly delete or overwrite user data,
