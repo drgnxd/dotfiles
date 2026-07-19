@@ -22,6 +22,16 @@ when present.
   state, use the canonical route returned by `memory-read` to promote verified
   conclusions. Do not duplicate detailed facts in agent-memory.
 
+## Git
+- Before any commit or amend, identify the active repository and read its
+  nearest project instructions. Inspect its `git status`, relevant diff, and
+  recent commit history.
+- Match the active repository's documented convention or recent history,
+  including commit-message language. Never carry a commit convention from a
+  different repository into the current one.
+- Load the `git-workflow` skill before repository-history changes, stage only
+  intended files, and run the active repository's required validation gates.
+
 ## Safety
 - Before an operation that can irreversibly delete or overwrite user data,
   explain its impact and obtain explicit confirmation.
