@@ -5,8 +5,13 @@ description: Use before creating commits, branches, rebases, pull requests, or o
 
 # Git Workflow
 
-- Follow the active repository's documented commit convention. Use Conventional
-  Commits as a fallback when it defines none.
+- Follow the active repository's documented commit convention (e.g.
+  CONTRIBUTING.md, COMMIT_CONVENTION.md, CONTRIBUTING guides — check root and
+  `docs/` before assuming there is none). If no documented convention exists,
+  match the style already established in `git log --oneline -20` (type/scope
+  usage, language, formatting). Fall back to Conventional Commits only when
+  the repository has neither a documented convention nor an established
+  history to infer one from.
 - Keep one logical change per commit.
 - Stay on the current branch for trivial documentation, comment, or simple
   fixes unless the user requests a branch.
