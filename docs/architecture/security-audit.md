@@ -37,6 +37,16 @@ Undeclared user LaunchAgents and stray system extensions are the highest-value f
 
 System extensions receive `WARN` until they are explicitly declared and justified. They can survive `brew uninstall --zap`, so removing the Nix or Homebrew declaration does not prove that the extension stopped persisting on the machine.
 
+## Justified System Extensions
+
+The following system extensions are required by apps declared in `casks` and are intentionally accepted because they are load-bearing for the app's core function. The audit keeps reporting `WARN` for them (there is no automated justification mechanism), but these are not unknown drift.
+
+| Extension | Source cask | Justification |
+|-----------|------------|------|
+| `com.objective-see.lulu.extension` | `lulu` | Required for outbound connection control (LuLu's core function) |
+| `ch.protonvpn.mac.WireGuard-Extension` | `protonvpn` | Required for ProtonVPN's WireGuard tunnel |
+| `ch.protonvpn.mac.Transparent-Proxy` | `protonvpn` | Required for ProtonVPN's split tunneling (experimental feature) |
+
 ## Platform Support
 
 This audit supports macOS only. Linux parity is future work.
