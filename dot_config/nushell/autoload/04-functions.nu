@@ -142,6 +142,13 @@ export def upgrade-all [] {
 
 export alias update = upgrade-all
 
+# ZELLIJ SESSION NAMED AFTER THE CURRENT DIRECTORY
+export def zj [] {
+    require-cmd zellij
+    let name = ($env.PWD | path basename)
+    zellij attach -c $name
+}
+
 # BUNDLE ID HELPER
 export def bundle-id [app_path: string] {
     if not ($app_path | path exists) {
