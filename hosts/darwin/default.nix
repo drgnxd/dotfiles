@@ -188,7 +188,6 @@ in
 
       "gimp"
       "floorp"
-      "google-chrome"
       "libreoffice"
 
       "kicad"
