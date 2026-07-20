@@ -38,6 +38,15 @@ in
 
   # ── macOS system defaults (declarative) ──────────────────────────────
   system.defaults = {
+    # Auto-check and auto-download macOS updates, but never auto-install:
+    # installation (including the OS itself) stays a deliberate, manual step
+    # so it can't restart the machine mid-work.
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false;
+    CustomSystemPreferences."/Library/Preferences/com.apple.SoftwareUpdate" = {
+      AutomaticCheckEnabled = true;
+      AutomaticDownload = true;
+    };
+
     NSGlobalDomain = {
       # Save/print dialogs
       NSNavPanelExpandedStateForSaveMode = true;
@@ -167,8 +176,9 @@ in
   homebrew = {
     enable = true;
     onActivation = {
-      autoUpdate = false;
-      upgrade = false;
+      # Keep casks/brews/mas apps current automatically on every switch.
+      autoUpdate = true;
+      upgrade = true;
       cleanup = "zap";
       extraFlags = [ "--force" ];
     };
