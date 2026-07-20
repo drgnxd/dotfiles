@@ -196,6 +196,9 @@ in
       "sol"
       "stats"
 
+      "lulu"
+      "oversight"
+
       "gimp"
       "floorp"
       "libreoffice"
