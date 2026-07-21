@@ -275,6 +275,11 @@ check_launch_agents() {
   local disk_path
   local disk_name
   local mismatch_count=0
+  local hm_users_json
+  local hm_user_name
+  local hm_installable
+  local hm_declared_output
+  local hm_declared_name
   local -a declared_names=()
   local -a expected_names=()
   local -a disk_paths=()
@@ -331,6 +336,24 @@ check_launch_agents() {
     declared_names[${#declared_names[@]}]=$declared_name
     expected_names[${#expected_names[@]}]="org.nixos.${declared_name}.plist"
   done <<<"$declared_output"
+
+  # home-manager's own launchd.agents option (e.g. nix-gc) is declared
+  # independently of nix-darwin's launchd.user.agents and produces plists
+  # named org.nix-community.home.<name>.plist. Fold it in best-effort so
+  # those agents are not flagged as undeclared drift.
+  if hm_users_json=$(cd "$repo_root" && "$nix_command" eval --no-write-lock-file --json "path:.#darwinConfigurations.\"${host_name}\".config.home-manager.users" --apply builtins.attrNames 2>/dev/null) &&
+    [[ $hm_users_json =~ ^\[\"([A-Za-z0-9._-]+)\"\]$ ]]; then
+    hm_user_name=${BASH_REMATCH[1]}
+    hm_installable="path:.#darwinConfigurations.\"${host_name}\".config.home-manager.users.\"${hm_user_name}\".launchd.agents"
+    if hm_declared_output=$(cd "$repo_root" && "$nix_command" eval --no-write-lock-file --raw "$hm_installable" --apply 'agents: builtins.concatStringsSep "\n" (builtins.attrNames agents)' 2>/dev/null); then
+      while IFS= read -r hm_declared_name; do
+        [[ -n $hm_declared_name ]] || continue
+        if [[ $hm_declared_name =~ ^[A-Za-z0-9._+-]+$ ]]; then
+          expected_names[${#expected_names[@]}]="org.nix-community.home.${hm_declared_name}.plist"
+        fi
+      done <<<"$hm_declared_output"
+    fi
+  fi
 
   if [[ -z ${HOME:-} ]]; then
     add_result "$section" 'User LaunchAgents' 'UNKNOWN' 'HOME is unset' 'Run the audit from a normal user session.'

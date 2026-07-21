@@ -142,6 +142,19 @@ export def upgrade-all [] {
 
 export alias update = upgrade-all
 
+# ZELLIJ SESSION NAMED AFTER THE CURRENT DIRECTORY
+# No args: attach to (or create) the session named after $env.PWD.
+# Any args: pass straight through to `zellij`.
+export def --wrapped zj [...args] {
+    require-cmd zellij
+    if ($args | is-empty) {
+        let name = ($env.PWD | path basename)
+        zellij attach -c $name
+    } else {
+        ^zellij ...$args
+    }
+}
+
 # BUNDLE ID HELPER
 export def bundle-id [app_path: string] {
     if not ($app_path | path exists) {

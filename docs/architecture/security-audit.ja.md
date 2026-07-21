@@ -37,6 +37,16 @@ just security-audit --strict
 
 System extension は、明示的に宣言して根拠を示すまで `WARN` になります。`brew uninstall --zap` 後も残る可能性があるため、Nix または Homebrew の宣言を削除しただけでは、その extension がマシン上で永続化を停止した証拠にはなりません。
 
+## 許容済み System extension
+
+以下は `casks` で宣言済みのアプリが必要とする system extension で、機能上必要なため意図的に許容している。監査は `WARN` を出し続けるが(自動的な根拠検証機構がないため)、これらは既知の drift ではない。
+
+| Extension | 提供元 cask | 根拠 |
+|-----------|------------|------|
+| `com.objective-see.lulu.extension` | `lulu` | アウトバウンド接続制御に必須(LuLu の核心機能) |
+| `ch.protonvpn.mac.WireGuard-Extension` | `protonvpn` | ProtonVPN の WireGuard トンネルに必須 |
+| `ch.protonvpn.mac.Transparent-Proxy` | `protonvpn` | ProtonVPN の Split Tunneling(実験的機能)に必須 |
+
 ## プラットフォーム対応
 
 この監査は macOS のみを対象とします。Linux 対応は今後の作業です。

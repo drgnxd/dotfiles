@@ -48,9 +48,12 @@ let
   };
 
   # Disable app-native "Launch at Login" agent to prevent double-launch.
-  # Apps like Stats and Hammerspoon register their own LaunchAgent when
-  # "Launch at Login" is enabled in their preferences.  Since nix-darwin
-  # already manages the agent, the app-native one must be suppressed.
+  # Apps like Stats, Hammerspoon, and Maccy register their own LaunchAgent
+  # when "Launch at Login" is enabled in their preferences.  Since
+  # nix-darwin already manages the agent, the app-native one must be
+  # suppressed. The plist is deleted rather than renamed so no inert file
+  # lingers in ~/Library/LaunchAgents for the security audit to flag as
+  # undeclared persistence.
   disable_login_launch_agent =
     { plist_name, labels }:
     ''
@@ -63,9 +66,7 @@ let
         /bin/launchctl disable "gui/$user_id/${label}" 2>/dev/null || true
       '') labels}
 
-      if [ -f "$launch_agent" ]; then
-        /bin/mv -f "$launch_agent" "$launch_agent_disabled"
-      fi
+      /bin/rm -f "$launch_agent" "$launch_agent_disabled"
     '';
 
 in
@@ -92,6 +93,18 @@ in
         "/usr/bin/open"
         "-a"
         "Stats"
+      ];
+    };
+
+    # Sets the SCIHOME env var (Scilab's config home) for GUI-launched apps.
+    # Supersedes a hand-installed ~/Library/LaunchAgents/setenv.SCIHOME.plist.
+    setenv-scihome = mkManagedAgent {
+      name = "setenv-scihome";
+      programArgs = [
+        "/bin/launchctl"
+        "setenv"
+        "SCIHOME"
+        "${home_dir}/.config/scilab"
       ];
     };
 
@@ -139,5 +152,19 @@ in
               "org.hammerspoon.Hammerspoon.LaunchAtLogin"
             ];
           });
+
+      home.activation.disableMaccyLaunchAtLogin =
+        lib.hm.dag.entryAfter [ "writeBoundary" ]
+          (disable_login_launch_agent {
+            plist_name = "org.p0deje.Maccy";
+            labels = [ "org.p0deje.Maccy" ];
+          });
+
+      # One-time cleanup of the hand-installed agent now superseded by
+      # the declared setenv-scihome agent above.
+      home.activation.removeLegacyScihomeAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        /bin/launchctl bootout "gui/$(/usr/bin/id -u)/setenv.SCIHOME" 2>/dev/null || true
+        /bin/rm -f "$HOME/Library/LaunchAgents/setenv.SCIHOME.plist"
+      '';
     };
 }
