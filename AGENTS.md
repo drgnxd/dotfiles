@@ -45,5 +45,5 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 
 - Secrets are agenix-managed; never commit plaintext secrets.
 - Before committing, run `uv tool run detect-secrets scan --baseline .secrets.baseline`.
-- Do not stage timestamp-only changes to `.secrets.baseline`.
-- Update the baseline only for an intentional, reviewed allowlist change.
+- When a change adds, removes, or moves a detected value, review the regenerated `.secrets.baseline` and stage its semantic changes in the same commit.
+- Do not stage timestamp-only changes to `.secrets.baseline`; stage reviewed finding additions, removals, or location updates.
