@@ -43,7 +43,6 @@ The following system extensions are required by apps declared in `casks` and are
 
 | Extension | Source cask | Justification |
 |-----------|------------|------|
-| `com.objective-see.lulu.extension` | `lulu` | Required for outbound connection control (LuLu's core function) |
 | `ch.protonvpn.mac.WireGuard-Extension` | `protonvpn` | Required for ProtonVPN's WireGuard tunnel |
 | `ch.protonvpn.mac.Transparent-Proxy` | `protonvpn` | Required for ProtonVPN's split tunneling (experimental feature) |
 
