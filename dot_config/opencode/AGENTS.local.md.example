@@ -1,0 +1,13 @@
+# OpenCode Local Rules (machine-specific, not committed to this public repo)
+
+Copy this file to `AGENTS.local.md` in the same directory and fill in your
+own machine-specific pointers. `AGENTS.local.md` is git-ignored; its content
+is appended after the public `global_rules.md` when OpenCode's `AGENTS.md` is
+built during Home Manager activation.
+
+## Memory
+
+- `<path-to-your-personal-context-repo>` is the canonical store for durable
+  personal context, knowledge, decisions, and progress logs. Before
+  non-trivial personal, research, learning, or career work, read its entry
+  file and follow its index files.

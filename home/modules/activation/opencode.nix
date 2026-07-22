@@ -1,6 +1,9 @@
 # OpenCode asset contract:
 # - Read-only managed assets are store symlinks via xdg.configFile.
 # - OpenCode-writable files stay as real files synced during activation.
+# - AGENTS.md is synced as a real file built by concatenating the public
+#   global_rules.md template with a machine-local, git-ignored AGENTS.local.md
+#   appendix, so machine-specific paths never enter the public repo.
 # - Custom tools are synced as real files because Bun resolves imports from
 #   realpaths and store symlinks cannot reach ~/.config/opencode/node_modules.
 # - Conflicting real files at migrated symlink paths are backed up as `.before-nix`.
@@ -10,6 +13,7 @@ let
   opencode_template = ../../../dot_config/opencode/opencode.json;
   opencode_local_example = ../../../dot_config/opencode/opencode.local.json.example;
   opencode_agents_template = ../../../dot_config/opencode/global_rules.md;
+  opencode_agents_local_example = ../../../dot_config/opencode/AGENTS.local.md.example;
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
@@ -27,6 +31,9 @@ let
   opencode_target = "${config.xdg.configHome}/opencode/opencode.json";
   opencode_local_override = "${config.xdg.configHome}/opencode/opencode.local.json";
   opencode_local_example_target = "${config.xdg.configHome}/opencode/opencode.local.json.example";
+  agents_target = "${config.xdg.configHome}/opencode/AGENTS.md";
+  agents_local_override = "${config.xdg.configHome}/opencode/AGENTS.local.md";
+  agents_local_example_target = "${config.xdg.configHome}/opencode/AGENTS.local.md.example";
   legacyOpencodeAssets = [
     "command"
     "requirements.txt"
@@ -36,7 +43,6 @@ let
     "skills/practices"
   ];
   migratedAssetTargets = [
-    "${config.xdg.configHome}/opencode/AGENTS.md"
     "${config.xdg.configHome}/opencode/opencode-notifier.json"
   ]
   ++ lib.mapAttrsToList (name: _: "${config.xdg.configHome}/opencode/skills/${name}") managedSkills;
@@ -48,7 +54,6 @@ let
 in
 {
   xdg.configFile = {
-    "opencode/AGENTS.md".source = opencode_agents_template;
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
   }
   // lib.mapAttrs' (
@@ -120,6 +125,37 @@ in
       cp -f "${opencode_local_example}" "$opencode_local_example_target"
     fi
     chmod u+w "$opencode_local_override" "$opencode_local_example_target"
+  '';
+
+  home.activation.ensureOpencodeAgentsLocal = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    agents_local_override="${agents_local_override}"
+    agents_local_example_target="${agents_local_example_target}"
+    agents_dir="$(dirname "$agents_local_override")"
+    mkdir -p "$agents_dir"
+    if [ ! -f "$agents_local_override" ]; then
+      touch "$agents_local_override"
+    fi
+    if [ ! -f "$agents_local_example_target" ]; then
+      cp -f "${opencode_agents_local_example}" "$agents_local_example_target"
+    fi
+    chmod u+w "$agents_local_override" "$agents_local_example_target"
+  '';
+
+  home.activation.syncOpencodeAgents = lib.hm.dag.entryAfter [ "ensureOpencodeAgentsLocal" ] ''
+    agents_target="${agents_target}"
+    agents_local_override="${agents_local_override}"
+    agents_dir="$(dirname "$agents_target")"
+    mkdir -p "$agents_dir"
+
+    {
+      cat "${opencode_agents_template}"
+      if [ -s "$agents_local_override" ]; then
+        printf '\n'
+        cat "$agents_local_override"
+      fi
+    } > "$agents_target.tmp"
+    mv -f "$agents_target.tmp" "$agents_target"
+    chmod u+w "$agents_target"
   '';
 
   home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter [ "ensureOpencodeLocalConfig" ] ''
