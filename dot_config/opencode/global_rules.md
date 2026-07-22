@@ -10,10 +10,10 @@ when present.
 - Keep changes focused, composable, and fail-fast.
 
 ## Memory
-- `~/dev/context-core` is the canonical store for durable personal context,
-  knowledge, decisions, and progress logs. Before non-trivial personal,
-  research, learning, or career work, read its `context/current.md` and follow
-  `projects/index.md`, `knowledge/maps/index.md`, or `decisions/index.md`.
+- See `~/.config/opencode/AGENTS.local.md` (machine-local, not in this public
+  repo) for the pointer to this user's canonical personal-context store and
+  its retrieval conventions. If that file is empty, no such store is
+  configured on this machine.
 - Prefer reusable, vendor-neutral plain-text/Markdown for anything meant to
   persist, so it converts losslessly into future context-retention systems.
 - Archive complete OpenCode and Claude Code conversation histories locally
