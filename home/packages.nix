@@ -122,6 +122,11 @@ let
     "smartmontools"
   ];
 
+  chess_tools = [
+    "en-croissant"
+    "stockfish"
+  ];
+
   containers = [
     "docker"
     "docker-compose"
@@ -149,6 +154,7 @@ let
     ++ security
     ++ linux_cli_tools
     ++ system_tools
+    ++ chess_tools
     ++ containers
     ++ misc
   );
