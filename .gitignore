@@ -42,6 +42,7 @@ local/identity.nix
 local/preferences.nix
 !dot_config/nushell/local.nu.example
 !dot_config/opencode/opencode.local.json.example
+!dot_config/opencode/AGENTS.local.md.example
 !dot_config/hypr/local.conf.example
 **/hosts.yml
 dot_config/npm/
