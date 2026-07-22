@@ -46,6 +46,10 @@ The following system extensions are required by apps declared in `casks` and are
 | `ch.protonvpn.mac.WireGuard-Extension` | `protonvpn` | Required for ProtonVPN's WireGuard tunnel |
 | `ch.protonvpn.mac.Transparent-Proxy` | `protonvpn` | Required for ProtonVPN's split tunneling (experimental feature) |
 
+## Known Residual WARN
+
+`com.objective-see.lulu.extension` remained registered in `systemextensionsctl list` after the `lulu` cask was removed (`brew uninstall --zap`) and the extension was disabled via System Settings (`[activated disabled]`) on 2026-07-22. `systemextensionsctl uninstall` cannot run while SIP is enabled, and clearing this registration fully would require disabling SIP. Keeping SIP enabled takes priority, so the disabled residual entry is accepted. The audit keeps reporting `WARN` for it; this is known drift that requires no action.
+
 ## Platform Support
 
 This audit supports macOS only. Linux parity is future work.
