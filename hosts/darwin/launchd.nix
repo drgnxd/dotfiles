@@ -5,6 +5,7 @@
 # "Launch at Login" agents that apps create on their own.
 {
   lib,
+  pkgs,
   user,
   ...
 }:
@@ -33,14 +34,20 @@ let
       };
     };
 
-  # Simple login app agent (open -a)
-  mkLoginApp = appName: {
+  # `open -a <app>` wrapped in a name-specific derivation so the process
+  # shows up in macOS's Background Activity as e.g. "open-floorp" instead
+  # of a generic "open" indistinguishable from every other login item.
+  mkOpenWrapper =
+    id: appName:
+    pkgs.writeShellApplication {
+      name = "open-${id}";
+      text = ''exec /usr/bin/open -a "${appName}" "$@"'';
+    };
+
+  # Simple login app agent (open -a), routed through a named wrapper
+  mkLoginApp = id: appName: {
     serviceConfig = {
-      ProgramArguments = [
-        "/usr/bin/open"
-        "-a"
-        appName
-      ];
+      ProgramArguments = [ "${mkOpenWrapper id appName}/bin/open-${id}" ];
       RunAtLoad = true;
       KeepAlive = false;
       ProcessType = "Interactive";
@@ -81,19 +88,11 @@ in
     };
     maccy = mkManagedAgent {
       name = "maccy";
-      programArgs = [
-        "/usr/bin/open"
-        "-a"
-        "Maccy"
-      ];
+      programArgs = [ "${mkOpenWrapper "maccy" "Maccy"}/bin/open-maccy" ];
     };
     stats = mkManagedAgent {
       name = "stats";
-      programArgs = [
-        "/usr/bin/open"
-        "-a"
-        "Stats"
-      ];
+      programArgs = [ "${mkOpenWrapper "stats" "Stats"}/bin/open-stats" ];
     };
 
     # Sets the SCIHOME env var (Scilab's config home) for GUI-launched apps.
@@ -109,12 +108,12 @@ in
     };
 
     # Simple login apps: open -a at login
-    login-alacritty = mkLoginApp "Alacritty";
-    login-floorp = mkLoginApp "Floorp";
-    login-proton-mail = mkLoginApp "Proton Mail";
-    login-proton-pass = mkLoginApp "Proton Pass";
-    login-protonvpn = mkLoginApp "ProtonVPN";
-    login-sol = mkLoginApp "Sol";
+    login-alacritty = mkLoginApp "alacritty" "Alacritty";
+    login-floorp = mkLoginApp "floorp" "Floorp";
+    login-proton-mail = mkLoginApp "proton-mail" "Proton Mail";
+    login-proton-pass = mkLoginApp "proton-pass" "Proton Pass";
+    login-protonvpn = mkLoginApp "protonvpn" "ProtonVPN";
+    login-sol = mkLoginApp "sol" "Sol";
   };
 
   # ── App-native agent cleanup (home-manager activation) ──────────────
