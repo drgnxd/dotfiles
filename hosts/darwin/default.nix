@@ -193,6 +193,7 @@ in
       "codexbar"
       "hammerspoon"
       "pearcleaner"
+      "qlmarkdown"
       "sol"
       "stats"
 
