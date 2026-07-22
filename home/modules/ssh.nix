@@ -23,8 +23,7 @@
       };
       "github.com" = {
         HostName = "github.com";
-        IdentityFile = "~/.ssh/id_proton_github.pub";
-        IdentitiesOnly = true;
+        IdentityFile = "none";
         User = "git";
       };
     };
