@@ -213,6 +213,7 @@ in
       "proton-pass"
       "protonvpn"
       "scilab"
+      "tailscale"
     ];
     masApps = {
       "Proton Pass for Safari" = 6502835663;
