@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate OpenCode rules, instructions, and skill layout.
 
 This script enforces the minimal OpenCode structure used here:
@@ -13,7 +12,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-
 
 BASE_DIR = Path(__file__).resolve().parent
 LOCAL_SKILLS_DIR = BASE_DIR.parents[1] / ".opencode" / "skills"
