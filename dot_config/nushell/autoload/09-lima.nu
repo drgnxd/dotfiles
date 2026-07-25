@@ -1,8 +1,6 @@
 
 # requires: modules/lima
 
-# Lima and Docker wrappers (eager-loaded via config.nu → modules/lima.nu)
-
 export def lima-start [vm_name: string] {
     lima_start $vm_name
 }

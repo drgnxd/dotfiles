@@ -1,6 +1,4 @@
 
-# PATH Configuration Module
-
 def detect-nix-paths [] {
     # -i (ignore-errors) is deprecated, use -o (optional)
     let user = ($env | get --optional USER | default '')
@@ -16,7 +14,6 @@ def detect-nix-paths [] {
     $candidates | where { |it| ($it | is-not-empty) and ($it | path exists) }
 }
 
-# FIX: use 'def --env' instead of 'def-env'
 def --env path-add [new_path: string] {
     if ($new_path | path exists) {
         $env.PATH = ($env.PATH | prepend $new_path | uniq)

@@ -1,5 +1,3 @@
-# Lima and Docker management (lazy-loaded)
-
 export def lima_start [vm_name: string] {
     require-cmd "limactl"
 

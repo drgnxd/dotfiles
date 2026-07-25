@@ -36,11 +36,7 @@ in
     allowSignedApp = true;
   };
 
-  # ── macOS system defaults (declarative) ──────────────────────────────
   system.defaults = {
-    # Auto-check and auto-download macOS updates, but never auto-install:
-    # installation (including the OS itself) stays a deliberate, manual step
-    # so it can't restart the machine mid-work.
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false;
     CustomSystemPreferences."/Library/Preferences/com.apple.SoftwareUpdate" = {
       AutomaticCheckEnabled = true;
@@ -48,28 +44,23 @@ in
     };
 
     NSGlobalDomain = {
-      # Save/print dialogs
       NSNavPanelExpandedStateForSaveMode = true;
       NSNavPanelExpandedStateForSaveMode2 = true;
       PMPrintingExpandedStateForPrint = true;
       PMPrintingExpandedStateForPrint2 = true;
 
-      # Locale & units
       AppleMeasurementUnits = "Centimeters";
       AppleMetricUnits = 1;
       AppleTemperatureUnit = "Celsius";
 
-      # Disable auto-corrections
       NSAutomaticSpellingCorrectionEnabled = false;
       NSAutomaticCapitalizationEnabled = false;
       NSAutomaticQuoteSubstitutionEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticPeriodSubstitutionEnabled = false;
 
-      # Show file extensions everywhere
       AppleShowAllExtensions = true;
 
-      # Keyboard
       KeyRepeat = 1;
       InitialKeyRepeat = 15;
       ApplePressAndHoldEnabled = false;
@@ -125,7 +116,6 @@ in
     # Transparency defaults to Off anyway, so the loss is minimal; set it
     # manually in System Settings > Accessibility > Display if it drifts.
 
-    # Settings without dedicated nix-darwin options
     CustomUserPreferences = {
       NSGlobalDomain = {
         AppleLanguages = [
@@ -204,7 +194,6 @@ in
   homebrew = {
     enable = true;
     onActivation = {
-      # Keep casks/brews/mas apps current automatically on every switch.
       autoUpdate = true;
       upgrade = true;
       cleanup = "zap";

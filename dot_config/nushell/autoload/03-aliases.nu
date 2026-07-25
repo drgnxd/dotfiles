@@ -1,41 +1,22 @@
-# Aliases Module
-# Modern command replacements and shortcuts
 # requires: 00-helpers
 
-# =============================================================================
-# MODERN CORE COMMANDS (with fallbacks)
-# =============================================================================
-
-# grep -> ripgrep
 export def --wrapped g [...args] {
     cmd-or-fallback rg grep ...$args
 }
 
-# find -> fd
 export def --wrapped f [...args] {
     cmd-or-fallback fd find ...$args
 }
 
-# cat -> bat
 export def --wrapped cat [...args] {
     cmd-or-fallback bat cat --primary-args ["--paging=never" "--color=auto"] ...$args
 }
 
-# =============================================================================
-# DIRECTORY NAVIGATION SHORTCUTS
-# =============================================================================
-
-# Go up directories
 export alias .. = cd ..
 export alias ... = cd ../..
 export alias .... = cd ../../..
 
-# Clear screen
 export alias c = clear
-
-# =============================================================================
-# INTERACTIVE FILE OPERATIONS (confirm before overwrite/delete)
-# =============================================================================
 
 export def --wrapped cp [...args] {
     ^cp -i ...$args
@@ -54,11 +35,6 @@ export def --wrapped rm [...args] {
     }
 }
 
-# =============================================================================
-# LS VARIANTS
-# =============================================================================
-
-# List with hidden files
 export def --wrapped la [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
@@ -68,7 +44,6 @@ export def --wrapped la [...args] {
     }
 }
 
-# List only directories
 export def --wrapped ld [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
@@ -78,7 +53,6 @@ export def --wrapped ld [...args] {
     }
 }
 
-# List only files
 export def --wrapped lf [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
@@ -88,7 +62,6 @@ export def --wrapped lf [...args] {
     }
 }
 
-# List sorted by size (descending)
 export def --wrapped lsize [...args] {
     let paths = ($args | default [])
     if ($paths | is-empty) {
@@ -98,17 +71,11 @@ export def --wrapped lsize [...args] {
     }
 }
 
-# =============================================================================
-# APPLICATION SHORTCUTS
-# =============================================================================
-
-# LazyGit
 export def --wrapped lg [...args] {
     require-cmd lazygit
     lazygit ...$args
 }
 
-# opencode
 export def --wrapped oc [...args] {
     require-cmd opencode
     opencode ...$args
@@ -119,7 +86,6 @@ export def --wrapped ocd [...args] {
     opencode --continue ...$args
 }
 
-# Proton Pass
 export def --wrapped pload [...args] {
     require-cmd pass-cli
     pass-cli ssh-agent load ...$args
