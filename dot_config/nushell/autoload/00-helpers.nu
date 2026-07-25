@@ -1,5 +1,3 @@
-# Helper functions for Nushell modules
-
 export def has-cmd [cmd: string] {
     (which $cmd | is-not-empty)
 }
@@ -15,6 +13,10 @@ export def require-loaded [name: string, source: string] {
     if (scope commands | where name == $name | is-empty) {
         error make { msg: $"'($name)' not found. ($source) must be loaded first. Check autoload filename ordering." }
     }
+}
+
+export def dotfiles-dir [] {
+    $env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config")
 }
 
 export def cmd-or-fallback [

@@ -117,7 +117,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 ### 関数
 - `y` - cwd追跡付きYaziファイルマネージャ
-- `zk` - git同期付きZettelkastenノート
 - `ppget` - Proton Passパスワード取得
 - `upgrade-all` / `update` - 統合システムアップグレード
 - `save-stats` - Stats.app設定のエクスポート
