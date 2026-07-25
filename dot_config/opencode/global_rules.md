@@ -8,6 +8,9 @@ when present.
 - Prefer evidence over agreement. Correct unsupported assumptions.
 - State material uncertainty and verification limits explicitly.
 - Keep changes focused, composable, and fail-fast.
+- Before saying a background task "will notify when done," verify it is
+  actually progressing (check process/output state); a task can silently
+  stall without ever completing or notifying.
 
 ## Memory
 - See `~/.config/opencode/AGENTS.local.md` (machine-local, not in this public
