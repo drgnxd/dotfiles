@@ -51,7 +51,7 @@ in
       font = {
         size = 13.0;
         normal = {
-          family = "HackGen35 Console NF";
+          family = "HackGen Console NF";
           style = "Regular";
         };
       };
