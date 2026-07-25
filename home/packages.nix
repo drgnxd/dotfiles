@@ -138,7 +138,6 @@ let
     "ngspice"
     "opencode"
     "ollama"
-    "zk"
   ];
 
   all_names = lib.unique (
@@ -160,32 +159,14 @@ let
   );
 
   # tryEval catches both missing attrs and broken/unfree evaluation failures.
-  existing = lib.filter (
+  resolves =
     name:
-    let
-      result =
-        if builtins.hasAttr name pkgs then
-          builtins.tryEval (builtins.getAttr name pkgs)
-        else
-          {
-            success = false;
-          };
-    in
-    result.success
-  ) all_names;
-  missing = lib.filter (
-    name:
-    let
-      result =
-        if builtins.hasAttr name pkgs then
-          builtins.tryEval (builtins.getAttr name pkgs)
-        else
-          {
-            success = false;
-          };
-    in
-    !result.success
-  ) all_names;
+    if builtins.hasAttr name pkgs then
+      (builtins.tryEval (builtins.getAttr name pkgs)).success
+    else
+      false;
+  existing = lib.filter resolves all_names;
+  missing = lib.filter (name: !resolves name) all_names;
   report = {
     inherit existing missing;
   };

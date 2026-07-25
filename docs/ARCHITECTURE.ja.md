@@ -98,7 +98,7 @@ autoload/
 |- 01-env.nu           # XDG パス, ENV_CONVERSIONS
 |- 02-path.nu          # path-add ヘルパー付き PATH
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
-|- 04-functions.nu     # カスタムラッパー（yazi, zk など）
+|- 04-functions.nu     # カスタムラッパーとユーティリティ
 |- 05-completions.nu   # 動的補完
 |- 07-abbreviations.nu # Fish風略語展開（Space/Enter）
 |- 09-lima.nu          # Lima/Docker ヘルパー

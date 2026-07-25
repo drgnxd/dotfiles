@@ -117,7 +117,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 ### Functions
 - `y` - Yazi file manager with cwd tracking
-- `zk` - Zettelkasten notebook with git sync
 - `ppget` - Proton Pass password retrieval
 - `upgrade-all` / `update` - Unified system upgrade
 - `save-stats` - Export Stats.app configuration

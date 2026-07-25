@@ -1,8 +1,5 @@
-# Custom Functions Module
-# Advanced wrappers and utilities
 # requires: 00-helpers
 
-# YAZI FILE MANAGER
 export def --wrapped y [...args] {
     let tmp_file = (mktemp -t "yazi-cwd.XXXXXX")
     yazi ...$args --cwd-file=$tmp_file
@@ -13,55 +10,9 @@ export def --wrapped y [...args] {
     ^rm -f $tmp_file
 }
 
-# ZK WITH GIT SYNC
-export def zk-sync [] {
-    let notebook_dir = ($env | get ZK_NOTEBOOK_DIR?)
-    if ($notebook_dir | is-empty) {
-        error make { msg: "ZK_NOTEBOOK_DIR is not set" }
-    }
-    if not ($notebook_dir | path exists) {
-        error make { msg: $"Failed to enter ZK_NOTEBOOK_DIR: ($notebook_dir)" }
-    }
-    let git_check = (do { git -C $notebook_dir rev-parse --is-inside-work-tree } | complete)
-    if ($git_check.exit_code != 0) {
-        error make { msg: $"Not a git repository: ($notebook_dir)" }
-    }
-    let status_check = (do { git -C $notebook_dir status --porcelain } | complete)
-    if ($status_check.stdout | is-empty) {
-        print "No changes to sync"
-        return
-    }
-    git -C $notebook_dir add .
-    let diff_check = (do { git -C $notebook_dir diff --cached --quiet } | complete)
-    if ($diff_check.exit_code != 0) {
-        let commit_msg = $"Update zettel: (date now | format date '%Y-%m-%d %H:%M')"
-        let commit_result = (do { git -C $notebook_dir commit -m $commit_msg } | complete)
-        if ($commit_result.exit_code != 0) {
-            error make { msg: $"Commit failed: ($commit_result.stderr)" }
-        }
-    }
-    let remote_check = (do { git -C $notebook_dir remote get-url origin } | complete)
-    if ($remote_check.exit_code == 0) {
-        git -C $notebook_dir push origin main
-    } else {
-        print --stderr "Remote 'origin' not found; skipping push"
-    }
-}
-
-export def --wrapped zk [...args] {
-    if ($args | is-empty) {
-        ^zk
-    } else if ($args | get 0) == "sync" {
-        zk-sync
-    } else {
-        ^zk ...$args
-    }
-}
-
-# STATS CONFIG EXPORT
 export def save-stats [] {
     let src = ($env.HOME | path join "Library" "Preferences" "eu.exelban.Stats.plist")
-    let dotfiles_dir = ($env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config"))
+    let dotfiles_dir = dotfiles-dir
     let dest = ($dotfiles_dir | path join "dot_config" "stats" "eu.exelban.Stats.plist")
     if not ($src | path exists) {
         error make { msg: $"Stats plist not found at ($src)" }
@@ -74,7 +25,6 @@ export def save-stats [] {
     print $"Saved to ($dest)"
 }
 
-# PROTON PASS CLI
 export def ppget [query: string, --field: string = "password"] {
     require-cmd pass-cli
     let search_result = (do { pass-cli search $query --json } | complete)
@@ -88,13 +38,10 @@ export def ppget [query: string, --field: string = "password"] {
     pass-cli get $item_id --field $field --output text
 }
 
-# SYSTEM UPGRADE (split into composable steps)
-
-# Nix flake update + system rebuild
 export def upgrade-nix [] {
     require-cmd nix
 
-    let dotfiles_dir = ($env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config"))
+    let dotfiles_dir = dotfiles-dir
     if not ($dotfiles_dir | path exists) {
         error make { msg: $"Dotfiles directory not found: ($dotfiles_dir)" }
     }
@@ -121,7 +68,6 @@ export def upgrade-nix [] {
     }
 }
 
-# Mac App Store upgrade
 export def upgrade-mac-apps [] {
     require-cmd mas
     print "--- Mac App Store ---"
@@ -131,7 +77,6 @@ export def upgrade-mac-apps [] {
     }
 }
 
-# Full system upgrade (orchestrator)
 export def upgrade-all [] {
     upgrade-nix
 
@@ -155,7 +100,6 @@ export def --wrapped zj [...args] {
     }
 }
 
-# BUNDLE ID HELPER
 export def bundle-id [app_path: string] {
     if not ($app_path | path exists) {
         error make { msg: $"App bundle not found: ($app_path)" }

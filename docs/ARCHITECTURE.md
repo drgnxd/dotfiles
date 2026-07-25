@@ -98,7 +98,7 @@ autoload/
 |- 01-env.nu           # XDG paths, ENV_CONVERSIONS
 |- 02-path.nu          # PATH with path-add helper
 |- 03-aliases.nu       # Conditional command aliases
-|- 04-functions.nu     # Custom wrappers (yazi, zk, etc.)
+|- 04-functions.nu     # Custom wrappers and utilities
 |- 05-completions.nu   # Dynamic completions
 |- 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 |- 09-lima.nu          # Lima/Docker helpers
