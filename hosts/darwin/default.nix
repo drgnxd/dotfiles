@@ -115,13 +115,15 @@ in
       location = "~/Desktop/Screenshots";
     };
 
-    # Keep display output consistent for color-critical work (color
-    # calibration training, design, photo/video editing): no extra
-    # transparency or color-shifting accessibility filters applied on top
-    # of the display's native rendering.
-    universalaccess = {
-      reduceTransparency = false;
-    };
+    # NOTE: system.defaults.universalaccess.reduceTransparency was tried
+    # here for color-viewing consistency but removed: on this macOS
+    # version `defaults write com.apple.universalaccess ...` is TCC-blocked
+    # even under sudo ("Could not write domain com.apple.universalaccess;
+    # exiting"), and that failure was observed to abort the rest of the
+    # user-defaults activation step, silently skipping later settings
+    # (e.g. CustomUserPreferences.NSGlobalDomain.AppleAccentColor). Reduce
+    # Transparency defaults to Off anyway, so the loss is minimal; set it
+    # manually in System Settings > Accessibility > Display if it drifts.
 
     # Settings without dedicated nix-darwin options
     CustomUserPreferences = {
