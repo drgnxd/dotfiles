@@ -110,6 +110,14 @@ in
       location = "~/Desktop/Screenshots";
     };
 
+    # Keep display output consistent for color-critical work (color
+    # calibration training, design, photo/video editing): no extra
+    # transparency or color-shifting accessibility filters applied on top
+    # of the display's native rendering.
+    universalaccess = {
+      reduceTransparency = false;
+    };
+
     # Settings without dedicated nix-darwin options
     CustomUserPreferences = {
       NSGlobalDomain = {
@@ -128,6 +136,14 @@ in
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
         DSDontWriteUSBStores = true;
+      };
+      # Accessibility color-shifting filters, kept off for the same
+      # color-consistency reason as universalaccess.reduceTransparency
+      # above. No dedicated nix-darwin option exists for this domain.
+      "com.apple.Accessibility" = {
+        DifferentiateWithoutColor = false;
+        EnhancedBackgroundContrastEnabled = false;
+        AXSClassicInvertColorsPreference = false;
       };
       "com.apple.dock" = {
         workspaces-swoosh-animation-off = true;
