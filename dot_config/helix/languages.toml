@@ -1,4 +1,3 @@
-# ~/.config/helix/languages.toml
 # Language-specific servers and formatters are resolved from PATH.
 # Home Manager keeps global Nix tooling; project devShells provide the rest.
 
@@ -12,8 +11,6 @@ command = "steel-language-server"
 [language-server.copilot]
 command = "copilot-language-server"
 args = ["--stdio"]
-
-# Global assistant server: keep "copilot-language-server" in home/packages.nix.
 
 [language-server.copilot.config]
 editorInfo = { name = "Helix", version = "25.07" }

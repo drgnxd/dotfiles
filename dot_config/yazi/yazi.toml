@@ -1,5 +1,3 @@
-# Baseline, upstream-friendly Yazi config tuned for stable defaults.
-
 [manager]
 ratio = [1, 2, 3]      # Balanced pane widths
 show_hidden = false    # Avoid noise; toggle with '.' at runtime
@@ -20,12 +18,10 @@ image_filter = "lanczos3"
 image_quality = 90
 
 [opener]
-# Text editing via $EDITOR (hx set in env)
 [[opener.edit]]
 run = '${EDITOR:-vi} "$@"'
 block = true
 
-# macOS system opener fallback
 [[opener.open]]
 run = 'open "$@"'
 block = false

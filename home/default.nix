@@ -39,7 +39,6 @@ in
   programs.home-manager.enable = true;
 
   imports = [
-    # === Cross-platform (always loaded) ===
     ./modules/activation/directories.nix
     ./modules/activation/nushell_ensure.nix
     ./modules/activation/opencode.nix
@@ -67,14 +66,12 @@ in
     ./modules/zoxide.nix
   ]
   ++ lib.optionals pkgs.stdenv.isDarwin [
-    # === macOS only ===
     ./modules/activation/macos_defaults.nix
     ./modules/hammerspoon.nix
     ./modules/xdg_config_files.nix
     ./modules/xdg_desktop_files.nix
   ]
   ++ lib.optionals pkgs.stdenv.isLinux [
-    # === Linux only ===
     ./modules/linux/desktop.nix
   ];
 

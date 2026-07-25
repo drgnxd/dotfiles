@@ -1,23 +1,16 @@
--- ==========================================
--- Auto English Input Switching Function
--- ==========================================
-
 local M = {}
 local filters = {}
 local app_watcher = nil
 local sol_hotkey_tap = nil
 local alacritty_ctrl_g_tap = nil
 
--- English Input Source ID (Update this according to your environment)
 local english_input_id = "com.apple.keylayout.ABC"
 
--- Apps that should switch to English when one of their windows is focused
 local window_focus_apps = {
   "Alacritty",
   "Sol",
 }
 
--- Apps that should switch to English when activated
 local activation_apps = {
   Sol = true,
 }
@@ -96,7 +89,6 @@ local function watch_alacritty_ctrl_g()
 end
 
 function M.init()
-  -- Create window filter for each app
   for index, app_name in ipairs(window_focus_apps) do
     filters[index] = attach_filter(app_name)
   end
