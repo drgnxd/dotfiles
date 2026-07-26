@@ -129,11 +129,6 @@ in
         "com.apple.mouse.scaling" = 7;
         "com.apple.trackpad.scaling" = 7;
         "com.apple.keyboard.fnState" = 1;
-        # Graphite (neutral, no hue) accent color, for the same
-        # color-consistency reason as the Dark mode/reduceTransparency
-        # settings above: a saturated accent color in the UI biases
-        # perception of adjacent on-screen colors.
-        AppleAccentColor = -1;
       };
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
