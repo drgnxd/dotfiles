@@ -6,7 +6,41 @@
     "pr": ""
   },
   "permissions": {
-    "defaultMode": "default"
+    "defaultMode": "auto",
+    "allow": [
+      "WebSearch",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(file *)",
+      "Bash(which *)",
+      "Bash(command -v *)",
+      "Bash(ps *)",
+      "Bash(pgrep *)",
+      "Bash(lsof *)",
+      "Bash(top *)",
+      "Bash(sysctl *)",
+      "Bash(awk *)",
+      "Bash(sort *)",
+      "Bash(env)",
+      "Bash(uname *)",
+      "Bash(sw_vers)",
+      "Bash(system_profiler *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git log *)",
+      "Bash(git remote -v)",
+      "Bash(nix eval *)",
+      "Bash(nix search *)",
+      "Bash(nix show-config *)",
+      "Bash(nix derivation *)"
+    ]
   },
   "hooks": {
     "Stop": [
