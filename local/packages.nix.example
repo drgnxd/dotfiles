@@ -1,0 +1,7 @@
+# Optional: additional nixpkgs package names to install, kept out of the
+# public repo (e.g. tooling you don't want to disclose). Copy to
+# local/packages.nix (gitignored) and list attribute names as they appear
+# in nixpkgs.
+[
+  # "some-package-name"
+]
