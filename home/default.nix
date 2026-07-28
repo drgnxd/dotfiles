@@ -10,26 +10,6 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
-  memory_command =
-    name: subcommand:
-    pkgs.writeShellApplication {
-      inherit name;
-      runtimeInputs = [
-        pkgs.git
-        pkgs.python3
-      ];
-      text = ''
-        exec python3 ${../scripts/agent_memory}/agent_memory.py ${subcommand} "$@"
-      '';
-    };
-  memory_tools = [
-    (memory_command "memory-read" "read")
-    (memory_command "memory-append" "append")
-    (memory_command "memory-maintain" "maintain")
-    (memory_command "memory-rescope-legacy" "rescope-legacy")
-    (memory_command "memory-export" "export")
-    (memory_command "memory-import" "import")
-  ];
 in
 {
   home.username = user;
@@ -86,7 +66,7 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
   };
 
-  home.packages = packages.packages ++ memory_tools;
+  home.packages = packages.packages;
 
   warnings = lib.optional (packages.missing != [ ]) (
     "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)
