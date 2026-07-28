@@ -139,39 +139,6 @@ OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理し�
 - `~/.config/opencode/opencode.local.json` を空でない状態で使う場合は、必要な plugin が `plugin` 配列に残るようにしてください。
 - rollback procedure: OpenCode が symlink directory 内で書き込みに失敗した場合は、その path を `home/modules/activation/opencode.nix` の activation sync list に戻してください。
 
-### 永続エージェントメモリ
-
-Home Manager は `memory-read`、`memory-append`、`memory-maintain`、`memory-export`、`memory-import`、`memory-rescope-legacy` をインストールします。保存層は append-only のバージョン付き event model を使います：
-
-- SQLite を transaction 対応の運用上の正本にします。
-- `events.jsonl` を atomic かつ Git-friendly な可搬 mirror・復旧元にします。
-- JSON Schema を交換契約とし、未知の event field も round trip で保持します。
-- full-text search、scope filter、token budget により、無関係な履歴を model context へ入れません。
-- 既存の `memory.md` fact は元 timestamp と provenance を保持して一度だけ import し、legacy file は削除しません。
-- project identity には credential を除去した Git remote から作る transport-neutral ID を使い、remote がない場合は canonical path hash を使います。basename を authorization boundary として使用しません。
-- portable log は private memory を plaintext で保持します。自動 commit は memory directory 自体が remote のない Git repository の場合だけ実行します。`AGENT_MEMORY_GIT_ALLOW_REMOTE=1` は repository の disclosure policy を確認した場合だけ設定してください。
-
-task query を使って global memory と現在の project memory を読みます：
-
-```sh
-memory-read --query "short task description"
-```
-
-変換・backup 用の self-contained bundle を作ります：
-
-```sh
-memory-export --output ./agent-memory-export
-memory-import ./agent-memory-export --dry-run
-```
-
-bundle には `manifest.json`、`events.jsonl`、JSON Schema、SHA-256 checksum が含まれます。import は event 適用前に bundle 全体を検証します。embedding と Markdown view は派生データとして再構築できるため、canonical format から意図的に除外しています。
-
-legacy project label だけでは repository を安全に識別できません。対象 project から明示的に割り当てます：
-
-```sh
-memory-rescope-legacy <legacy-project-name>
-```
-
 ### フォーマットと Git フック
 
 `nix fmt` は treefmt（`nixfmt`、`shfmt`、`taplo`）を通してリポジトリ全体を整形します。

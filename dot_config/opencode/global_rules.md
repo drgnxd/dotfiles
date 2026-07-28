@@ -22,11 +22,13 @@ when present.
 - Archive complete OpenCode and Claude Code conversation histories locally
   until manually deleted; keep only durable summaries and preferences in the
   canonical files above, never raw conversation dumps.
-- The `memory-read`/`memory-append` agent-memory CLI store is deprecated as of
-  2026-07-23 — its content was migrated into this file and into the relevant
-  project `AGENTS.md`/canonical files, then retracted. Do not read from or
-  write to it for routine work; the `memory` skill remains only for a one-off
-  export/diagnosis of the historical archive if ever needed.
+- The `memory-read`/`memory-append` agent-memory CLI store was deprecated on
+  2026-07-23 (its content had already been migrated into this file and into
+  the relevant project `AGENTS.md`/canonical files) and fully removed on
+  2026-07-28 — the CLI, its tests, the `memory` skill, and the raw
+  `~/.local/share/agent-memory` archive no longer exist. Do not reference any
+  of `memory-read`/`memory-append`/`memory-maintain`/`memory-export`/
+  `memory-import`/`memory-rescope-legacy` or the `memory` skill going forward.
 
 ## Git
 - Before any commit or amend, identify the active repository and read its
