@@ -62,3 +62,7 @@ usage:
 # Report the read-only macOS security posture
 security-audit *args:
   scripts/security/audit_darwin.sh {{args}}
+
+# Verify GitHub ruleset required status checks match existing workflow job ids
+check-required-checks-sync:
+  scripts/check-required-checks-sync.sh
