@@ -127,6 +127,15 @@ let
     "stockfish"
   ];
 
+  # Package names that should not be disclosed in this public repo (e.g.
+  # personal-finance tooling). Same local-override pattern as
+  # local/identity.nix and local/preferences.nix: gitignored, optional,
+  # falls back to an empty list on a fresh clone. See
+  # local/packages.nix.example for the shape.
+  local_packages_path = ../local/packages.nix;
+  local_packages =
+    if builtins.pathExists local_packages_path then import local_packages_path else [ ];
+
   containers = [
     "docker"
     "docker-compose"
@@ -154,6 +163,7 @@ let
     ++ linux_cli_tools
     ++ system_tools
     ++ chess_tools
+    ++ local_packages
     ++ containers
     ++ misc
   );
