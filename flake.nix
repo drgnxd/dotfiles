@@ -4,6 +4,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    opencode.url = "github:anomalyco/opencode/v1.18.9";
+
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -35,6 +37,7 @@
     inputs@{
       self,
       nixpkgs,
+      opencode,
       nix-darwin,
       home-manager,
       treefmt-nix,
@@ -65,8 +68,8 @@
       linuxHostname = identity.linux_hostname;
       agenixIdentityFile = identity.agenixIdentityFile or null;
       pkgs_lib = import ./nix/pkgs.nix;
-      darwin_pkgs = pkgs_lib.mkPkgs nixpkgs "aarch64-darwin";
-      linux_pkgs = pkgs_lib.mkPkgs nixpkgs "x86_64-linux";
+      darwin_pkgs = pkgs_lib.mkPkgs nixpkgs opencode "aarch64-darwin";
+      linux_pkgs = pkgs_lib.mkPkgs nixpkgs opencode "x86_64-linux";
       supportedSystems = [
         "aarch64-darwin"
         "x86_64-linux"
