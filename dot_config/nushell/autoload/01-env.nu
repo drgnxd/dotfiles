@@ -9,7 +9,7 @@ export def xdg-dirs [] {
 
 let XDG_DIRS = (xdg-dirs)
 
-let locale = if (($nu.os-info.name | str downcase) == "linux") {
+let locale = if (($nu.os-info.name | str lowercase) == "linux") {
     "C.UTF-8"
 } else {
     "en_US.UTF-8"
@@ -85,7 +85,7 @@ if ($env | get -o DOTFILES_FLAKE_TARGET | default "" | is-empty) {
     $env.DOTFILES_FLAKE_TARGET = "darwin"
 }
 
-if (($nu.os-info.name | str downcase) == "linux") {
+if (($nu.os-info.name | str lowercase) == "linux") {
     $env.MOZ_ENABLE_WAYLAND = "1"
     $env.QT_QPA_PLATFORM = "wayland"
     $env.SDL_VIDEODRIVER = "wayland"
