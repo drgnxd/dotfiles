@@ -20,15 +20,15 @@ $env.LC_ALL = $locale
 $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
     "PATH": {
         from_string: {|s| $s | split row (char esep) | path expand --no-symlink }
-        to_string: {|v| $v | path expand --no-symlink | str join (char esep) }
+        to_string: {|v| $v | default [] | path expand --no-symlink | str join (char esep) }
     }
     "XDG_DATA_DIRS": {
         from_string: {|s| $s | split row (char esep) }
-        to_string: {|v| $v | str join (char esep) }
+        to_string: {|v| $v | default [] | str join (char esep) }
     }
     "TERMINFO_DIRS": {
         from_string: {|s| $s | split row (char esep) }
-        to_string: {|v| $v | str join (char esep) }
+        to_string: {|v| $v | default [] | str join (char esep) }
     }
 }
 
