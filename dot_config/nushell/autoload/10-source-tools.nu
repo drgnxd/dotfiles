@@ -30,27 +30,25 @@ if (has-cmd atuin) {
     }
 }
 
+def --env apply-direnv-changes [changes: record] {
+    let removals = ($changes | columns | where { |name| ($changes | get -o $name) == null })
+    for name in $removals {
+        hide-env --ignore-errors $name
+    }
+
+    let additions = ($changes | reject ...$removals)
+    if ($additions | is-not-empty) {
+        $additions | load-env
+    }
+}
+
 def --env direnv-sync [] {
     let direnv_out = (do { ^direnv export json } | complete)
     if $direnv_out.exit_code == 0 {
         hide-env --ignore-errors DIRENV_BLOCKED
         if ($direnv_out.stdout | is-not-empty) {
             let env_changes = ($direnv_out.stdout | from json)
-            let clears_direnv_dir = (
-                ($env_changes | columns | any { |column| $column == "DIRENV_DIR" })
-                and (($env_changes | get -o DIRENV_DIR) == null)
-            )
-            if $clears_direnv_dir {
-                hide-env --ignore-errors DIRENV_DIR
-            }
-            let applicable_changes = if $clears_direnv_dir {
-                $env_changes | reject -o DIRENV_DIR
-            } else {
-                $env_changes
-            }
-            if ($applicable_changes | is-not-empty) {
-                $applicable_changes | load-env
-            }
+            apply-direnv-changes $env_changes
         } else if $env.DIRENV_DIR? == null {
             hide-env --ignore-errors DIRENV_DIR
         }
@@ -73,9 +71,7 @@ def --env direnv-sync [] {
             hide-env --ignore-errors DIRENV_DIR
             if ($direnv_out.stdout | is-not-empty) {
                 let env_changes = ($direnv_out.stdout | from json | reject -o DIRENV_DIR)
-                if ($env_changes | is-not-empty) {
-                    $env_changes | load-env
-                }
+                apply-direnv-changes $env_changes
             }
             load-env { DIRENV_BLOCKED: "!" }
         } else {
