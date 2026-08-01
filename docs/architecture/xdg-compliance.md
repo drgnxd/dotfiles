@@ -44,10 +44,10 @@ export LIMA_HOME="$XDG_DATA_HOME/lima"
 ```
 
 ## Compatibility Exceptions
-Ollama and Scilab retain home-directory compatibility links because their GUI
-or non-model state is not fully redirectable. CodexBar currently hard-codes a
-Claude OAuth lock under `~/.codexbar`. Determinate Nix retains its legacy user
-profile shims because its XDG switch is a restricted system setting.
+Scilab retains a home-directory compatibility link because its GUI state is
+not fully redirectable. CodexBar currently hard-codes a Claude OAuth lock
+under `~/.codexbar`. Determinate Nix retains its legacy user profile shims
+because its XDG switch is a restricted system setting.
 
 ## Decision Rationale
 - Standard: aligns with widely adopted Linux/Unix conventions
