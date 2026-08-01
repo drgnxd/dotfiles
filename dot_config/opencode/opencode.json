@@ -76,7 +76,8 @@
       "description": "Drives browser automation via floorp MCP tools (navigate, click, fill, screenshot). Use for multi-step, token-heavy browser interaction so it runs on the local model instead of a cloud one.",
       "mode": "all",
       "model": "ollama/qwen3-vl:2b-instruct-oc",
-      "steps": 12
+      "steps": 12,
+      "prompt": "You drive browser automation via floorp MCP tools only. Navigate, click, fill, and screenshot as needed, then report the result concisely."
     },
     "review-deep": {
       "description": "Reviews complex or high-risk changes without editing; use for correctness, security, architecture, regressions, and missing tests.",
