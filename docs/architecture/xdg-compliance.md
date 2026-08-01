@@ -26,6 +26,20 @@ directory to keep persistent logs under XDG state:
 dir = "~/.local/state/atuin/logs"
 ```
 
+## Zsh
+No zsh dotfiles are managed here (Nushell is the primary shell), but macOS's
+`/etc/zshrc` still runs `compinit` for any zsh session, which writes its
+completion dump to `${ZDOTDIR:-$HOME}/.zcompdump` before any user rc file
+gets a chance to redirect it. `environment.variables` sets `ZDOTDIR` so this
+is read from `/etc/zshenv` (sourced for all shells) ahead of that:
+
+```nix
+environment.variables.ZDOTDIR = "$HOME/.config/zsh";
+```
+
+`ensureDirectories` pre-creates `~/.config/zsh` since compinit does not
+create its own target directory.
+
 ## macOS Applications
 Homebrew trust operations receive `XDG_CONFIG_HOME` explicitly, so their state
 stays under `~/.config/homebrew`. Hammerspoon uses its native `MJConfigFile`
