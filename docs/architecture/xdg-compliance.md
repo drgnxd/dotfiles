@@ -48,6 +48,10 @@ Ollama and Scilab retain home-directory compatibility links because their GUI
 or non-model state is not fully redirectable. CodexBar currently hard-codes a
 Claude OAuth lock under `~/.codexbar`. Determinate Nix retains its legacy user
 profile shims because its XDG switch is a restricted system setting.
+firefox-devtools-mcp restricts saved output (screenshots, snapshots) to
+`~/.firefox-devtools-mcp` by design; lifting that requires
+`--unrestrictedSavePaths`, which trades away a path-restriction safety
+feature purely for tidiness, so the default location is kept.
 
 ## Decision Rationale
 - Standard: aligns with widely adopted Linux/Unix conventions
