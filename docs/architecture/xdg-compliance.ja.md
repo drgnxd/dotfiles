@@ -47,6 +47,10 @@ Ollama と Scilab は GUI または model 以外の状態を完全には redirec
 home directory の互換 link を維持します。CodexBar は現在 Claude OAuth lock を
 `~/.codexbar` にハードコードしています。Determinate Nix の XDG switch は
 system-level restricted setting のため、legacy user profile shim を維持します。
+firefox-devtools-mcp は設計上、保存出力(スクリーンショット・スナップショット)を
+`~/.firefox-devtools-mcp` に制限しています。解除には`--unrestrictedSavePaths`が
+必要ですが、これはpath制限というセキュリティ機能を体裁のためだけに手放すことに
+なるため、デフォルトの場所を維持します。
 
 ## 判断理由
 - 標準仕様に従い移植性を確保
