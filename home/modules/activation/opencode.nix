@@ -17,6 +17,7 @@ let
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
+  opencode_plugins_template = ../../../dot_config/opencode/plugins;
   opencode_skills_dir = ../../../dot_config/opencode/skills;
   skillEntries = builtins.readDir opencode_skills_dir;
   managedSkillNames = builtins.filter (name: skillEntries.${name} == "directory") (
@@ -197,6 +198,37 @@ in
       [ -e "$dest_file" ] || continue
       base="$(basename "$dest_file")"
       if [ ! -e "$tools_src/$base" ]; then
+        $DRY_RUN_CMD rm -f "$dest_file"
+      fi
+    done
+  '';
+
+  home.activation.syncOpencodePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    plugins_src="${opencode_plugins_template}"
+    plugins_dest="${config.xdg.configHome}/opencode/plugins"
+
+    # Plugins import dependencies from the writable OpenCode config directory.
+    # Keep them as real files instead of Nix-store symlinks for Bun resolution.
+    if [ -L "$plugins_dest" ]; then
+      $DRY_RUN_CMD rm -f "$plugins_dest"
+    fi
+    $DRY_RUN_CMD mkdir -p "$plugins_dest"
+
+    for src_file in "$plugins_src"/*; do
+      [ -f "$src_file" ] || continue
+      base="$(basename "$src_file")"
+      dest_file="$plugins_dest/$base"
+      if [ -f "$dest_file" ] && diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
+        continue
+      fi
+      $DRY_RUN_CMD cp -fL "$src_file" "$dest_file"
+      $DRY_RUN_CMD chmod u+w "$dest_file"
+    done
+
+    for dest_file in "$plugins_dest"/*; do
+      [ -e "$dest_file" ] || continue
+      base="$(basename "$dest_file")"
+      if [ ! -f "$plugins_src/$base" ]; then
         $DRY_RUN_CMD rm -f "$dest_file"
       fi
     done
