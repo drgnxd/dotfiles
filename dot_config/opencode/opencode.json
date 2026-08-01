@@ -17,8 +17,8 @@
         "baseURL": "http://localhost:11434/v1"
       },
       "models": {
-        "qwen3-vl:2b-instruct": {
-          "name": "Qwen3-VL 2B Instruct (local)"
+        "qwen3-vl:2b-instruct-oc": {
+          "name": "Qwen3-VL 2B Instruct (local, 32k ctx)"
         }
       }
     },
@@ -75,7 +75,8 @@
     "browser": {
       "description": "Drives browser automation via floorp MCP tools (navigate, click, fill, screenshot). Use for multi-step, token-heavy browser interaction so it runs on the local model instead of a cloud one.",
       "mode": "all",
-      "model": "ollama/qwen3-vl:2b-instruct"
+      "model": "ollama/qwen3-vl:2b-instruct-oc",
+      "steps": 12
     },
     "review-deep": {
       "description": "Reviews complex or high-risk changes without editing; use for correctness, security, architecture, regressions, and missing tests.",
