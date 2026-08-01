@@ -65,6 +65,9 @@ firefox-devtools-mcp は設計上、保存出力(スクリーンショット・�
 `~/.firefox-devtools-mcp` に制限しています。解除には`--unrestrictedSavePaths`が
 必要ですが、これはpath制限というセキュリティ機能を体裁のためだけに手放すことに
 なるため、デフォルトの場所を維持します。
+SwiftPM は`~/.swiftpm`配下の3つのpathを環境変数ではなく実行時のCLIフラグ
+(`--cache-path`・`--config-path`・`--security-path`)としてのみ公開しているため、
+`swift`バイナリ自体をラップしない限りグローバルにredirectする手段がありません。
 
 ## 判断理由
 - 標準仕様に従い移植性を確保

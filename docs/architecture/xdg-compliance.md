@@ -66,6 +66,10 @@ firefox-devtools-mcp restricts saved output (screenshots, snapshots) to
 `~/.firefox-devtools-mcp` by design; lifting that requires
 `--unrestrictedSavePaths`, which trades away a path-restriction safety
 feature purely for tidiness, so the default location is kept.
+SwiftPM only exposes `~/.swiftpm`'s three subpaths as per-invocation CLI
+flags (`--cache-path`, `--config-path`, `--security-path`), not environment
+variables, so there is nothing to redirect globally without wrapping the
+`swift` binary itself.
 
 ## Decision Rationale
 - Standard: aligns with widely adopted Linux/Unix conventions
