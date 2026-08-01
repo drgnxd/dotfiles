@@ -75,7 +75,6 @@ in
   home.file = {
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude/.claude.json";
-    ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";
     ".Scilab".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/scilab";
   }
   // lib.optionalAttrs pkgs.stdenv.isDarwin {
