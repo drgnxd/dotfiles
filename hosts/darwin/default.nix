@@ -203,6 +203,7 @@ in
     ];
     casks = [
       "codexbar"
+      "copilot-cli"
       "hammerspoon"
       "pearcleaner"
       "qlmarkdown"
