@@ -26,6 +26,20 @@ Atuin は設定と履歴データに XDG path を使用しますが、ファイ�
 dir = "~/.local/state/atuin/logs"
 ```
 
+## Zsh
+zshのdotfileはここでは管理していません(主シェルはNushell)が、macOSの
+`/etc/zshrc`はzshセッションのたびに`compinit`を実行し、ユーザーのrcファイルが
+読み込まれる前に補完キャッシュを`${ZDOTDIR:-$HOME}/.zcompdump`へ書き込んで
+しまいます。`environment.variables`で`ZDOTDIR`を設定し、全shellで読み込まれる
+`/etc/zshenv`経由でそれより先に反映させています:
+
+```nix
+environment.variables.ZDOTDIR = "$HOME/.config/zsh";
+```
+
+`compinit`自体はディレクトリを作成しないため、`ensureDirectories`で
+`~/.config/zsh`を事前に作成しています。
+
 ## macOS アプリケーション
 Homebrew の trust 操作には `XDG_CONFIG_HOME` を明示し、状態を
 `~/.config/homebrew` 配下に保持します。Hammerspoon は native の

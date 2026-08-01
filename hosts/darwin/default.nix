@@ -172,6 +172,11 @@ in
     XDG_CACHE_HOME = "$HOME/.cache";
     XDG_DATA_HOME = "$HOME/.local/share";
     XDG_STATE_HOME = "$HOME/.local/state";
+    # macOS's /etc/zshrc runs compinit before any user rc file loads, so the
+    # dump path can only be redirected via ZDOTDIR, read from /etc/zshenv
+    # (sourced for all shells) ahead of that. No user zsh dotfiles exist yet;
+    # this only relocates compinit's ~/.zcompdump.
+    ZDOTDIR = "$HOME/.config/zsh";
   };
   # Seed direct user agents. LaunchServices apps may sanitize this environment,
   # so terminal-specific variables are also declared in the Alacritty config.
