@@ -43,10 +43,10 @@ export LIMA_HOME="$XDG_DATA_HOME/lima"
 ```
 
 ## 互換性のための例外
-Scilab は GUI 状態を完全には redirect できないため、home directory の互換 link を
-維持します。CodexBar は現在 Claude OAuth lock を`~/.codexbar`にハードコードして
-います。Determinate Nix の XDG switch は system-level restricted setting のため、
-legacy user profile shim を維持します。
+Ollama と Scilab は GUI または model 以外の状態を完全には redirect できないため、
+home directory の互換 link を維持します。CodexBar は現在 Claude OAuth lock を
+`~/.codexbar` にハードコードしています。Determinate Nix の XDG switch は
+system-level restricted setting のため、legacy user profile shim を維持します。
 
 ## 判断理由
 - 標準仕様に従い移植性を確保
