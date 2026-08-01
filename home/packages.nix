@@ -146,7 +146,7 @@ let
     "claude-code"
     "ngspice"
     "opencode"
-    "ollama"
+    # ollama: managed via homebrew formula on Darwin for MLX support (see hosts/darwin/default.nix).
   ];
 
   all_names = lib.unique (
