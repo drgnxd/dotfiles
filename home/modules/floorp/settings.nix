@@ -23,8 +23,8 @@
   "sidebar.verticalTabs" = true;
 
   # Fonts and locale.
-  "font.name.sans-serif.ja" = "HackGen35 Console NF";
-  "font.name.serif.x-western" = "HackGen35 Console NF";
+  "font.name.sans-serif.ja" = "IBM Plex Sans JP";
+  "font.name.serif.x-western" = "IBM Plex Sans";
   "font.size.variable.ja" = 13;
   "font.size.variable.x-western" = 13;
   "intl.locale.requested" = "ja,en-US,ja-JP";

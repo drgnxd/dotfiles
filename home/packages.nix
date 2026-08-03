@@ -64,8 +64,8 @@ let
     "proton-pass"
     "protonmail-desktop"
     "proton-vpn-cli"
-    "hackgen-font"
-    "hackgen-nf-font"
+    "plemoljp-nf"
+    "ibm-plex"
     "floorp-bin"
   ];
 

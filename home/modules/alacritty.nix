@@ -51,7 +51,7 @@ in
       font = {
         size = 13.0;
         normal = {
-          family = "HackGen Console NF";
+          family = "PlemolJP Console NF";
           style = "Regular";
         };
       };
