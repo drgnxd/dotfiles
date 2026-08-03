@@ -61,6 +61,7 @@ in
 
   home.sessionVariables = {
     CLAUDE_CONFIG_DIR = "${config.xdg.dataHome}/claude";
+    COPILOT_HOME = "${config.xdg.dataHome}/copilot";
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/nix-config";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.isDarwin then hostname else linuxHostname;
     NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
@@ -89,5 +90,9 @@ in
   xdg.dataFile."claude/settings.json".source = ../dot_local/share/claude/settings.json;
   xdg.dataFile."claude/agents/Explore.md".source = ../dot_local/share/claude/agents/Explore.md;
   xdg.dataFile."claude/agents/Plan.md".source = ../dot_local/share/claude/agents/Plan.md;
+  xdg.dataFile."copilot/copilot-instructions.md".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/AGENTS.md";
+  xdg.dataFile."copilot/skills".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/skills";
 
 }
