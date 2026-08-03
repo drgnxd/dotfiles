@@ -5,7 +5,8 @@
   "showProjectName": true,
   "showSessionTitle": false,
   "showIcon": true,
-  "suppressWhenFocused": true,
+  "suppressWhenFocused": false,
+  "enableOnDesktop": true,
   "notificationSystem": "node-notifier",
   "linux": {
     "grouping": false
