@@ -73,6 +73,6 @@
     "max_bytes": 32768
   },
   "plugin": [
-    "@mohak34/opencode-notifier@0.2.8"
+    "github:drgnxd/opencode-notifier#5a245e5"
   ]
 }

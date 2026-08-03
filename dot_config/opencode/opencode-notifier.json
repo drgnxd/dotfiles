@@ -6,7 +6,7 @@
   "showSessionTitle": false,
   "showIcon": true,
   "suppressWhenFocused": true,
-  "notificationSystem": "osascript",
+  "notificationSystem": "node-notifier",
   "linux": {
     "grouping": false
   },
