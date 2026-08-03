@@ -240,8 +240,8 @@ in
   };
 
   fonts.packages = with pkgs; [
-    hackgen-font
-    hackgen-nf-font
+    plemoljp-nf
+    ibm-plex
   ];
 
   users.users.${user}.home = home_dir;
