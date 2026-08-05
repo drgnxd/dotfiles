@@ -1,9 +1,10 @@
 /* Keep Finder Quick Look typography consistent with the Alacritty terminal. */
-body,
-button,
-input,
-select,
-textarea {
+/* QLMarkdown sets its prose font on html and its code font via this variable. */
+:root {
+  --code-font: "PlemolJP Console NF", monospace;
+}
+
+html {
   font-family: "PlemolJP Console NF", monospace;
 }
 
