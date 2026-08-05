@@ -57,6 +57,13 @@ in
         html {
           font-family: "PlemolJP Console NF", monospace;
         }
+
+        /* Preserve MathJax's metric-aware TeX glyphs; style only text and fallback glyphs. */
+        mjx-mtext,
+        mjx-merror,
+        mjx-unknown {
+          font-family: "IBM Plex Math", "PlemolJP Console NF", monospace !important;
+        }
       '';
     };
 
