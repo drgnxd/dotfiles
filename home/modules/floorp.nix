@@ -164,7 +164,7 @@ in
           }
 
           /^Default=/ && section != "" {
-            lines[++count] = "Default=default"
+            lines[++count] = $0
             has_default = 1
             next
           }
@@ -192,8 +192,33 @@ in
         fi
       }
 
+      # A pre-existing Floorp install may have its actually-loaded profile
+      # locked to something other than "default" (an [InstallXXXX] section
+      # inside profiles.ini with Locked=1, e.g. a profile created via the
+      # GUI before this module was ever wired up). Detect that case and
+      # symlink the managed files there too, so they take effect on the
+      # profile Floorp really loads instead of only an unused "default" one.
+      propagate_to_active_profile() {
+        actual_rel="$(${awk} '
+          /^\[Install[^]]*\]$/ { in_install = 1; next }
+          /^\[/ { in_install = 0 }
+          in_install && /^Default=/ { sub(/^Default=/, ""); print; exit }
+        ' "$profiles_ini" 2>/dev/null)"
+
+        if [ -n "$actual_rel" ] && [ "$actual_rel" != "default" ]; then
+          actual_dir="$profile_root/$actual_rel"
+          if [ -d "$actual_dir" ]; then
+            mkdir -p "$actual_dir/chrome"
+            ln -sf "$profile_dir/user.js" "$actual_dir/user.js"
+            ln -sf "$profile_dir/chrome/userChrome.css" "$actual_dir/chrome/userChrome.css"
+            ln -sf "$profile_dir/chrome/userContent.css" "$actual_dir/chrome/userContent.css"
+          fi
+        fi
+      }
+
       $DRY_RUN_CMD mkdir -p "$profile_dir"
       run ensure_floorp_profile
+      run propagate_to_active_profile
     '';
   };
 }
