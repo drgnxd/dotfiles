@@ -1,0 +1,15 @@
+/* Keep Finder Quick Look typography consistent with the Alacritty terminal. */
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "PlemolJP Console NF", monospace;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: "PlemolJP Console NF", monospace;
+}
