@@ -71,6 +71,10 @@ in
     if [ -f "${settings}" ]; then
       /usr/libexec/PlistBuddy -c 'Set :customCSS terminal-font.css' "${settings}"
       /usr/libexec/PlistBuddy -c 'Set :customCSSOverride false' "${settings}"
+      /usr/libexec/PlistBuddy -c 'Set :footnotesOption false' "${settings}"
+      /usr/libexec/PlistBuddy -c 'Set :strikethroughExtension 2' "${settings}"
+      /usr/libexec/PlistBuddy -c 'Set :subExtension true' "${settings}"
+      /usr/libexec/PlistBuddy -c 'Set :supExtension true' "${settings}"
       /usr/bin/qlmanage -r cache >/dev/null
     fi
   '';
