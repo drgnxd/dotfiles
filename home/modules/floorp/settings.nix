@@ -23,9 +23,21 @@
   "sidebar.verticalTabs" = true;
 
   # Fonts and locale.
+  "font.default.x-math" = "sans-serif";
+  "font.default.x-western" = "sans-serif";
+  "font.language.group" = "ja";
+  "font.name.monospace.ja" = "PlemolJP Console NF";
+  "font.name.monospace.x-math" = "IBM Plex Math";
+  "font.name.monospace.x-western" = "PlemolJP Console NF";
   "font.name.sans-serif.ja" = "IBM Plex Sans JP";
-  "font.name.serif.x-western" = "IBM Plex Sans";
+  "font.name.sans-serif.x-math" = "IBM Plex Math";
+  "font.name.sans-serif.x-western" = "IBM Plex Sans";
+  "font.name.serif.ja" = "IBM Plex Sans JP";
+  "font.name.serif.x-math" = "IBM Plex Math";
+  "font.name.serif.x-western" = "IBM Plex Serif";
+  "font.size.monospace.ja" = 13;
   "font.size.variable.ja" = 13;
+  "font.size.variable.x-math" = 13;
   "font.size.variable.x-western" = 13;
   "intl.locale.requested" = "ja,en-US,ja-JP";
   "intl.regional_prefs.use_os_locales" = true;
