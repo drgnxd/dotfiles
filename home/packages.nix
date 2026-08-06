@@ -120,6 +120,7 @@ let
   system_tools = [
     "p7zip"
     "smartmontools"
+    "restic"
   ];
 
   chess_tools = [
