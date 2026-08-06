@@ -63,6 +63,9 @@ in
   home.sessionVariables = {
     CLAUDE_CONFIG_DIR = "${config.xdg.dataHome}/claude";
     COPILOT_HOME = "${config.xdg.dataHome}/copilot";
+    NPM_CONFIG_CACHE = "${config.xdg.cacheHome}/npm";
+    NPM_CONFIG_PREFIX = "${config.xdg.dataHome}/npm";
+    NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/nix-config";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.isDarwin then hostname else linuxHostname;
     NH_FLAKE = "${config.home.homeDirectory}/.config/nix-config";
