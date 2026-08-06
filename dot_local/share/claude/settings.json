@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/etc/profiles/per-user/drgnxd/bin/bun run /Users/drgnxd/dev/opencode-notifier/src/cli.ts --event complete 2>/dev/null || true"
+            "command": "/etc/profiles/per-user/drgnxd/bin/bun run /Users/drgnxd/repos/opencode-notifier/src/cli.ts --event complete 2>/dev/null || true"
           }
         ]
       }
@@ -58,7 +58,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/etc/profiles/per-user/drgnxd/bin/bun run /Users/drgnxd/dev/opencode-notifier/src/cli.ts --event permission 2>/dev/null || true"
+            "command": "/etc/profiles/per-user/drgnxd/bin/bun run /Users/drgnxd/repos/opencode-notifier/src/cli.ts --event permission 2>/dev/null || true"
           }
         ]
       }

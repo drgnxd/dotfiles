@@ -68,6 +68,6 @@
     "max_bytes": 32768
   },
   "plugin": [
-    "file:///Users/drgnxd/dev/opencode-notifier/dist/index.js"
+    "file:///Users/drgnxd/repos/opencode-notifier/dist/index.js"
   ]
 }
