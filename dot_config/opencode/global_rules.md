@@ -3,38 +3,20 @@
 Personal defaults for all OpenCode sessions. Follow more specific project rules
 when present.
 
-## Conduct
-- Prefer clarity over cleverness and explicit behavior over implicit behavior.
-- Prefer evidence over agreement. Correct unsupported assumptions.
-- State material uncertainty and verification limits explicitly.
-- Keep changes focused, composable, and fail-fast.
 - Before saying a background task "will notify when done," verify it is
   actually progressing (check process/output state); a task can silently
   stall without ever completing or notifying.
 
 ## Memory
 - See `~/.config/opencode/AGENTS.local.md` (machine-local, not in this public
-  repo) for the pointer to this user's canonical personal-context store and
-  its retrieval conventions. If that file is empty, no such store is
-  configured on this machine.
+   repo) for the pointer to this user's canonical personal-context store and
+   its retrieval conventions. If that file is empty, no such store is
+   configured on this machine.
 - Prefer reusable, vendor-neutral plain-text/Markdown for anything meant to
   persist, so it converts losslessly into future context-retention systems.
-- Archive complete OpenCode and Claude Code conversation histories locally
-  until manually deleted; keep only durable summaries and preferences in the
-  canonical files above, never raw conversation dumps.
 
 ## Git
-- Before any commit or amend, identify the active repository and read its
-  nearest project instructions. Inspect its `git status`, relevant diff, and
-  recent commit history.
-- Match the active repository's documented convention or recent history,
-  including commit-message language. Never carry a commit convention from a
-  different repository into the current one.
-- Avoid creating git branches for documentation-only or otherwise simple
-  updates unless explicitly requested or clearly necessary.
-- Load the `git-workflow` skill before repository-history changes, stage only
-  intended files, run the active repository's required validation gates, and
-  do not commit when any gate fails.
+- Load the `git-workflow` skill before repository-history changes.
 
 ## Safety
 - Before an operation that can irreversibly delete or overwrite user data,
@@ -46,11 +28,8 @@ when present.
   finished and preserve pre-existing terminal sessions.
 
 ## Delegation
-- Keep the primary agent as the default entry point.
 - Load the `model-routing` skill before selecting subagents, changing model
-  assignments, or delegating consequential work — it is the source of truth
-  for the ChatGPT/Claude Sonnet boundary and capacity-failure handling.
-- Treat delegated results as advisory until independently verified.
+  assignments, or delegating consequential work.
 
 ## Tooling
 - Use `uv` for Python dependency and environment management. Do not invoke
@@ -68,8 +47,5 @@ when present.
 - Reply in Japanese by default. Keep code, commands, paths, and identifiers
   unchanged.
 - Write AI-readable files such as `AGENTS.md` and `SKILL.md` in English.
-- Use project rules and relevant skills for language, tooling, naming, and git
-  conventions.
 - Prefer ASCII/English filenames whenever practical; keep study-facing or
   user-facing file contents in Japanese.
-- Keep responses direct and concise. Load additional skills only when relevant.
