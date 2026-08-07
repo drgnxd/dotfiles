@@ -26,6 +26,10 @@ when present.
 - Do not launch GUI terminal windows for interactive authentication without
   explicit user consent; if any are launched, close only those windows when
   finished and preserve pre-existing terminal sessions.
+- Load the `independent-review` skill before implementing a non-trivial
+  technical proposal (design/architecture change, credential generation,
+  real-data operations, or a change to another repository); confirmation
+  alone does not cover its review gate.
 
 ## Delegation
 - Load the `model-routing` skill before selecting subagents, changing model
