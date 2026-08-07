@@ -37,11 +37,6 @@ when present.
 - Do not install programming language runtimes globally; keep `uv` and Nix
   tooling global, and manage other runtimes, LSPs, and build tools per project
   with a Nix devShell/direnv.
-- Before building a new tool or feature, check whether an existing OSS tool
-  (or combination of tools) already solves it; avoid reinventing the wheel and
-  build custom only after confirming a real gap.
-- Do not suggest Oracle Cloud (including the Always Free tier) — a prior
-  account-creation attempt failed for an unresolved reason.
 
 ## Output
 - Reply in Japanese by default. Keep code, commands, paths, and identifiers
