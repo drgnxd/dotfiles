@@ -47,15 +47,10 @@ when present.
 
 ## Delegation
 - Keep the primary agent as the default entry point.
-- Load the `model-routing` skill before changing model assignments or delegating
-  consequential work.
-- Keep edits, secrets, security decisions, irreversible actions, and final
-  verification on authenticated ChatGPT Plus agents.
-- Preserve longer-window ChatGPT capacity by preferring eligible Claude Sonnet
-  delegation whenever it is available; follow `model-routing` for the boundary.
+- Load the `model-routing` skill before selecting subagents, changing model
+  assignments, or delegating consequential work — it is the source of truth
+  for the ChatGPT/Claude Sonnet boundary and capacity-failure handling.
 - Treat delegated results as advisory until independently verified.
-- Do not retry explicit quota, authentication, or unavailable-model failures
-  in a loop.
 
 ## Tooling
 - Use `uv` for Python dependency and environment management. Do not invoke
