@@ -94,6 +94,7 @@ in
   xdg.dataFile."claude/settings.json".source = ../dot_local/share/claude/settings.json;
   xdg.dataFile."claude/agents/Explore.md".source = ../dot_local/share/claude/agents/Explore.md;
   xdg.dataFile."claude/agents/Plan.md".source = ../dot_local/share/claude/agents/Plan.md;
+  xdg.dataFile."claude/agents/Review.md".source = ../dot_local/share/claude/agents/Review.md;
   xdg.dataFile."copilot/copilot-instructions.md".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/AGENTS.md";
   xdg.dataFile."copilot/skills".source =

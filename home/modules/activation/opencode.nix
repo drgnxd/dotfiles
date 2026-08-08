@@ -7,7 +7,12 @@
 # - Custom tools are synced as real files because Bun resolves imports from
 #   realpaths and store symlinks cannot reach ~/.config/opencode/node_modules.
 # - Conflicting real files at migrated symlink paths are backed up as `.before-nix`.
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   opencode_template = ../../../dot_config/opencode/opencode.json;
@@ -18,6 +23,7 @@ let
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
   opencode_plugins_template = ../../../dot_config/opencode/plugins;
+  jaq = "${pkgs.jaq}/bin/jaq";
   opencode_skills_dir = ../../../dot_config/opencode/skills;
   skillEntries = builtins.readDir opencode_skills_dir;
   managedSkillNames = builtins.filter (name: skillEntries.${name} == "directory") (
@@ -165,7 +171,19 @@ in
     opencode_dir="$(dirname "$opencode_target")"
     mkdir -p "$opencode_dir"
     if [ -s "$opencode_local_override" ]; then
-      cp -f "$opencode_local_override" "$opencode_target"
+      # Merge objects recursively while letting local arrays and scalar values
+      # replace the managed defaults. This preserves globally managed agents.
+      ${jaq} --slurpfile base "${opencode_template}" --slurpfile local "$opencode_local_override" -n '
+        def deepmerge($base; $override):
+          if ($base | type) != "object" or ($override | type) != "object"
+          then $override
+          else reduce ($override | keys_unsorted[]) as $key ($base;
+            .[$key] = deepmerge(.[$key]; $override[$key])
+          )
+          end;
+        deepmerge($base[0]; $local[0])
+      ' > "$opencode_target.tmp"
+      mv -f "$opencode_target.tmp" "$opencode_target"
     else
       cp -f "${opencode_template}" "$opencode_target"
     fi

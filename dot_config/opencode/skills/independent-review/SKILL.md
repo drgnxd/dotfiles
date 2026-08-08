@@ -50,11 +50,17 @@ effort as a whole.
 
 ## Running the review
 
-- Dispatch a subagent (or delegate per the `model-routing` skill) with only
-  the diff/plan and the minimum background needed to judge it — not a
-  summary written by the proposing session, which inherits its blind spots.
+- Use the native fresh reviewer for the current tool, with only the diff/plan
+  and minimum standalone background — not a summary written by the proposing
+  session, which inherits its blind spots. In Claude Code, dispatch the
+  `Review` subagent; it inherits the current main model and is read-only. In
+  OpenCode, dispatch the `review-main` subagent; it uses the `build` model and
+  permits only Read, Glob, and Grep.
 - Ask for concrete failure scenarios, not general praise or a restatement of
   the proposal.
+- A review is complete only when the fresh reviewer returns a non-empty result
+  ending in `REVIEW_STATUS: pass` or `REVIEW_STATUS: findings`. A timeout,
+  cancellation, malformed result, or tool failure leaves gate 2 unmet.
 - Relay unresolved findings to the user before or alongside implementing the
   fix.
 - If no subagent or independent model is reachable (rate-limited, offline,
