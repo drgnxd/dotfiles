@@ -8,8 +8,8 @@ in
 {
   # Settings that require -currentHost flag (ByHost preferences, not supported by system.defaults)
   home.activation.applyCurrentHostDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    /usr/bin/defaults -currentHost write -globalDomain NSStatusItemSpacing -int 10
-    /usr/bin/defaults -currentHost write -globalDomain NSStatusItemSelectionPadding -int 6
+    /usr/bin/defaults -currentHost write -globalDomain NSStatusItemSpacing -int 8
+    /usr/bin/defaults -currentHost write -globalDomain NSStatusItemSelectionPadding -int 8
     /usr/bin/defaults -currentHost write -globalDomain "com.apple.keyboard.modifiermapping.0-0-0" -array \
       '{ HIDKeyboardModifierMappingSrc = ${toString caps_lock_hid_usage}; HIDKeyboardModifierMappingDst = ${toString control_hid_usage}; }'
 
