@@ -17,6 +17,8 @@ when present.
 
 ## Git
 - Load the `git-workflow` skill before repository-history changes.
+- Match the target repository's established commit-message language; do not
+  carry a convention from another repository into it.
 
 ## Safety
 - Before an operation that can irreversibly delete or overwrite user data,
@@ -34,6 +36,8 @@ when present.
 ## Delegation
 - Load the `model-routing` skill before selecting subagents, changing model
   assignments, or delegating consequential work.
+- In OpenCode, satisfy an independent-review gate only through `review-main`,
+  the fresh context-free read-only main-GPT reviewer.
 
 ## Tooling
 - Use `uv` for Python dependency and environment management. Do not invoke
