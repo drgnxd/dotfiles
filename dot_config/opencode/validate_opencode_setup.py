@@ -80,6 +80,20 @@ def validate_config(errors: list[str]) -> None:
             "opencode.json should set $schema to https://opencode.ai/config.json"
         )
 
+    review_main = config.get("agent", {}).get("review-main", {})
+    if review_main.get("model") != "openai/gpt-5.6-terra":
+        errors.append("review-main must use openai/gpt-5.6-terra")
+    if review_main.get("mode") != "subagent":
+        errors.append("review-main must be a subagent")
+    permissions = review_main.get("permission", {})
+    if (
+        permissions.get("*") != "deny"
+        or permissions.get("read") != "allow"
+        or permissions.get("glob") != "allow"
+        or permissions.get("grep") != "allow"
+    ):
+        errors.append("review-main must be read-only")
+
 
 def validate_package(errors: list[str]) -> None:
     package_path = BASE_DIR / "package.json"
@@ -148,14 +162,29 @@ def validate_global_rules(errors: list[str]) -> None:
         errors.append(f"Missing required file: {rules_path}")
         return
 
-    if not rules_path.read_text(encoding="utf-8").strip():
+    rules = rules_path.read_text(encoding="utf-8")
+    if not rules.strip():
         errors.append("global_rules.md exists but is empty")
+    elif "independent-review gate only through `review-main`" not in rules:
+        errors.append("global_rules.md must route OpenCode independent reviews to review-main")
+
+
+def validate_model_routing(errors: list[str]) -> None:
+    skill_path = BASE_DIR / "skills" / "model-routing" / "SKILL.md"
+    if not skill_path.exists():
+        errors.append(f"Missing required file: {skill_path}")
+        return
+
+    skill = skill_path.read_text(encoding="utf-8")
+    if "dispatch `review-main` only" not in skill:
+        errors.append("model-routing must require review-main for independent-review gates")
 
 
 def main() -> int:
     errors: list[str] = []
 
     validate_global_rules(errors)
+    validate_model_routing(errors)
     validate_config(errors)
     validate_package(errors)
     validate_tools(errors)
