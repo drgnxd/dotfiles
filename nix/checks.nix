@@ -28,6 +28,13 @@ forAllSystems (
         shellcheck.enable = true;
         actionlint.enable = true;
         typos.enable = true;
+        commit-message = {
+          enable = true;
+          name = "commit message";
+          entry = "${p.bash}/bin/bash ${../scripts/validate_commit_message.sh}";
+          pass_filenames = true;
+          stages = [ "commit-msg" ];
+        };
       };
     };
     lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''

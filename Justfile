@@ -15,6 +15,10 @@ fmt-check:
 check:
   nix flake check
 
+# Install the tracked commit-message validator without replacing other hooks
+install-commit-msg-hook:
+  sh scripts/install_commit_msg_hook.sh
+
 # Build Darwin configuration (no activation)
 build-darwin:
   nix build path:.#packages.aarch64-darwin.default --no-link
