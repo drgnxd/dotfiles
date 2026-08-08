@@ -82,9 +82,9 @@ in
 
   launchd.user.agents = {
     # Managed agents: environment variables, logging, and umask
-    hammerspoon = mkManagedAgent {
-      name = "hammerspoon";
-      programArgs = [ "/Applications/Hammerspoon.app/Contents/MacOS/Hammerspoon" ];
+    schemespoon = mkManagedAgent {
+      name = "schemespoon";
+      programArgs = [ "${home_dir}/Applications/SchemeSpoon.app/Contents/MacOS/schemespoon" ];
     };
     maccy = mkManagedAgent {
       name = "maccy";
