@@ -119,6 +119,7 @@ let
 
   system_tools = [
     "p7zip"
+    "proton-drive-cli"
     "smartmontools"
     "restic"
   ];
