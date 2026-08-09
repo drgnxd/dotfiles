@@ -8,14 +8,6 @@ args = ["--slave", "-e", "languageserver::run()"]
 [language-server.steel-lsp]
 command = "steel-language-server"
 
-[language-server.copilot]
-command = "copilot-language-server"
-args = ["--stdio"]
-
-[language-server.copilot.config]
-editorInfo = { name = "Helix", version = "25.07" }
-editorPluginInfo = { name = "helix-copilot", version = "0.1.0" }
-
 [language-server.bash-lsp]
 command = "bash-language-server"
 args = ["start"]
@@ -40,13 +32,13 @@ options.home-manager.expr = '''
 [[language]]
 name = "bash"
 scope = "source.bash"
-language-servers = ["bash-lsp", "copilot"]
+language-servers = ["bash-lsp"]
 auto-format = true
 
 [[language]]
 name = "r"
 scope = "source.r"
-language-servers = ["r", "copilot"]
+language-servers = ["r"]
 formatter = { command = "Rscript", args = [
   "-e",
   "styler::style_file(stdin(), output = stdout(), transformers = styler::tidyverse_style())",
@@ -60,19 +52,19 @@ injection-regex = "scheme"
 file-types = ["scm", "scheme", "libfive"]
 comment-token = ";"
 indent = { tab-width = 2, unit = "  " }
-language-servers = ["steel-lsp", "copilot"]
+language-servers = ["steel-lsp"]
 
 [[language]]
 name = "c"
-language-servers = ["clangd", "copilot"]
+language-servers = ["clangd"]
 
 [[language]]
 name = "python"
-language-servers = ["pyright", "ruff", "copilot"]
+language-servers = ["pyright", "ruff"]
 
 [[language]]
 name = "markdown"
-language-servers = ["marksman", "copilot"]
+language-servers = ["marksman"]
 
 [language.soft-wrap]
 enable = true
@@ -83,19 +75,19 @@ language-servers = ["taplo"]
 
 [[language]]
 name = "rust"
-language-servers = ["rust-analyzer", "copilot"]
+language-servers = ["rust-analyzer"]
 
 [[language]]
 name = "lua"
-language-servers = ["lua-language-server", "copilot"]
+language-servers = ["lua-language-server"]
 
 [[language]]
 name = "typst"
-language-servers = ["tinymist", "copilot"]
+language-servers = ["tinymist"]
 
 [[language]]
 name = "latex"
-language-servers = ["texlab", "copilot"]
+language-servers = ["texlab"]
 
 [[language]]
 name = "yaml"
@@ -103,12 +95,12 @@ language-servers = ["yaml-language-server"]
 
 [[language]]
 name = "dockerfile"
-language-servers = ["docker-lsp", "copilot"]
+language-servers = ["docker-lsp"]
 auto-format = true
 
 [[language]]
 name = "nix"
-language-servers = ["nixd", "copilot"]
+language-servers = ["nixd"]
 auto-format = true
 formatter = { command = "nixfmt" }
 
