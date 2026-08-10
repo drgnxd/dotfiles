@@ -1,6 +1,6 @@
 ---
 name: model-routing
-description: Use when selecting subagents or claude_delegate, changing model assignments, handling provider capacity failures, or reviewing OpenCode routing.
+description: Use when routing models or delegating.
 ---
 
 # Runtime Routing

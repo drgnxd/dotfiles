@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Use before creating commits, branches, rebases, pull requests, or other repository-history changes.
+description: Use before Git history changes.
 ---
 
 # Git Workflow

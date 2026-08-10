@@ -40,7 +40,7 @@
       "steps": 12
     },
     "compaction": {
-      "model": "openai/gpt-5.6-terra",
+      "model": "openai/gpt-5.6-luna",
       "variant": "low"
     },
     "title": {
@@ -81,6 +81,10 @@
   "tool_output": {
     "max_lines": 300,
     "max_bytes": 12288
+  },
+  "compaction": {
+    "auto": true,
+    "tail_turns": 10
   },
   "plugin": [
     "file:///Users/drgnxd/repos/opencode-notifier/dist/index.js"
