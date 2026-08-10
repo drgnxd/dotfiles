@@ -79,8 +79,8 @@
     }
   },
   "tool_output": {
-    "max_lines": 1000,
-    "max_bytes": 32768
+    "max_lines": 200,
+    "max_bytes": 8192
   },
   "plugin": [
     "file:///Users/drgnxd/repos/opencode-notifier/dist/index.js"
