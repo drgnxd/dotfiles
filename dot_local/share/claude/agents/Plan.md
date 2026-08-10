@@ -1,6 +1,6 @@
 ---
 name: Plan
-description: Research and planning agent used to gather context and design implementation strategies. Use this when you need to plan the implementation strategy for a task. Returns step-by-step plans, identifies critical files, and considers architectural trade-offs.
+description: Read-only implementation planning.
 disallowedTools: Write, Edit, NotebookEdit
 model: opus
 effort: high
