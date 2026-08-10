@@ -93,11 +93,13 @@ in
 
     finder = {
       AppleShowAllFiles = true;
-      _FXShowPosixPathInTitle = true;
+      _FXShowPosixPathInTitle = false;
       ShowStatusBar = true;
       ShowPathbar = true;
       _FXSortFoldersFirst = true;
       FXDefaultSearchScope = "SCcf";
+      FXPreferredViewStyle = "clmv";
+      FXEnableExtensionChangeWarning = false;
     };
 
     screencapture = {
