@@ -1,6 +1,6 @@
 ---
 name: Review
-description: Fresh independent reviewer for concrete proposals and diffs. Use after explicit approval and before implementation.
+description: Independent reviewer for approved proposals and diffs.
 model: inherit
 disallowedTools: Bash, Edit, Write, NotebookEdit, WebFetch, WebSearch, Task, Skill
 ---
