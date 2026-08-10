@@ -165,8 +165,8 @@ def validate_global_rules(errors: list[str]) -> None:
     rules = rules_path.read_text(encoding="utf-8")
     if not rules.strip():
         errors.append("global_rules.md exists but is empty")
-    elif "independent-review gate only through `review-main`" not in rules:
-        errors.append("global_rules.md must route OpenCode independent reviews to review-main")
+    elif "Follow an available Skill description as a mandatory trigger" not in rules:
+        errors.append("global_rules.md must require applicable Skill loading")
 
 
 def validate_model_routing(errors: list[str]) -> None:
