@@ -9,11 +9,6 @@
   "share": "disabled",
   "provider": {
     "openai": {
-      "whitelist": [
-        "gpt-5.6-terra",
-        "gpt-5.6-luna",
-        "gpt-5.6-sol"
-      ],
       "options": {
         "headerTimeout": 60000
       }
