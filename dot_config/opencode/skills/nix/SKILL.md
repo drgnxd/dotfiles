@@ -1,6 +1,6 @@
 ---
 name: nix
-description: Use when working on Nix flakes or configuring Nix evaluation and deployment workflows.
+description: Use when editing Nix flakes or deployment workflows.
 ---
 
 # Nix Preferences
