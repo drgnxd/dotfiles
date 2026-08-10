@@ -1,6 +1,6 @@
 ---
 name: research
-description: Use when a task needs multi-source investigation or a research report with evidence and uncertainty handling.
+description: Use for multi-source research.
 ---
 
 # Research Workflow

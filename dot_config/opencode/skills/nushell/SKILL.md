@@ -1,6 +1,6 @@
 ---
 name: nushell
-description: Use when writing or editing Nushell scripts, config.nu/env.nu, or autoload modules — syntax, structured pipelines, module layout, validation, and PATH handling.
+description: Use when editing Nushell code or configuration.
 ---
 
 # Nushell

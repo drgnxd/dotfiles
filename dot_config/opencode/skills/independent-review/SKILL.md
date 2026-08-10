@@ -1,6 +1,6 @@
 ---
 name: independent-review
-description: Use before implementing a non-trivial technical proposal — a design/architecture change, credential or secret generation, an operation on real data, or a change to another repository — after analysis is done and before writing the change.
+description: Use before non-trivial design, real-data, credential, or cross-repository changes.
 ---
 
 # Independent Review
