@@ -34,7 +34,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
 *   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor（`nom`）, glow, gping, doggo, viddy
 *   **プロジェクト環境:** direnv + nix-direnv と Python 用の `uv`。言語ランタイムと言語別 LSP はプロジェクトの `devShell` で管理します
-*   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）, qFlipper（デバイス書き込みツール）
+*   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）
 
 ## インストール
 

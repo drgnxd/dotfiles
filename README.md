@@ -36,7 +36,7 @@ This repository contains configurations for my macOS and Linux environments, inc
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
 *   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
 *   **Project Environments:** direnv + nix-direnv with `uv` for Python; language runtimes and language-specific LSPs belong in project `devShell`s
-*   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design), qFlipper (Device flasher)
+*   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design)
 
 ## Installation
 
