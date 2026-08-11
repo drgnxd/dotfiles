@@ -29,7 +29,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   flake-lock:
-    if: github.actor == 'github-actions[bot]' && startsWith(github.head_ref, 'update_flake_lock_action')
+    if: github.head_ref == 'update_flake_lock_action' && contains(github.event.pull_request.labels.*.name, 'automated')
     runs-on: ubuntu-latest
     permissions:
       contents: write
