@@ -21,9 +21,12 @@ let
   opencode_agents_local_example = ../../../dot_config/opencode/AGENTS.local.md.example;
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
+  opencode_package_lock_template = ../../../dot_config/opencode/package-lock.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
   opencode_plugins_template = ../../../dot_config/opencode/plugins;
   jaq = "${pkgs.jaq}/bin/jaq";
+  node = "${pkgs.nodejs_22}/bin/node";
+  npm = "${pkgs.nodejs_22}/bin/npm";
   opencode_skills_dir = ../../../dot_config/opencode/skills;
   skillEntries = builtins.readDir opencode_skills_dir;
   managedSkillNames = builtins.filter (name: skillEntries.${name} == "directory") (
@@ -279,13 +282,52 @@ in
 
     mkdir -p "$opencode_dir"
 
+    # npm's package-lock.json is the managed dependency lock. Remove the stale
+    # Bun lock so future Bun commands cannot resolve the obsolete plugin graph.
+    rm -f "$opencode_dir/bun.lock"
     sync_managed_file "${opencode_package_template}" "$opencode_dir/package.json"
+    sync_managed_file "${opencode_package_lock_template}" "$opencode_dir/package-lock.json"
+
+    dependencies_state_dir="${config.xdg.stateHome}/opencode"
+    dependencies_digest_file="$dependencies_state_dir/package-lock.sha256"
+    dependency_digest="$(${node} -e '
+      const crypto = require("crypto");
+      const fs = require("fs");
+      console.log(
+        crypto
+          .createHash("sha256")
+          .update(fs.readFileSync(process.argv[1]))
+          .update(fs.readFileSync(process.argv[2]))
+          .digest("hex"),
+      );
+    ' "$opencode_dir/package.json" "$opencode_dir/package-lock.json")"
+    expected_plugin_version="$(${node} -e '
+      const lock = require(process.argv[1]);
+      console.log(lock.packages["node_modules/@opencode-ai/plugin"].version);
+    ' "$opencode_dir/package-lock.json")"
+    installed_plugin_version="$(${node} -e '
+      try {
+        console.log(require(process.argv[1]).version);
+      } catch {
+        process.exit(0);
+      }
+    ' "$opencode_dir/node_modules/@opencode-ai/plugin/package.json")"
+
+    if [ ! -f "$dependencies_digest_file" ] || \
+       [ "$(cat "$dependencies_digest_file")" != "$dependency_digest" ] || \
+       [ "$installed_plugin_version" != "$expected_plugin_version" ]; then
+      mkdir -p "$dependencies_state_dir"
+      (cd "$opencode_dir" && ${npm} ci --omit=dev --ignore-scripts)
+      printf '%s\n' "$dependency_digest" > "$dependencies_digest_file.tmp"
+      mv -f "$dependencies_digest_file.tmp" "$dependencies_digest_file"
+    fi
 
     # Keep only the real files OpenCode writes back to user-writable.
     chmod u+w \
       "$opencode_target" \
       "$opencode_local_override" \
       "$opencode_local_example_target" \
-      "$opencode_dir/package.json"
+      "$opencode_dir/package.json" \
+      "$opencode_dir/package-lock.json"
   '';
 }
