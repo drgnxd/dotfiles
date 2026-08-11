@@ -25,14 +25,14 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **ターミナルマルチプレクサ:** Zellij
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
-*   **ウィンドウマネージャ:** Hammerspoon (macOSのみ)
+*   **ウィンドウマネージャ:** SchemeSpoon (macOSのみ)
 *   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **開発ツール:** Git（delta・git-lfs・git-absorb・git-cliff統合）、jujutsu（`jj`）、ast-grep、nix-diff、nixfmt、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
     *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
-*   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor（`nom`）, glow, gping, doggo, viddy
+*   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, mas, comma, nix-output-monitor（`nom`）, glow, gping, doggo, viddy
 *   **プロジェクト環境:** direnv + nix-direnv と Python 用の `uv`。言語ランタイムと言語別 LSP はプロジェクトの `devShell` で管理します
 *   **3D/CAD・シミュレーション:** OrcaSlicer, ngspice, Kicad（PCB設計）
 
@@ -192,7 +192,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
     *   `gh/`: GitHub CLIの設定
     *   `git/`: Git設定（delta統合）
-    *   `hammerspoon/`: macOS自動化（ウィンドウ管理、入力切替、カフェインモード）
     *   `helix/`: ポストモダンなモーダルテキストエディタの設定
     *   `npm/`: Node.jsパッケージマネージャの設定
     *   `opencode/`: OpenCode (AIコーディングエージェント) の設定
@@ -204,22 +203,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
         *   `autoload/`: モジュール化された設定ファイル
 
 ## 機能
-
-### Hammerspoon
-
-ウィンドウ管理と自動化機能：
-
-*   **ウィンドウ管理** (Ctrl+Alt): Rectangleスタイルのウィンドウリサイズ
-    *   `←/→`: 左右半分
-    *   `↑/↓`: 上下半分
-    *   `Enter`: 最大化
-    *   `U/I/J/K`: 4分割配置（左上、右上、左下、右下）
-    *   `C`: 中央配置（80%サイズ）
-*   **自動入力切替**: AlacrittyとSolに自動的に英語入力へ切り替え（SolをCmd+Spaceで呼び出した場合を含む）
-*   **カフェインモード**: メニューバーアイコンからディスプレイスリープを防止（☕️/💤）
-*   **チートシート** (Ctrl+Alt+/): 全キーバインドを表示
-*   **自動リロード**: 設定ファイルの変更時に自動的にリロード
-*   **手動リロード**: Ctrl+Shift+Rで設定をリロード
 
 ### Nushell
 

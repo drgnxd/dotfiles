@@ -161,9 +161,6 @@ in
         ShowDayOfWeek = true;
         ShowSeconds = true;
       };
-      "org.hammerspoon.Hammerspoon" = {
-        MJConfigFile = "${home_dir}/.config/hammerspoon/init.lua";
-      };
     };
   };
 
@@ -215,8 +212,6 @@ in
     casks = [
       "codexbar"
       "copilot-cli"
-      "hammerspoon"
-      "pearcleaner"
       "qlmarkdown"
       "sol"
       "stats"

@@ -64,7 +64,7 @@ Follow [Conventional Commits](./COMMIT_CONVENTION.md):
 ### Examples
 ```bash
 feat(nushell): add fish-style abbreviations
-fix(hammerspoon): correct window calculation for ultra-wide monitors
+fix(nushell): correct window calculation for ultra-wide monitors
 docs(readme): update installation instructions
 ```
 
@@ -148,11 +148,6 @@ Local, machine-specific overrides live outside the repo (examples):
 - Use `uv` for dependency management
 - PEP 8 compliant
 - Type hints for public functions
-
-### Lua (Hammerspoon)
-- 2-space indentation
-- Comment complex calculations
-- Module pattern (`local M = {}; return M`)
 
 ## Software Policy
 

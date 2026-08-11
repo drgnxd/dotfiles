@@ -47,7 +47,6 @@
 |     |- fzf.nix                     # fzf 連携
 |     |- gh.nix                      # GitHub CLI 設定
 |     |- git.nix                     # git/delta + local テンプレート
-|     |- hammerspoon.nix             # Hammerspoon Lua スクリプト
 |     |- helix.nix                   # Helix 設定 + テーマ
 |     |- nushell.nix                 # Nushell ファイル（autoload/modules）
 |     |- nushell-integrations.nix    # 生成済み Nushell init スクリプト作成
@@ -61,7 +60,6 @@
 |- dot_config/                       # 設定ソース（XDG）
 |  |- alacritty/
 |  |- git/
-|  |- hammerspoon/
 |  |- helix/
 |  |- npm/
 |  |- nushell/
@@ -145,9 +143,9 @@ Linux デスクトップ統合は `home/modules/linux/` の Home Manager モジ�
 - hypr-input-watcher（`scripts/linux/` の入力ソース自動切替、systemd ユーザーサービスで監視）
 - 補助スクリプト（`scripts/linux/hypr-*`、`scripts/linux/hypr-input-watcher` を含む）
 
-**Hammerspoon -> Hyprland mapping**:
+**SchemeSpoon -> Hyprland mapping**:
 
-| macOS (Hammerspoon) | Linux (Hyprland) |
+| macOS (SchemeSpoon) | Linux (Hyprland) |
 |---------------------|------------------|
 | Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
 | Sol launcher (Cmd+Space) | Wofi (Super+Space) |
