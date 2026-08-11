@@ -20,9 +20,8 @@ jobs:
       - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
         # This scoped PAT lets the created PR trigger ordinary pull_request CI.
         # Changes to this workflow are therefore equivalent to token write access.
-        env:
-          GITHUB_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
         with:
+          token: ${{ secrets.FLAKE_UPDATE_TOKEN }}
           # nixpkgs currently fails to build watchexec on aarch64-darwin.
           inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl treefmt-nix"
           pr-title: "chore(deps): update flake.lock"
