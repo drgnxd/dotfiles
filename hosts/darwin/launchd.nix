@@ -55,7 +55,7 @@ let
   };
 
   # Disable app-native "Launch at Login" agent to prevent double-launch.
-  # Apps like Stats, Hammerspoon, and Maccy register their own LaunchAgent
+  # Apps like Stats and Maccy register their own LaunchAgent
   # when "Launch at Login" is enabled in their preferences.  Since
   # nix-darwin already manages the agent, the app-native one must be
   # suppressed. The plist is deleted rather than renamed so no inert file
@@ -139,16 +139,6 @@ in
             labels = [
               "eu.exelban.Stats"
               "eu.exelban.Stats.LaunchAtLogin"
-            ];
-          });
-
-      home.activation.disableHammerspoonLaunchAtLogin =
-        lib.hm.dag.entryAfter [ "writeBoundary" ]
-          (disable_login_launch_agent {
-            plist_name = "org.hammerspoon.Hammerspoon";
-            labels = [
-              "org.hammerspoon.Hammerspoon"
-              "org.hammerspoon.Hammerspoon.LaunchAtLogin"
             ];
           });
 

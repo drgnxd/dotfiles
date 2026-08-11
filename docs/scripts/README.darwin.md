@@ -16,7 +16,7 @@ This directory documents the remaining macOS helper scripts. Most system configu
 
 - `hosts/darwin/launchd.nix`
   - nix-darwin LaunchAgent definitions and login app startup
-  - Separately defines home-manager activation hooks that disable app-created legacy `LaunchAtLogin` agents (Stats/Hammerspoon)
+  - Separately defines home-manager activation hooks that disable app-created legacy `LaunchAtLogin` agents (Stats/Maccy)
 
 - `home/default.nix`
   - Home Manager user entrypoint (imports user modules)

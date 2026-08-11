@@ -42,10 +42,8 @@ create its own target directory.
 
 ## macOS Applications
 Homebrew trust operations receive `XDG_CONFIG_HOME` explicitly, so their state
-stays under `~/.config/homebrew`. Hammerspoon uses its native `MJConfigFile`
-preference to load `~/.config/hammerspoon/init.lua`; reload watchers derive the
-directory from `hs.configdir` instead of relying on `~/.hammerspoon`. Alacritty
-declares XDG paths and the Home Manager profile PATH directly because macOS
+stays under `~/.config/homebrew`. Alacritty declares XDG paths and the Home
+Manager profile PATH directly because macOS
 LaunchServices does not reliably preserve the per-user launchd environment.
 
 ## Docker and Lima

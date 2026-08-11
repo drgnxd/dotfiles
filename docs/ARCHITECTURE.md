@@ -47,7 +47,6 @@
 |     |- fzf.nix                     # fzf integration
 |     |- gh.nix                      # GitHub CLI config
 |     |- git.nix                     # git/delta + local template
-|     |- hammerspoon.nix             # Hammerspoon Lua scripts
 |     |- helix.nix                   # Helix config + theme
 |     |- nushell.nix                 # Nushell files (autoload/modules)
 |     |- nushell-integrations.nix    # Build generated Nushell init scripts
@@ -61,7 +60,6 @@
 |- dot_config/                       # Config sources (XDG)
 |  |- alacritty/
 |  |- git/
-|  |- hammerspoon/
 |  |- helix/
 |  |- npm/
 |  |- nushell/
@@ -145,9 +143,9 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 - hypr-input-watcher (input source auto-switcher in `scripts/linux/`, supervised as a systemd user service)
 - Helper scripts (`scripts/linux/hypr-*`, including `scripts/linux/hypr-input-watcher`)
 
-**Hammerspoon -> Hyprland mapping**:
+**SchemeSpoon -> Hyprland mapping**:
 
-| macOS (Hammerspoon) | Linux (Hyprland) |
+| macOS (SchemeSpoon) | Linux (Hyprland) |
 |---------------------|------------------|
 | Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
 | Sol launcher (Cmd+Space) | Wofi (Super+Space) |
