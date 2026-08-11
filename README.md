@@ -134,7 +134,7 @@ For machine-specific provider settings, edit `~/.config/opencode/opencode.local.
   `~/.config/opencode/AGENTS.md`.
 - Global skills under `dot_config/opencode/skills/` are symlinked read-only from the Nix store. Repository-local skills under `.opencode/skills/` are not deployed globally.
 - Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
-- Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, and `tools/`.
+- Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `package-lock.json`, and `tools/`. Activation runs `npm ci --omit=dev --ignore-scripts` only when the managed dependency lock or installed plugin version differs.
 - `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.
 - During activation, if `~/.config/opencode/opencode.local.json` is non-empty, it is copied to `~/.config/opencode/opencode.json`; otherwise the managed template is copied instead.
 - The managed OpenCode plugin list pins the exact npm version: `@mohak34/opencode-notifier@0.2.8`.
