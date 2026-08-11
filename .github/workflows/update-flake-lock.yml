@@ -12,6 +12,7 @@ jobs:
   update-flake-lock:
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     steps:
@@ -25,3 +26,22 @@ jobs:
           pr-labels: |
             dependencies
             automated
+      - name: Dispatch checks for the update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_url="$(gh pr list --state open --head update_flake_lock_action --json url --jq '.[0].url')"
+          if [ -z "$pr_url" ]; then
+            exit 0
+          fi
+          gh workflow run test.yml --ref update_flake_lock_action
+          gh workflow run lint.yml --ref update_flake_lock_action
+          gh workflow run darwin.yml --ref update_flake_lock_action
+      - name: Enable auto-merge for the update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_url="$(gh pr list --state open --head update_flake_lock_action --json url --jq '.[0].url')"
+          if [ -n "$pr_url" ]; then
+            gh pr merge --auto --squash "$pr_url"
+          fi
