@@ -16,7 +16,7 @@
 
 - `hosts/darwin/launchd.nix`
   - nix-darwin による LaunchAgent 定義とログイン時アプリ起動
-  - これとは別に、home-manager activation フックでアプリ側が作る旧 `LaunchAtLogin` Agent（Stats/Hammerspoon）を無効化
+  - これとは別に、home-manager activation フックでアプリ側が作る旧 `LaunchAtLogin` Agent（Stats/Maccy）を無効化
 
 - `home/default.nix`
   - Home Manager のユーザー設定エントリーポイント（各モジュールを読込）

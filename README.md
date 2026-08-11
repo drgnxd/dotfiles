@@ -27,14 +27,14 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Terminal Multiplexer:** Zellij
 *   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
-*   **Window Manager:** Hammerspoon (macOS only)
+*   **Window Manager:** SchemeSpoon (macOS only)
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
-*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, pearcleaner, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
+*   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
 *   **Project Environments:** direnv + nix-direnv with `uv` for Python; language runtimes and language-specific LSPs belong in project `devShell`s
 *   **3D/CAD & Simulation:** OrcaSlicer, ngspice, Kicad (PCB design)
 
@@ -196,7 +196,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `alacritty/`: GPU-accelerated terminal emulator configuration
     *   `gh/`: GitHub CLI configuration
     *   `git/`: Git configuration with delta integration
-    *   `hammerspoon/`: macOS automation (window management, input switching, caffeine mode)
     *   `helix/`: Post-modern modal text editor configuration
     *   `npm/`: Node.js package manager configuration
     *   `opencode/`: Configuration for OpenCode (AI coding agent)
@@ -208,22 +207,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
         *   `autoload/`: Modular configuration files
 
 ## Features
-
-### Hammerspoon
-
-Window management and automation features:
-
-*   **Window Management** (Ctrl+Alt): Rectangle-style window resizing
-    *   `left/right`: Left/right half screen
-    *   `up/down`: Top/bottom half screen
-    *   `enter`: Maximize
-    *   `U/I/J/K`: Quarter screen positions (top-left, top-right, bottom-left, bottom-right)
-    *   `C`: Center (80% size)
-*   **Auto Input Switching**: Automatically switches to English input for Alacritty and Sol (including Sol launch via Cmd+Space)
-*   **Caffeine Mode**: Prevent display sleep via menubar icon (coffee/sleep)
-*   **Cheat Sheet** (Ctrl+Alt+/): Display all keybindings
-*   **Auto Reload**: Configuration reloads automatically on file changes
-*   **Manual Reload**: Ctrl+Shift+R to reload configuration
 
 ### Nushell
 
