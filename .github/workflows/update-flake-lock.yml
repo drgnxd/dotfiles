@@ -12,13 +12,16 @@ jobs:
   update-flake-lock:
     runs-on: ubuntu-latest
     permissions:
-      actions: write
       contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/determinate-nix-action@61cbfe2efc2d4e7a8a6d56967c3c1058e846c858 # v3.21.9
       - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
+        # This scoped PAT lets the created PR trigger ordinary pull_request CI.
+        # Changes to this workflow are therefore equivalent to token write access.
+        env:
+          GITHUB_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
         with:
           # nixpkgs currently fails to build watchexec on aarch64-darwin.
           inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl treefmt-nix"
@@ -26,22 +29,3 @@ jobs:
           pr-labels: |
             dependencies
             automated
-      - name: Dispatch checks for the update pull request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pr_url="$(gh pr list --state open --head update_flake_lock_action --json url --jq '.[0].url')"
-          if [ -z "$pr_url" ]; then
-            exit 0
-          fi
-          gh workflow run test.yml --ref update_flake_lock_action
-          gh workflow run lint.yml --ref update_flake_lock_action
-          gh workflow run darwin.yml --ref update_flake_lock_action
-      - name: Enable auto-merge for the update pull request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pr_url="$(gh pr list --state open --head update_flake_lock_action --json url --jq '.[0].url')"
-          if [ -n "$pr_url" ]; then
-            gh pr merge --auto --squash "$pr_url"
-          fi
