@@ -131,7 +131,7 @@ OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理し�
   `~/.config/opencode/AGENTS.md` として配布されます。
 - `dot_config/opencode/skills/` のグローバル skill は Nix store から read-only に symlink されます。`.opencode/skills/` のリポジトリローカル skill はグローバルには配布されません。
 - read-only assets は Nix store から symlink されます: `AGENTS.md`, `opencode-notifier.json`, 管理対象 skill directories。変更する場合は `dot_config/opencode/` を編集し、rebuild または switch で反映してください。
-- writable files は activation 時に実ファイルとして同期します: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `tools/`。
+- writable files は activation 時に実ファイルとして同期します: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `package-lock.json`, `tools/`。管理対象の依存lockまたは導入済みpluginのバージョンが異なる場合だけ、activationで`npm ci --omit=dev --ignore-scripts`を実行します。
 - `tools/` は Nix store の realpath から `~/.config/opencode/node_modules` へ walk up できず Bun の module resolution が失敗するため、実ファイルとして同期します。
 - activation 時に `~/.config/opencode/opencode.local.json` が空でなければ、その内容を `~/.config/opencode/opencode.json` にコピーします。空の場合はリポジトリ管理のテンプレートをコピーします。
 - 管理対象の OpenCode plugin 一覧は npm の exact version に固定します: `@mohak34/opencode-notifier@0.2.8`。
