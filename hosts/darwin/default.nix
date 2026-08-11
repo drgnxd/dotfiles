@@ -227,7 +227,6 @@ in
 
       "kicad"
       "orcaslicer"
-      "qflipper"
       "signal"
 
       "logi-options+"
