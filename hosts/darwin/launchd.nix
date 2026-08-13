@@ -15,9 +15,17 @@ let
 
   # ── Helpers ──────────────────────────────────────────────────────────
 
-  # Managed LaunchAgent with UTF-8 environment, logging, and strict umask
+  # Managed LaunchAgent with UTF-8 environment, logging, and strict umask.
+  # `keepAlive` defaults to false (matches a plain login item: launch once,
+  # do not fight a user-initiated Quit). Pass `{ SuccessfulExit = false; }`
+  # for an always-on automation agent that should relaunch after a crash
+  # but stay down after a clean Quit from its own menu.
   mkManagedAgent =
-    { name, programArgs }:
+    {
+      name,
+      programArgs,
+      keepAlive ? false,
+    }:
     {
       serviceConfig = {
         ProgramArguments = programArgs;
@@ -26,7 +34,7 @@ let
           LC_ALL = "en_US.UTF-8";
         };
         RunAtLoad = true;
-        KeepAlive = false;
+        KeepAlive = keepAlive;
         ProcessType = "Interactive";
         StandardOutPath = "${home_dir}/.local/state/launchagents/${name}/stdout.log";
         StandardErrorPath = "${home_dir}/.local/state/launchagents/${name}/stderr.log";
@@ -82,9 +90,15 @@ in
 
   launchd.user.agents = {
     # Managed agents: environment variables, logging, and umask
+    # Automation backbone (Hammerspoon's role before it): relaunch on crash
+    # like a normal always-on utility, but a deliberate Quit from its own
+    # menu (clean exit) stays quit rather than fighting the user.
     schemespoon = mkManagedAgent {
       name = "schemespoon";
       programArgs = [ "${home_dir}/Applications/SchemeSpoon.app/Contents/MacOS/schemespoon" ];
+      keepAlive = {
+        SuccessfulExit = false;
+      };
     };
     maccy = mkManagedAgent {
       name = "maccy";
