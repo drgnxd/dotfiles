@@ -51,6 +51,14 @@ export def upgrade-nix [] {
     let target_name = if ($target | is-empty) { $fallback_target } else { $target }
     let flake_ref = $"($dotfiles_dir)#($target_name)"
 
+    if (has-cmd darwin-rebuild) {
+        print "--- Authenticate for darwin-rebuild ---"
+        let auth_result = (do { ^sudo -v } | complete)
+        if ($auth_result.exit_code != 0) {
+            error make { msg: $"sudo authentication failed: ($auth_result.stderr)" }
+        }
+    }
+
     print "--- Nix flake update ---"
     let update_result = (do { nix flake update $dotfiles_dir } | complete)
     if ($update_result.exit_code != 0) {
@@ -59,7 +67,7 @@ export def upgrade-nix [] {
 
     if (has-cmd darwin-rebuild) {
         print "--- darwin-rebuild ---"
-        darwin-rebuild switch --flake $flake_ref
+        ^sudo /run/current-system/sw/bin/darwin-rebuild switch --flake $flake_ref
     } else if (has-cmd home-manager) {
         print "--- home-manager ---"
         home-manager switch --flake $flake_ref

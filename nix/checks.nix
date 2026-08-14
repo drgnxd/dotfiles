@@ -35,6 +35,12 @@ forAllSystems (
           pass_filenames = true;
           stages = [ "commit-msg" ];
         };
+        block-local-nix = {
+          enable = true;
+          name = "block local Nix files";
+          entry = "${p.bash}/bin/bash ${../scripts/block_flake_local_nix.sh}";
+          pass_filenames = false;
+        };
       };
     };
     lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''
