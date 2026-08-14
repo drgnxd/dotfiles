@@ -78,8 +78,5 @@
   "compaction": {
     "auto": true,
     "tail_turns": 10
-  },
-  "plugin": [
-    "file:///Users/drgnxd/repos/opencode-notifier/dist/index.js"
-  ]
+  }
 }
