@@ -10,6 +10,60 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
+
+  # Personal autoMode.environment entries (org, source control, sensitive
+  # locations) kept out of this public repo. Same local-override pattern as
+  # local/identity.nix and local/packages.nix: gitignored, optional, falls
+  # back to no extra entries on a fresh clone. The committed
+  # dot_local/share/claude/settings.json intentionally carries only
+  # `"$defaults"` here — do not put personal environment prose back into
+  # that file; add it to local/claude-auto-mode-environment.nix instead. See
+  # local/claude-auto-mode-environment.nix.example for the shape.
+  claude_local_environment_path = ../local/claude-auto-mode-environment.nix;
+  claude_local_environment =
+    if builtins.pathExists claude_local_environment_path then
+      import claude_local_environment_path
+    else
+      [ ];
+  claude_settings_base = builtins.fromJSON (
+    builtins.readFile ../dot_local/share/claude/settings.json
+  );
+  # opencode-notifier's absolute path depends on this machine's username, so
+  # it is built here from `user`/`config.home.homeDirectory` rather than
+  # hardcoded in the committed settings.json (see AGENTS.md: "Never
+  # hardcode usernames or hostnames").
+  opencode_notifier_cli = "${config.home.homeDirectory}/repos/opencode-notifier/src/cli.ts";
+  per_user_bun = "/etc/profiles/per-user/${user}/bin/bun";
+  claude_settings = claude_settings_base // {
+    autoMode = claude_settings_base.autoMode // {
+      environment = claude_settings_base.autoMode.environment ++ claude_local_environment;
+    };
+    hooks = {
+      Stop = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = "${per_user_bun} run ${opencode_notifier_cli} --event complete 2>/dev/null || true";
+            }
+          ];
+        }
+      ];
+      Notification = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = "${per_user_bun} run ${opencode_notifier_cli} --event permission 2>/dev/null || true";
+            }
+          ];
+        }
+      ];
+    };
+  };
+  claude_settings_json = pkgs.runCommand "claude-settings.json" { } ''
+    ${pkgs.jq}/bin/jq . ${builtins.toFile "claude-settings-raw.json" (builtins.toJSON claude_settings)} > $out
+  '';
 in
 {
   home.username = user;
@@ -90,7 +144,7 @@ in
   };
 
   xdg.dataFile."claude/CLAUDE.md".source = ../dot_local/share/claude/CLAUDE.md;
-  xdg.dataFile."claude/settings.json".source = ../dot_local/share/claude/settings.json;
+  xdg.dataFile."claude/settings.json".source = claude_settings_json;
   xdg.dataFile."claude/agents/Explore.md".source = ../dot_local/share/claude/agents/Explore.md;
   xdg.dataFile."claude/agents/Plan.md".source = ../dot_local/share/claude/agents/Plan.md;
   xdg.dataFile."claude/agents/Review.md".source = ../dot_local/share/claude/agents/Review.md;

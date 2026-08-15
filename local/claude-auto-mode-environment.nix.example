@@ -1,0 +1,19 @@
+# Optional: extra entries for Claude Code's autoMode.environment (the auto
+# mode permission classifier's trusted-environment context), kept out of the
+# public repo. Copy to local/claude-auto-mode-environment.nix (gitignored)
+# and list plain-prose strings — each is spliced onto the committed
+# dot_local/share/claude/settings.json's `["$defaults"]` array. Omit this
+# file to run with only the classifier's built-in defaults, no personal
+# context.
+#
+# See https://code.claude.com/docs/en/auto-mode-config for the field
+# meanings (Organization, Source control, Cloud provider(s), Trusted
+# internal domains, Key internal services, Internal package registry,
+# Sensitive data locations & audiences, Sensitive remote targets,
+# Additional context). Do not include "$defaults" here — the base file
+# already provides it.
+[
+  # "Organization: ..."
+  # "Source control: ..."
+  # "Sensitive data locations & audiences: ..."
+]

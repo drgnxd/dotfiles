@@ -41,6 +41,7 @@ flake.local.nix
 local/identity.nix
 local/preferences.nix
 local/packages.nix
+local/claude-auto-mode-environment.nix
 !dot_config/nushell/local.nu.example
 !dot_config/opencode/opencode.local.json.example
 !dot_config/opencode/AGENTS.local.md.example
