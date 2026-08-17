@@ -103,8 +103,11 @@ let
   ];
 
   document_tools = [
+    "ocrmypdf"
     "pandoc"
+    "poppler-utils"
     "tectonic"
+    "tesseract"
     "typst"
   ];
 
