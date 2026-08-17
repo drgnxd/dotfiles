@@ -36,6 +36,7 @@ $env.XDG_CONFIG_HOME = $XDG_DIRS.config
 $env.XDG_CACHE_HOME = $XDG_DIRS.cache
 $env.XDG_DATA_HOME = $XDG_DIRS.data
 $env.XDG_STATE_HOME = $XDG_DIRS.state
+$env.CODEX_HOME = ($env.XDG_DATA_HOME | path join "codex")
 
 $env.GNUPGHOME = ($env.XDG_CONFIG_HOME | path join "gnupg")
 
