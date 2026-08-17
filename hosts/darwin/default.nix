@@ -184,6 +184,7 @@ in
     XDG_CACHE_HOME = "${home_dir}/.cache";
     XDG_DATA_HOME = "${home_dir}/.local/share";
     XDG_STATE_HOME = "${home_dir}/.local/state";
+    CODEX_HOME = "${home_dir}/.local/share/codex";
     NPM_CONFIG_CACHE = "${home_dir}/.cache/npm";
     NPM_CONFIG_PREFIX = "${home_dir}/.local/share/npm";
     NPM_CONFIG_USERCONFIG = "${home_dir}/.config/npm/npmrc";
@@ -210,6 +211,7 @@ in
       "ollama"
     ];
     casks = [
+      "codex"
       "codexbar"
       "copilot-cli"
       "qlmarkdown"
