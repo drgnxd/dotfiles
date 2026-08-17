@@ -171,6 +171,7 @@ in
     XDG_CACHE_HOME = "$HOME/.cache";
     XDG_DATA_HOME = "$HOME/.local/share";
     XDG_STATE_HOME = "$HOME/.local/state";
+    CODEX_HOME = "$HOME/.local/share/codex";
     # compinit (run by macOS's /etc/zshrc) writes its dump to ZDOTDIR; must be
     # set via /etc/zshenv (sourced before /etc/zshrc) to take effect.
     ZDOTDIR = "$HOME/.config/zsh";
