@@ -121,6 +121,16 @@ in
       ];
     };
 
+    remap-capslock = mkManagedAgent {
+      name = "remap-capslock";
+      programArgs = [
+        "/usr/bin/hidutil"
+        "property"
+        "--set"
+        ''{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E4}]}''
+      ];
+    };
+
     # Simple login apps: open -a at login
     login-alacritty = mkLoginApp "alacritty" "Alacritty";
     login-floorp = mkLoginApp "floorp" "Floorp";
