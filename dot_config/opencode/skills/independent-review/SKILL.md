@@ -1,6 +1,6 @@
 ---
 name: independent-review
-description: Use before non-trivial design, real-data, credential, or cross-repository changes.
+description: Use before proposing, planning, or implementing non-trivial design, real-data, credential, or cross-repository changes.
 ---
 
 # Independent Review
