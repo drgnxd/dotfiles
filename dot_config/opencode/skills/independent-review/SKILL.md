@@ -7,21 +7,29 @@ description: Use before non-trivial design, real-data, credential, or cross-repo
 
 Two gates, in order, before implementation starts on a non-trivial technical proposal:
 
-1. **Explicit approval of the concrete proposal.** Present the actual design or
-   plan and wait for the user's explicit go-ahead. General topic approval
-   ("yes, let's do X") is not approval of a specific design — if the design
-   was never shown in file/diff form, or changed since it was discussed,
-   present it before writing the change.
-2. **Independent review by a context-free agent.** After approval, before
-   touching files, send the proposal — a diff, plan, or design doc, not a
-   paraphrase of it — to a fresh subagent (or a different model/vendor, where
-   available) that has not seen this conversation. Give it the artifact plus
-   the minimum standalone context needed to judge it. Incorporate its
-   findings before implementing; if it finds nothing, say so explicitly
-   rather than silently skipping the step. **The dispatch must be a real
-   tool call visible in this session, not a claimed or paraphrased one** —
-   asserting "reviewed, no issues" without an actual dispatch call is the
-   specific failure this skill exists to prevent, not a hypothetical one.
+1. **Independent review by a context-free agent.** Before asking for approval
+   or touching files, send the concrete proposal — a diff, plan, or design doc,
+   not a paraphrase of it — to a fresh subagent (or a different model/vendor,
+   where available) that has not seen this conversation. Give it the artifact
+   plus the minimum standalone context needed to judge it. Incorporate its
+   findings into a revised proposal; if it finds nothing, say so explicitly
+   rather than silently skipping the step. **The dispatch must be a real tool
+   call visible in this session, not a claimed or paraphrased one** — asserting
+   "reviewed, no issues" without an actual dispatch call is the specific
+   failure this skill exists to prevent, not a hypothetical one.
+2. **Explicit approval of the revised concrete proposal.** After the review
+   result exists and its findings have been incorporated, present the revised
+   design or plan and wait for the user's explicit go-ahead. General topic
+   approval ("yes, let's do X") is not approval of a specific design — if the
+   revised design was not shown in file/diff form, present it before writing
+   the change. Never ask for approval before the visible review result exists.
+
+Before sending an approval request, verify that the current transcript contains
+the visible independent-review tool call, a non-empty result ending in
+`REVIEW_STATUS: pass` or `REVIEW_STATUS: findings`, the revised proposal
+incorporating the findings, and a disposition for every finding. A blocking
+finding must be resolved or explicitly presented as a user decision before
+implementation.
 
 ## Why both gates
 
