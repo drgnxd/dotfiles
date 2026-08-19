@@ -29,7 +29,7 @@ git push origin main
 ## 3. 新マシンへのデプロイ
 ```bash
 # リポジトリをクローン
-git clone https://github.com/example/dotfiles.git ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
 cd ~/.config/nix-config
 
 # 適用
