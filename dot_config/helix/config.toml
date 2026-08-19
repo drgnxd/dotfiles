@@ -49,5 +49,3 @@ C-w = "delete_word_backward"
 C-k = "kill_to_line_end"
 C-u = "kill_to_line_start"
 C-y = "paste_after"
-
-C-g = "normal_mode"
