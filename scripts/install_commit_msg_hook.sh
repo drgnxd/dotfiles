@@ -2,7 +2,7 @@
 
 set -eu
 
-managed_marker="# managed by nix-config"
+managed_marker="# managed by dotfiles"
 git rev-parse --show-toplevel >/dev/null
 hook_path="$(git rev-parse --git-path hooks/commit-msg)"
 hook_dir="$(dirname "$hook_path")"

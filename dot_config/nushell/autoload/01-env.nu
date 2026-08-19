@@ -80,7 +80,7 @@ $env.LESSHISTFILE = ($env.XDG_STATE_HOME | path join "less" "history")
 $env.SHELL_SESSION_DIR = ($env.XDG_STATE_HOME | path join "nushell" "sessions")
 
 if ($env | get -o DOTFILES_DIR | default "" | is-empty) {
-    $env.DOTFILES_DIR = ($env.HOME | path join ".config" "nix-config")
+    $env.DOTFILES_DIR = ($env.HOME | path join ".config" "dotfiles")
 }
 if ($env | get -o DOTFILES_FLAKE_TARGET | default "" | is-empty) {
     $env.DOTFILES_FLAKE_TARGET = "darwin"

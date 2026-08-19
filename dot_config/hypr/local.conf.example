@@ -1,7 +1,7 @@
 # Machine-specific Hyprland overrides (not tracked by git)
 #
 # Copy to ~/.config/hypr/local.conf and adjust:
-#   cp ~/.config/nix-config/dot_config/hypr/local.conf.example ~/.config/hypr/local.conf
+#   cp ~/.config/dotfiles/dot_config/hypr/local.conf.example ~/.config/hypr/local.conf
 #
 # Examples:
 # monitor = DP-1, 2560x1440@144, 0x0, 1

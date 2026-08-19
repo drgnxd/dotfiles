@@ -10,8 +10,8 @@
 ### Initial Setup
 ```bash
 # Clone into the recommended location
-git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
-cd ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/dotfiles
+cd ~/.config/dotfiles
 
 # Apply configuration
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.

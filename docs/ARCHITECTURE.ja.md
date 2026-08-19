@@ -19,7 +19,7 @@
 ## ディレクトリ構成
 
 ```
-~/.config/nix-config/                # Nix フレークリポジトリ
+~/.config/dotfiles/                  # Nix フレークリポジトリ
 |- flake.nix                         # エントリポイント（nix-darwin + home-manager）
 |- flake.lock                        # 依存固定
 |- hosts/

@@ -20,8 +20,8 @@ Follow the prompts. The installer enables flakes by default and sets up the Nix 
 ### Step 2: Clone the Repository
 
 ```bash
-git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
-cd ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/dotfiles
+cd ~/.config/dotfiles
 ```
 
 ### Step 3: Configure Machine Identity
