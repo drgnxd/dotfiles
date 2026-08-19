@@ -16,7 +16,7 @@
 
 **使い方**:
 ```bash
-cd ~/.config/nix-config
+cd ~/.config/dotfiles
 home-manager switch --flake path:.#<user>@<linuxHostname>
 ```
 

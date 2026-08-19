@@ -1,7 +1,7 @@
 # Local Nushell overrides (unmanaged by Home Manager)
 #
 # Usage:
-#   cp ~/.config/nix-config/dot_config/nushell/local.nu.example ~/.config/nushell/local.nu
+#   cp ~/.config/dotfiles/dot_config/nushell/local.nu.example ~/.config/nushell/local.nu
 #
 # This file is intentionally not symlinked by Home Manager, so each machine can
 # keep private or host-specific settings here.
