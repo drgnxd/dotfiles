@@ -13,8 +13,6 @@ description: Use before Git history changes.
   style established in `git log --oneline -20`; fall back to Conventional
   Commits only when neither source establishes a convention.
 - Keep one logical change per commit.
-- Stay on the current branch for trivial documentation, comment, or simple
-  fixes unless the user requests a branch.
 - Create a feature branch for substantial, risky, review-bound, or
   protected-branch work. Never commit directly to protected branches.
 - Before committing, inspect `git status`, `git diff`, and `git log --oneline -10`.
