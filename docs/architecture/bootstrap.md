@@ -20,7 +20,7 @@ Follow the prompts. The installer enables flakes by default and sets up the Nix 
 ### Step 2: Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/dotfiles ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
 cd ~/.config/nix-config
 ```
 

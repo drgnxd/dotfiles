@@ -10,7 +10,7 @@
 ### Initial Setup
 ```bash
 # Clone into the recommended location
-git clone git@github.com:example/dotfiles.git ~/.config/nix-config
+git clone git@github.com:drgnxd/dotfiles.git ~/.config/nix-config
 cd ~/.config/nix-config
 
 # Apply configuration
