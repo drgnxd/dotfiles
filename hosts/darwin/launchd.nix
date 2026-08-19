@@ -121,6 +121,19 @@ in
       ];
     };
 
+    # Re-inject the XDG-scoped Codex home into the GUI launchd environment at login.
+    # Keep this alongside launchd.user.envVariables as a recovery path if the user
+    # launchd environment is recreated without replaying the declarative variables.
+    setenv-codex-home = mkManagedAgent {
+      name = "setenv-codex-home";
+      programArgs = [
+        "/bin/launchctl"
+        "setenv"
+        "CODEX_HOME"
+        "${home_dir}/.local/share/codex"
+      ];
+    };
+
     remap-capslock = mkManagedAgent {
       name = "remap-capslock";
       programArgs = [
