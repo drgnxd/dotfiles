@@ -20,7 +20,7 @@ curl --proto '=https' --tlsv1.2 -fsSL https://install.determinate.systems/nix | 
 ### 手順 2: リポジトリをクローン
 
 ```bash
-git clone https://github.com/<your-username>/dotfiles ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
 cd ~/.config/nix-config
 ```
 
