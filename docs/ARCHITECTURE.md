@@ -19,7 +19,7 @@
 ## Directory Structure
 
 ```
-~/.config/nix-config/                # Nix flake repository
+~/.config/dotfiles/                  # Nix flake repository
 |- flake.nix                         # Entry point (nix-darwin + home-manager)
 |- flake.lock                        # Pinned inputs
 |- hosts/

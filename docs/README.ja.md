@@ -9,7 +9,7 @@ Nix（nix-darwin + standalone home-manager）で管理している個人用のdo
 既存の macOS 環境では、リポジトリルートから実行します：
 
 ```bash
-cd ~/.config/nix-config
+cd ~/.config/dotfiles
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 

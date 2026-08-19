@@ -9,7 +9,7 @@ For a fresh machine, see the [Bootstrap Guide](docs/architecture/bootstrap.md).
 For an existing macOS installation, run from the repository root:
 
 ```bash
-cd ~/.config/nix-config
+cd ~/.config/dotfiles
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 

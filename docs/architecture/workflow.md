@@ -3,7 +3,7 @@
 ## 1. Local Changes
 ```bash
 # Edit configuration
-cd ~/.config/nix-config
+cd ~/.config/dotfiles
 $EDITOR dot_config/nushell/autoload/03-aliases.nu
 
 # Apply changes
@@ -16,7 +16,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ## 2. Git Management
 ```bash
 # Stage changes
-cd ~/.config/nix-config
+cd ~/.config/dotfiles
 git add .
 
 # Commit
@@ -29,8 +29,8 @@ git push origin main
 ## 3. Deploy to a New Machine
 ```bash
 # Clone repository
-git clone https://github.com/drgnxd/dotfiles.git ~/.config/nix-config
-cd ~/.config/nix-config
+git clone https://github.com/drgnxd/dotfiles.git ~/.config/dotfiles
+cd ~/.config/dotfiles
 
 # Apply configuration
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.

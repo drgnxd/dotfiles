@@ -16,7 +16,7 @@ export def require-loaded [name: string, source: string] {
 }
 
 export def dotfiles-dir [] {
-    $env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "nix-config")
+    $env | get -o DOTFILES_DIR | default ($env.HOME | path join ".config" "dotfiles")
 }
 
 export def cmd-or-fallback [

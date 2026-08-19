@@ -79,7 +79,7 @@ effort as a whole.
 ## Bootstrapping
 
 Authoring or editing this skill, or the rules file that points to it, is
-itself a non-trivial change to another repository (`nix-config`, from most
+itself a non-trivial change to another repository (`dotfiles`, from most
 callers' perspective) — both gates apply to changes here too. The first
 version of this file could not self-trigger via the mechanism it defines
 (the pointer to it in `global_rules.md` didn't exist yet), so that pass
