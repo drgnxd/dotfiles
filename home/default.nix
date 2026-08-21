@@ -80,11 +80,13 @@ in
     ./modules/alacritty.nix
     ./modules/atuin.nix
     ./modules/bat.nix
+    ./modules/btop.nix
     ./modules/direnv.nix
     ./modules/floorp.nix
     ./modules/fzf.nix
     ./modules/gh.nix
     ./modules/git.nix
+    ./modules/glow.nix
     ./modules/helix.nix
     ./modules/jujutsu.nix
     ./modules/nix_gc.nix
