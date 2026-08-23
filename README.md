@@ -222,7 +222,10 @@ Modern shell with structured data and modular configuration:
     *   `cat` - bat (fallback to cat)
     *   `la`, `ld`, `lf`, `lsize` - List variants
     *   `y` - Yazi file manager with cwd tracking
-    *   `update` / `upgrade-all` - Unified system upgrade
+     *   `refresh-nix [input]` - Refresh Nix inputs and show the lockfile diff
+     *   `upgrade-nix` - Apply the pinned Nix flake
+     *   `refresh-brew` / `upgrade-brew` - Review and explicitly upgrade Homebrew packages
+     *   `update` / `upgrade-all` - Apply the pinned Nix flake and upgrade Mac App Store apps
 *   **Auto-initialized Tools**: Starship, Zoxide, Direnv, Carapace, Atuin
 *   **Local Overrides**: Support for unmanaged `~/.config/nushell/local.nu` for machine-specific settings (auto-created as an empty file during activation)
 *   **Documentation**: See [docs/architecture/nushell.md](docs/architecture/nushell.md) for full details
