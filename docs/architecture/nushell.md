@@ -118,7 +118,10 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 ### Functions
 - `y` - Yazi file manager with cwd tracking
 - `ppget` - Proton Pass password retrieval
-- `upgrade-all` / `update` - Unified system upgrade
+- `refresh-nix [input]` - Refresh all or one Nix flake input and show the lockfile diff without applying it
+- `upgrade-nix` - Apply the currently pinned Nix flake
+- `refresh-brew` / `upgrade-brew` - Refresh Homebrew metadata and explicitly upgrade packages
+- `upgrade-all` / `update` - Apply the pinned Nix flake and upgrade Mac App Store apps
 - `save-stats` - Export Stats.app configuration
 - `bundle-id` - Get macOS app bundle ID
 

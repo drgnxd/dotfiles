@@ -9,7 +9,7 @@
 秘密情報は `secrets/*.age` に格納し、`agenix` で管理し、macOS と Linux の両方で `home/modules/secrets.nix` の home-manager layer に定義します。平文の秘密情報はコミットしません。復号はアクティベーション時にユーザーの設定パスへ行います。
 
 ## 依存関係更新の自動化
-Dependabot は GitHub Actions を週次で確認し、minor と patch 更新を 1 つの pull request にまとめます。major 更新は個別の pull request として残し、手動レビューします。週次の flake.lock 更新 workflow も自動 pull request を作成します。どちらの自動依存関係 PR も、required CI が通った後にのみ auto-merge のキューへ入ります。branch protection が引き続き gate です。
+Dependabot は GitHub Actions と管理対象の npm プロジェクトを週次で確認し、minor と patch 更新を pull request にまとめます。major 更新は個別の pull request として残し、手動レビューします。週次の flake.lock 更新 workflow も自動 pull request を作成します。これらの自動PRは required CI と人間のレビューを必須とし、auto-merge しません。緊急のセキュリティ修正は固定の待機期間を設けず、確認でき次第速やかに適用します。
 
 CI で使う `gitleaks` や `actionlint` などの security / lint tool binary は、`nix run --inputs-from .` により `flake.lock` から解決します。そのため tool version は手動 checksum 編集ではなく、週次の flake.lock 更新に追随します。
 
@@ -24,6 +24,6 @@ Dependabot や flake.lock updater などの自動 pull request は bypass list �
 - 変更の宣言的管理により安全性を担保
 - インタラクティブ操作にのみ明示的な許可を要求
 - 秘密情報を暗号化したまま管理
-- 依存関係更新の自動化により tooling の陳腐化を抑えつつ、major version 変更はレビュー対象に保つ
+- 依存関係更新の自動化により tooling の陳腐化を抑えつつ、依存関係の変更を人間のレビュー対象に保つ
 
 [macOS セキュリティ態勢監査](security-audit.ja.md)

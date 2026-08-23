@@ -38,6 +38,40 @@ export def ppget [query: string, --field: string = "password"] {
     pass-cli get $item_id --field $field --output text
 }
 
+export def refresh-nix [input_name?: string] {
+    require-cmd nix
+    require-cmd git
+
+    let dotfiles_dir = dotfiles-dir
+    if not ($dotfiles_dir | path exists) {
+        error make { msg: $"Dotfiles directory not found: ($dotfiles_dir)" }
+    }
+    let flake_path = $"path:($dotfiles_dir)"
+
+    let lock_status = (do { ^git -C $dotfiles_dir status --short -- flake.lock } | complete)
+    if ($lock_status.exit_code != 0) or ($lock_status.stdout | str trim | is-not-empty) {
+        error make { msg: "flake.lock has uncommitted changes; review or commit them before refreshing inputs" }
+    }
+
+    if $input_name == null {
+        print "--- Refresh all Nix flake inputs ---"
+    } else {
+        print $"--- Refresh Nix flake input: ($input_name) ---"
+    }
+
+    let update_result = if $input_name == null {
+        do { nix flake update $flake_path } | complete
+    } else {
+        do { nix flake lock --update-input $input_name $flake_path } | complete
+    }
+    if ($update_result.exit_code != 0) {
+        error make { msg: $"Nix flake refresh failed: ($update_result.stderr)" }
+    }
+
+    print "--- Review flake.lock before applying ---"
+    ^git -C $dotfiles_dir diff -- flake.lock
+}
+
 export def upgrade-nix [] {
     require-cmd nix
 
@@ -49,7 +83,7 @@ export def upgrade-nix [] {
     let target = ($env | get -o DOTFILES_FLAKE_TARGET | default "")
     let fallback_target = ($env | get -o USER | default "default")
     let target_name = if ($target | is-empty) { $fallback_target } else { $target }
-    let flake_ref = $"($dotfiles_dir)#($target_name)"
+    let flake_ref = $"path:($dotfiles_dir)#($target_name)"
 
     if (has-cmd darwin-rebuild) {
         print "--- Authenticate for darwin-rebuild ---"
@@ -57,15 +91,6 @@ export def upgrade-nix [] {
         if ($auth_result.exit_code != 0) {
             error make { msg: $"sudo authentication failed: ($auth_result.stderr)" }
         }
-    }
-
-    print "--- Nix flake update ---"
-    let update_result = (do { nix flake update $dotfiles_dir } | complete)
-    if ($update_result.exit_code != 0) {
-        error make { msg: $"nix flake update failed: ($update_result.stderr)" }
-    }
-
-    if (has-cmd darwin-rebuild) {
         print "--- darwin-rebuild ---"
         ^sudo /run/current-system/sw/bin/darwin-rebuild switch --flake $flake_ref
     } else if (has-cmd home-manager) {
@@ -73,6 +98,26 @@ export def upgrade-nix [] {
         home-manager switch --flake $flake_ref
     } else {
         error make { msg: "Neither darwin-rebuild nor home-manager found" }
+    }
+}
+
+export def refresh-brew [] {
+    require-cmd brew
+    print "--- Refresh Homebrew metadata ---"
+    let result = (do { brew update } | complete)
+    if ($result.exit_code != 0) {
+        error make { msg: $"brew update failed: ($result.stderr)" }
+    }
+    print "--- Homebrew outdated packages ---"
+    brew outdated --verbose
+}
+
+export def upgrade-brew [] {
+    require-cmd brew
+    print "--- Homebrew ---"
+    let result = (do { brew upgrade } | complete)
+    if ($result.exit_code != 0) {
+        error make { msg: $"brew upgrade failed: ($result.stderr)" }
     }
 }
 
