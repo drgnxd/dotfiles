@@ -218,7 +218,10 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `cat` - bat（無い場合はcat）
     *   `la`, `ld`, `lf`, `lsize` - リスト表示の派生
     *   `y` - cwd追跡付きYaziファイルマネージャ
-    *   `update` / `upgrade-all` - 統合システムアップグレード
+     *   `refresh-nix [input]` - Nix inputを更新しlockfile差分を表示
+     *   `upgrade-nix` - 固定済みNix flakeを適用
+     *   `refresh-brew` / `upgrade-brew` - Homebrew更新候補を確認して明示的に更新
+     *   `update` / `upgrade-all` - 固定済みNix flakeを適用しMac App Storeアプリを更新
 *   **自動初期化ツール**: Starship、Zoxide、Direnv、Carapace、Atuin
 *   **ローカル上書き**: マシン固有の設定用に未管理ファイル `~/.config/nushell/local.nu` をサポート（activation時に空ファイルを自動作成）
 *   **ドキュメント**: 詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
