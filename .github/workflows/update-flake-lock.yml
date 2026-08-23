@@ -16,7 +16,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: DeterminateSystems/determinate-nix-action@61cbfe2efc2d4e7a8a6d56967c3c1058e846c858 # v3.21.9
+      - uses: DeterminateSystems/determinate-nix-action@668647a33843b1f280cb2ef4c41736f86b29f826 # v3.22.1
       - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
         # This scoped PAT lets the created PR trigger ordinary pull_request CI.
         # Changes to this workflow are therefore equivalent to token write access.
