@@ -6,9 +6,29 @@
 
 let
   home_dir = "/Users/${user}";
+
+  # User launchd session environment. nix-darwin applies this only during
+  # activation (a one-shot `launchctl setenv` per key); the values are not
+  # persisted, so a reboot or any recreation of the user launchd session
+  # drops all of them until the next `darwin-rebuild`. The setenv-user-env
+  # agent in ./launchd.nix replays this exact set at login to work around
+  # that, so keep it as the single source of truth.
+  user_launchd_env = {
+    PATH = "${home_dir}/.nix-profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+    CLAUDE_CONFIG_DIR = "${home_dir}/.local/share/claude";
+    XDG_CONFIG_HOME = "${home_dir}/.config";
+    XDG_CACHE_HOME = "${home_dir}/.cache";
+    XDG_DATA_HOME = "${home_dir}/.local/share";
+    XDG_STATE_HOME = "${home_dir}/.local/state";
+    CODEX_HOME = "${home_dir}/.local/share/codex";
+    NPM_CONFIG_CACHE = "${home_dir}/.cache/npm";
+    NPM_CONFIG_PREFIX = "${home_dir}/.local/share/npm";
+    NPM_CONFIG_USERCONFIG = "${home_dir}/.config/npm/npmrc";
+  };
 in
 {
   imports = [ ./launchd.nix ];
+  _module.args.userLaunchdEnv = user_launchd_env;
   # Disable nix-darwin's Nix daemon management.
   # Nix is installed and managed externally (e.g., Determinate Nix installer).
   # Enabling this would conflict with the external installation.
@@ -178,18 +198,9 @@ in
   };
   # Seed direct user agents. LaunchServices apps may sanitize this environment,
   # so terminal-specific variables are also declared in the Alacritty config.
-  launchd.user.envVariables = {
-    PATH = "${home_dir}/.nix-profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
-    CLAUDE_CONFIG_DIR = "${home_dir}/.local/share/claude";
-    XDG_CONFIG_HOME = "${home_dir}/.config";
-    XDG_CACHE_HOME = "${home_dir}/.cache";
-    XDG_DATA_HOME = "${home_dir}/.local/share";
-    XDG_STATE_HOME = "${home_dir}/.local/state";
-    CODEX_HOME = "${home_dir}/.local/share/codex";
-    NPM_CONFIG_CACHE = "${home_dir}/.cache/npm";
-    NPM_CONFIG_PREFIX = "${home_dir}/.local/share/npm";
-    NPM_CONFIG_USERCONFIG = "${home_dir}/.config/npm/npmrc";
-  };
+  # Replayed at login by the setenv-user-env agent in ./launchd.nix; see the
+  # user_launchd_env binding above.
+  launchd.user.envVariables = user_launchd_env;
 
   home-manager.backupFileExtension = "before-nix";
 
