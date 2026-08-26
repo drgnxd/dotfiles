@@ -122,27 +122,17 @@ in
       ];
     };
 
-    # Re-inject the XDG-scoped Codex home into the GUI launchd environment at login.
-    # Keep this alongside launchd.user.envVariables as a recovery path if the user
-    # launchd environment is recreated without replaying the declarative variables.
-    setenv-codex-home = mkManagedAgent {
-      name = "setenv-codex-home";
-      programArgs = [
-        "/bin/launchctl"
-        "setenv"
-        "CODEX_HOME"
-        "${home_dir}/.local/share/codex"
-      ];
-    };
-
     # Replay the full launchd.user.envVariables set (hosts/darwin/default.nix)
     # into the user launchd session at login. nix-darwin only applies those
     # during activation via a one-shot `launchctl setenv`, and the values are
     # not persisted, so every reboot drops PATH, XDG_*, CLAUDE_CONFIG_DIR and
     # NPM_CONFIG_* until the next `darwin-rebuild` -- scheduled user agents
     # then run with only the bare `/usr/bin:/bin:...` PATH and fail to find
-    # nix, git-annex, etc. This generalizes the per-variable setenv-scihome /
-    # setenv-codex-home agents above to the whole declared set.
+    # nix, git-annex, etc. This generalizes the per-variable setenv-scihome
+    # agent above to the whole declared set; CODEX_HOME (formerly its own
+    # setenv-codex-home agent) is covered here now that it is in
+    # launchd.user.envVariables. SCIHOME is not in that set, so its agent
+    # stays.
     setenv-user-env = mkManagedAgent {
       name = "setenv-user-env";
       programArgs = [
