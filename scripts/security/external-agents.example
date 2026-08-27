@@ -1,0 +1,15 @@
+# scripts/security/external-agents.local
+#
+# User LaunchAgents deliberately managed by another repository (personal
+# automation kept in a separate, possibly private checkout), not by this
+# flake. The macOS security audit lists these as MANUAL ("verify against the
+# managing repo") instead of undeclared-persistence WARN.
+#
+# One exact plist filename per line. Blank lines and '#' comments are
+# ignored. A name matches both `<name>.plist` and `<name>.plist.disabled`.
+# A LaunchAgent under the same prefix that is NOT listed here still WARNs.
+#
+# Copy to scripts/security/external-agents.local (gitignored) and edit.
+#
+# com.example.daily-thing.plist
+# com.example.backup.plist

@@ -274,7 +274,11 @@ check_launch_agents() {
   local launch_agents_dir
   local disk_path
   local disk_name
+  local external_agents_file
+  local external_agents_line
   local mismatch_count=0
+  local external_count=0
+  local -a external_agents=()
   local hm_users_json
   local hm_user_name
   local hm_installable
@@ -292,6 +296,23 @@ check_launch_agents() {
   if ! repo_root=$(cd "$script_dir/../.." && pwd -P); then
     add_result "$section" 'User LaunchAgents' 'UNKNOWN' 'Repository root could not be resolved' 'Run the audit from an intact repository checkout.'
     return
+  fi
+
+  # User LaunchAgents deliberately managed by another repo (personal
+  # automation from a separate checkout). One exact plist filename per line
+  # (e.g. com.example.foo.plist); blank lines and '#' comments ignored.
+  # The file is gitignored (**/*.local) so the names stay out of this public
+  # repo; see scripts/security/external-agents.example. Matches are reported
+  # MANUAL (verify against the managing repo), not waved through as OK, and
+  # a novel name under the same prefix still WARNs.
+  external_agents_file="${script_dir}/external-agents.local"
+  if [[ -f $external_agents_file ]]; then
+    while IFS= read -r external_agents_line || [[ -n $external_agents_line ]]; do
+      external_agents_line=${external_agents_line%%#*}
+      trim_whitespace "$external_agents_line"
+      external_agents_line=$TRIMMED_VALUE
+      [[ -n $external_agents_line ]] && external_agents[${#external_agents[@]}]=$external_agents_line
+    done <"$external_agents_file"
   fi
 
   if ! nix_command=$(command -v nix 2>/dev/null); then
@@ -375,10 +396,16 @@ check_launch_agents() {
   for disk_path in "${disk_paths[@]}"; do
     disk_name=${disk_path##*/}
     disk_names[${#disk_names[@]}]=$disk_name
-    if ! array_contains "$disk_name" "${expected_names[@]}"; then
-      add_result "$section" 'Undeclared user LaunchAgent' 'WARN' "$disk_name" 'Remove the persistence or declare it in launchd.user.agents.'
-      ((mismatch_count += 1))
+    if array_contains "$disk_name" "${expected_names[@]}"; then
+      continue
     fi
+    if ((${#external_agents[@]} > 0)) && array_contains "${disk_name%.disabled}" "${external_agents[@]}"; then
+      add_result "$section" 'Externally-managed user LaunchAgent' 'MANUAL' "$disk_name" 'Allowlisted in scripts/security/external-agents.local. Verify it against the repo that manages it; the audit does not check it against a manifest.'
+      ((external_count += 1))
+      continue
+    fi
+    add_result "$section" 'Undeclared user LaunchAgent' 'WARN' "$disk_name" 'Remove the persistence or declare it in launchd.user.agents.'
+    ((mismatch_count += 1))
   done
 
   for expected_name in "${expected_names[@]}"; do
@@ -389,7 +416,11 @@ check_launch_agents() {
   done
 
   if ((mismatch_count == 0)); then
-    add_result "$section" 'User LaunchAgents' 'OK' 'On-disk agents match launchd.user.agents'
+    if ((external_count > 0)); then
+      add_result "$section" 'User LaunchAgents' 'OK' "On-disk agents match launchd.user.agents (plus ${external_count} allowlisted external agent(s), reported MANUAL above)"
+    else
+      add_result "$section" 'User LaunchAgents' 'OK' 'On-disk agents match launchd.user.agents'
+    fi
   fi
 }
 
