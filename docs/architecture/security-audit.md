@@ -37,6 +37,10 @@ Undeclared user LaunchAgents and stray system extensions are the highest-value f
 
 System extensions receive `WARN` until they are explicitly declared and justified. They can survive `brew uninstall --zap`, so removing the Nix or Homebrew declaration does not prove that the extension stopped persisting on the machine.
 
+## Externally-Managed LaunchAgents
+
+Some user LaunchAgents are deliberately managed by a different checkout (personal automation living in another repository), not by this flake. List their **exact** plist filenames — one per line, `#` comments allowed — in `scripts/security/external-agents.local` (gitignored via `**/*.local`; see `scripts/security/external-agents.example`). Listed agents are reported as `Externally-managed user LaunchAgent` / `MANUAL` — visible, and a prompt to verify each against the repo that owns it, but not counted as drift and not tripping `--strict`. A LaunchAgent under the same prefix that is *not* listed still `WARN`s, and each listed name matches both `<name>.plist` and `<name>.plist.disabled`. With no such file present (a fresh checkout, CI) every undeclared agent `WARN`s as before. Keep the filenames out of this public repository.
+
 ## Justified System Extensions
 
 The following system extensions are required by apps declared in `casks` and are intentionally accepted because they are load-bearing for the app's core function. The audit keeps reporting `WARN` for them (there is no automated justification mechanism), but these are not unknown drift.
@@ -45,6 +49,7 @@ The following system extensions are required by apps declared in `casks` and are
 |-----------|------------|------|
 | `ch.protonvpn.mac.WireGuard-Extension` | `protonvpn` | Required for ProtonVPN's WireGuard tunnel |
 | `ch.protonvpn.mac.Transparent-Proxy` | `protonvpn` | Required for ProtonVPN's split tunneling (experimental feature) |
+| `io.tailscale.ipn.macsys.network-extension` | `tailscale` | Required for the Tailscale network extension (packet routing / DNS) |
 
 ## Known Residual WARN
 

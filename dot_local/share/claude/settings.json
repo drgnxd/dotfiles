@@ -1,6 +1,10 @@
 {
   "theme": "dark",
   "autoMemoryEnabled": false,
+  "preferredNotifChannel": "notifications_disabled",
+  "env": {
+    "CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION": "1000"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
