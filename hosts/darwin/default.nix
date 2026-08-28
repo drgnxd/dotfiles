@@ -234,6 +234,7 @@ in
       "floorp"
       "libreoffice"
       "musescore"
+      "skim"
 
       "kicad"
       "orcaslicer"
