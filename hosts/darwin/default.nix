@@ -233,6 +233,7 @@ in
       "gimp"
       "floorp"
       "libreoffice"
+      "musescore"
 
       "kicad"
       "orcaslicer"
