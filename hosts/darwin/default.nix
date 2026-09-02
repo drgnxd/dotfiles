@@ -232,7 +232,6 @@ in
       "codex"
       "codexbar"
       "copilot-cli"
-      "qlmarkdown"
       "sol"
       "stats"
 

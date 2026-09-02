@@ -103,7 +103,7 @@ in
   ]
   ++ lib.optionals pkgs.stdenv.isDarwin [
     ./modules/activation/macos_defaults.nix
-    ./modules/qlmarkdown.nix
+    ./modules/markql.nix
     ./modules/xdg_config_files.nix
     ./modules/xdg_desktop_files.nix
   ]
