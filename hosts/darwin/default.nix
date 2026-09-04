@@ -252,7 +252,10 @@ in
       "proton-pass"
       "protonvpn"
       "scilab"
-      "tailscale"
+      # Homebrew renamed the menu-bar app cask `tailscale` -> `tailscale-app`
+      # (the `tailscale` cask is now the CLI). Match the installed artifact so
+      # `onActivation.cleanup = "zap"` does not treat it as unmanaged.
+      "tailscale-app"
     ];
     masApps = {
       "Proton Pass for Safari" = 6502835663;
