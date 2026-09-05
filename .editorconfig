@@ -1,0 +1,23 @@
+# Mirrors nix/treefmt.nix (nixfmt, shfmt upstream defaults, taplo) so editors
+# match `nix fmt` without a devShell. treefmt stays the authoritative formatter.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# shfmt runs with no -i flag => tab indentation
+[*.sh]
+indent_style = tab
+
+# Markdown: trailing whitespace is a hard line break
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{age,lock}]
+insert_final_newline = false
+trim_trailing_whitespace = false
