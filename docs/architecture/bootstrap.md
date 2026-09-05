@@ -80,6 +80,25 @@ After the first activation completes:
 4. **Floorp** — available on Linux via `floorp-bin` (nixpkgs) and on macOS via Homebrew cask.
 5. **nixd in Helix** — the generated `~/.config/helix/languages.toml` now points at your actual host config names (see Phase 7 note). Option completion works without manual edits.
 
+### Step 6: Development Setup (when editing this repo)
+
+```bash
+cd ~/.config/dotfiles
+direnv allow
+```
+
+`direnv allow` loads the flake devShell, whose `shellHook` installs the
+`pre-commit` / `commit-msg` git hooks. `nix-direnv` keeps a GC root for that
+devShell, so the weekly `nh clean` (see `nix_gc.nix`) does not collect the
+`pre-commit` package out from under `.git/hooks/`. **Without an allowed
+`.envrc`, the hooks point at store paths that the next GC removes, and
+`git commit` then fails with `No such file or directory`.**
+
+If a commit fails that way, run `direnv reload` (or `nix develop -c true`) to
+reinstall the hooks. Either way, `just check` runs the full check suite
+(`nix flake check`) independently of the hooks, and CI is the authoritative
+gate.
+
 ### Known Notes
 
 * **Per-host nixd override** — the `languages.toml` delivered to Helix substitutes placeholder config names (`darwinConfigurations.<hostname>`, `homeConfigurations."<user>@<linuxHostname>"`) with your actual `hostname` and `user@linuxHostname` from `local/identity.nix`. This is handled automatically; no manual action required.

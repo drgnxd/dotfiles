@@ -80,6 +80,24 @@ nix run path:.#bootstrap-linux
 4. **Floorp** — Linux では `floorp-bin` (nixpkgs)、macOS では Homebrew cask で利用可能です。
 5. **Helix の nixd** — 生成される `~/.config/helix/languages.toml` が実際のホスト設定名を指すようになりました（Phase 7 参照）。手動編集なしでオプション補完が動作します。
 
+### 手順 6: 開発環境のセットアップ（このリポジトリを編集する場合）
+
+```bash
+cd ~/.config/dotfiles
+direnv allow
+```
+
+`direnv allow` で flake の devShell が読み込まれ、その `shellHook` が
+`pre-commit` / `commit-msg` の git フックをインストールします。`nix-direnv`
+がその devShell の GC ルートを保持するため、週次の `nh clean`（`nix_gc.nix`
+参照）が `.git/hooks/` の参照先である `pre-commit` パッケージを回収しません。
+**`.envrc` を allow していないと、フックが次の GC で消える store パスを指した
+ままになり、`git commit` が `No such file or directory` で失敗します。**
+
+その状態でコミットが失敗したら、`direnv reload`（または `nix develop -c
+true`）でフックを入れ直してください。いずれにせよ `just check` がフックとは
+独立に全チェック（`nix flake check`）を実行し、CI が最終的なゲートです。
+
 ### 既知の注意事項
 
 * **ホストごとの nixd 設定** — Helix に配信される `languages.toml` は、プレースホルダーの設定名（`darwinConfigurations.<hostname>`、`homeConfigurations."<user>@<linuxHostname>"`）を、 `local/identity.nix` の実際の `hostname` と `user@linuxHostname` に自動で置換します。手動操作は不要です。
