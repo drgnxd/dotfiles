@@ -1,0 +1,9 @@
+# Normalize line endings; keep binary/generated files out of diffs and
+# GitHub Linguist language stats.
+* text=auto eol=lf
+
+*.age -text -diff linguist-generated
+flake.lock -diff linguist-generated
+
+*.nu linguist-language=Nushell
+dot_config/**/*.nu linguist-detectable
