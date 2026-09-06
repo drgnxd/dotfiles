@@ -45,7 +45,7 @@ in
   # backup. The mirrored files source everything else (modules/, generated/,
   # local.nu) by absolute ~/.config/nushell path, so that tree stays the
   # single source those references resolve against.
-  home.file = lib.mkIf pkgs.stdenv.isDarwin (
+  home.file = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
     mkTree "Library/Application Support/nushell" { force = true; }
   );
 }
