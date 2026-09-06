@@ -67,7 +67,8 @@ let
 in
 {
   home.username = user;
-  home.homeDirectory = if pkgs.stdenv.isDarwin then "/Users/${user}" else "/home/${user}";
+  home.homeDirectory =
+    if pkgs.stdenv.hostPlatform.isDarwin then "/Users/${user}" else "/home/${user}";
   home.stateVersion = "24.11";
 
   programs.home-manager.enable = true;
@@ -101,19 +102,19 @@ in
     ./modules/zellij.nix
     ./modules/zoxide.nix
   ]
-  ++ lib.optionals pkgs.stdenv.isDarwin [
+  ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
     ./modules/activation/macos_defaults.nix
     ./modules/markql.nix
     ./modules/xdg_config_files.nix
     ./modules/xdg_desktop_files.nix
   ]
-  ++ lib.optionals pkgs.stdenv.isLinux [
+  ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ./modules/linux/desktop.nix
   ];
 
   xdg.enable = true;
 
-  targets.darwin.linkApps.enable = lib.mkIf pkgs.stdenv.isDarwin true;
+  targets.darwin.linkApps.enable = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin true;
 
   home.sessionVariables = {
     CLAUDE_CONFIG_DIR = "${config.xdg.dataHome}/claude";
@@ -122,7 +123,7 @@ in
     NPM_CONFIG_PREFIX = "${config.xdg.dataHome}/npm";
     NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/dotfiles";
-    DOTFILES_FLAKE_TARGET = if pkgs.stdenv.isDarwin then hostname else linuxHostname;
+    DOTFILES_FLAKE_TARGET = if pkgs.stdenv.hostPlatform.isDarwin then hostname else linuxHostname;
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
 
@@ -138,7 +139,7 @@ in
     ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";
     ".Scilab".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/scilab";
   }
-  // lib.optionalAttrs pkgs.stdenv.isDarwin {
+  // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     ".local/bin/cloud-symlinks" = {
       source = ../scripts/darwin/setup_cloud_symlinks.sh;
       executable = true;

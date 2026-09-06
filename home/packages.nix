@@ -69,7 +69,7 @@ let
     "floorp-bin"
   ];
 
-  gui_apps = if pkgs.stdenv.isDarwin then gui_apps_darwin else gui_apps_linux;
+  gui_apps = if pkgs.stdenv.hostPlatform.isDarwin then gui_apps_darwin else gui_apps_linux;
 
   editors = [
     "helix"
@@ -116,7 +116,7 @@ let
     "gnupg"
   ];
 
-  linux_cli_tools = lib.optionals pkgs.stdenv.isLinux [
+  linux_cli_tools = lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     "proton-pass-cli"
   ];
 
