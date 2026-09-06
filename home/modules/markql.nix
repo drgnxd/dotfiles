@@ -17,7 +17,7 @@ let
   mv = "${pkgs.coreutils}/bin/mv";
 in
 {
-  config = lib.mkIf pkgs.stdenv.isDarwin {
+  config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     home.activation.installMarkQL = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       markql_repo="${markql_repo}"
       markql_app="${markql_app}"
