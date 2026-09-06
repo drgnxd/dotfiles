@@ -5,7 +5,7 @@
     ''
       mkdir -p "$HOME/.local/bin"
     ''
-    + lib.optionalString pkgs.stdenv.isDarwin ''
+    + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
       mkdir -p "$HOME/Desktop/Screenshots"
       # Log dirs for every mkManagedAgent / launchd.agents agent (their
       # StandardOutPath/StandardErrorPath is ~/.local/state/launchagents/<name>/;
