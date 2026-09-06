@@ -22,8 +22,7 @@ jobs:
         # Changes to this workflow are therefore equivalent to token write access.
         with:
           token: ${{ secrets.FLAKE_UPDATE_TOKEN }}
-          # nixpkgs currently fails to build watchexec on aarch64-darwin.
-          inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl treefmt-nix"
+          inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl nixpkgs treefmt-nix"
           pr-title: "chore(deps): update flake.lock"
           pr-labels: |
             dependencies
