@@ -10,9 +10,12 @@ let
   browser_class = preferences.browserClass or "floorp";
   enabled = browser_class == "floorp";
   profile_rel_path =
-    if pkgs.stdenv.isDarwin then "Library/Application Support/Floorp/default" else ".floorp/default";
+    if pkgs.stdenv.hostPlatform.isDarwin then
+      "Library/Application Support/Floorp/default"
+    else
+      ".floorp/default";
   profile_root =
-    if pkgs.stdenv.isDarwin then
+    if pkgs.stdenv.hostPlatform.isDarwin then
       "${config.home.homeDirectory}/Library/Application Support/Floorp"
     else
       "${config.home.homeDirectory}/.floorp";

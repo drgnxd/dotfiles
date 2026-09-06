@@ -19,7 +19,7 @@
         ControlPersist = "10m";
         HashKnownHosts = true;
         ServerAliveInterval = 60;
-        UseKeychain = lib.mkIf pkgs.stdenv.isDarwin "yes";
+        UseKeychain = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin "yes";
       };
       "github.com" = {
         HostName = "github.com";
