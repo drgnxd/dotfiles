@@ -6,4 +6,5 @@
 - Before an irreversible overwrite or deletion, explain its impact and obtain explicit confirmation. Prefer reversible changes or offer a backup. Never expose or commit credentials, tokens, or plaintext secrets.
 - Do not launch GUI terminal windows for interactive authentication without explicit consent; close only windows launched for that task.
 - Use `uv` for Python dependency management; do not invoke `pip`, `virtualenv`, or `python -m venv` unless compatibility requires it. Do not globally install runtimes, LSPs, or build tools; manage them per project with a Nix devShell/direnv.
+- Comment code only to explain why — a non-obvious constraint, trade-off, or past incident — never to restate what the code does or what an identifier already says. Match the surrounding file's comment density and keep the length proportional to the change; if neighbouring similar code carries no comment, add none.
 - Reply in Japanese by default. Keep code, commands, paths, and identifiers unchanged. Write AI-readable files in English and user-facing material in Japanese. Prefer ASCII filenames unless Unicode is justified.

@@ -1,4 +1,4 @@
-# Phase 3: Nushell integration init scripts via Nix derivations (Plan B)
+# Nushell integration init scripts via Nix derivations (Plan B)
 #
 # Tools classified as Plan B generate deterministic init output with no
 # host-specific content, so their init scripts can be built at nix-build
