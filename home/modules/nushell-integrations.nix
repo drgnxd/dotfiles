@@ -21,17 +21,22 @@ let
       '';
 
   # atuin init writes under $HOME while generating its script, so use a
-  # temporary writable HOME here.  Keep this separate from mkNushellInit to
-  # make the workaround explicit and avoid accidental removal later.
-  mkNushellInitHome =
-    name: pkg: cmd:
-    pkgs.runCommand "${name}-nushell-init"
+  # temporary writable HOME here.  `atuin init nu` also emits two keybinding
+  # entries both named `atuin`, which Nushell >= 0.107 flags with a
+  # shared-keybindings-name warning on every startup; rename the second
+  # (shell-up) binding so the generated config loads cleanly.
+  atuinInit =
+    pkgs.runCommand "atuin-nushell-init"
       {
-        nativeBuildInputs = [ pkg ];
+        nativeBuildInputs = [ config.programs.atuin.package ];
       }
       ''
         export HOME="$TMPDIR"
-        ${builtins.concatStringsSep " " cmd} > $out
+        atuin init nu > raw.nu
+        ${pkgs.gawk}/bin/awk '
+          /^[[:space:]]*name: atuin$/ { if (++n == 2) sub(/name: atuin/, "name: atuin_up") }
+          { print }
+        ' raw.nu > $out
       '';
 
   # Nushell >= 0.86 replaces completed prompts with transient output, reducing
@@ -50,11 +55,6 @@ let
     "nushell"
   ];
 
-  atuinInit = mkNushellInitHome "atuin" config.programs.atuin.package [
-    "atuin"
-    "init"
-    "nu"
-  ];
 in
 {
   xdg.configFile = {
