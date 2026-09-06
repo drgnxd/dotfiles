@@ -12,7 +12,7 @@ in
   xdg.configFile = {
     "alacritty/blur.toml".source = ../../dot_config/alacritty/blur.toml;
   }
-  // lib.optionalAttrs pkgs.stdenv.isDarwin {
+  // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     "alacritty/toggle_blur.sh" = {
       source = ../../dot_config/alacritty/executable_toggle_blur.sh;
       executable = true;
@@ -21,7 +21,8 @@ in
 
   programs.alacritty = {
     enable = true;
-    package = if pkgs.stdenv.isLinux then config.lib.nixGL.wrap pkgs.alacritty else pkgs.alacritty;
+    package =
+      if pkgs.stdenv.hostPlatform.isLinux then config.lib.nixGL.wrap pkgs.alacritty else pkgs.alacritty;
     settings = {
       general.import = [ "blur.toml" ];
 
@@ -43,7 +44,7 @@ in
         };
         opacity = 0.75;
       }
-      // lib.optionalAttrs pkgs.stdenv.isDarwin {
+      // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
         decorations = "buttonless";
         option_as_alt = "OnlyLeft";
       };
@@ -65,7 +66,7 @@ in
         XDG_STATE_HOME = config.xdg.stateHome;
         PATH = lib.concatStringsSep ":" (
           [ "${config.home.profileDirectory}/bin" ]
-          ++ lib.optionals pkgs.stdenv.isDarwin [
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
             "/run/current-system/sw/bin"
             "/nix/var/nix/profiles/default/bin"
           ]
@@ -109,7 +110,7 @@ in
         };
       };
 
-      keyboard.bindings = lib.optionals pkgs.stdenv.isDarwin [
+      keyboard.bindings = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
         {
           key = "B";
           mods = "Command";

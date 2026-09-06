@@ -18,7 +18,7 @@ let
   };
 in
 lib.mkMerge [
-  (lib.mkIf pkgs.stdenv.isDarwin {
+  (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     launchd.agents.nix-gc = {
       enable = true;
       config = {
@@ -39,7 +39,7 @@ lib.mkMerge [
     };
   })
 
-  (lib.mkIf pkgs.stdenv.isLinux {
+  (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     systemd.user.services.nix-gc = {
       Unit.Description = "Weekly Nix store garbage collection (nh clean)";
       Service = {
