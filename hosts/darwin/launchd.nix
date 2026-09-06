@@ -87,6 +87,28 @@ let
 
 in
 {
+  # ── System LaunchDaemons ────────────────────────────────────────────
+
+  # macOS defaults `launchctl limit maxfiles` to a 256 soft limit, which
+  # every login shell inherits and Nushell has no `ulimit` to lift.
+  # zellij's `SwitchSession` opens a socket per live session at once and
+  # panics past 256 (`EMFILE`), so this raises the session-wide limit at
+  # boot. Soft stays under `kern.maxfilesperproc` (61440); takes effect
+  # on next login.
+  launchd.daemons."limit.maxfiles" = {
+    serviceConfig = {
+      ProgramArguments = [
+        "launchctl"
+        "limit"
+        "maxfiles"
+        "49152"
+        "200000"
+      ];
+      RunAtLoad = true;
+      ServiceIPC = false;
+    };
+  };
+
   # ── nix-darwin LaunchAgent definitions ───────────────────────────────
 
   launchd.user.agents = {
