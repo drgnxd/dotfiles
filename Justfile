@@ -26,6 +26,12 @@ build-darwin:
 # Apply Darwin configuration
 switch-darwin:
   sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
+  bash scripts/darwin/relaunch_scheduled_agents.sh
+
+# Re-register the hand-deployed com.drgnxd.* scheduled LaunchAgents after a
+# nushell store-path change (no-op unless it changed; pass --force to override).
+relaunch-agents *args:
+  bash scripts/darwin/relaunch_scheduled_agents.sh {{args}}
 
 # Build Linux home-manager configuration
 build-linux:
