@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# OpenCode starts a non-interactive shell, so the user's Nushell direnv hook
+# is not available. Load the .envrc for the command's current directory.
+if [ "$1" = "-c" ]; then
+  command=$2
+  shift 2
+  exec /usr/bin/env direnv exec . /bin/zsh -c "$command" "$@"
+fi
+
+exec /usr/bin/env direnv exec . /bin/zsh "$@"
