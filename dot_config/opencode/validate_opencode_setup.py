@@ -80,6 +80,21 @@ def validate_config(errors: list[str]) -> None:
             "opencode.json should set $schema to https://opencode.ai/config.json"
         )
 
+    if config.get("enabled_providers") != ["openai"]:
+        errors.append("OpenCode must enable only the openai provider")
+
+    policies = config.get("experimental", {}).get("policies", [])
+    if not any(
+        policy == {"effect": "deny", "action": "provider.use", "resource": "*"}
+        for policy in policies
+    ):
+        errors.append("OpenCode must deny all providers by default")
+    if not any(
+        policy == {"effect": "allow", "action": "provider.use", "resource": "openai"}
+        for policy in policies
+    ):
+        errors.append("OpenCode must explicitly allow only the openai provider")
+
     review_main = config.get("agent", {}).get("review-main", {})
     if review_main.get("model") != "openai/gpt-5.6-terra":
         errors.append("review-main must use openai/gpt-5.6-terra")
@@ -93,6 +108,16 @@ def validate_config(errors: list[str]) -> None:
         or permissions.get("grep") != "allow"
     ):
         errors.append("review-main must be read-only")
+
+    review_deep = config.get("agent", {}).get("review-deep", {})
+    deep_permissions = review_deep.get("permission", {})
+    if (
+        deep_permissions.get("*") != "deny"
+        or deep_permissions.get("read") != "allow"
+        or deep_permissions.get("glob") != "allow"
+        or deep_permissions.get("grep") != "allow"
+    ):
+        errors.append("review-deep must be read-only")
 
 
 def validate_package(errors: list[str]) -> None:
@@ -178,6 +203,12 @@ def validate_model_routing(errors: list[str]) -> None:
     skill = skill_path.read_text(encoding="utf-8")
     if "dispatch `review-main` only" not in skill:
         errors.append("model-routing must require review-main for independent-review gates")
+    if "claude_delegate" in skill or "Claude" in skill:
+        errors.append("model-routing must not route to external AI")
+
+    tools_dir = BASE_DIR / "tools"
+    if (tools_dir / "claude_delegate.ts").exists():
+        errors.append("claude_delegate.ts must not be installed")
 
 
 def main() -> int:
