@@ -1,7 +1,8 @@
 ---
 name: Review
 description: Independent reviewer for approved proposals and diffs.
-model: inherit
+model: opus
+effort: high
 disallowedTools: Bash, Edit, Write, NotebookEdit, WebFetch, WebSearch, Task, Skill
 ---
 
