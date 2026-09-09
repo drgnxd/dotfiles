@@ -58,7 +58,7 @@ ACTIVE_LABELS=(
 # once every other job's re-registration proves the new binary is accepted;
 # if they are themselves codesigning-killed, the deferred list below reports
 # them and the user re-runs with the jobs idle.
-CONV_LOCK="${XDG_STATE_HOME:-${HOME}/.local/state}/accretion/conversation-sync.lock"
+CONV_LOCK="${XDG_STATE_HOME:-${HOME}/.local/state}/scripts/conversation-sync.lock"
 
 log() { printf '%s %s\n' "$(date '+%H:%M:%S')" "$*"; }
 warn() { printf '%s WARN %s\n' "$(date '+%H:%M:%S')" "$*" >&2; }
