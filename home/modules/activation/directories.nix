@@ -13,6 +13,7 @@
       for agent in schemespoon maccy stats nix-gc setenv-scihome setenv-user-env remap-capslock; do
         mkdir -p "$HOME/.local/state/launchagents/$agent"
       done
+      mkdir -p "$HOME/.local/state/automation-failures"
       # compinit (ZDOTDIR, see hosts/darwin/default.nix) doesn't create its target dir
       mkdir -p "$HOME/.config/zsh"
     ''
