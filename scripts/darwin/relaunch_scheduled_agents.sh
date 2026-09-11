@@ -20,7 +20,22 @@
 set -euo pipefail
 
 FORCE=0
-[ "${1:-}" = "--force" ] && FORCE=1
+DRY_RUN=0
+
+usage() {
+  printf 'Usage: %s [--force] [--dry-run]\n' "$0" >&2
+}
+
+for arg in "$@"; do
+  case "$arg" in
+  --force) FORCE=1 ;;
+  --dry-run) DRY_RUN=1 ;;
+  *)
+    usage
+    exit 2
+    ;;
+  esac
+done
 
 UID_NUM="$(/usr/bin/id -u)"
 DOMAIN="gui/${UID_NUM}"
@@ -63,7 +78,9 @@ CONV_LOCK="${XDG_STATE_HOME:-${HOME}/.local/state}/scripts/conversation-sync.loc
 log() { printf '%s %s\n' "$(date '+%H:%M:%S')" "$*"; }
 warn() { printf '%s WARN %s\n' "$(date '+%H:%M:%S')" "$*" >&2; }
 
-mkdir -p "$STATE_DIR"
+if [ "$DRY_RUN" -eq 0 ]; then
+  mkdir -p "$STATE_DIR"
+fi
 
 if [ ! -e "$NU_PATH" ]; then
   warn "nu not found at $NU_PATH; nothing to do"
@@ -122,6 +139,11 @@ for label in "${ACTIVE_LABELS[@]}"; do
     ;;
   esac
 
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "$label: would bootout and bootstrap (dry-run)"
+    continue
+  fi
+
   /bin/launchctl bootout "$DOMAIN" "$plist" 2>/dev/null || true
 
   # bootout is async; wait (up to 60s) for the service to leave the domain.
@@ -161,6 +183,11 @@ if [ "${#failed[@]}" -gt 0 ]; then
   warn "FAILED to re-register: ${failed[*]}"
   warn "fix and re-run: $0 --force"
   exit 1
+fi
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  log "dry-run complete; sentinel NOT updated"
+  exit 0
 fi
 
 # Only advance the sentinel when nothing is outstanding, so a partial run
