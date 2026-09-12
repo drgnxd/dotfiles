@@ -54,6 +54,29 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 launchctl setenv PATH "$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ```
 
+## Nushell 変更後のスケジュールエージェント再登録
+
+Nix の rebuild で Nushell のストアパスが変わった後は、対話的な Aqua
+セッションからスケジュールエージェントの再登録を事前確認します。
+
+```bash
+cd ~/.config/dotfiles
+just relaunch-agents --dry-run
+```
+
+dry-run は、アクティブジョブの allow-list、plist のラベル、実行中ジョブ、
+会話 lock を確認しますが、state directory の作成、エージェントの bootout /
+bootstrap、sentinel の更新は行いません。問題がなければ再登録を実行します。
+
+```bash
+just relaunch-agents
+```
+
+Nushell パスの sentinel を無視する必要がある場合に限り `--force` を使います。
+実行中または会話 lock を保持中のジョブは defer されるため、アイドル状態になって
+から再実行します。検証に失敗した場合は、修正して再試行できるよう sentinel は
+更新されません。
+
 ## 素の `darwin-rebuild switch` が毎回巻き戻すもの
 
 switch は純粋な追加操作ではありません。**毎回**次も行います。

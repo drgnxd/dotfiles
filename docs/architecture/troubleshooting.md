@@ -55,6 +55,30 @@ reboot):
 launchctl setenv PATH "$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ```
 
+## Re-registering scheduled agents after Nushell changes
+
+After a Nix rebuild changes the Nushell store path, preview the scheduled-agent
+re-registration from the interactive Aqua session:
+
+```bash
+cd ~/.config/dotfiles
+just relaunch-agents --dry-run
+```
+
+The dry run validates the active-job allow-list, plist labels, running jobs,
+and the conversation lock without creating the state directory, booting out or
+bootstrapping any agent, or updating the sentinel. If the preview is clean,
+perform the re-registration:
+
+```bash
+just relaunch-agents
+```
+
+Use `--force` only when the Nushell-path sentinel must be ignored. Jobs that are
+running or hold the conversation lock are deferred; rerun the command after
+they become idle. A failed validation leaves the sentinel unchanged so the
+problem can be fixed before retrying.
+
 ## What a plain `darwin-rebuild switch` reverts every run
 
 A switch is not purely additive. On **every** run it also:
