@@ -44,6 +44,20 @@ launchctl getenv PATH
 全セットを再注入するため通常のログインで復旧します。失敗しうるのは、ブートから
 このエージェント実行までの間か、エージェント自体が実行されなかった場合です。
 
+第三の失敗窓があります: アプリが(このリポジトリが管理するLaunchAgent plistでは
+なく)独自のmacOSログイン項目として登録されている場合、`setenv-user-env`との間に
+起動順序の保証がありません。アプリ側のログイン項目が先に起動して`setenv-user-env`
+より前に走ると、そのアプリは起動時に継承した古い環境をセッション中ずっと保持し
+続けます(`launchctl setenv`は実行中プロセスには反映されません)。確認済みの実例が
+CodexBarです: Codex/Claudeの利用量監視CLI subprocessが`CODEX_HOME`/
+`CLAUDE_CONFIG_DIR`を必要とするため、レースに負けると再起動後に両プロバイダとも
+認証切れに見え、CodexBarを終了して手動で再起動すると復旧します。`setenv-user-env`
+は現在、`setenv`実行後に同一スクリプト内でCodexBar自身をQuit→再起動するため
+(`hosts/darwin/launchd.nix`の`postSetenvRelaunchApps`)、OSがどちらを先に起動しても
+相対順序が保証されます。これは意図的に範囲を絞った修正です: 同じ兄弟エージェント
+間の順序レースは`mkLoginApp`の全エントリ(Alacritty・Floorp・Sol・Proton系アプリ)に
+原理上存在しますが、今のところ実害が確認されているのはCodexBarのみです。
+
 セッションを再シードして復旧します（エージェントと値の両方が再適用されます）:
 ```bash
 cd ~/.config/dotfiles
@@ -93,6 +107,11 @@ switch は純粋な追加操作ではありません。**毎回**次も行いま
   トラックパッド速度 7、メニューバー時計(秒/日付/曜日)、Control Center の表示
   項目(Wi-Fi・バッテリー・再生中を非表示)、スクリーンショット保存先
   `~/Desktop/Screenshots`、テキスト自動置換すべてオフ。
+- **CodexBarを一瞬Quitして再起動する**: `setenv-user-env`
+  (`hosts/darwin/launchd.nix`)は自身のスクリプト内容または`userLaunchdEnv`が
+  変わるたびに再実行され、実行のたびにenv再投入後に`postSetenvRelaunchApps`
+  (現状CodexBarのみ)の各アプリをQuit→再起動する — 上の「launchd 環境変数の
+  問題」節を参照。
 - **アプリが作る「ログイン時に起動」エージェントを毎回削除する**:
   `eu.exelban.Stats(.LaunchAtLogin)`・`org.p0deje.Maccy`・旧
   `setenv.SCIHOME` を `~/Library/LaunchAgents` から `rm` する(これらのログイン
