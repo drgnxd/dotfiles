@@ -63,6 +63,37 @@ let
     };
   };
 
+  # CodexBar is its own independent macOS Login Item (not a LaunchAgent
+  # plist `disable_login_launch_agent` can bootout/disable), but spawns
+  # codex/claude CLI subprocesses that depend on userLaunchdEnv
+  # (CODEX_HOME, CLAUDE_CONFIG_DIR, PATH, ...) for authentication. A
+  # Login Item and setenv-user-env are sibling launchd entries with no
+  # ordering guarantee, and `launchctl setenv` never updates an
+  # already-running process, so if the item's own launch wins the race
+  # CodexBar stays broken for its whole session. setenv-user-env quits
+  # and reopens each app here, after `setenv`, in the same script, so
+  # relative order is guaranteed either way. See the CodexBar incident
+  # in docs/architecture/troubleshooting.md. The same sibling-ordering
+  # race applies to every mkLoginApp entry below, not only these; they
+  # are excluded because nothing today depends on them seeing this
+  # exact env at first launch. Entries are the app display name as
+  # `open -a` / AppleScript `tell application ... to quit` resolve it;
+  # verify it matches the running process (`pgrep -x`) before adding
+  # one.
+  postSetenvRelaunchApps = [ "CodexBar" ];
+
+  mkPostSetenvRelaunch = appName: ''
+    /usr/bin/osascript -e 'tell application "${appName}" to quit' || true
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      /usr/bin/pgrep -x ${lib.escapeShellArg appName} >/dev/null || break
+      /bin/sleep 0.3
+    done
+    for _ in 1 2 3; do
+      /usr/bin/open -a ${lib.escapeShellArg appName} && break
+      /bin/sleep 1
+    done
+  '';
+
   # Disable app-native "Launch at Login" agent to prevent double-launch.
   # Apps like Stats and Maccy register their own LaunchAgent
   # when "Launch at Login" is enabled in their preferences.  Since
@@ -160,10 +191,12 @@ in
       programArgs = [
         "/bin/sh"
         "-c"
-        (lib.concatStringsSep " ; " (
-          lib.mapAttrsToList (
+        (lib.concatStringsSep "\n" (
+          (lib.mapAttrsToList (
             name: value: "/bin/launchctl setenv ${name} ${lib.escapeShellArg value}"
-          ) userLaunchdEnv
+          ) userLaunchdEnv)
+          ++ (map mkPostSetenvRelaunch postSetenvRelaunchApps)
+          ++ [ "exit 0" ]
         ))
       ];
     };
