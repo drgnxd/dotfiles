@@ -44,6 +44,22 @@ The `setenv-user-env` login agent (`hosts/darwin/launchd.nix`) replays the whole
 set at login, so a normal login recovers it; the failure window is between boot
 and that agent running, or if the agent itself did not run.
 
+There is a third window: an app registered as its own macOS Login Item (not a
+LaunchAgent plist this repo manages) races `setenv-user-env` with no ordering
+guarantee. If the app's Login Item wins and launches before `setenv-user-env`
+finishes, it keeps the stale environment it inherited at launch for its whole
+session — `launchctl setenv` never updates an already-running process. CodexBar
+is the confirmed case: its Codex/Claude usage-monitoring CLI subprocesses need
+`CODEX_HOME`/`CLAUDE_CONFIG_DIR`, so a lost race shows up as both providers
+looking unauthenticated after a reboot, recoverable by quitting and manually
+relaunching CodexBar. `setenv-user-env` now quits and reopens CodexBar itself,
+after `setenv`, in the same script (`postSetenvRelaunchApps` in
+`hosts/darwin/launchd.nix`), so its relative order is guaranteed regardless of
+which one the OS launches first. This is a deliberate, narrow fix: the same
+sibling-ordering race exists for every `mkLoginApp` entry (Alacritty, Floorp,
+Sol, the Proton apps), but only CodexBar has shown an observable failure so
+far.
+
 Recover by re-seeding the session (either re-applies the agent and the values):
 ```bash
 cd ~/.config/dotfiles
@@ -95,6 +111,11 @@ A switch is not purely additive. On **every** run it also:
   mouse & trackpad tracking speed 7, menu-bar clock (seconds/date/day),
   Control Center visibility (Wi-Fi / battery / now-playing hidden), screenshot
   folder `~/Desktop/Screenshots`, all text substitutions off.
+- **Briefly quits and relaunches CodexBar**: `setenv-user-env`
+  (`hosts/darwin/launchd.nix`) reruns whenever its own script content or
+  `userLaunchdEnv` changes, and each run quits then reopens every app in
+  `postSetenvRelaunchApps` (currently just CodexBar) after replaying the env
+  — see the "launchd Environment Issues" section above.
 - **Removes app-created "Launch at Login" agents** every switch:
   `eu.exelban.Stats(.LaunchAtLogin)`, `org.p0deje.Maccy`, legacy
   `setenv.SCIHOME` are `rm`-ed from `~/Library/LaunchAgents` (nix-darwin owns
