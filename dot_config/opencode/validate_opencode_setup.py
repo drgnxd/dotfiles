@@ -119,6 +119,25 @@ def validate_config(errors: list[str]) -> None:
     ):
         errors.append("review-deep must be read-only")
 
+    expected_routes = {
+        "build": ("openai/gpt-5.6-luna", "medium"),
+        "plan": ("openai/gpt-6-astra", "medium"),
+        "general": ("openai/gpt-5.6-luna", "medium"),
+        "explore": ("openai/gpt-5.6-luna", "low"),
+        "compaction": ("openai/gpt-5.6-luna", "low"),
+        "title": ("openai/gpt-5.6-luna", "low"),
+        "summary": ("openai/gpt-5.6-luna", "low"),
+        "review-deep": ("openai/gpt-5.6-sol", "high"),
+        "review-main": ("openai/gpt-5.6-terra", "medium"),
+    }
+    agents = config.get("agent", {})
+    for agent_name, (expected_model, expected_variant) in expected_routes.items():
+        agent = agents.get(agent_name, {})
+        if agent.get("model") != expected_model:
+            errors.append(f"{agent_name} must use {expected_model}")
+        if agent.get("variant") != expected_variant:
+            errors.append(f"{agent_name} must use variant {expected_variant}")
+
 
 def validate_package(errors: list[str]) -> None:
     package_path = BASE_DIR / "package.json"
@@ -209,7 +228,6 @@ def validate_model_routing(errors: list[str]) -> None:
     tools_dir = BASE_DIR / "tools"
     if (tools_dir / "claude_delegate.ts").exists():
         errors.append("claude_delegate.ts must not be installed")
-
 
 def main() -> int:
     errors: list[str] = []
