@@ -51,9 +51,11 @@ NU_PATH="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/nu"
 # ~/repos/scripts/launchd/README.md, and ~/repos/archivist/launchd/README.md.
 #   accretion: daily-trivia daily-element personal-news practice-reminder git-annex-sync
 #   scripts:   repos-backup dotfiles-backup personal-news-backup
-#   archivist: conversation-sync conversation-archive (moved from scripts 2026-09-18;
-#              agent-audit-index-backup and native-store-backup also live there but
-#              are not in this list -- pre-existing gap, not introduced by that move)
+#   archivist: archivist-import archivist-verify archivist-native-backup archivist-catalog-backup
+#              (renamed from conversation-archive/conversation-sync/native-store-backup/
+#              agent-audit-index-backup on 2026-09-18, moved from scripts the same day;
+#              all four are now listed, closing a pre-existing gap where the latter two
+#              were never in this array)
 #   cultura-tracker: unext-sale-log
 # NOT listed on purpose: restic-home-backup (retired, ~/repos/scripts/README.md).
 ACTIVE_LABELS=(
@@ -65,8 +67,10 @@ ACTIVE_LABELS=(
   com.drgnxd.repos-backup
   com.drgnxd.dotfiles-backup
   com.drgnxd.personal-news-backup
-  com.drgnxd.conversation-sync
-  com.drgnxd.conversation-archive
+  com.drgnxd.archivist-import
+  com.drgnxd.archivist-verify
+  com.drgnxd.archivist-native-backup
+  com.drgnxd.archivist-catalog-backup
   com.drgnxd.unext-sale-log
 )
 
@@ -76,7 +80,7 @@ ACTIVE_LABELS=(
 # once every other job's re-registration proves the new binary is accepted;
 # if they are themselves codesigning-killed, the deferred list below reports
 # them and the user re-runs with the jobs idle.
-CONV_LOCK="${XDG_STATE_HOME:-${HOME}/.local/state}/scripts/conversation-sync.lock"
+CONV_LOCK="${XDG_STATE_HOME:-${HOME}/.local/state}/archivist/lock"
 
 log() { printf '%s %s\n' "$(date '+%H:%M:%S')" "$*"; }
 warn() { printf '%s WARN %s\n' "$(date '+%H:%M:%S')" "$*" >&2; }
@@ -133,7 +137,7 @@ for label in "${ACTIVE_LABELS[@]}"; do
     ;;
   esac
   case "$label" in
-  com.drgnxd.conversation-sync | com.drgnxd.conversation-archive)
+  com.drgnxd.archivist-verify | com.drgnxd.archivist-import)
     if [ -e "$CONV_LOCK" ]; then
       log "$label: conversation lock held -- deferring"
       deferred+=("$label")
