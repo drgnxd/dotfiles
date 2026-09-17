@@ -132,7 +132,7 @@ A switch is not purely additive. On **every** run it also:
 ### What a switch does NOT touch
 
 - **Foreign LaunchAgents.** The `com.drgnxd.*` automation agents (from
-  `accretion` and `~/repos/scripts`) are safe. The activation script's
+  `accretion`, `~/repos/scripts`, and `~/repos/archivist`) are safe. The activation script's
   user-agent cleanup loop only iterates
   `/run/current-system/user/Library/LaunchAgents/*` (nix-declared agents); it
   never globs `~/Library/LaunchAgents` and has no knowledge of non-nix

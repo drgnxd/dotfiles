@@ -128,7 +128,7 @@ switch は純粋な追加操作ではありません。**毎回**次も行いま
 ### switch が触らないもの
 
 - **nix 管理外の LaunchAgent。** `com.drgnxd.*` の自動化エージェント
-  (`accretion` と `~/repos/scripts` 由来)は安全。activation スクリプトの
+  (`accretion`・`~/repos/scripts`・`~/repos/archivist` 由来)は安全。activation スクリプトの
   ユーザエージェント整理ループは `/run/current-system/user/Library/LaunchAgents/*`
   (nix が宣言したエージェント)だけを走査し、`~/Library/LaunchAgents` を
   glob せず、nix 管理外の plist を認識しない。`/run/current-system/activate`

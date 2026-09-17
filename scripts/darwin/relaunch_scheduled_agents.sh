@@ -47,10 +47,13 @@ NU_PATH="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/nu"
 # Explicit allow-list of the ACTIVE hand-deployed jobs. Deliberately not a live
 # `com.drgnxd.*` glob: a retired job whose plist is transiently back in place
 # (mid-debug) must not be silently re-armed, and drift should surface loudly.
-# Keep in sync with ~/repos/accretion/system/launchd/README.md and
-# ~/repos/scripts/launchd/README.md.
+# Keep in sync with ~/repos/accretion/system/launchd/README.md,
+# ~/repos/scripts/launchd/README.md, and ~/repos/archivist/launchd/README.md.
 #   accretion: daily-trivia daily-element personal-news practice-reminder git-annex-sync
-#   scripts:   repos-backup dotfiles-backup personal-news-backup conversation-sync conversation-archive
+#   scripts:   repos-backup dotfiles-backup personal-news-backup
+#   archivist: conversation-sync conversation-archive (moved from scripts 2026-09-18;
+#              agent-audit-index-backup and native-store-backup also live there but
+#              are not in this list -- pre-existing gap, not introduced by that move)
 #   cultura-tracker: unext-sale-log
 # NOT listed on purpose: restic-home-backup (retired, ~/repos/scripts/README.md).
 ACTIVE_LABELS=(
