@@ -41,6 +41,12 @@ forAllSystems (
           entry = "${p.bash}/bin/bash ${../scripts/block_flake_local_nix.sh}";
           pass_filenames = false;
         };
+        public-boundary = {
+          enable = true;
+          name = "check public repository boundary";
+          entry = "${p.bash}/bin/bash ${../scripts/check-public-boundary.sh}";
+          pass_filenames = false;
+        };
       };
     };
     lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''

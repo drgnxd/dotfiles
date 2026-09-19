@@ -260,18 +260,16 @@ in
         /bin/rm -f "$HOME/Library/LaunchAgents/setenv.SCIHOME.plist"
       '';
 
-      # Detection only. The hand-deployed com.drgnxd.* scheduled agents (not
-      # nix-managed -- see ~/repos/accretion/system/launchd/README.md) run
-      # nushell via /etc/profiles/per-user/${user}/bin/nu. When a rebuild
-      # rotates that store path, launchd's cached per-job LWCR stops matching
-      # and the kernel SIGKILLs each job at its next run with
-      # OS_REASON_CODESIGNING, before the job's own failure notifier can fire.
-      # Re-registering them needs `launchctl bootstrap gui/$UID` from the
-      # interactive session, which is unreliable from an activation script, so
-      # the fix lives in `just relaunch-agents` (scripts/darwin/
-      # relaunch_scheduled_agents.sh). This step only nudges: if the resolved
-      # nu path differs from the sentinel that script maintains, print a banner
-      # and post a notification. `just switch-darwin` runs that script anyway.
+      # Detection only. Externally managed scheduled agents may run Nushell via
+      # /etc/profiles/per-user/${user}/bin/nu. When a rebuild rotates that
+      # store path, launchd's cached per-job LWCR stops matching and the kernel
+      # SIGKILLs a job at exec with OS_REASON_CODESIGNING, before its own
+      # failure notifier can fire. Re-registering them needs
+      # `launchctl bootstrap gui/$UID` from the interactive session, which is
+      # unreliable from an activation script, so the fix lives in
+      # `just relaunch-agents`. This step only nudges: if the resolved nu path
+      # differs from the sentinel that script maintains, print a banner and
+      # post a notification. `just switch-darwin` runs that script anyway.
       # No `exit` here: home-manager concatenates every home.activation.*
       # snippet into one script, so a bare `exit` would skip the steps after
       # this one. Guard with a conditional instead.
@@ -283,7 +281,7 @@ in
           _sa_prev="$(cat "$_sa_state_dir/scheduled-agents-nu" 2>/dev/null || true)"
           if [ -n "$_sa_prev" ] && [ "$_sa_cur" != "$_sa_prev" ]; then
             echo "" >&2
-            echo "  !! nushell store path changed since the com.drgnxd.* scheduled agents" >&2
+            echo "  !! nushell store path changed since external scheduled agents" >&2
             echo "  !! were last registered -- they will be codesigning-killed at next run." >&2
             echo "  !! Fix:  cd ~/.config/dotfiles && just relaunch-agents" >&2
             echo "" >&2

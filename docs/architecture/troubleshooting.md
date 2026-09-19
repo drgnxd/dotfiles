@@ -81,8 +81,8 @@ cd ~/.config/dotfiles
 just relaunch-agents --dry-run
 ```
 
-The dry run validates the active-job allow-list, plist labels, running jobs,
-and the conversation lock without creating the state directory, booting out or
+The dry run validates the locally configured allow-list, plist labels, running
+jobs, and any configured lock without creating the state directory, booting out or
 bootstrapping any agent, or updating the sentinel. If the preview is clean,
 perform the re-registration:
 
@@ -91,9 +91,9 @@ just relaunch-agents
 ```
 
 Use `--force` only when the Nushell-path sentinel must be ignored. Jobs that are
-running or hold the conversation lock are deferred; rerun the command after
-they become idle. A failed validation leaves the sentinel unchanged so the
-problem can be fixed before retrying.
+running or hold a configured lock are deferred; rerun the command after they
+become idle. A failed validation leaves the sentinel unchanged so the problem
+can be fixed before retrying.
 
 ## What a plain `darwin-rebuild switch` reverts every run
 
@@ -131,9 +131,8 @@ A switch is not purely additive. On **every** run it also:
 
 ### What a switch does NOT touch
 
-- **Foreign LaunchAgents.** The `com.drgnxd.*` automation agents (from
-  `accretion`, `~/repos/scripts`, and `~/repos/archivist`) are safe. The activation script's
-  user-agent cleanup loop only iterates
+- **Foreign LaunchAgents.** User LaunchAgents managed outside this flake are
+  safe. The activation script's user-agent cleanup loop only iterates
   `/run/current-system/user/Library/LaunchAgents/*` (nix-declared agents); it
   never globs `~/Library/LaunchAgents` and has no knowledge of non-nix
   plists. Verified by reading `/run/current-system/activate`.
@@ -149,7 +148,7 @@ A switch is not purely additive. On **every** run it also:
 `local/identity.nix` (sets `hostname`; without it the flake exposes no
 `darwinConfigurations.<hostname>` and the switch fails), `local/packages.nix`, and
 `local/claude-auto-mode-environment.nix` are gitignored, so they are **not in
-the `com.drgnxd.dotfiles-backup` git bundle** — only in the whole-home restic
-backup. `~/.ssh/id_ed25519` is the agenix identity that decrypts every
+the repository git bundle** — only in the whole-home restic backup.
+`~/.ssh/id_ed25519` is the agenix identity that decrypts every
 `secrets/*.age`; losing it both breaks activation and makes the secrets
 unrecoverable. Keep an independent copy of that key.
