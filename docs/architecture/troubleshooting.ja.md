@@ -78,8 +78,8 @@ cd ~/.config/dotfiles
 just relaunch-agents --dry-run
 ```
 
-dry-run は、アクティブジョブの allow-list、plist のラベル、実行中ジョブ、
-会話 lock を確認しますが、state directory の作成、エージェントの bootout /
+dry-run は、ローカル設定の allow-list、plist のラベル、実行中ジョブ、
+設定された lock を確認しますが、state directory の作成、エージェントの bootout /
 bootstrap、sentinel の更新は行いません。問題がなければ再登録を実行します。
 
 ```bash
@@ -87,9 +87,9 @@ just relaunch-agents
 ```
 
 Nushell パスの sentinel を無視する必要がある場合に限り `--force` を使います。
-実行中または会話 lock を保持中のジョブは defer されるため、アイドル状態になって
-から再実行します。検証に失敗した場合は、修正して再試行できるよう sentinel は
-更新されません。
+実行中または設定された lock を保持中のジョブは defer されるため、アイドル状態に
+なってから再実行します。検証に失敗した場合は、修正して再試行できるよう sentinel
+は更新されません。
 
 ## 素の `darwin-rebuild switch` が毎回巻き戻すもの
 
@@ -127,12 +127,11 @@ switch は純粋な追加操作ではありません。**毎回**次も行いま
 
 ### switch が触らないもの
 
-- **nix 管理外の LaunchAgent。** `com.drgnxd.*` の自動化エージェント
-  (`accretion`・`~/repos/scripts`・`~/repos/archivist` 由来)は安全。activation スクリプトの
-  ユーザエージェント整理ループは `/run/current-system/user/Library/LaunchAgents/*`
-  (nix が宣言したエージェント)だけを走査し、`~/Library/LaunchAgents` を
-  glob せず、nix 管理外の plist を認識しない。`/run/current-system/activate`
-  を読んで確認済み。
+- **nix 管理外の LaunchAgent。** この flake の外部で管理されるユーザー
+  LaunchAgent は安全。activation スクリプトのユーザーエージェント整理ループは
+  `/run/current-system/user/Library/LaunchAgents/*` (nix が宣言したエージェント)
+  だけを走査し、`~/Library/LaunchAgents` を glob せず、nix 管理外の plist を認識しない。
+  `/run/current-system/activate` を読んで確認済み。
 - `~/.local/state/**`(ジョブ状態・ログ・restic リポジトリ・`failure.json`)、
   `~/repos/**`、Proton Drive CLI のセッション、`~/.ssh`。
 - home-manager 管理の dotfiles は読み取り専用の Nix ストアへのシンボリック
@@ -144,7 +143,7 @@ switch は純粋な追加操作ではありません。**毎回**次も行いま
 `local/identity.nix`(`hostname` を設定する。これが無いと flake に
 `darwinConfigurations.<hostname>` が無く switch が失敗する)、`local/packages.nix`、
 `local/claude-auto-mode-environment.nix` は gitignore されており、
-**`com.drgnxd.dotfiles-backup` の git bundle に入らない** — ホーム全体の
+**リポジトリの git bundle に入らない** — ホーム全体の
 restic バックアップにのみ含まれる。`~/.ssh/id_ed25519` は全 `secrets/*.age` を
 復号する agenix の identity で、失うと activation が壊れると同時に secrets が
 復元不能になる。この鍵は独立した控えを保持すること。

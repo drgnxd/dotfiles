@@ -49,6 +49,9 @@ local/claude-auto-mode-environment.nix
 **/hosts.yml
 dot_config/npm/
 
+# Machine-local external automation manifest
+scripts/security/external-agents.local
+
 # Build outputs
 result/
 
