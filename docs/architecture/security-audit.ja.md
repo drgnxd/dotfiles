@@ -39,7 +39,7 @@ System extension は、明示的に宣言して根拠を示すまで `WARN` に�
 
 ## 外部管理の LaunchAgent
 
-一部のユーザー LaunchAgent は、この flake ではなく別のチェックアウト(別リポジトリにある個人的な自動化)が意図的に管理しています。その plist ファイル名を**正確に**、1行1つ(`#` コメント可)で `scripts/security/external-agents.local`(`**/*.local` により gitignore 済み。`scripts/security/external-agents.example` 参照)に列挙します。列挙されたエージェントは `Externally-managed user LaunchAgent` / `MANUAL` として報告されます — 表示はされ、各々を所有リポジトリと照合するよう促しますが、drift としてはカウントされず `--strict` も落としません。同じ prefix でも未列挙のエージェントは引き続き `WARN` になり、各名前は `<name>.plist` と `<name>.plist.disabled` の両方に一致します。このファイルが無い場合(新規チェックアウト、CI)は従来どおり全ての未宣言エージェントが `WARN` になります。ファイル名はこの公開リポジトリに置かないでください。
+一部のユーザー LaunchAgent は、この flake ではなく別のチェックアウト(別リポジトリにある個人的な自動化)が意図的に管理しています。その plist ファイル名を**正確に**、1行1つ(`#` コメント可)で `scripts/security/external-agents.local`(`**/*.local` により gitignore 済み。`scripts/security/external-agents.example` 参照)に列挙します。このファイルは再登録ヘルパーと共有する唯一のローカル allow-list で、任意の `relaunch-*` コメントディレクティブは監査から無視されます。列挙されたエージェントは `Externally-managed user LaunchAgent` / `MANUAL` として報告されます — 表示はされ、各々を所有リポジトリと照合するよう促しますが、drift としてはカウントされず `--strict` も落としません。同じ prefix でも未列挙のエージェントは引き続き `WARN` になり、各名前は `<name>.plist` と `<name>.plist.disabled` の両方に一致します。このファイルが無い場合(新規チェックアウト、CI)は従来どおり全ての未宣言エージェントが `WARN` になります。ファイル名はこの公開リポジトリに置かないでください。
 
 ## 許容済み System extension
 

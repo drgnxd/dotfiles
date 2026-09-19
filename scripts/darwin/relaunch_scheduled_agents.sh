@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Re-register the hand-deployed com.drgnxd.* scheduled LaunchAgents after a
-# Nix rebuild rotates the nushell store path.
+# Re-register externally managed scheduled LaunchAgents after a Nix rebuild
+# rotates the nushell store path.
 #
 # Why this exists: each job's ProgramArguments[0] resolves through
 # /etc/profiles/per-user/<user>/bin/nu. launchd/BTM caches a per-job managed
@@ -8,7 +8,7 @@
 # swaps nushell, the kernel SIGKILLs the job at exec with OS_REASON_CODESIGNING
 # -- before the job's own failure-reporting wrapper runs, so nothing notifies.
 # `bootout` + `bootstrap` regenerates the LWCR against the current binary.
-# Full write-up: ~/repos/accretion/system/launchd/README.md (pitfalls section).
+# Keep the private job manifest outside the public repository.
 #
 # Must run in the interactive Aqua login session (a `just` recipe, not a
 # nix-darwin activation script): `launchctl bootstrap gui/$UID` of a service
@@ -21,6 +21,15 @@ set -euo pipefail
 
 FORCE=0
 DRY_RUN=0
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd -P)"
+MANIFEST="${SCRIPT_DIR}/../security/external-agents.local"
+ACTIVE_LABELS=()
+LOCKED_LABELS=()
+AGENT_PREFIX=""
+LOCK_PATH=""
+PREFIX_SET=0
+LOCK_PATH_SET=0
 
 usage() {
   printf 'Usage: %s [--force] [--dry-run]\n' "$0" >&2
@@ -37,53 +46,124 @@ for arg in "$@"; do
   esac
 done
 
+log() { printf '%s %s\n' "$(date '+%H:%M:%S')" "$*"; }
+warn() { printf '%s WARN %s\n' "$(date '+%H:%M:%S')" "$*" >&2; }
+
+contains() {
+  local needle=$1
+  shift
+  local value
+
+  for value in "$@"; do
+    [ "$value" = "$needle" ] && return 0
+  done
+
+  return 1
+}
+
+config_error() {
+  warn "invalid local manifest: $*"
+  exit 1
+}
+
+trim() {
+  local value=$1
+
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  TRIMMED_VALUE=$value
+}
+
+if [ ! -f "$MANIFEST" ]; then
+  warn "local manifest not found at $MANIFEST; nothing to do"
+  exit 0
+fi
+
+while IFS= read -r line || [ -n "$line" ]; do
+  line="${line%$'\r'}"
+  trim "$line"
+  line=$TRIMMED_VALUE
+
+  case "$line" in
+  '')
+    continue
+    ;;
+  '# relaunch-prefix='*)
+    [ "$PREFIX_SET" -eq 0 ] || config_error "duplicate relaunch-prefix"
+    trim "${line#\# relaunch-prefix=}"
+    AGENT_PREFIX=$TRIMMED_VALUE
+    case "$AGENT_PREFIX" in
+    '' | *[!A-Za-z0-9._-]*) config_error "relaunch-prefix must be a non-empty label prefix" ;;
+    esac
+    PREFIX_SET=1
+    ;;
+  '# relaunch-lock-path='*)
+    [ "$LOCK_PATH_SET" -eq 0 ] || config_error "duplicate relaunch-lock-path"
+    trim "${line#\# relaunch-lock-path=}"
+    LOCK_PATH=$TRIMMED_VALUE
+    case "$LOCK_PATH" in
+    /*) ;;
+    *) config_error "relaunch-lock-path must be an absolute path" ;;
+    esac
+    LOCK_PATH_SET=1
+    ;;
+  '# relaunch-lock-label='*)
+    trim "${line#\# relaunch-lock-label=}"
+    lock_label=$TRIMMED_VALUE
+    case "$lock_label" in
+    '' | *[!A-Za-z0-9._-]*) config_error "relaunch-lock-label is not a valid label" ;;
+    esac
+    contains "$lock_label" "${LOCKED_LABELS[@]}" &&
+      config_error "duplicate relaunch-lock-label: $lock_label"
+    LOCKED_LABELS+=("$lock_label")
+    ;;
+  '# relaunch-'*)
+    config_error "unknown relaunch directive"
+    ;;
+  '# ' | '#'*)
+    continue
+    ;;
+  *)
+    line="${line%%#*}"
+    trim "$line"
+    line=$TRIMMED_VALUE
+    [ -n "$line" ] || continue
+    case "$line" in
+    *.plist) label=${line%.plist} ;;
+    *) config_error "agent entries must end in .plist" ;;
+    esac
+    case "$label" in
+    '' | *[!A-Za-z0-9._-]*) config_error "invalid LaunchAgent label: $label" ;;
+    esac
+    contains "$label" "${ACTIVE_LABELS[@]}" &&
+      config_error "duplicate LaunchAgent label: $label"
+    ACTIVE_LABELS+=("$label")
+    ;;
+  esac
+done <"$MANIFEST"
+
+if [ "${#ACTIVE_LABELS[@]}" -eq 0 ]; then
+  warn "local manifest has no active LaunchAgents; nothing to do"
+  exit 0
+fi
+
+if [ -n "$LOCK_PATH" ] && [ "${#LOCKED_LABELS[@]}" -eq 0 ]; then
+  config_error "relaunch-lock-path requires at least one relaunch-lock-label"
+fi
+if [ -z "$LOCK_PATH" ] && [ "${#LOCKED_LABELS[@]}" -gt 0 ]; then
+  config_error "relaunch-lock-label requires relaunch-lock-path"
+fi
+for lock_label in "${LOCKED_LABELS[@]}"; do
+  contains "$lock_label" "${ACTIVE_LABELS[@]}" ||
+    config_error "relaunch-lock-label is not an active LaunchAgent: $lock_label"
+done
+
 UID_NUM="$(/usr/bin/id -u)"
 DOMAIN="gui/${UID_NUM}"
 LA="${HOME}/Library/LaunchAgents"
 STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/dotfiles"
 SENTINEL="${STATE_DIR}/scheduled-agents-nu"
 NU_PATH="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/nu"
-
-# Explicit allow-list of the ACTIVE hand-deployed jobs. Deliberately not a live
-# `com.drgnxd.*` glob: a retired job whose plist is transiently back in place
-# (mid-debug) must not be silently re-armed, and drift should surface loudly.
-# Keep in sync with ~/repos/accretion/system/launchd/README.md,
-# ~/repos/scripts/launchd/README.md, and ~/repos/archivist/launchd/README.md.
-#   accretion: daily-trivia daily-element personal-news practice-reminder git-annex-sync
-#   scripts:   repos-backup dotfiles-backup personal-news-backup
-#   archivist: archivist-import archivist-verify archivist-native-backup archivist-catalog-backup
-#              (renamed from conversation-archive/conversation-sync/native-store-backup/
-#              agent-audit-index-backup on 2026-09-18, moved from scripts the same day;
-#              all four are now listed, closing a pre-existing gap where the latter two
-#              were never in this array)
-#   cultura-tracker: unext-sale-log
-# NOT listed on purpose: restic-home-backup (retired, ~/repos/scripts/README.md).
-ACTIVE_LABELS=(
-  com.drgnxd.daily-trivia
-  com.drgnxd.daily-element
-  com.drgnxd.personal-news
-  com.drgnxd.practice-reminder
-  com.drgnxd.git-annex-sync
-  com.drgnxd.repos-backup
-  com.drgnxd.dotfiles-backup
-  com.drgnxd.personal-news-backup
-  com.drgnxd.archivist-import
-  com.drgnxd.archivist-verify
-  com.drgnxd.archivist-native-backup
-  com.drgnxd.archivist-catalog-backup
-  com.drgnxd.unext-sale-log
-)
-
-# Jobs to never bootout from here even if the nu path changed: killing them
-# mid-run corrupts shared state (shared lock + Proton Drive publish + Raw
-# deletion). They pick up the new binary on their next scheduled start anyway
-# once every other job's re-registration proves the new binary is accepted;
-# if they are themselves codesigning-killed, the deferred list below reports
-# them and the user re-runs with the jobs idle.
-CONV_LOCK="${XDG_STATE_HOME:-${HOME}/.local/state}/archivist/lock"
-
-log() { printf '%s %s\n' "$(date '+%H:%M:%S')" "$*"; }
-warn() { printf '%s WARN %s\n' "$(date '+%H:%M:%S')" "$*" >&2; }
 
 if [ "$DRY_RUN" -eq 0 ]; then
   mkdir -p "$STATE_DIR"
@@ -101,14 +181,19 @@ if [ "$FORCE" -eq 0 ] && [ "$NU_REAL" = "$PREV_REAL" ] && [ -n "$PREV_REAL" ]; t
 fi
 log "nu changed: ${PREV_REAL:-<none>} -> ${NU_REAL}"
 
-# Drift check: a loaded com.drgnxd.* that is not in the allow-list.
-while IFS= read -r loaded; do
-  keep=0
-  for l in "${ACTIVE_LABELS[@]}"; do [ "$l" = "$loaded" ] && keep=1 && break; done
-  if [ "$keep" -eq 0 ]; then
-    warn "loaded job '$loaded' is not in ACTIVE_LABELS -- update the allow-list or bootout the job; skipping it"
-  fi
-done < <(/bin/launchctl list | /usr/bin/awk '/com\.drgnxd\./ {print $3}')
+# Drift check: a loaded job under the configured prefix that is not in the
+# local allow-list.
+if [ -n "$AGENT_PREFIX" ]; then
+  while IFS= read -r loaded; do
+    case "$loaded" in
+    "$AGENT_PREFIX"*)
+      if ! contains "$loaded" "${ACTIVE_LABELS[@]}"; then
+        warn "loaded job '$loaded' is not in the local allow-list; skipping it"
+      fi
+      ;;
+    esac
+  done < <(/bin/launchctl list | /usr/bin/awk '{print $3}')
+fi
 
 failed=()
 deferred=()
@@ -136,15 +221,11 @@ for label in "${ACTIVE_LABELS[@]}"; do
     continue
     ;;
   esac
-  case "$label" in
-  com.drgnxd.archivist-verify | com.drgnxd.archivist-import)
-    if [ -e "$CONV_LOCK" ]; then
-      log "$label: conversation lock held -- deferring"
-      deferred+=("$label")
-      continue
-    fi
-    ;;
-  esac
+  if [ -n "$LOCK_PATH" ] && contains "$label" "${LOCKED_LABELS[@]}" && [ -e "$LOCK_PATH" ]; then
+    log "$label: configured lock held -- deferring"
+    deferred+=("$label")
+    continue
+  fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
     log "$label: would bootout and bootstrap (dry-run)"
