@@ -15,11 +15,6 @@
 
 const nu_abbr_command_wrappers = [sudo doas command builtin env time noglob]
 const nu_abbr_token_boundaries = ['|' ';' '&' '(' ')' '[' ']' '{' '}']
-const nu_abbr_explicit_map = {
-    lg: 'lazygit'
-    oc: 'opencode'
-    ocd: 'opencode --continue'
-}
 
 def nu_abbr_build_alias_map [] {
     let alias_map = (
@@ -29,7 +24,7 @@ def nu_abbr_build_alias_map [] {
         }
     )
 
-    $alias_map | merge $nu_abbr_explicit_map
+    $alias_map
 }
 
 $env.NU_ABBR_ALIAS_MAP = (nu_abbr_build_alias_map)
