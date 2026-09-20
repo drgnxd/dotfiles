@@ -20,6 +20,7 @@ let
   opencode_agents_template = ../../../dot_config/opencode/global_rules.md;
   opencode_agents_local_example = ../../../dot_config/opencode/AGENTS.local.md.example;
   opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
+  opencode_notifier_scheduled_template = ../../../dot_config/opencode/opencode-notifier-scheduled.json;
   opencode_package_template = ../../../dot_config/opencode/package.json;
   opencode_package_lock_template = ../../../dot_config/opencode/package-lock.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
@@ -54,6 +55,7 @@ let
   ];
   migratedAssetTargets = [
     "${config.xdg.configHome}/opencode/opencode-notifier.json"
+    "${config.xdg.configHome}/opencode/opencode-notifier-scheduled.json"
   ]
   ++ lib.mapAttrsToList (name: _: "${config.xdg.configHome}/opencode/skills/${name}") managedSkills;
   migrateManagedAssetCommands = builtins.concatStringsSep "\n" (
@@ -65,6 +67,7 @@ in
 {
   xdg.configFile = {
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
+    "opencode/opencode-notifier-scheduled.json".source = opencode_notifier_scheduled_template;
   }
   // lib.mapAttrs' (
     name: src: lib.nameValuePair "opencode/skills/${name}" { source = src; }

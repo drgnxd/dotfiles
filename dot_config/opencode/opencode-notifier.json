@@ -7,7 +7,7 @@
   "showIcon": true,
   "suppressWhenFocused": false,
   "enableOnDesktop": true,
-  "notificationSystem": "node-notifier",
+  "notificationSystem": "osascript",
   "linux": {
     "grouping": false
   },
