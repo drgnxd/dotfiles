@@ -17,6 +17,7 @@ let
     PATH = "${home_dir}/.nix-profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
     CLAUDE_CONFIG_DIR = "${home_dir}/.local/share/claude";
     COPILOT_HOME = "${home_dir}/.local/share/copilot";
+    NIXPKGS_OPENCODE_DISABLE_LEGACY_DB_WORKAROUND = "1";
     XDG_CONFIG_HOME = "${home_dir}/.config";
     XDG_CACHE_HOME = "${home_dir}/.cache";
     XDG_DATA_HOME = "${home_dir}/.local/share";
