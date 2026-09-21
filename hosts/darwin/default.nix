@@ -14,7 +14,7 @@ let
   # agent in ./launchd.nix replays this exact set at login to work around
   # that, so keep it as the single source of truth.
   user_launchd_env = {
-    PATH = "${home_dir}/.nix-profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+    PATH = "${home_dir}/.nix-profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin";
     CLAUDE_CONFIG_DIR = "${home_dir}/.local/share/claude";
     COPILOT_HOME = "${home_dir}/.local/share/copilot";
     NIXPKGS_OPENCODE_DISABLE_LEGACY_DB_WORKAROUND = "1";
