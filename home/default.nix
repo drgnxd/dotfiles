@@ -135,6 +135,8 @@ in
   );
 
   home.file = {
+    # CodexBar still creates temporary files at the legacy path despite CODEX_HOME.
+    ".codex".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/codex";
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude/.claude.json";
     ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";
