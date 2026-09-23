@@ -1,5 +1,26 @@
 # requires: 00-helpers
 
+export def nix-build-no-link-args [args: list<string>] {
+    if ($args | get 0? | default "") != "build" {
+        return $args
+    }
+
+    let output_link_requested = ($args | any {|arg|
+        ($arg in ["--no-link", "--out-link", "-o"]) or ($arg | str starts-with "--out-link=")
+    })
+
+    if $output_link_requested {
+        $args
+    } else {
+        $args | insert 1 "--no-link"
+    }
+}
+
+# Keep interactive builds from creating implicit GC-root links in the current directory.
+export def --wrapped nix [...args] {
+    ^nix ...(nix-build-no-link-args $args)
+}
+
 export def --wrapped y [...args] {
     let tmp_file = (mktemp -t "yazi-cwd.XXXXXX")
     yazi ...$args --cwd-file=$tmp_file
