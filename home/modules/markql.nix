@@ -10,6 +10,7 @@ let
   markql_app = "${config.home.homeDirectory}/Applications/MarkQL.app";
   markql_state_dir = "${config.xdg.stateHome}/markql";
   markql_stamp = "${markql_state_dir}/source-revision";
+  markql_system_path = "/usr/bin:/bin:/usr/sbin:/sbin";
   bash = "${pkgs.bash}/bin/bash";
   cat = "${pkgs.coreutils}/bin/cat";
   git = "${pkgs.git}/bin/git";
@@ -23,6 +24,7 @@ in
       markql_app="${markql_app}"
       markql_state_dir="${markql_state_dir}"
       markql_stamp="${markql_stamp}"
+      markql_system_path="${markql_system_path}"
 
       if [ -d "$markql_repo" ]; then
         if markql_revision="$(${git} -C "$markql_repo" rev-parse HEAD 2>/dev/null)"; then
@@ -34,7 +36,7 @@ in
           if [ ! -d "$markql_app" ] || [ "$markql_stamp_revision" != "$markql_revision" ]; then
             if [ -n "''${DRY_RUN_CMD:-}" ]; then
               echo "Would build and install MarkQL from $markql_repo"
-            elif ${bash} "$markql_repo/build.sh" && ${bash} "$markql_repo/install.sh" && [ -d "$markql_app" ]; then
+            elif PATH="$PATH:$markql_system_path" ${bash} "$markql_repo/build.sh" && PATH="$PATH:$markql_system_path" ${bash} "$markql_repo/install.sh" && [ -d "$markql_app" ]; then
               ${mkdir} -p "$markql_state_dir"
               markql_stamp_tmp="$markql_stamp.$$"
               printf '%s\n' "$markql_revision" >"$markql_stamp_tmp"
