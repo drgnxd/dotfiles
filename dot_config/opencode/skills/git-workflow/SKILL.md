@@ -23,3 +23,5 @@ description: Use before Git history changes.
 - Do not commit while a required validation gate fails.
 - Do not amend, force-push, or use interactive git commands unless explicitly
   requested.
+- When reporting a commit to the user, quote its message verbatim, including its
+  language, rather than paraphrasing or translating it into the reply language.
