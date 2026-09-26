@@ -5,6 +5,7 @@ set -euo pipefail
 JSON_OUTPUT=0
 STRICT_MODE=0
 WARN_COUNT=0
+UNKNOWN_COUNT=0
 
 RESULT_SECTIONS=()
 RESULT_NAMES=()
@@ -60,6 +61,8 @@ add_result() {
 
   if [[ $status == "WARN" ]]; then
     ((WARN_COUNT += 1))
+  elif [[ $status == "UNKNOWN" ]]; then
+    ((UNKNOWN_COUNT += 1))
   fi
 }
 
@@ -275,10 +278,13 @@ check_launch_agents() {
   local disk_path
   local disk_name
   local external_agents_file
-  local external_agents_line
+  local external_label
+  local loaded_label
+  local domain
   local mismatch_count=0
   local external_count=0
   local -a external_agents=()
+  local -a loaded_labels=()
   local hm_users_json
   local hm_user_name
   local hm_installable
@@ -307,12 +313,14 @@ check_launch_agents() {
   # a novel name under the same prefix still WARNs.
   external_agents_file="${script_dir}/external-agents.local"
   if [[ -f $external_agents_file ]]; then
-    while IFS= read -r external_agents_line || [[ -n $external_agents_line ]]; do
-      external_agents_line=${external_agents_line%%#*}
-      trim_whitespace "$external_agents_line"
-      external_agents_line=$TRIMMED_VALUE
-      [[ -n $external_agents_line ]] && external_agents[${#external_agents[@]}]=$external_agents_line
-    done <"$external_agents_file"
+    # shellcheck disable=SC1091
+    # shellcheck source=external_agents.sh
+    source "${script_dir}/external_agents.sh"
+    if ! external_agents_load_manifest "$external_agents_file"; then
+      add_result "$section" 'External LaunchAgent manifest' 'UNKNOWN' 'The local inventory is invalid' 'Repair scripts/security/external-agents.local before relying on the audit.'
+      return
+    fi
+    external_agents=("${EXTERNAL_AGENT_LABELS[@]}")
   fi
 
   if ! nix_command=$(command -v nix 2>/dev/null); then
@@ -382,6 +390,7 @@ check_launch_agents() {
   fi
 
   launch_agents_dir="$HOME/Library/LaunchAgents"
+  domain="gui/$(/usr/bin/id -u)"
   if [[ -d $launch_agents_dir ]]; then
     if [[ ! -r $launch_agents_dir || ! -x $launch_agents_dir ]]; then
       add_result "$section" 'User LaunchAgents' 'UNKNOWN' 'The user LaunchAgents directory is not readable' 'Review the directory permissions and rerun the audit.'
@@ -393,20 +402,46 @@ check_launch_agents() {
     shopt -u nullglob
   fi
 
+  if [[ -f $external_agents_file ]]; then
+    if ! external_agents_validate_records "$launch_agents_dir" "$domain"; then
+      add_result "$section" 'External LaunchAgent inventory' 'WARN' "$EXTERNAL_AGENTS_ERROR" 'Repair the owning source plist or its deployed copy, then rerun the audit.'
+      ((mismatch_count += 1))
+    fi
+  fi
+
   for disk_path in "${disk_paths[@]}"; do
     disk_name=${disk_path##*/}
     disk_names[${#disk_names[@]}]=$disk_name
     if array_contains "$disk_name" "${expected_names[@]}"; then
       continue
     fi
-    if ((${#external_agents[@]} > 0)) && array_contains "${disk_name%.disabled}" "${external_agents[@]}"; then
-      add_result "$section" 'Externally-managed user LaunchAgent' 'MANUAL' "$disk_name" 'Allowlisted in scripts/security/external-agents.local. Verify it against the repo that manages it; the audit does not check it against a manifest.'
+    external_label=${disk_name%.disabled}
+    external_label=${external_label%.plist}
+    if ((${#external_agents[@]} > 0)) && array_contains "$external_label" "${external_agents[@]}"; then
+      add_result "$section" 'Externally-managed user LaunchAgent' 'MANUAL' "$disk_name" 'Validated against scripts/security/external-agents.local; review the owning repository when changing this record.'
       ((external_count += 1))
       continue
     fi
     add_result "$section" 'Undeclared user LaunchAgent' 'WARN' "$disk_name" 'Remove the persistence or declare it in launchd.user.agents.'
     ((mismatch_count += 1))
   done
+
+  if ! external_agents_loaded_labels "$domain"; then
+    add_result "$section" 'Loaded user LaunchAgents' 'UNKNOWN' 'launchctl service inventory could not be read' 'Inspect the current GUI launchd domain and rerun the audit.'
+    ((mismatch_count += 1))
+  else
+    loaded_labels=("${EXTERNAL_AGENTS_LOADED_LABELS[@]}")
+    for loaded_label in "${loaded_labels[@]}"; do
+      case "$loaded_label" in
+      com.drgnxd.*)
+        if ! array_contains "$loaded_label" "${external_agents[@]}"; then
+          add_result "$section" 'Undeclared loaded LaunchAgent' 'WARN' "$loaded_label" 'Register this loaded job in scripts/security/external-agents.local or unload it.'
+          ((mismatch_count += 1))
+        fi
+        ;;
+      esac
+    done
+  fi
 
   for expected_name in "${expected_names[@]}"; do
     if ! array_contains "$expected_name" "${disk_names[@]}"; then
@@ -833,7 +868,7 @@ else
   render_table
 fi
 
-if ((STRICT_MODE == 1 && WARN_COUNT > 0)); then
+if ((STRICT_MODE == 1 && (WARN_COUNT > 0 || UNKNOWN_COUNT > 0))); then
   exit 1
 fi
 

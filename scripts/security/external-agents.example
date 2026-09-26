@@ -1,14 +1,25 @@
 # scripts/security/external-agents.local
 #
-# User LaunchAgents deliberately managed outside this flake. The macOS
-# security audit lists these as MANUAL ("verify against the managing repo")
-# instead of undeclared-persistence WARN. The re-registration helper uses the
-# same file as its only local allow-list.
+# User LaunchAgents deliberately managed outside this flake. The security
+# audit verifies these records and the re-registration helper only operates
+# on rows explicitly marked relaunch=true.
 #
-# One exact plist filename per line. Blank lines and '#' comments are ignored.
-# A name matches both `<name>.plist` and `<name>.plist.disabled` in the audit.
-# A LaunchAgent under the configured prefix that is NOT listed here still
-# WARNs. The relaunch helper only processes the listed `.plist` names.
+# Each data row has exactly seven `|`-separated fields:
+# Label|owner-repo-root|source-plist|deployed-plist|ProgramArguments[0]|enabled-or-disabled|true-or-false
+# Label is the exact extensionless launchd Label. Paths are absolute and
+# canonical; source-plist must be `<owner-repo-root>/.../<Label>.plist`.
+# The deployed path is `$HOME/Library/LaunchAgents/<Label>.plist` when enabled
+# and `<Label>.plist.disabled` when disabled. Source and deployed plist files
+# must be regular files, byte-identical, and agree with Label and
+# ProgramArguments[0]. Pipes, carriage returns, and newlines are not allowed
+# in values.
+#
+# A row is the local inventory for one externally owned job, independent of
+# whether it is eligible for a Nushell-path relaunch. Use `false` for shell or
+# other jobs that do not need that re-registration. Disabled rows cannot be
+# relaunch-enabled. Unknown on-disk or loaded jobs under the configured prefix
+# remain WARN, make `just security-audit --strict` fail, and block relaunch
+# before any job is changed.
 #
 # Optional relaunch directives are comments with the following exact forms:
 # relaunch-prefix=com.example.
@@ -22,5 +33,5 @@
 # relaunch-prefix=com.example.
 # relaunch-lock-path=/path/to/shared.lock
 # relaunch-lock-label=com.example.import
-# com.example.daily-thing.plist
-# com.example.backup.plist
+# com.example.daily-thing|/var/example-user/repos/daily-thing|/var/example-user/repos/daily-thing/launchd/com.example.daily-thing.plist|/var/example-user/Library/LaunchAgents/com.example.daily-thing.plist|/var/example-user/repos/daily-thing/bin/daily-thing|enabled|true
+# com.example.shell-monitor|/var/example-user/repos/monitor|/var/example-user/repos/monitor/launchd/com.example.shell-monitor.plist|/var/example-user/Library/LaunchAgents/com.example.shell-monitor.plist|/var/example-user/repos/monitor/check.sh|enabled|false
