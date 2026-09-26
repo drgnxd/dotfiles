@@ -16,7 +16,7 @@ just security-audit --json
 just security-audit --strict
 ```
 
-デフォルトの表と JSON 配列には同じチェックが含まれます。`--strict` は 1 件以上の `WARN` がある場合にステータス 1 で終了しますが、システム状態は変更しません。
+デフォルトの表と JSON 配列には同じチェックが含まれます。`--strict` は 1 件以上の `WARN` または `UNKNOWN` がある場合にステータス 1 で終了しますが、システム状態は変更しません。
 
 ## ステータス語彙
 
@@ -39,7 +39,7 @@ System extension は、明示的に宣言して根拠を示すまで `WARN` に�
 
 ## 外部管理の LaunchAgent
 
-一部のユーザー LaunchAgent は、この flake ではなく別のチェックアウト(別リポジトリにある個人的な自動化)が意図的に管理しています。その plist ファイル名を**正確に**、1行1つ(`#` コメント可)で `scripts/security/external-agents.local`(`**/*.local` により gitignore 済み。`scripts/security/external-agents.example` 参照)に列挙します。このファイルは再登録ヘルパーと共有する唯一のローカル allow-list で、任意の `relaunch-*` コメントディレクティブは監査から無視されます。列挙されたエージェントは `Externally-managed user LaunchAgent` / `MANUAL` として報告されます — 表示はされ、各々を所有リポジトリと照合するよう促しますが、drift としてはカウントされず `--strict` も落としません。同じ prefix でも未列挙のエージェントは引き続き `WARN` になり、各名前は `<name>.plist` と `<name>.plist.disabled` の両方に一致します。このファイルが無い場合(新規チェックアウト、CI)は従来どおり全ての未宣言エージェントが `WARN` になります。ファイル名はこの公開リポジトリに置かないでください。
+一部のユーザー LaunchAgent は、この flake ではなく別のチェックアウト(別リポジトリにある個人的な自動化)が意図的に管理しています。各jobを `scripts/security/external-agents.local`(`**/*.local` によりgitignore済み。`scripts/security/external-agents.example`参照)に登録します。1行は `|` 区切り7項目で、拡張子なしのlaunchd `Label`、所有リポジトリroot、source plist、絶対パスのdeployed plist、期待する `ProgramArguments[0]`、`enabled`/`disabled`状態、Nushell store path変更時に再登録するかを示す`true`/`false`です。共通parserが行全体を検証し、監査は所有rootがsourceのGit rootであること、source/deployed plistが通常ファイルでbyte一致すること、両plistの `Label` と `ProgramArguments[0]` が登録値に一致することを確認します。`enabled`は`<Label>.plist`、`disabled`は`<Label>.plist.disabled`に対応し、disabled行は再登録対象にできません。この台帳は外部管理jobの全件一覧で、再登録helperを操作できるのは`enabled`かつ`true`のjobだけです。登録済みjobは `Externally-managed user LaunchAgent` / `MANUAL` として表示されます。未登録の `com.drgnxd.*` plistまたはロード済みjobは `WARN`、台帳が不正またはlaunchd状態を確認できない場合は `UNKNOWN` となり、`--strict` はどちらでも失敗します。登録漏れがある場合、再登録helperもjobを変更する前に停止します。gitignore済み台帳がない新規checkout/CIでは、外部plistは従来どおり未宣言として警告されます。マシン固有のpathやlabelは公開リポジトリへ置かないでください。
 
 ## 許容済み System extension
 
