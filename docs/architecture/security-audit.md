@@ -16,7 +16,7 @@ just security-audit --json
 just security-audit --strict
 ```
 
-The default table and the JSON array contain the same checks. `--strict` exits with status 1 when at least one check is `WARN`; it does not change any system state.
+The default table and the JSON array contain the same checks. `--strict` exits with status 1 when at least one check is `WARN` or `UNKNOWN`; it does not change any system state.
 
 ## Status Vocabulary
 
@@ -39,7 +39,7 @@ System extensions receive `WARN` until they are explicitly declared and justifie
 
 ## Externally-Managed LaunchAgents
 
-Some user LaunchAgents are deliberately managed by a different checkout (personal automation living in another repository), not by this flake. List their **exact** plist filenames — one per line, `#` comments allowed — in `scripts/security/external-agents.local` (gitignored via `**/*.local`; see `scripts/security/external-agents.example`). This is the single local allow-list shared with the re-registration helper; its optional `relaunch-*` comment directives are ignored by the audit. Listed agents are reported as `Externally-managed user LaunchAgent` / `MANUAL` — visible, and a prompt to verify each against the repo that owns it, but not counted as drift and not tripping `--strict`. A LaunchAgent under the same prefix that is *not* listed still `WARN`s, and each listed name matches both `<name>.plist` and `<name>.plist.disabled`. With no such file present (a fresh checkout, CI) every undeclared agent `WARN`s as before. Keep the filenames out of this public repository.
+Some user LaunchAgents are deliberately managed by a different checkout (personal automation living in another repository), not by this flake. Record each external job in `scripts/security/external-agents.local` (gitignored via `**/*.local`; see `scripts/security/external-agents.example`) as seven `|`-separated fields: the extensionless launchd `Label`, owner repository root, source plist, absolute deployed plist path, expected `ProgramArguments[0]`, desired `enabled`/`disabled` state, and `true`/`false` for relaunch on a Nushell store-path change. The shared parser validates the complete row and the audit verifies that the owner is the source file's Git root, source/deployed files are regular and byte-identical, and both plists match the registered `Label` and `ProgramArguments[0]`. Enabled rows map to `<Label>.plist`; disabled rows map to `<Label>.plist.disabled` and cannot be relaunch-enabled. These records are the full external inventory, while only enabled rows marked `true` authorize the re-registration helper. The audit reports registered jobs as `Externally-managed user LaunchAgent` / `MANUAL`; unregistered on-disk or loaded `com.drgnxd.*` jobs are `WARN`. Invalid inventory or uninspectable launchd state is `UNKNOWN`. `--strict` therefore fails when integration is incomplete, and the re-registration helper stops before changing any job if an external job is missing from the local inventory. A fresh checkout or CI without the ignored local manifest still warns about each undeclared external plist. Keep machine-specific paths and labels out of this public repository.
 
 ## Justified System Extensions
 

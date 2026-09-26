@@ -28,8 +28,8 @@ switch-darwin:
   sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
   bash scripts/darwin/relaunch_scheduled_agents.sh
 
-# Re-register locally configured external scheduled LaunchAgents after a
-# nushell store-path change (no-op unless it changed; pass --force to override).
+# Re-register eligible external scheduled LaunchAgents after a Nushell
+# store-path change; targeted dry-run and explicit one-Label recovery are available.
 relaunch-agents *args:
   bash scripts/darwin/relaunch_scheduled_agents.sh {{args}}
 
@@ -72,6 +72,10 @@ usage:
 # Report the read-only macOS security posture
 security-audit *args:
   scripts/security/audit_darwin.sh {{args}}
+
+# Test the local external LaunchAgent inventory parser
+test-external-agents:
+  bash scripts/security/test_external_agents.sh
 
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
