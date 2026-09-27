@@ -47,7 +47,7 @@
   "agent": {
     "build": {
       "model": "openai/gpt-6-luna",
-      "variant": "medium",
+      "variant": "high",
       "permission": {
         "task": {
           "*": "deny",
