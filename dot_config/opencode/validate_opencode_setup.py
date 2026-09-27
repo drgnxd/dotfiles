@@ -120,7 +120,7 @@ def validate_config(errors: list[str]) -> None:
         errors.append("review-deep must be read-only")
 
     expected_routes = {
-        "build": ("openai/gpt-6-luna", "medium"),
+        "build": ("openai/gpt-6-luna", "high"),
         "plan": ("openai/gpt-6-sol", "medium"),
         "general": ("openai/gpt-6-luna", "medium"),
         "explore": ("openai/gpt-6-luna", "low"),
