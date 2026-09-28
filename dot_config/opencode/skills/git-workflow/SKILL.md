@@ -18,7 +18,13 @@ description: Use before Git history changes.
 - Before committing, inspect `git status`, `git diff`, and `git log --oneline -10`.
   Stage only intended files and never commit secrets.
 - Run the target repository's commit-message validation command or installed
-  `commit-msg` hook; do not use `--no-verify` to bypass it.
+  `commit-msg` hook when available; do not use `--no-verify` to bypass it.
+- Before committing, draft the exact subject and body and compare them field by
+  field with every applicable requirement in the target repository's documented
+  contract, including summary opening/action, type/scope, title formatting,
+  language, and body requirements. Re-read the exact final message immediately
+  before committing; a valid Conventional Commits prefix alone does not
+  establish repository-specific compliance.
 - Run all validation gates declared by the active repository.
 - Do not commit while a required validation gate fails.
 - Do not amend, force-push, or use interactive git commands unless explicitly
