@@ -17,6 +17,7 @@
 __pycache__/
 
 # Temporary/cache directories
+.direnv/
 dot_cache/
 dot_local/share/Trash/
 dot_local/state/
