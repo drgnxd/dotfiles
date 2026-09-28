@@ -24,7 +24,7 @@ for argument in "$@"; do
   *)
     printf 'Unknown option: %s\n' "$argument" >&2
     printf 'Usage: %s [--json] [--strict]\n' "${0##*/}" >&2
-    exit 0
+    exit 2
     ;;
   esac
 done
