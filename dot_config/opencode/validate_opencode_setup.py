@@ -127,7 +127,7 @@ def validate_config(errors: list[str]) -> None:
         "compaction": ("openai/gpt-6-luna", "low"),
         "title": ("openai/gpt-6-luna", "low"),
         "summary": ("openai/gpt-6-luna", "low"),
-        "review-deep": ("openai/gpt-6-sol", "high"),
+        "review-deep": ("openai/gpt-6.1-sol", "high"),
         "review-main": ("openai/gpt-5.6-terra", "medium"),
     }
     agents = config.get("agent", {})

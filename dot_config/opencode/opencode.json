@@ -20,6 +20,13 @@
             "output": 128000
           }
         },
+        "gpt-6.1-sol": {
+          "limit": {
+            "context": 1050000,
+            "input": 922000,
+            "output": 128000
+          }
+        },
         "gpt-5.6-terra": {
           "limit": {
             "context": 1050000,
@@ -81,7 +88,7 @@
     "review-deep": {
       "description": "Reviews complex or high-risk changes without editing; use for correctness, security, architecture, regressions, and missing tests.",
       "mode": "subagent",
-      "model": "openai/gpt-6-sol",
+      "model": "openai/gpt-6.1-sol",
       "variant": "high",
       "permission": {
         "*": "deny",
