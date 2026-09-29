@@ -290,8 +290,10 @@ in
   system.activationScripts.securityHardening.text = ''
     /usr/bin/defaults delete /Library/Preferences/com.apple.loginwindow LoginwindowText 2>/dev/null || true
 
-    /usr/sbin/systemsetup -setremotelogin off || true
-    /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off || true
+    # Failures (e.g. missing Full Disk Access) must be visible, not silently
+    # reported as success.
+    /usr/sbin/systemsetup -setremotelogin off || echo "warning: could not disable Remote Login" >&2
+    /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off || echo "warning: could not disable Remote Management" >&2
   '';
 
   system.activationScripts.postActivation.text = ''
