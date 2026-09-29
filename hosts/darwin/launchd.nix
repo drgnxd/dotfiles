@@ -140,6 +140,31 @@ in
     };
   };
 
+  # The store GC itself must run as root: a user-run `nix store gc` fails with
+  # EPERM from App Management when it deletes a store path containing a .app
+  # (Alacritty, en-croissant, ...). The user agent nix-gc (home/modules/nix_gc.nix)
+  # only prunes profile generations and runs 30 min earlier.
+  launchd.daemons.nix-store-gc = {
+    serviceConfig = {
+      ProgramArguments = [
+        "/nix/var/nix/profiles/default/bin/nix"
+        "store"
+        "gc"
+      ];
+      StartCalendarInterval = [
+        {
+          Weekday = 0;
+          Hour = 5;
+          Minute = 30;
+        }
+      ];
+      RunAtLoad = false;
+      ProcessType = "Background";
+      StandardOutPath = "/var/log/nix-store-gc.log";
+      StandardErrorPath = "/var/log/nix-store-gc.log";
+    };
+  };
+
   # ── nix-darwin LaunchAgent definitions ───────────────────────────────
 
   launchd.user.agents = {
