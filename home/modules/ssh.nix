@@ -15,7 +15,7 @@
         AddKeysToAgent = "yes";
         Compression = false;
         ControlMaster = "auto";
-        ControlPath = "~/.ssh/cm-%r@%h:%p";
+        ControlPath = "~/.ssh/cm-%C";
         ControlPersist = "10m";
         HashKnownHosts = true;
         ServerAliveInterval = 60;
