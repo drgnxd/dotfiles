@@ -310,6 +310,7 @@ jobs:
               ("docs/architecture/floorp.md", "docs/architecture/floorp.ja.md"),
               ("docs/architecture/nushell.md", "docs/architecture/nushell.ja.md"),
               ("docs/architecture/platform-support.md", "docs/architecture/platform-support.ja.md"),
+              ("docs/architecture/security-audit.md", "docs/architecture/security-audit.ja.md"),
               ("docs/architecture/security-model.md", "docs/architecture/security-model.ja.md"),
               ("docs/architecture/workflow.md", "docs/architecture/workflow.ja.md"),
               ("docs/architecture/troubleshooting.md", "docs/architecture/troubleshooting.ja.md"),
