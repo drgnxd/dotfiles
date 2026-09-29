@@ -91,6 +91,23 @@ Nushell パスの sentinel を無視する必要がある場合に限り `--forc
 なってから再実行します。検証に失敗した場合は、修正して再試行できるよう sentinel
 は更新されません。
 
+## Git hook が `/nix/store` のパス欠落で失敗する
+
+git-hooks.nix が生成する hook は store パスを埋め込む。ガベージコレクションや
+`flake.lock` の更新でそのパスが消えると、すべての commit が
+`No such file or directory` で失敗する。devshell から再生成する。
+
+```sh
+nix develop path:. -c true
+```
+
+`specifies a sandbox profile, but this is only allowed when 'sandbox' is
+'relaxed'` で失敗する場合、devshell の入力が relaxed な Darwin sandbox を必要と
+しており、非 trusted な Nix ユーザーには許可できない。`nix/checks.nix` は
+`pre-commit` をテスト無しでビルドし、`nix/devshells.nix` は `marksman` を join して
+これを回避している。`sudo` に頼る前に、`__sandboxProfile` を伝播する新しい入力が
+ないかを確認する。壊れた hook を `--no-verify` で回避してはならない。
+
 ## 素の `darwin-rebuild switch` が毎回巻き戻すもの
 
 switch は純粋な追加操作ではありません。**毎回**次も行います。
