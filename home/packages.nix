@@ -38,10 +38,10 @@ let
     "yazi"
   ];
 
-  gui_apps_darwin = [
-    # Floorp: managed via homebrew cask; Linux uses floorp-bin from nixpkgs
-    "maccy"
-  ];
+  # Darwin GUI apps are homebrew casks (hosts/darwin/default.nix): a .app in
+  # /nix/store makes user-run `nix store gc` fail with EPERM from App
+  # Management. Linux uses floorp-bin from nixpkgs.
+  gui_apps_darwin = [ ];
 
   gui_apps_linux = [
     "wl-clipboard"
