@@ -35,7 +35,6 @@
     settings = {
       diff = {
         algorithm = "histogram";
-        external = "${pkgs.difftastic}/bin/difft";
         tool = "difftastic";
       };
       "difftool \"difftastic\"" = {
