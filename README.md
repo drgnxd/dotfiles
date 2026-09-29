@@ -130,11 +130,12 @@ Existing `.age` payloads were encrypted for the previous recipient set; after se
 The base OpenCode config is managed from `dot_config/opencode/opencode.json`.
 For machine-specific provider settings, edit `~/.config/opencode/opencode.local.json`.
 
-- `dot_config/opencode/global_rules.md` is deployed read-only as
-  `~/.config/opencode/AGENTS.md`.
+- `dot_config/opencode/global_rules.md` is concatenated with the git-ignored
+  `~/.config/opencode/AGENTS.local.md` during activation and deployed as a
+  writable real file, `~/.config/opencode/AGENTS.md`.
 - Global skills under `dot_config/opencode/skills/` are symlinked read-only from the Nix store. Repository-local skills under `.opencode/skills/` are not deployed globally.
-- Read-only assets are symlinked from the Nix store: `AGENTS.md`, `opencode-notifier.json`, and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
-- Writable files remain real files synced during activation: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `package-lock.json`, and `tools/`. Activation runs `npm ci --omit=dev --ignore-scripts` only when the managed dependency lock or installed plugin version differs.
+- Read-only assets are symlinked from the Nix store: `opencode-notifier.json` and managed skill directories. Edit them in `dot_config/opencode/`, then rebuild or switch to apply changes.
+- Writable files remain real files synced during activation: `AGENTS.md`, `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `package-lock.json`, and `tools/`. Activation runs `npm ci --omit=dev --ignore-scripts` only when the managed dependency lock or installed plugin version differs.
 - `tools/` is synced as real files because a Nix-store realpath cannot walk up to `~/.config/opencode/node_modules` for Bun module resolution.
 - During activation, a non-empty `~/.config/opencode/opencode.local.json` is recursively merged into the managed template. Local scalar values and arrays replace the managed value; object keys are merged. Use it for machine-local providers and optional plugins.
 - `package.json` pins only the plugin SDK dependency (`@opencode-ai/plugin`) required by locally managed plugins. It does not enable any OpenCode plugin by itself.
