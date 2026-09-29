@@ -96,7 +96,10 @@ in
           return 0
         fi
 
-        $DRY_RUN_CMD mv -f "$target" "$backup"
+        if [ -e "$backup" ] || [ -L "$backup" ]; then
+          backup="$backup.$(date +%Y%m%d%H%M%S)"
+        fi
+        $DRY_RUN_CMD mv "$target" "$backup"
       fi
     }
 
@@ -179,7 +182,7 @@ in
     if [ -s "$opencode_local_override" ]; then
       # Merge objects recursively while letting local arrays and scalar values
       # replace the managed defaults. This preserves globally managed agents.
-      ${jaq} --slurpfile base "${opencode_template}" --slurpfile local "$opencode_local_override" -n '
+      if ${jaq} --slurpfile base "${opencode_template}" --slurpfile local "$opencode_local_override" -n '
         def deepmerge($base; $override):
           if ($base | type) != "object" or ($override | type) != "object"
           then $override
@@ -188,8 +191,12 @@ in
           )
           end;
         deepmerge($base[0]; $local[0])
-      ' > "$opencode_target.tmp"
-      mv -f "$opencode_target.tmp" "$opencode_target"
+      ' > "$opencode_target.tmp"; then
+        mv -f "$opencode_target.tmp" "$opencode_target"
+      else
+        rm -f "$opencode_target.tmp"
+        echo "warning: opencode.local.json could not be merged (invalid JSON?); keeping the current opencode.json" >&2
+      fi
     else
       cp -f "${opencode_template}" "$opencode_target"
     fi
@@ -276,7 +283,11 @@ in
         if diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
           return 0
         fi
-        mv -f "$dest_file" "$backup_file"
+        # Keep the first backup; later template updates would otherwise
+        # overwrite it with a previous managed copy.
+        if [ ! -e "$backup_file" ] && [ ! -L "$backup_file" ]; then
+          mv "$dest_file" "$backup_file"
+        fi
       fi
 
       cp -f "$src_file" "$dest_file"
@@ -320,9 +331,14 @@ in
        [ "$(cat "$dependencies_digest_file")" != "$dependency_digest" ] || \
        [ "$installed_plugin_version" != "$expected_plugin_version" ]; then
       mkdir -p "$dependencies_state_dir"
-      (cd "$opencode_dir" && ${npm} ci --omit=dev --ignore-scripts)
-      printf '%s\n' "$dependency_digest" > "$dependencies_digest_file.tmp"
-      mv -f "$dependencies_digest_file.tmp" "$dependencies_digest_file"
+      # A network failure must not abort the whole switch; the digest is only
+      # recorded on success, so the install is retried on the next activation.
+      if (cd "$opencode_dir" && ${npm} ci --omit=dev --ignore-scripts); then
+        printf '%s\n' "$dependency_digest" > "$dependencies_digest_file.tmp"
+        mv -f "$dependencies_digest_file.tmp" "$dependencies_digest_file"
+      else
+        echo "warning: npm ci for OpenCode dependencies failed; will retry on next activation" >&2
+      fi
     fi
 
     # Keep only the real files OpenCode writes back to user-writable.
