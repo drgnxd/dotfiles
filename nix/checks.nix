@@ -18,6 +18,19 @@ forAllSystems (
     formatting = (treefmtEval sys).config.build.check src;
     pre-commit-check = git-hooks.lib.${sys}.run {
       inherit src;
+      # nixpkgs' pre-commit test suite needs a relaxed Darwin sandbox, which
+      # an untrusted Nix user cannot grant, so an uncached build breaks the
+      # devshell and every git hook. The tests add nothing to a hook runner.
+      package =
+        if p.stdenv.hostPlatform.isDarwin then
+          p.pre-commit.overridePythonAttrs (_: {
+            doCheck = false;
+            doInstallCheck = false;
+            dontUsePytestCheck = true;
+            nativeCheckInputs = [ ];
+          })
+        else
+          p.pre-commit;
       hooks = {
         treefmt = {
           enable = true;
