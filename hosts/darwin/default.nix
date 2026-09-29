@@ -248,6 +248,7 @@ in
       "signal"
 
       "logi-options+"
+      "maccy"
 
       "proton-drive"
       "proton-mail"
