@@ -13,8 +13,44 @@ description: Use before Git history changes.
   style established in `git log --oneline -20`; fall back to Conventional
   Commits only when neither source establishes a convention.
 - Keep one logical change per commit.
-- Create a feature branch for substantial, risky, review-bound, or
-  protected-branch work. Never commit directly to protected branches.
+- Never make task edits with `main` checked out or in detached HEAD. For every
+  user-requested task, regardless of size, record the live local
+  `refs/heads/main` OID and create a fresh uniquely named task branch/worktree
+  from that exact OID before editing. Verify the branch, path, and base OID;
+  if names/paths exist or the branch is in use, choose new ones or stop.
+- Keep implementation edits, commits, tests, generators, and conflict
+  resolution in task/integration worktrees. Scope explicit and implicit output
+  paths (baselines, caches, databases, logs, temp files, configs) to those
+  worktrees; inspect hooks/filters and stop if they may push, alter main/other
+  refs, or write outside the current worktree. Preserve user data; do not use
+  reset/restore/clean/stash/delete to make a worktree appear clean.
+- For a revision before integration, verify remaining changes are task-owned,
+  checkpoint them in the current task branch, inspect ignored/untracked state,
+  then create a fresh revision branch/worktree from that checkpoint. If
+  ownership is unclear, stop and coordinate. For revisions after integration,
+  create a fresh branch/worktree from current main. Never reuse prior names.
+- Integrate every completed task into local `main`; a task-branch commit alone
+  is not completion. Record the task base OID, all task commit OIDs, and task
+  tip OID; do not rebase, squash, or rewrite them. If main still equals the task
+  base, use the task tip as integration tip. If main advanced as a descendant,
+  create a fresh integration branch/worktree from current main and merge the
+  immutable task-tip OID there, preserving task commits. If histories diverged
+  or repository policy requires rewriting, stop and coordinate. If task
+  changes a submodule gitlink, treat the nested repository as a separate task;
+  verify nested HEAD/status and source availability before changing the parent,
+  and do not auto-update or push it.
+- Serialize local main integration with a repository-wide lock under the
+  common Git directory. Acquire it before preflight and hold it through
+  post-check; all cooperating agents must honor it. If occupied or unavailable,
+  stop without removing another owner's lock. The only permitted update to the
+  main worktree/index/ref is the complete fast-forward integration command;
+  never manually edit, stage, commit, reset, restore, clean, cherry-pick, squash,
+  or resolve conflicts there. Use
+  `git merge --ff-only --no-overwrite-ignore <recorded-integration-OID>`; do not
+  push. If Git refuses, preserve state and coordinate.
+- If concurrent work is discovered after edits have begun in a shared
+  worktree, stop all mutations there and preserve its state. Do not move or
+  selectively clean mixed/ambiguous changes.
 - Before committing, inspect `git status`, `git diff`, and `git log --oneline -10`.
   Stage only intended files and never commit secrets.
 - Run the target repository's commit-message validation command or installed
@@ -29,5 +65,29 @@ description: Use before Git history changes.
 - Do not commit while a required validation gate fails.
 - Do not amend, force-push, or use interactive git commands unless explicitly
   requested.
+- Before integration, require main checked out on `main`, HEAD equal to the
+  live ref, ordinary tracked/untracked status clean, and no
+  assume-unchanged/skip-worktree entries. Record main's pre-integration OID,
+  ignored/untracked path inventory, task tip, integration tip, and all intended
+  task commits. Verify no `refs/replace/*` affects OID/tree checks. Enumerate
+  the expected final tracked paths and all untracked/ignored paths with
+  `git status --short --untracked-files=all --ignored=matching`; compare paths
+  pairwise and across existing data using target-filesystem canonicalization,
+  including case, Unicode, reserved names, trailing dot/space, and file/
+  directory/symlink aliases. Reject collisions or unrepresentable paths; never
+  overwrite user data. Inspect invoked hooks/filters for writes, remote access,
+  and submodule recursion; stop if unsafe or unknown.
+- Immediately before fast-forward, recheck the recorded main OID, integration
+  OID, lock ownership, and worktree state; stop/rebuild if any changed. Verify
+  the task/integration branch refs changed only through the recorded commands.
+  After integration, verify live main ref and HEAD/tree equal the recorded
+  integration tip, task commits/content are present, and main status has no
+  unexplained changes. Inspect every used worktree/nested repo. Do not report
+  completion while task changes remain outside main or verification is
+  ambiguous.
+- Remove only task/integration branches and worktrees recorded as created by
+  this task, after the integration OID is reachable from main, their tips are
+  integrated, their tracked/untracked/ignored state is safe, and no worktree is
+  using them. If Git refuses removal, preserve them and report the blocker.
 - When reporting a commit to the user, quote its message verbatim, including its
   language, rather than paraphrasing or translating it into the reply language.
