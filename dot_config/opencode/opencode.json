@@ -89,7 +89,7 @@
       "description": "Reviews complex or high-risk changes without editing; use for correctness, security, architecture, regressions, and missing tests.",
       "mode": "subagent",
       "model": "openai/gpt-6.1-sol",
-      "variant": "high",
+      "variant": "xhigh",
       "permission": {
         "*": "deny",
         "read": "allow",
@@ -101,7 +101,7 @@
     "review-main": {
       "description": "Reviews a concrete proposal with the independent-review model, without editing or accessing anything beyond the supplied artifact.",
       "mode": "subagent",
-      "model": "openai/gpt-5.6-terra",
+      "model": "openai/gpt-6.1-sol",
       "variant": "medium",
       "permission": {
         "*": "deny",
