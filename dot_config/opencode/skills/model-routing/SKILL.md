@@ -26,6 +26,9 @@ description: Use when routing models or delegating.
 - Compare cost using the user's actual billing path. Public API token prices do
   not establish Codex quota consumption; when actual usage cannot be measured,
   state that cost as unknown rather than inferring it from API prices.
+- Before setting context, input, or output limit overrides, compare the active
+  OpenCode model catalog with the official model specifications. Add an
+  override only for a verified mismatch, and recheck it after catalog updates.
 - Use higher reasoning effort only where expected review value justifies its
   additional token use and latency. Reserve `xhigh` and `max` for complex or
   high-impact work; prefer a lower effort when the risk does not warrant the

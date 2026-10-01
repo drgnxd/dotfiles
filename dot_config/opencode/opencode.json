@@ -11,29 +11,6 @@
     "openai": {
       "options": {
         "headerTimeout": 60000
-      },
-      "models": {
-        "gpt-6-luna": {
-          "limit": {
-            "context": 1050000,
-            "input": 922000,
-            "output": 128000
-          }
-        },
-        "gpt-6.1-sol": {
-          "limit": {
-            "context": 1050000,
-            "input": 922000,
-            "output": 128000
-          }
-        },
-        "gpt-5.6-terra": {
-          "limit": {
-            "context": 1050000,
-            "input": 922000,
-            "output": 128000
-          }
-        }
       }
     }
   },
