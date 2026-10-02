@@ -88,6 +88,9 @@ description: Use before Git history changes.
 - Remove only task/integration branches and worktrees recorded as created by
   this task, after the integration OID is reachable from main, their tips are
   integrated, their tracked/untracked/ignored state is safe, and no worktree is
-  using them. If Git refuses removal, preserve them and report the blocker.
+  using them. If Git refuses removal, apply the target repository's documented
+  remediation for that refusal; if none applies or it stops, preserve them and
+  report the blocker. Never force-remove. While they remain, report the task as
+  incomplete, not done.
 - When reporting a commit to the user, quote its message verbatim, including its
   language, rather than paraphrasing or translating it into the reply language.
