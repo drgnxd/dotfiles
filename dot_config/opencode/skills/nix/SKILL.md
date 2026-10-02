@@ -5,9 +5,9 @@ description: Use when editing Nix flakes or deployment workflows.
 
 # Nix Preferences
 
-- Prefer flake-native commands and follow the active repository's documented
-  evaluation and deployment workflow.
-- Use `path:.` only when local evaluation must include untracked or ignored
-  files; otherwise preserve the repository's source semantics.
+- `path:.` copies untracked and ignored files, possibly secrets, into the
+  world-readable Nix store. Use it only when local evaluation must include them;
+  otherwise follow the repository's documented evaluation and deployment
+  workflow.
 - Resolve configuration attributes dynamically when the repository supports
-  multiple users or hosts. Do not invent target names.
+  multiple users or hosts; do not invent target names.
