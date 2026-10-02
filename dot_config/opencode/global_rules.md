@@ -1,4 +1,4 @@
-# OpenCode Global Rules
+# Global Agent Rules
 
 - Follow more specific project rules when present. Before reporting a background task as progressing or complete, verify its process or output state.
 - Prefer reusable, vendor-neutral plain-text/Markdown for persisted material.

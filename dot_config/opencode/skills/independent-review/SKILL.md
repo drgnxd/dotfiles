@@ -9,8 +9,8 @@ Two gates, in order, before implementation starts on a non-trivial technical pro
 
 1. **Independent review by a context-free agent.** Before asking for approval
    or touching files, send the concrete proposal — a diff, plan, or design doc,
-   not a paraphrase of it — to a fresh subagent (or a different model/vendor,
-   where available) that has not seen this conversation. Give it the artifact
+   not a paraphrase of it — to a fresh subagent provided by the active client
+   that has not seen this conversation. Give it the artifact
    plus the minimum standalone context needed to judge it. Incorporate its
    findings into a revised proposal; if it finds nothing, say so explicitly
    rather than silently skipping the step. **The dispatch must be a real tool
@@ -62,7 +62,8 @@ effort as a whole.
   and minimum standalone background — not a summary written by the proposing
   session, which inherits its blind spots. In OpenCode, dispatch the
   `review-main` subagent; it uses the configured independent-review model and
-  permits only Read, Glob, and Grep.
+  permits only Read, Glob, and Grep. In Claude Code, dispatch the `Review`
+  agent.
 - Ask for concrete failure scenarios, not general praise or a restatement of
   the proposal.
 - A review is complete only when the fresh reviewer returns a non-empty result
@@ -70,7 +71,7 @@ effort as a whole.
   cancellation, malformed result, or tool failure leaves gate 2 unmet.
 - Relay unresolved findings to the user before or alongside implementing the
   fix.
-- If no subagent or independent model is reachable (rate-limited, offline,
+- If no fresh subagent is reachable (rate-limited, offline,
   no eligible route per `model-routing`), do not treat the proposal as
   reviewed. Say so explicitly and let the user decide whether to proceed
   without gate 2 or wait.

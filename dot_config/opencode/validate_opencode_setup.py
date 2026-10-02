@@ -245,6 +245,11 @@ def validate_model_routing(errors: list[str]) -> None:
     if "claude_delegate" in skill or "Claude" in skill:
         errors.append("model-routing must not route to external AI")
 
+    references_dir = BASE_DIR / "skills" / "model-routing" / "references"
+    for reference in sorted(references_dir.glob("*.md")) if references_dir.is_dir() else []:
+        if "claude_delegate" in reference.read_text(encoding="utf-8"):
+            errors.append(f"{reference.name} must not route to claude_delegate")
+
     tools_dir = BASE_DIR / "tools"
     if (tools_dir / "claude_delegate.ts").exists():
         errors.append("claude_delegate.ts must not be installed")

@@ -5,39 +5,31 @@ description: Use when routing models or delegating.
 
 # Runtime Routing
 
-- Use only OpenCode-provided models and tools for model inference. Never invoke
-  or delegate to an external AI model, client, CLI, or API. Non-AI MCP tools
-  remain available only when their project skill explicitly requires them.
-- Keep the primary agent as the default entry point and make routing decisions
-  without asking the user to select a mode.
+Agent names below (`review-main`, `explore`, `general`, `review-deep`) are
+OpenCode's. In another client, keep every rule here and map the agent names via
+`references/<client>.md`; if no such file exists, report that instead of guessing
+a route.
+
+- For model inference and delegation use only models and subagents provided by
+  the active client. Never invoke or delegate to an external AI model, client,
+  CLI, or API.
+- In OpenCode, non-AI MCP tools remain available only when their project skill
+  explicitly requires them.
+- Keep the primary agent as the default entry point and route without asking the
+  user to select a mode.
 - Keep edits, secrets, security decisions, irreversible actions, and final
   verification on the primary authenticated model.
-- For an `independent-review` gate, dispatch `review-main` only. It is the
-  fresh, context-free, read-only reviewer; do not substitute `review-deep`.
+- For an `independent-review` gate, dispatch `review-main` only; it is the
+  fresh, context-free, read-only reviewer. Do not substitute `review-deep`.
 - Use `explore` for bounded read-only discovery, `general` for bounded
   multi-step support, and `review-deep` only for explicitly high-impact review.
-- Respect each agent's `steps` limit. Do not retry a failed route by switching
-  providers or launching additional agents without a concrete reason.
-- Select and retain models and reasoning effort by role, comparing task
-  correctness and quality, actual billing or quota use, retries and human
-  correction, latency and availability, tool compatibility, and role-specific
-  constraints. Existing configuration, prior investment, and labels such as
-  `independent-review` are not sufficient reasons to keep an incumbent.
-- Compare cost using the user's actual billing path. Public API token prices do
-  not establish Codex quota consumption; when actual usage cannot be measured,
-  state that cost as unknown rather than inferring it from API prices.
-- Before setting context, input, or output limit overrides, compare the active
-  OpenCode model catalog with the official model specifications. Add an
-  override only for a verified mismatch, and recheck it after catalog updates.
-- Use higher reasoning effort only where expected review value justifies its
-  additional token use and latency. Reserve `xhigh` and `max` for complex or
-  high-impact work; prefer a lower effort when the risk does not warrant the
-  extra resource use. Measure actual quota use and review outcomes when
-  available.
-- Evaluate new models per role. For unresolved trade-offs, use a representative
-  pilot and compare quality, material misses, false positives, retries, actual
-  usage, latency, and reliability. Do not require an all-route benchmark to
-  replace an incumbent when the user has made an explicit choice or reliable
-  role-specific evidence establishes that it is dominated.
-- Treat unavailable-model and usage-limit errors as stop conditions. Report the
-  failure instead of silently changing provider, model, or effort.
+- Treat unavailable-model and usage-limit errors as stop conditions: report the
+  failure. Do not retry a failed route by switching provider, model, or effort,
+  or by launching additional agents, without a concrete reason.
+- Per-role models and efforts are pinned in `opencode.json` and enforced by
+  `validate_opencode_setup.py`; the criteria for choosing them are measured
+  quality, retries, latency, and actual billing or quota use. State cost as
+  unknown when it cannot be measured, and do not keep a model merely because it
+  is the incumbent. Reserve `xhigh` and `max` for complex or high-impact work.
+- Add a context or output limit override only for a mismatch verified against
+  the official model specification, and recheck it after catalog updates.
