@@ -25,6 +25,8 @@ let
   opencode_package_lock_template = ../../../dot_config/opencode/package-lock.json;
   opencode_tools_template = ../../../dot_config/opencode/tools;
   opencode_plugins_template = ../../../dot_config/opencode/plugins;
+  local_browser_sync = ../../../scripts/sync_opencode_local_browser.py;
+  local_browser_python = "${pkgs.python3}/bin/python3";
   jaq = "${pkgs.jaq}/bin/jaq";
   node = "${pkgs.nodejs_22}/bin/node";
   npm = "${pkgs.nodejs_22}/bin/npm";
@@ -104,6 +106,19 @@ in
     }
 
     ${migrateManagedAssetCommands}
+  '';
+
+  home.activation.prepareLocalOpencodeBrowser = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    if [ -n "''${DRY_RUN_CMD:-}" ]; then
+      export OPENCODE_LOCAL_BROWSER_TRANSACTION=skip
+    else
+      export OPENCODE_LOCAL_BROWSER_ACTIVATION_PID="$BASHPID"
+      OPENCODE_LOCAL_BROWSER_TRANSACTION="$(${local_browser_python} ${local_browser_sync} prepare \
+        --config-home "${config.xdg.configHome}" \
+        --data-home "${config.xdg.dataHome}" \
+        --activation-pid "$OPENCODE_LOCAL_BROWSER_ACTIVATION_PID")"
+      export OPENCODE_LOCAL_BROWSER_TRANSACTION
+    fi
   '';
 
   home.activation.removeLegacyOpencodeAssets = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -234,6 +249,24 @@ in
     done
   '';
 
+  home.activation.syncLocalOpencodeBrowser =
+    lib.hm.dag.entryAfter
+      [
+        "linkGeneration"
+        "syncOpencodeTools"
+        "syncOpencodeRules"
+      ]
+      ''
+        if [ -n "''${DRY_RUN_CMD:-}" ] || [ "''${OPENCODE_LOCAL_BROWSER_TRANSACTION:-skip}" = skip ]; then
+          :
+        else
+          ${local_browser_python} ${local_browser_sync} deploy \
+            --config-home "${config.xdg.configHome}" \
+            --data-home "${config.xdg.dataHome}" \
+            --activation-pid "''${OPENCODE_LOCAL_BROWSER_ACTIVATION_PID:?missing Browser activation owner}" \
+            --transaction "''${OPENCODE_LOCAL_BROWSER_TRANSACTION:?missing Browser transaction}"
+        fi
+      '';
   home.activation.syncOpencodePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     plugins_src="${opencode_plugins_template}"
     plugins_dest="${config.xdg.configHome}/opencode/plugins"
