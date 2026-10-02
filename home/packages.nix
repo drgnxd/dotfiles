@@ -174,6 +174,17 @@ let
     ++ misc
   );
 
+  # git-annex's own test suite needs gpg-agent, which cannot start in the
+  # darwin build sandbox, and the pinned revision is not in the binary cache,
+  # so the local build fails at checkPhase. Remove this once
+  # `nix path-info --store https://cache.nixos.org <unoverridden out path>`
+  # succeeds for aarch64-darwin; the override can never be cached.
+  package_overrides = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+    git-annex = pkgs.git-annex.overrideAttrs (_: {
+      doCheck = false;
+    });
+  };
+
   # tryEval catches both missing attrs and broken/unfree evaluation failures.
   resolves =
     name:
@@ -195,7 +206,7 @@ let
       lib.warnIf (missing != [ ]) missing_message existing;
 in
 {
-  packages = map (name: pkgs.${name}) resolved_existing;
+  packages = map (name: package_overrides.${name} or pkgs.${name}) resolved_existing;
   inherit missing report;
   passthru = {
     inherit report;
