@@ -82,6 +82,7 @@ let
 
   git_tools = [
     "git-absorb"
+    "git-annex"
     "git-cliff"
     "git-crypt"
     "git-lfs"

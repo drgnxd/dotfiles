@@ -30,7 +30,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Window Manager:** SchemeSpoon (macOS only)
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker
 *   **Package Manager:** Nix (nix-darwin + home-manager)
-*   **Development Tools:** Git (with delta, git-lfs, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
+*   **Development Tools:** Git (with delta, git-lfs, git-annex, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
