@@ -241,9 +241,9 @@ def _load_generation(home_fd: int, home: str, data_home: str, generation: str) -
         os.close(generation_fd)
 
 
-def _process_start(pid: int) -> str | None:
+def _process_start(pid: int, ps_path: str) -> str | None:
     result = subprocess.run(
-        ["ps", "-p", str(pid), "-o", "lstart="],
+        [ps_path, "-p", str(pid), "-o", "lstart="],
         capture_output=True,
         text=True,
         check=False,
@@ -253,8 +253,13 @@ def _process_start(pid: int) -> str | None:
     return result.stdout.strip() or None
 
 
-def _ancestor_pids(pid: int) -> set[int]:
-    result = subprocess.run(["ps", "-axo", "pid=,ppid="], check=True, capture_output=True, text=True)
+def _ancestor_pids(pid: int, ps_path: str) -> set[int]:
+    result = subprocess.run(
+        [ps_path, "-axo", "pid=,ppid="],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     parents = {}
     for line in result.stdout.splitlines():
         fields = line.split()
@@ -272,16 +277,18 @@ def _ancestor_pids(pid: int) -> set[int]:
     return result_set
 
 
-def _running_clients(home: str, config_home: str, data_home: str, activation_pid: int) -> list[int]:
+def _running_clients(
+    home: str, config_home: str, data_home: str, activation_pid: int, ps_path: str
+) -> list[int]:
     result = subprocess.run(
-        ["ps", "-axo", "pid=,ppid=,comm=,args="],
+        [ps_path, "-axo", "pid=,ppid=,comm=,args="],
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode:
         raise SyncError("unable to inspect running OpenCode/Claude processes")
-    skipped = _ancestor_pids(activation_pid)
+    skipped = _ancestor_pids(activation_pid, ps_path)
     paths = [
         os.path.join(config_home, "opencode/tools/agent-browser.ts"),
         os.path.join(config_home, "opencode/tools/agent-browser-mcp"),
@@ -492,8 +499,8 @@ def _load_selector(home_fd: int, home: str, data_home: str) -> tuple[dict[str,An
     return selector,files,manifest_sha
 
 
-def _transaction_owner_live(marker: dict[str,Any]) -> bool:
-    start=_process_start(int(marker["activationPid"]))
+def _transaction_owner_live(marker: dict[str,Any], ps_path: str) -> bool:
+    start=_process_start(int(marker["activationPid"]), ps_path)
     return start is not None and start==marker.get("activationStart")
 
 
@@ -519,7 +526,11 @@ def _finish_deploy(home_fd: int, home: str, config_home: str, data_home: str, st
 
 
 def _prepare(args: argparse.Namespace, process_probe: Callable[...,list[int]] | None = None) -> str:
-    process_probe = process_probe or _running_clients
+    process_probe = process_probe or (
+        lambda home, config_home, data_home, activation_pid: _running_clients(
+            home, config_home, data_home, activation_pid, args.ps
+        )
+    )
     home,home_fd=_check_home(args.home)
     try:
         state_root=os.path.join(home,".local/state/opencode/agent-browser")
@@ -529,7 +540,7 @@ def _prepare(args: argparse.Namespace, process_probe: Callable[...,list[int]] | 
             try:
                 marker=_state_json(state_fd,"deploy-pending")
                 if marker:
-                    if _transaction_owner_live(marker):
+                    if _transaction_owner_live(marker, args.ps):
                         raise SyncError("another Home Manager activation owns the Browser marker")
                     _finish_deploy(home_fd,home,args.config_home,args.data_home,state_fd,marker,args.activation_pid,process_probe)
                 loaded=_load_selector(home_fd,home,args.data_home)
@@ -551,7 +562,7 @@ def _prepare(args: argparse.Namespace, process_probe: Callable[...,list[int]] | 
                 clients=process_probe(home,args.config_home,args.data_home,args.activation_pid)
                 if clients: raise SyncError("close OpenCode/Claude before Home Manager activation: "+", ".join(map(str,clients)))
                 transaction=secrets.token_hex(16)
-                marker_value={"schema":1,"transaction":transaction,"activationPid":args.activation_pid,"activationStart":_process_start(args.activation_pid),"previousGeneration":previous,"targetGeneration":generation,"targetManifestSha256":manifest_sha,"phase":"prepared"}
+                marker_value={"schema":1,"transaction":transaction,"activationPid":args.activation_pid,"activationStart":_process_start(args.activation_pid, args.ps),"previousGeneration":previous,"targetGeneration":generation,"targetManifestSha256":manifest_sha,"phase":"prepared"}
                 _write_state(state_fd,"deploy-pending",marker_value,exclusive=True)
                 clients=process_probe(home,args.config_home,args.data_home,args.activation_pid)
                 if clients:
@@ -564,7 +575,11 @@ def _prepare(args: argparse.Namespace, process_probe: Callable[...,list[int]] | 
 
 
 def _deploy(args: argparse.Namespace, process_probe: Callable[...,list[int]] | None = None) -> None:
-    process_probe = process_probe or _running_clients
+    process_probe = process_probe or (
+        lambda home, config_home, data_home, activation_pid: _running_clients(
+            home, config_home, data_home, activation_pid, args.ps
+        )
+    )
     if args.transaction=="skip": return
     home,home_fd=_check_home(args.home)
     try:
@@ -575,7 +590,7 @@ def _deploy(args: argparse.Namespace, process_probe: Callable[...,list[int]] | N
             try:
                 marker=_state_json(state_fd,"deploy-pending")
                 require(marker is not None and marker.get("transaction")==args.transaction,"activation marker mismatch")
-                require(marker.get("activationPid")==args.activation_pid and marker.get("activationStart")==_process_start(args.activation_pid),"activation owner mismatch")
+                require(marker.get("activationPid")==args.activation_pid and marker.get("activationStart")==_process_start(args.activation_pid, args.ps),"activation owner mismatch")
                 marker["phase"]="deploying"
                 _write_json(home_fd,home,state_root,"deploy-pending",marker)
                 _finish_deploy(home_fd,home,args.config_home,args.data_home,state_fd,marker,args.activation_pid,process_probe)
@@ -591,6 +606,7 @@ def main() -> int:
     parser.add_argument("--config-home",required=True)
     parser.add_argument("--data-home",required=True)
     parser.add_argument("--activation-pid",type=int,required=True)
+    parser.add_argument("--ps",required=True)
     parser.add_argument("--transaction")
     args=parser.parse_args()
     try:
