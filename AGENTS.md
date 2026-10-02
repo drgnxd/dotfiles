@@ -12,6 +12,7 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 
 - Scope gates to what changed; avoid unrelated formatting or rebuild churn.
 - For `.nix` changes, run `just fmt-check`, `just lint`, and `just dead`.
+- `fmt-check`, `lint`, and `dead` do not evaluate the configuration. For `.nix` changes that alter module output, also evaluate the full target (`nix eval --raw path:.#darwinConfigurations.darwin.system.drvPath` on macOS) and build the changed artifact.
 - For `.sh` changes, run `shfmt -d` on the changed shell files, or the repo-wide shell check when CI parity is needed.
 - For workflow changes, run `actionlint`.
 - For `dot_config/opencode/**`, run `uv run --directory dot_config/opencode python validate_opencode_setup.py`.
