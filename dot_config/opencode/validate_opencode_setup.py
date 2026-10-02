@@ -233,32 +233,36 @@ def validate_global_rules(errors: list[str]) -> None:
         errors.append("global_rules.md must require applicable Skill loading")
 
 
-def validate_model_routing(errors: list[str]) -> None:
-    skill_path = BASE_DIR / "skills" / "model-routing" / "SKILL.md"
-    if not skill_path.exists():
-        errors.append(f"Missing required file: {skill_path}")
-        return
-
-    skill = skill_path.read_text(encoding="utf-8")
-    if "dispatch `review-main` only" not in skill:
-        errors.append("model-routing must require review-main for independent-review gates")
-    if "claude_delegate" in skill or "Claude" in skill:
-        errors.append("model-routing must not route to external AI")
-
-    references_dir = BASE_DIR / "skills" / "model-routing" / "references"
-    for reference in sorted(references_dir.glob("*.md")) if references_dir.is_dir() else []:
-        if "claude_delegate" in reference.read_text(encoding="utf-8"):
-            errors.append(f"{reference.name} must not route to claude_delegate")
+def validate_delegation_rules(errors: list[str]) -> None:
+    rules_path = BASE_DIR / "global_rules.md"
+    review_path = BASE_DIR / "skills" / "independent-review" / "SKILL.md"
+    for path, phrase, message in (
+        (
+            rules_path,
+            "never invoke or delegate to an external AI",
+            "global_rules.md must forbid delegation to external AI",
+        ),
+        (
+            review_path,
+            "`review-main` subagent only",
+            "independent-review must require review-main only",
+        ),
+    ):
+        if not path.exists():
+            errors.append(f"Missing required file: {path}")
+        elif phrase not in path.read_text(encoding="utf-8"):
+            errors.append(message)
 
     tools_dir = BASE_DIR / "tools"
     if (tools_dir / "claude_delegate.ts").exists():
         errors.append("claude_delegate.ts must not be installed")
 
+
 def main() -> int:
     errors: list[str] = []
 
     validate_global_rules(errors)
-    validate_model_routing(errors)
+    validate_delegation_rules(errors)
     validate_config(errors)
     validate_package(errors)
     validate_tools(errors)

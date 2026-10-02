@@ -63,7 +63,7 @@
       "variant": "low"
     },
     "review-deep": {
-      "description": "Reviews complex or high-risk changes without editing; use for correctness, security, architecture, regressions, and missing tests.",
+      "description": "Reviews high-risk changes without editing. Use only when the user explicitly asks for a deep review or the change is high-impact (security, architecture, irreversible); not for routine diffs.",
       "mode": "subagent",
       "model": "openai/gpt-6.1-sol",
       "variant": "xhigh",
