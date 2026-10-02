@@ -19,8 +19,9 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   updates are out of scope unless explicitly assigned.
 - Prefer worktrees under `~/.local/state/<repo>/worktrees/`; do not use the
   client's built-in worktree isolation, which places them inside the repository.
-- Only the integrator integrates into `main`, takes the integration lock, checks
-  every worktree before `git worktree prune`, and removes worktrees and branches.
+- Only the integrator integrates into `main`, takes `main-integration.lock`,
+  checks every worktree before `git worktree prune`, and removes worktrees and
+  branches.
 - Pushing is governed by `git-workflow`; do not push unless the user asked, and
   then only the integrator pushes the refs the user named.
 
@@ -42,9 +43,10 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   times with backoff, then stop and report. Never remove a lock outside your
   own worktree's admin directory.
 - Keep generated output inside the worktree. For unavoidable shared resources
-  outside it, take an `mkdir` lock at `~/.local/state/<repo>/locks/<resource>.lock`
-  (with an owner file), fail instead of waiting if it exists, and release it
-  when done. Do not install `flock`.
+  outside it, take an `mkdir` lock at
+  `~/.local/state/<repo>/locks/<resource>.lock` containing an `owner` file (as
+  `main-integration.lock` does). Fail instead of waiting if it exists, and
+  release it only if the owner file is yours. Do not install `flock`.
 
 ## Finishing
 

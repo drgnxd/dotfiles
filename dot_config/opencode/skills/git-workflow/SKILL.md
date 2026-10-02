@@ -18,6 +18,26 @@ description: Use before Git history changes.
   `refs/heads/main` OID and create a fresh uniquely named task branch/worktree
   from that exact OID before editing. Verify the branch, path, and base OID;
   if names/paths exist or the branch is in use, choose new ones or stop.
+- Unless the target repository documents its own branch naming, name the
+  worktree directory `<slug>-<YYYYMMDD>-<NN>` and its branch
+  `task/<slug>-<YYYYMMDD>-<NN>` (`integration/...` for an integration branch).
+  `<slug>` is 2-4 lowercase ASCII words of letters and digits joined by hyphens
+  that say what the task does; the date is local. `<NN>` is a two-digit number
+  greater than every number already seen for that slug and date in local
+  branches, worktree directories, `git worktree list --porcelain` entries,
+  stale `.git/worktrees/` admin directories, and remote-tracking refs; never
+  fill a gap. Create branch and worktree in one
+  `git worktree add -b <branch> <path> <OID>`; if it fails, treat the name as
+  taken and pick a higher `<NN>`, and never adopt an existing branch. A revision
+  gets a fresh `<NN>`. Right after creation, the creator records the task, and
+  for revisions or integrations the parent branch and base or checkpoint OID,
+  with `git config branch.<branch>.description "<text>"` (not
+  `--edit-description`, which opens an editor); this is the one shared-config
+  write allowed, and only before concurrent agents start.
+- A detached-HEAD worktree is allowed only for read-only inspection that cannot
+  share an existing worktree. It uses the same directory naming, and it is
+  removed like other task worktrees. Existing worktrees and branches keep their
+  names.
 - Keep implementation edits, commits, tests, generators, and conflict
   resolution in task/integration worktrees. Scope explicit and implicit output
   paths (baselines, caches, databases, logs, temp files, configs) to those
@@ -40,11 +60,15 @@ description: Use before Git history changes.
   verify nested HEAD/status and source availability before changing the parent,
   and do not auto-update or push it.
 - Serialize local main integration with a repository-wide lock under the
-  common Git directory. Acquire it before preflight and hold it through
-  post-check; all cooperating agents must honor it. If occupied or unavailable,
-  stop without removing another owner's lock. The only permitted update to the
-  main worktree/index/ref is the complete fast-forward integration command;
-  never manually edit, stage, commit, reset, restore, clean, cherry-pick, squash,
+  common Git directory: `main-integration.lock`, a directory created with
+  `mkdir` that holds an `owner` file with your token. A directory without an
+  `owner` file counts as occupied; ignore `main-integration.lock.released.*`.
+  Release it only when the token matches, by renaming it to
+  `main-integration.lock.released.<token>`. Acquire it before preflight and
+  hold it through post-check; all cooperating agents must honor it. If occupied
+  or unavailable, stop without removing another owner's lock. The only
+  permitted update to the main worktree/index/ref is the complete fast-forward
+  integration command; never manually edit, stage, commit, reset, restore, clean, cherry-pick, squash,
   or resolve conflicts there. Use
   `git merge --ff-only --no-overwrite-ignore <recorded-integration-OID>`; do not
   push. If Git refuses, preserve state and coordinate.
