@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import shutil
 import stat
 import tempfile
 import unittest
@@ -33,8 +34,10 @@ class LocalBrowserSyncTests(unittest.TestCase):
             "config_home": str(self.config),
             "data_home": str(self.data),
             "activation_pid": os.getpid(),
+            "ps": shutil.which("ps"),
             "transaction": None,
         })()
+        self.assertTrue(self.args.ps and os.path.isabs(self.args.ps))
 
     def tearDown(self):
         self.temp.cleanup()
@@ -48,12 +51,27 @@ class LocalBrowserSyncTests(unittest.TestCase):
             'export OPENCODE_LOCAL_BROWSER_ACTIVATION_PID="$BASHPID"', activation
         )
         self.assertIn(
-            '--activation-pid "$OPENCODE_LOCAL_BROWSER_ACTIVATION_PID")"', activation
+            '--activation-pid "$OPENCODE_LOCAL_BROWSER_ACTIVATION_PID" \\', activation
         )
         self.assertIn(
             '--activation-pid "\'\'${OPENCODE_LOCAL_BROWSER_ACTIVATION_PID:',
             activation,
         )
+        self.assertIn('local_browser_ps =', activation)
+        self.assertEqual(activation.count('--ps "${local_browser_ps}"'), 2)
+
+    def test_process_checks_use_explicit_ps_path_without_path(self):
+        with patch.dict(os.environ, {"PATH": ""}):
+            self.assertIsNotNone(SYNC._process_start(os.getpid(), self.args.ps))
+            self.assertIn(os.getpid(), SYNC._ancestor_pids(os.getpid(), self.args.ps))
+            clients = SYNC._running_clients(
+                str(self.home),
+                str(self.config),
+                str(self.data),
+                os.getpid(),
+                self.args.ps,
+            )
+        self.assertIsInstance(clients, list)
 
     def assert_targets_match(self,generation,files):
         for kind,root,path,source in SYNC.OUTPUTS:

@@ -27,6 +27,7 @@ let
   opencode_plugins_template = ../../../dot_config/opencode/plugins;
   local_browser_sync = ../../../scripts/sync_opencode_local_browser.py;
   local_browser_python = "${pkgs.python3}/bin/python3";
+  local_browser_ps = if pkgs.stdenv.hostPlatform.isDarwin then "/bin/ps" else "${pkgs.procps}/bin/ps";
   jaq = "${pkgs.jaq}/bin/jaq";
   node = "${pkgs.nodejs_22}/bin/node";
   npm = "${pkgs.nodejs_22}/bin/npm";
@@ -116,7 +117,8 @@ in
       OPENCODE_LOCAL_BROWSER_TRANSACTION="$(${local_browser_python} ${local_browser_sync} prepare \
         --config-home "${config.xdg.configHome}" \
         --data-home "${config.xdg.dataHome}" \
-        --activation-pid "$OPENCODE_LOCAL_BROWSER_ACTIVATION_PID")"
+        --activation-pid "$OPENCODE_LOCAL_BROWSER_ACTIVATION_PID" \
+        --ps "${local_browser_ps}")"
       export OPENCODE_LOCAL_BROWSER_TRANSACTION
     fi
   '';
@@ -264,6 +266,7 @@ in
             --config-home "${config.xdg.configHome}" \
             --data-home "${config.xdg.dataHome}" \
             --activation-pid "''${OPENCODE_LOCAL_BROWSER_ACTIVATION_PID:?missing Browser activation owner}" \
+            --ps "${local_browser_ps}" \
             --transaction "''${OPENCODE_LOCAL_BROWSER_TRANSACTION:?missing Browser transaction}"
         fi
       '';
