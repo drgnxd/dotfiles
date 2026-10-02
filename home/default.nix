@@ -72,7 +72,7 @@ let
     };
   };
   claude_settings_json = pkgs.runCommand "claude-settings.json" { } ''
-    ${pkgs.jq}/bin/jq . ${builtins.toFile "claude-settings-raw.json" (builtins.toJSON claude_settings)} > $out
+    ${pkgs.jq}/bin/jq . ${pkgs.writeText "claude-settings-raw.json" (builtins.toJSON claude_settings)} > $out
   '';
 in
 {
