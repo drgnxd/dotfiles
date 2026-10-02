@@ -29,6 +29,8 @@ let
     builtins.readFile ../dot_local/share/claude/settings.json
   );
   claude_notify = pkgs.writeShellScript "claude-notify" ''
+    # Scheduled jobs (launchd) set this variable to run quietly.
+    [ -n "$OPENCODE_NOTIFIER_CONFIG_PATH" ] && exit 0
     input=$(cat)
     cwd=$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.cwd // empty')
     case "$1" in

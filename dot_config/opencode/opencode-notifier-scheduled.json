@@ -1,7 +1,5 @@
 {
-  "events": {
-    "permission": { "sound": false, "notification": false },
-    "complete": { "sound": false, "notification": false },
-    "subagent_complete": { "sound": false, "notification": false }
-  }
+  "sound": false,
+  "notification": false,
+  "bell": false
 }
