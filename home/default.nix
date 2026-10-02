@@ -28,12 +28,22 @@ let
   claude_settings_base = builtins.fromJSON (
     builtins.readFile ../dot_local/share/claude/settings.json
   );
-  # opencode-notifier's absolute path depends on this machine's username, so
-  # it is built here from `user`/`config.home.homeDirectory` rather than
-  # hardcoded in the committed settings.json (see AGENTS.md: "Never
-  # hardcode usernames or hostnames").
-  opencode_notifier_cli = "${config.home.homeDirectory}/repos/opencode-notifier/src/cli.ts";
-  per_user_bun = "/etc/profiles/per-user/${user}/bin/bun";
+  claude_notify = pkgs.writeShellScript "claude-notify" ''
+    input=$(cat)
+    cwd=$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.cwd // empty')
+    case "$1" in
+      complete) body="Session has finished" ;;
+      *) body=$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.message // "Session needs attention"') ;;
+    esac
+    title="Claude Code"
+    if [ -n "$cwd" ]; then
+      title="Claude Code ($(basename "$cwd"))"
+    fi
+    /usr/bin/osascript \
+      -e 'on run argv' \
+      -e 'display notification (item 1 of argv) with title (item 2 of argv)' \
+      -e 'end run' -- "$body" "$title"
+  '';
   claude_settings = claude_settings_base // {
     autoMode = claude_settings_base.autoMode // {
       environment = claude_settings_base.autoMode.environment ++ claude_local_environment;
@@ -44,7 +54,7 @@ let
           hooks = [
             {
               type = "command";
-              command = "${per_user_bun} run ${opencode_notifier_cli} --event complete 2>/dev/null || true";
+              command = "${claude_notify} complete 2>/dev/null || true";
             }
           ];
         }
@@ -54,7 +64,7 @@ let
           hooks = [
             {
               type = "command";
-              command = "${per_user_bun} run ${opencode_notifier_cli} --event permission 2>/dev/null || true";
+              command = "${claude_notify} permission 2>/dev/null || true";
             }
           ];
         }
