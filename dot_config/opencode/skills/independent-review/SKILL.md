@@ -61,8 +61,8 @@ effort as a whole.
 - Use the native fresh reviewer for the current tool, with only the diff/plan
   and minimum standalone background — not a summary written by the proposing
   session, which inherits its blind spots. In OpenCode, dispatch the
-  `review-main` subagent; it uses the configured independent-review model and
-  permits only Read, Glob, and Grep. In Claude Code, dispatch the `Review`
+  `review-main` subagent only (never `review-deep`); it uses the configured
+  independent-review model and permits only Read, Glob, and Grep. In Claude Code, dispatch the `Review`
   agent.
 - Ask for concrete failure scenarios, not general praise or a restatement of
   the proposal.
@@ -72,7 +72,7 @@ effort as a whole.
 - Relay unresolved findings to the user before or alongside implementing the
   fix.
 - If no fresh subagent is reachable (rate-limited, offline,
-  no eligible route per `model-routing`), do not treat the proposal as
+  no eligible route), do not treat the proposal as
   reviewed. Say so explicitly and let the user decide whether to proceed
   without gate 2 or wait.
 
