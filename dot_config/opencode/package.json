@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.31.0",
-    "@opencode-ai/plugin": "1.18.32",
+    "@opencode-ai/plugin": "1.18.34",
     "playwright": "1.64.0-alpha-1790635538000",
     "effect": "4.0.0-beta.83",
     "tsx": "4.23.15",
