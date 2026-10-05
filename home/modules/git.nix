@@ -32,6 +32,11 @@
   programs.git = {
     enable = true;
 
+    ignores = [
+      "**/.claude/settings.local.json"
+      ".pre-commit-config.yaml"
+    ];
+
     settings = {
       diff = {
         algorithm = "histogram";
