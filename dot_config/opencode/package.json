@@ -3,7 +3,7 @@
     "@modelcontextprotocol/sdk": "1.31.0",
     "@opencode-ai/plugin": "1.18.32",
     "playwright": "1.64.0-alpha-1790635538000",
-    "effect": "4.0.0-beta.83",
+    "effect": "4.0.0",
     "tsx": "4.23.15",
     "zod": "4.6.5"
   }
