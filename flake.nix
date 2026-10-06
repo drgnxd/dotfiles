@@ -155,7 +155,6 @@
                 playwrightMcp.authLogin
                 playwrightMcp.authServer
                 playwrightMcp.launcher
-                playwrightMcp.stateTool
               ];
             };
           }

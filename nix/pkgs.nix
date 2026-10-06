@@ -41,6 +41,36 @@
                 install -Dm755 "$src" "$out/bin/proton-drive"
               '';
             };
+
+          ungoogledChromium =
+            if prev.stdenv.hostPlatform.system == "aarch64-darwin" then
+              let
+                version = "154.0.8037.57-1.1";
+              in
+              prev.stdenvNoCC.mkDerivation {
+                pname = "ungoogled-chromium";
+                inherit version;
+
+                src = prev.fetchurl {
+                  url = "https://github.com/ungoogled-software/ungoogled-chromium-macos/releases/download/${version}/ungoogled-chromium_${version}_arm64-macos.dmg";
+                  sha256 = "20b9b3104032c2011c89c8356fd94169565f3c9880ae281119ea189634a85e00";
+                };
+
+                nativeBuildInputs = [ prev.undmg ];
+                dontFixup = true;
+                dontPatchShebangs = true;
+                dontStrip = true;
+                sourceRoot = "Chromium.app";
+
+                installPhase = ''
+                  mkdir -p "$out/Applications"
+                  cp -R . "$out/Applications/Chromium.app"
+                '';
+
+                meta.platforms = [ "aarch64-darwin" ];
+              }
+            else
+              prev.chromium;
         })
       ];
     };

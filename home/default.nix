@@ -145,7 +145,6 @@ in
     playwright_mcp.authLogin
     playwright_mcp.authServer
     playwright_mcp.launcher
-    playwright_mcp.stateTool
   ];
 
   warnings = lib.optional (packages.missing != [ ]) (
