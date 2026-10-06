@@ -37,7 +37,13 @@ forAllSystems (
       ]
       ++ repo_language_tools
       ++ pre-commit-check.enabledPackages;
-      inherit (pre-commit-check) shellHook;
+      # git-hooks.nix installs .pre-commit-config.yaml into the cwd repository,
+      # so only run it when entered from a checkout of this flake.
+      shellHook = ''
+        if [ -f "$(git rev-parse --show-toplevel 2>/dev/null)/nix/devshells.nix" ]; then
+          ${pre-commit-check.shellHook}
+        fi
+      '';
     };
   }
 )
