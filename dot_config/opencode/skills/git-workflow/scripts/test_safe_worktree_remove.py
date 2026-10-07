@@ -78,7 +78,7 @@ def test_removes_symlinked_worktree_and_branch(repo: Path) -> None:
 
 
 def config_keys(repo: Path, pattern: str) -> str:
-    return subprocess.run(["git", "config", "--get-regexp", pattern], cwd=repo, capture_output=True, text=True).stdout
+    return subprocess.run(["git", "config", "--get-regexp", pattern], cwd=repo, capture_output=True, text=True, check=False).stdout
 
 
 def test_owner_goes_to_stderr_and_stdout_is_unchanged(repo: Path) -> None:
@@ -237,7 +237,7 @@ def test_expect_owner_is_enforced_in_dry_run(repo: Path) -> None:
 
 
 def git_supports_relative_paths() -> bool:
-    result = subprocess.run(["git", "worktree", "add", "-h"], capture_output=True, text=True)
+    result = subprocess.run(["git", "worktree", "add", "-h"], capture_output=True, text=True, check=False)
     return "relative-paths" in result.stdout + result.stderr
 
 

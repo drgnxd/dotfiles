@@ -24,10 +24,10 @@ import signal
 import socket
 import subprocess
 import sys
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 DEFAULT_LOCK_NAME = "main-integration.lock"
 IN_PROGRESS = (
