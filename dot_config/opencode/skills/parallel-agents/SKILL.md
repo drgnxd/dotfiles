@@ -5,7 +5,7 @@ description: Use when you launch writing subagents, work as a delegated writing 
 
 # Parallel Writing Agents
 
-Complements `git-workflow` and the global worktree rules; it only fills gaps and
+Complements `git-workflow` and the global rules; it only fills gaps and
 never relaxes them. Where it conflicts with either, the stricter rule wins.
 
 ## Parent / integrator
@@ -16,7 +16,8 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   and that the agent must not integrate. Subagents inherit the parent's cwd, so
   an unstated path means they write in the parent's worktree.
 - Assign disjoint edit scopes. Formatters, codegen, and dependency or lockfile
-  updates are out of scope unless explicitly assigned.
+  updates are out of scope unless explicitly assigned. Worktrees isolate only
+  files, the index, and checkout state; they do not prevent merge conflicts.
 - Place worktrees under `~/.local/state/<repo>/worktrees/` (the global rules
   require this, never `$TMPDIR`), and name and record them as `git-workflow`
   specifies; do not use the client's built-in worktree isolation, which places

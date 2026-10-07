@@ -36,8 +36,10 @@ description: Use before Git history changes.
   `git config branch.<branch>.description "<text>"` (not
   `--edit-description`, which opens an editor); this is the one shared-config
   write allowed at creation, and only before concurrent agents start.
-- A detached-HEAD worktree is allowed only for read-only inspection that cannot
-  share an existing worktree. It uses the same directory naming, and it is
+- A read-only agent may share a worktree only if it does not checkout, generate,
+  format, update dependencies, or otherwise write files. A detached-HEAD
+  worktree is allowed only for read-only inspection that cannot share an
+  existing worktree. It uses the same directory naming, and it is
   removed like other task worktrees. Existing worktrees and branches keep their
   names.
 - Keep implementation edits, commits, tests, generators, and conflict
@@ -51,6 +53,11 @@ description: Use before Git history changes.
   then create a fresh revision branch/worktree from that checkpoint. If
   ownership is unclear, stop and coordinate. For revisions after integration,
   create a fresh branch/worktree from current main. Never reuse prior names.
+- When other writers may be active, record the commit OID and the intended
+  branch tip right after committing. Before reporting completion verify the OID
+  is still reachable from that branch and the branch tree still contains the
+  change; if the tip moved or either check fails, stop and re-inspect status,
+  history, and the target diff.
 - Integrate every completed task into local `main`; a task-branch commit alone
   is not completion. Record the task base OID, all task commit OIDs, and task
   tip OID; do not rebase, squash, or rewrite them. If main still equals the task
@@ -75,10 +82,14 @@ description: Use before Git history changes.
   `git merge --ff-only --no-overwrite-ignore <recorded-integration-OID>`; do not
   push. If Git refuses, preserve state and coordinate.
 - If concurrent work is discovered after edits have begun in a shared
-  worktree, stop all mutations there and preserve its state. Do not move or
-  selectively clean mixed/ambiguous changes.
-- Before committing, inspect `git status`, `git diff`, and `git log --oneline -10`.
-  Stage only intended files and never commit secrets.
+  worktree, or staged or unstaged changes there have unclear ownership or fall
+  outside the task, stop all mutations there (checkout, staging, commit, reset,
+  restore, clean, rebase) and preserve its state; continue only in a dedicated
+  worktree. Do not move or selectively clean mixed/ambiguous changes.
+- Before committing, inspect `git status`, both `git diff` and `git diff --cached`,
+  and `git log --oneline -10`; verify every staged change belongs to the task,
+  stage only intended files, preserve unrelated changes, and never commit
+  secrets.
 - Run the target repository's commit-message validation command or installed
   `commit-msg` hook when available; do not use `--no-verify` to bypass it.
 - Before committing, draft the exact subject and body and compare them field by
@@ -116,8 +127,9 @@ description: Use before Git history changes.
   integrated, their tracked/untracked/ignored state is safe, and no worktree is
   using them. If Git refuses removal, apply the target repository's documented
   remediation for that refusal; if none applies or it stops, preserve them and
-  report the blocker. Never force-remove. While they remain, report the task as
-  incomplete, not done. To remove a worktree run
+  report the blocker. Never force-remove. Get explicit approval before any
+  irreversible data or history loss, and stop if ownership or integration is
+  ambiguous. While they remain, report the task as incomplete, not done. To remove a worktree run
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
   --expect-owner "<task text you recorded>" [--delete-branch] [--base <ref>]`,
   where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
