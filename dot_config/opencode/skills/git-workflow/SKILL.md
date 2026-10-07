@@ -31,9 +31,11 @@ description: Use before Git history changes.
   taken and pick a higher `<NN>`, and never adopt an existing branch. A revision
   gets a fresh `<NN>`. Right after creation, the creator records the task, and
   for revisions or integrations the parent branch and base or checkpoint OID,
-  with `git config branch.<branch>.description "<text>"` (not
+  and ends the text with `client=<claude|opencode|copilot>` (the agent cannot reliably
+  know its session id, so do not record one), with
+  `git config branch.<branch>.description "<text>"` (not
   `--edit-description`, which opens an editor); this is the one shared-config
-  write allowed, and only before concurrent agents start.
+  write allowed at creation, and only before concurrent agents start.
 - A detached-HEAD worktree is allowed only for read-only inspection that cannot
   share an existing worktree. It uses the same directory naming, and it is
   removed like other task worktrees. Existing worktrees and branches keep their
@@ -115,6 +117,19 @@ description: Use before Git history changes.
   using them. If Git refuses removal, apply the target repository's documented
   remediation for that refusal; if none applies or it stops, preserve them and
   report the blocker. Never force-remove. While they remain, report the task as
-  incomplete, not done.
+  incomplete, not done. To remove a worktree run
+  `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
+  --expect-owner "<task text you recorded>" [--delete-branch] [--base <ref>]`,
+  where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
+  `~/.local/share/claude/skills/git-workflow` (same files). Release your own
+  `main-integration.lock` first; the script takes it. It refuses unless the
+  worktree is clean (ignored and untracked included), has no hidden edits,
+  in-progress operation, submodule, or process with its cwd inside (needs
+  `lsof`), HEAD and every HEAD-reflog commit are reachable from `--base`
+  (default `main`), and the branch description contains the `--expect-owner`
+  text; without that option ownership is not checked. It copes with git-annex's
+  `.git` symlink, prints `owner:` on stderr, drops the deleted branch's config
+  section, and never forces. Any refusal is a stop condition, and
+  `--allow-unreferenced-reflog` needs the user's explicit approval.
 - When reporting a commit to the user, quote its message verbatim, including its
   language, rather than paraphrasing or translating it into the reply language.

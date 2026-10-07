@@ -80,6 +80,10 @@ test-external-agents:
 test-private-terms:
   bash scripts/security/test_private_terms.sh
 
+# Test the worktree removal helper bundled with the git-workflow skill
+test-worktree-remove:
+  uv run --python 3.11 --with pytest pytest -q dot_config/opencode/skills/git-workflow/scripts/test_safe_worktree_remove.py
+
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
   scripts/check-public-boundary.sh
