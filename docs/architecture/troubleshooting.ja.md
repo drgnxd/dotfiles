@@ -124,10 +124,10 @@ switch は純粋な追加操作ではありません。**毎回**次も行いま
   トラックパッド速度 7、メニューバー時計(秒/日付/曜日)、Control Center の表示
   項目(Wi-Fi・バッテリー・再生中を非表示)、スクリーンショット保存先
   `~/Desktop/Screenshots`、テキスト自動置換すべてオフ。
-- **CodexBarを一瞬Quitして再起動する**: `setenv-user-env`
+- **CodexBarとSwiftBarを一瞬Quitして再起動する**: `setenv-user-env`
   (`hosts/darwin/launchd.nix`)は自身のスクリプト内容または`userLaunchdEnv`が
   変わるたびに再実行され、実行のたびにenv再投入後に`postSetenvRelaunchApps`
-  (現状CodexBarのみ)の各アプリをQuit→再起動する — 上の「launchd 環境変数の
+  (現状CodexBarとSwiftBar)の各アプリをQuit→再起動する — 上の「launchd 環境変数の
   問題」節を参照。
 - **アプリが作る「ログイン時に起動」エージェントを毎回削除する**:
   `eu.exelban.Stats(.LaunchAtLogin)`・`org.p0deje.Maccy`・旧

@@ -172,16 +172,6 @@ in
 
   launchd.user.agents = {
     # Managed agents: environment variables, logging, and umask
-    # Automation backbone (Hammerspoon's role before it): relaunch on crash
-    # like a normal always-on utility, but a deliberate Quit from its own
-    # menu (clean exit) stays quit rather than fighting the user.
-    schemespoon = mkManagedAgent {
-      name = "schemespoon";
-      programArgs = [ "${home_dir}/Applications/SchemeSpoon.app/Contents/MacOS/schemespoon" ];
-      keepAlive = {
-        SuccessfulExit = false;
-      };
-    };
     maccy = mkManagedAgent {
       name = "maccy";
       programArgs = [ "${mkOpenWrapper "maccy" "Maccy"}/bin/open-maccy" ];

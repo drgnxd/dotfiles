@@ -128,10 +128,10 @@ A switch is not purely additive. On **every** run it also:
   mouse & trackpad tracking speed 7, menu-bar clock (seconds/date/day),
   Control Center visibility (Wi-Fi / battery / now-playing hidden), screenshot
   folder `~/Desktop/Screenshots`, all text substitutions off.
-- **Briefly quits and relaunches CodexBar**: `setenv-user-env`
+- **Briefly quits and relaunches CodexBar and SwiftBar**: `setenv-user-env`
   (`hosts/darwin/launchd.nix`) reruns whenever its own script content or
   `userLaunchdEnv` changes, and each run quits then reopens every app in
-  `postSetenvRelaunchApps` (currently just CodexBar) after replaying the env
+  `postSetenvRelaunchApps` (currently CodexBar and SwiftBar) after replaying the env
   — see the "launchd Environment Issues" section above.
 - **Removes app-created "Launch at Login" agents** every switch:
   `eu.exelban.Stats(.LaunchAtLogin)`, `org.p0deje.Maccy`, legacy

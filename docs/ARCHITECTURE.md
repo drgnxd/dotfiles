@@ -143,15 +143,15 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 - hypr-input-watcher (input source auto-switcher in `scripts/linux/`, supervised as a systemd user service)
 - Helper scripts (`scripts/linux/hypr-*`, including `scripts/linux/hypr-input-watcher`)
 
-**SchemeSpoon -> Hyprland mapping**:
+**macOS -> Hyprland mapping**:
 
-| macOS (SchemeSpoon) | Linux (Hyprland) |
+| macOS | Linux (Hyprland) |
 |---------------------|------------------|
 | Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
 | Sol launcher (Cmd+Space) | Wofi (Super+Space) |
-| Auto input switching | fcitx5 `windowrulev2` |
-| Caffeine mode | hypridle toggle script |
-| Cheatsheet (Ctrl+Alt+/) | Wofi dmenu script |
+| Auto input switching (retired) | fcitx5 `windowrulev2` |
+| Caffeine mode (SwiftBar plugin) | hypridle toggle script |
+| Cheatsheet (retired) | Wofi dmenu script |
 | Stats.app menubar | Waybar modules |
 | Maccy clipboard | cliphist + wl-clipboard |
 

@@ -143,15 +143,15 @@ Linux デスクトップ統合は `home/modules/linux/` の Home Manager モジ�
 - hypr-input-watcher（`scripts/linux/` の入力ソース自動切替、systemd ユーザーサービスで監視）
 - 補助スクリプト（`scripts/linux/hypr-*`、`scripts/linux/hypr-input-watcher` を含む）
 
-**SchemeSpoon -> Hyprland mapping**:
+**macOS -> Hyprland mapping**:
 
-| macOS (SchemeSpoon) | Linux (Hyprland) |
+| macOS | Linux (Hyprland) |
 |---------------------|------------------|
 | Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
 | Sol launcher (Cmd+Space) | Wofi (Super+Space) |
-| Auto input switching | fcitx5 `windowrulev2` |
-| Caffeine mode | hypridle toggle script |
-| Cheatsheet (Ctrl+Alt+/) | Wofi dmenu script |
+| Auto input switching (retired) | fcitx5 `windowrulev2` |
+| Caffeine mode (SwiftBar plugin) | hypridle toggle script |
+| Cheatsheet (retired) | Wofi dmenu script |
 | Stats.app menubar | Waybar modules |
 | Maccy clipboard | cliphist + wl-clipboard |
 

@@ -10,7 +10,7 @@
       # Log dirs for every mkManagedAgent / launchd.agents agent (their
       # StandardOutPath/StandardErrorPath is ~/.local/state/launchagents/<name>/;
       # launchd silently drops output when the parent dir is missing).
-      for agent in schemespoon maccy stats nix-gc setenv-scihome setenv-user-env remap-capslock; do
+      for agent in maccy stats nix-gc setenv-scihome setenv-user-env remap-capslock; do
         mkdir -p "$HOME/.local/state/launchagents/$agent"
       done
       mkdir -p "$HOME/.local/state/automation-failures"
