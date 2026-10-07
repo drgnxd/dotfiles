@@ -135,30 +135,10 @@
         x86_64-linux.default = self.homeConfigurations."${user}@${linuxHostname}".activationPackage;
       };
 
-      devShells =
-        let
-          defaultShells = import ./nix/devshells.nix {
-            inherit nixpkgs forAllSystems treefmtEval;
-            inherit (self) checks;
-          };
-        in
-        forAllSystems (
-          sys:
-          let
-            pkgs = nixpkgs.legacyPackages.${sys};
-            playwrightMcp = import ./nix/playwright-mcp.nix { inherit pkgs; };
-          in
-          defaultShells.${sys}
-          // {
-            playwright = pkgs.mkShell {
-              packages = [
-                playwrightMcp.authLogin
-                playwrightMcp.authServer
-                playwrightMcp.launcher
-              ];
-            };
-          }
-        );
+      devShells = import ./nix/devshells.nix {
+        inherit nixpkgs forAllSystems treefmtEval;
+        inherit (self) checks;
+      };
 
       apps = import ./nix/apps.nix { inherit nixpkgs forAllSystems; };
 

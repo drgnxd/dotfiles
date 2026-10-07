@@ -10,7 +10,6 @@
 
 let
   packages = import ./packages.nix { inherit pkgs lib; };
-  playwright_mcp = import ../nix/playwright-mcp.nix { inherit pkgs; };
 
   # Personal autoMode.environment entries (org, source control, sensitive
   # locations) kept out of this public repo. Same local-override pattern as
@@ -142,11 +141,7 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
 
-  home.packages = packages.packages ++ [
-    playwright_mcp.authLogin
-    playwright_mcp.authServer
-    playwright_mcp.launcher
-  ];
+  home.packages = packages.packages;
 
   warnings = lib.optional (packages.missing != [ ]) (
     "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)
