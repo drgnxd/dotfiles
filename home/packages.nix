@@ -174,12 +174,13 @@ let
     ++ misc
   );
 
-  # git-annex's own test suite needs gpg-agent, which cannot start in the
-  # darwin build sandbox, and the pinned revision is not in the binary cache,
-  # so the local build fails at checkPhase. Remove this once
-  # `nix path-info --store https://cache.nixos.org <unoverridden out path>`
-  # succeeds for aarch64-darwin; the override can never be cached.
-  package_overrides = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+  # git-annex's own test suite is not reproducible in a build sandbox: on
+  # darwin gpg-agent cannot start and the pinned revision is not in the binary
+  # cache, and on Linux the bup remote test fails ("remote ... has no colon").
+  # Remove this once `nix path-info --store https://cache.nixos.org
+  # <unoverridden out path>` succeeds for the platform; the override can never
+  # be cached.
+  package_overrides = {
     git-annex = pkgs.git-annex.overrideAttrs (_: {
       doCheck = false;
     });
