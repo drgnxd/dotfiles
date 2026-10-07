@@ -139,8 +139,14 @@ description: Use before Git history changes.
   in-progress operation, submodule, or process with its cwd inside (needs
   `lsof`), HEAD and every HEAD-reflog commit are reachable from `--base`
   (default `main`), and the branch description contains the `--expect-owner`
-  text; without that option ownership is not checked. It copes with git-annex's
-  `.git` symlink, prints `owner:` on stderr, drops the deleted branch's config
+  text; without that option ownership is not checked. The only ignored-path
+  exception is a root `cultura.db` symlink that resolves to the regular
+  `cultura.db` in the registered `main` worktree. It unlinks only the symlink,
+  rechecks the worktree, and restores the link on refusal when its path remains
+  free; the database target is never touched. The caller must exclude all
+  writers for the complete inspection-to-removal interval; the script lock
+  coordinates cooperating removals only. It copes with git-annex's `.git`
+  symlink, prints `owner:` on stderr, drops the deleted branch's config
   section, and never forces. Any refusal is a stop condition, and
   `--allow-unreferenced-reflog` needs the user's explicit approval.
 - When reporting a commit to the user, quote its message verbatim, including its

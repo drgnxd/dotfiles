@@ -9,6 +9,12 @@ running another git-annex command in between. This script does that after
 verifying the worktree holds nothing that would be lost; it never forces
 anything and restores the symlink if Git still refuses.
 
+The root ignored `cultura.db` symlink is removable only when it resolves to the
+regular `cultura.db` in the registered `main` worktree. The script unlinks that
+symlink itself before Git removes the worktree; it never opens or removes the
+database target. The caller must exclude all writers for the full operation;
+the script lock coordinates cooperating removals only.
+
 Residual risk: `git worktree remove` runs its own `git status`, which can start
 the git-annex clean filter. If that turns `.git` back into a symlink, Git
 refuses and the symlink is restored; nothing is deleted.
@@ -22,6 +28,7 @@ import secrets
 import shutil
 import signal
 import socket
+import stat
 import subprocess
 import sys
 from collections.abc import Iterator
@@ -50,6 +57,7 @@ class Target:
     admin_dir: Path
     common_dir: Path
     main_worktree: Path
+    main_branch_worktree: Path | None
     branch_ref: str | None
     uses_annex: bool
     symlink_target: str | None
@@ -63,10 +71,25 @@ class Target:
         return f"owner: {one_line}"
 
 
+@dataclass(frozen=True)
+class CanonicalDatabaseLink:
+    link_text: str
+    target: Path
+    target_identity: tuple[int, int]
+
+
 def run_git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
     env = {k: v for k, v in os.environ.items() if k not in INHERITED_GIT_ENV}
     try:
         return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=False, env=env)
+    except OSError as error:
+        raise RemovalError(f"cannot run git in {cwd}: {error}") from error
+
+
+def run_git_bytes(cwd: Path, *args: str) -> subprocess.CompletedProcess[bytes]:
+    env = {k: v for k, v in os.environ.items() if k not in INHERITED_GIT_ENV}
+    try:
+        return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=False, check=False, env=env)
     except OSError as error:
         raise RemovalError(f"cannot run git in {cwd}: {error}") from error
 
@@ -76,6 +99,39 @@ def git_out(cwd: Path, *args: str) -> str:
     if result.returncode != 0:
         raise RemovalError(f"git {' '.join(args)} failed in {cwd}: {result.stderr.strip()}")
     return result.stdout.strip()
+
+
+def parse_status_z(output: bytes) -> list[tuple[bytes, bytes]]:
+    fields = output.split(b"\0")
+    entries: list[tuple[bytes, bytes]] = []
+    index = 0
+    while index < len(fields) - 1:
+        record = fields[index]
+        index += 1
+        if not record:
+            continue
+        if len(record) < 3 or record[2:3] != b" ":
+            raise RemovalError("git status returned an invalid porcelain record")
+        status, path = record[:2], record[3:]
+        entries.append((status, path))
+        if b"R" in status or b"C" in status:
+            index += 1
+    return entries
+
+
+def status_entries(worktree: Path) -> list[tuple[bytes, bytes]]:
+    result = run_git_bytes(
+        worktree, "status", "--porcelain=v1", "--ignored=matching", "--untracked-files=all",
+        "--ignore-submodules=none", "-z",
+    )
+    if result.returncode != 0:
+        error = result.stderr.decode("utf-8", "replace").strip()
+        raise RemovalError(f"git status failed in {worktree}: {error}")
+    return parse_status_z(result.stdout)
+
+
+def status_description(status: bytes, path: bytes) -> str:
+    return f"{status.decode('ascii', 'replace')} {path!r}"
 
 
 def list_worktrees(cwd: Path) -> list[dict]:
@@ -92,6 +148,60 @@ def list_worktrees(cwd: Path) -> list[dict]:
         elif line == "prunable" or line.startswith("prunable "):
             entries[-1]["prunable"] = True
     return entries
+
+
+def registered_main_worktree(entries: list[dict]) -> Path | None:
+    matches = [entry["path"] for entry in entries if entry["branch"] == "refs/heads/main"]
+    return matches[0] if len(matches) == 1 else None
+
+
+def worktree_command_root(entries: list[dict], target: Path) -> Path:
+    main = registered_main_worktree(entries)
+    if main is not None and main != target:
+        return main
+    alternatives = [entry["path"] for entry in entries if entry["path"] != target]
+    if not alternatives:
+        raise RemovalError("no other registered worktree is available for Git administration")
+    return alternatives[0]
+
+
+def canonical_database_target(worktree: Path, main_worktree: Path | None) -> tuple[Path, tuple[int, int]] | None:
+    if main_worktree is None:
+        return None
+    db = main_worktree / "cultura.db"
+    try:
+        metadata = db.lstat()
+        target = db.resolve(strict=True)
+    except OSError:
+        return None
+    if not stat.S_ISREG(metadata.st_mode) or target != db or worktree == target or worktree in target.parents:
+        return None
+    return target, (metadata.st_dev, metadata.st_ino)
+
+
+def canonical_database_link(worktree: Path, main_worktree: Path | None) -> CanonicalDatabaseLink | None:
+    expected = canonical_database_target(worktree, main_worktree)
+    if expected is None:
+        return None
+    link = worktree / "cultura.db"
+    try:
+        metadata = link.lstat()
+        link_text = os.readlink(link)
+        target = link.resolve(strict=True)
+    except OSError:
+        return None
+    expected_target, target_identity = expected
+    if not stat.S_ISLNK(metadata.st_mode) or target != expected_target:
+        return None
+    return CanonicalDatabaseLink(link_text, expected_target, target_identity)
+
+
+def database_link_unchanged(target: Target, expected: CanonicalDatabaseLink) -> bool:
+    if canonical_database_link(target.worktree, target.main_branch_worktree) != expected:
+        return False
+    return canonical_database_target(target.worktree, target.main_branch_worktree) == (
+        expected.target, expected.target_identity,
+    )
 
 
 def read_pointer(text: str, relative_to: Path) -> Path:
@@ -154,7 +264,10 @@ def inspect(worktree: Path) -> Target:
     description = None
     if branch_ref and branch_ref.startswith("refs/heads/"):
         description = run_git(worktree, "config", "--get", f"branch.{branch_ref.removeprefix('refs/heads/')}.description").stdout.strip() or None
-    return Target(worktree, git_dir, common_dir, entries[0]["path"], branch_ref, uses_annex, symlink_target, description)
+    return Target(
+        worktree, git_dir, common_dir, worktree_command_root(entries, worktree), registered_main_worktree(entries),
+        branch_ref, uses_annex, symlink_target, description,
+    )
 
 
 def processes_inside(worktree: Path) -> list[str]:
@@ -180,7 +293,9 @@ def resolve_base(target: Target, base: str) -> str:
     return git_out(target.worktree, "rev-parse", "--verify", "--end-of-options", f"{base}^{{commit}}")
 
 
-def verify_safe(target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_owner: str | None = None) -> None:
+def verify_safe(
+    target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_owner: str | None = None,
+) -> CanonicalDatabaseLink | None:
     wt = target.worktree
     if expect_owner is not None and (not target.description or expect_owner not in target.description):
         raise RemovalError(f"owner mismatch: expected {expect_owner!r} in the branch description; {target.owner_line}")
@@ -194,10 +309,18 @@ def verify_safe(target: Target, base: str, *, allow_unreferenced_reflog: bool, e
         line.startswith("160000 ") for line in git_out(wt, "ls-files", "--stage").splitlines()
     ):
         raise RemovalError("worktree contains submodules; remove it manually")
-    status = git_out(wt, "status", "--porcelain", "--ignored=matching", "--untracked-files=all", "--ignore-submodules=none")
-    if status:
-        entries = status.splitlines()
-        raise RemovalError(f"worktree is not clean ({len(entries)} entries):\n  " + "\n  ".join(entries[:10]))
+    status = status_entries(wt)
+    db_link: CanonicalDatabaseLink | None = None
+    remaining: list[str] = []
+    for item_status, path in status:
+        if item_status == b"!!" and path == b"cultura.db" and db_link is None:
+            candidate = canonical_database_link(wt, target.main_branch_worktree)
+            if candidate is not None:
+                db_link = candidate
+                continue
+        remaining.append(status_description(item_status, path))
+    if remaining:
+        raise RemovalError(f"worktree is not clean ({len(remaining)} entries):\n  " + "\n  ".join(remaining[:10]))
     hidden = [line for line in git_out(wt, "ls-files", "-v").splitlines() if line[:1].islower() or line[:1] == "S"]
     if hidden:
         raise RemovalError("assume-unchanged/skip-worktree entries can hide edits:\n  " + "\n  ".join(hidden[:10]))
@@ -218,6 +341,7 @@ def verify_safe(target: Target, base: str, *, allow_unreferenced_reflog: bool, e
     users = processes_inside(wt)
     if users:
         raise RemovalError(f"processes still have their cwd inside the worktree (pids: {', '.join(users)})")
+    return db_link
 
 
 def raise_interrupt(signum: int, frame: object) -> None:
@@ -289,6 +413,31 @@ def rollback(target: Target, original: str | None, cause: BaseException) -> None
             print(f"warning: could not restore the symlink ({error}); it was -> {original}", file=sys.stderr)
 
 
+def restore_database_symlink(target: Target, original: CanonicalDatabaseLink) -> None:
+    link = target.worktree / "cultura.db"
+    if os.path.lexists(link):
+        if link.is_symlink() and os.readlink(link) == original.link_text:
+            return
+        print(
+            "warning: cultura.db path is occupied; preserving it. "
+            f"The original link was -> {original.link_text} (resolved: {original.target})",
+            file=sys.stderr,
+        )
+        return
+    try:
+        os.symlink(original.link_text, link)
+    except OSError as error:
+        print(
+            "warning: could not restore cultura.db symlink "
+            f"({error}); original link was -> {original.link_text} (resolved: {original.target})",
+            file=sys.stderr,
+        )
+
+
+def show_status_entries(entries: list[tuple[bytes, bytes]]) -> str:
+    return "\n  ".join(status_description(status, path) for status, path in entries[:10])
+
+
 def delete_branch(target: Target, head: str, base_oid: str) -> None:
     ref = target.branch_ref
     if ref is None:
@@ -324,23 +473,44 @@ def remove(
             if result.returncode != 0:
                 raise RemovalError(f"git annex restage failed: {result.stderr.strip()}")
             target = inspect(worktree)
-        verify_safe(target, base, allow_unreferenced_reflog=allow_unreferenced_reflog, expect_owner=expect_owner)
+        db_link = verify_safe(
+            target, base, allow_unreferenced_reflog=allow_unreferenced_reflog, expect_owner=expect_owner,
+        )
         base_oid = resolve_base(target, base)
         head = git_out(worktree, "rev-parse", "HEAD")
         if target.symlink_target is not None:
             if check_dotgit(worktree, target.admin_dir) != target.symlink_target:
                 raise RemovalError(".git changed since inspection")
             replace_dotgit(worktree, gitfile=target.admin_dir)
+        db_link_removed = False
         try:
             if check_dotgit(worktree, target.admin_dir) is not None:
                 raise RemovalError(".git became a symlink again before removal")
             if git_out(worktree, "rev-parse", "HEAD") != head:
                 raise RemovalError("HEAD changed during removal")
+            if db_link is not None:
+                if not database_link_unchanged(target, db_link):
+                    raise RemovalError("cultura.db symlink or canonical main database changed during removal")
+                (worktree / "cultura.db").unlink()
+                db_link_removed = True
+                remaining = status_entries(worktree)
+                if remaining:
+                    raise RemovalError(
+                        f"worktree changed after removing its canonical DB symlink:\n  {show_status_entries(remaining)}"
+                    )
+                if canonical_database_target(worktree, target.main_branch_worktree) != (
+                    db_link.target, db_link.target_identity,
+                ):
+                    raise RemovalError("canonical main database changed during worktree removal")
+                if check_dotgit(worktree, target.admin_dir) is not None:
+                    raise RemovalError(".git became a symlink again before removal")
             result = run_git(target.main_worktree, "worktree", "remove", str(worktree))
             if result.returncode != 0:
                 raise RemovalError(f"git worktree remove refused: {result.stderr.strip()}")
         except BaseException as cause:
             rollback(target, target.symlink_target, cause)
+            if db_link_removed and db_link is not None:
+                restore_database_symlink(target, db_link)
             raise
         if delete_branch_too:
             delete_branch(target, head, base_oid)

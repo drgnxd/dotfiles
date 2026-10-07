@@ -60,6 +60,95 @@ def make_worktree(main: Path, name: str, *, symlink: bool = True, extra: tuple[s
     return wt
 
 
+def add_canonical_database(main: Path, data: bytes = b"canonical database") -> Path:
+    (main / ".gitignore").write_text("cultura.db\n*.ignored\ncultura.db/\n")
+    git(main, "add", ".gitignore")
+    git(main, "commit", "--quiet", "-m", "ignore database state")
+    database = main / "cultura.db"
+    database.write_bytes(data)
+    return database
+
+
+def link_canonical_database(main: Path, worktree: Path) -> Path:
+    link = worktree / "cultura.db"
+    link.symlink_to(main / "cultura.db")
+    return link
+
+
+def make_git_wrapper(
+    tmp_path: Path,
+    *,
+    trigger: tuple[str, ...] | None = None,
+    hook: str = "",
+    hook_on_second_status: bool = False,
+    reverse_worktrees: bool = False,
+    duplicate_main: bool = False,
+    refuse_remove: bool = False,
+) -> Path:
+    real_git = shutil.which("git")
+    assert real_git is not None
+    bin_dir = tmp_path / "git-wrapper-bin"
+    bin_dir.mkdir()
+    counter = tmp_path / "git-wrapper-status-count"
+    trigger_marker = tmp_path / "git-wrapper-triggered"
+    lines = [
+        "#!/usr/bin/env python3",
+        "import subprocess, sys",
+        "from pathlib import Path",
+        f"real_git = {real_git!r}",
+        "args = sys.argv[1:]",
+    ]
+    if hook_on_second_status:
+        lines.extend([
+            "if args[:1] == ['status']:",
+            f"    counter = Path({str(counter)!r})",
+            "    count = int(counter.read_text()) + 1 if counter.exists() else 1",
+            "    counter.write_text(str(count))",
+            "    if count == 2:",
+            *(f"        {line}" for line in hook.splitlines()),
+        ])
+    if trigger is not None:
+        lines.extend([
+            f"if tuple(args) == {trigger!r} and not Path({str(trigger_marker)!r}).exists():",
+            f"    Path({str(trigger_marker)!r}).write_text('triggered')",
+        ])
+        lines.extend(f"    {line}" for line in hook.splitlines())
+    if refuse_remove:
+        lines.extend([
+            "if args[:2] == ['worktree', 'remove']:",
+            "    sys.stderr.write('fatal: simulated refusal\\n')",
+            "    raise SystemExit(128)",
+        ])
+    lines.append("result = subprocess.run([real_git, *args], capture_output=True)")
+    if reverse_worktrees or duplicate_main:
+        lines.extend([
+            "if args == ['worktree', 'list', '--porcelain']:",
+            "    blocks = [block for block in result.stdout.split(b'\\n\\n') if block]",
+        ])
+        if reverse_worktrees:
+            lines.append("    blocks.reverse()")
+        if duplicate_main:
+            lines.extend([
+                "    main_blocks = [block for block in blocks if b'branch refs/heads/main' in block]",
+                "    blocks.extend(main_blocks)",
+            ])
+        lines.append("    result.stdout = b'\\n\\n'.join(blocks) + b'\\n\\n'")
+    lines.extend([
+        "sys.stdout.buffer.write(result.stdout)",
+        "sys.stderr.buffer.write(result.stderr)",
+        "raise SystemExit(result.returncode)",
+    ])
+    wrapper = bin_dir / "git"
+    wrapper.write_text("\n".join(lines) + "\n")
+    wrapper.chmod(0o755)
+    return bin_dir
+
+
+def run_with_git_wrapper(wt: Path, bin_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
+    return run(str(wt), *args, env=env)
+
+
 def assert_untouched(wt: Path, *, symlink: bool = True) -> None:
     assert wt.exists()
     assert (wt / ".git").is_symlink() == symlink
@@ -284,6 +373,278 @@ def test_refuses_ignored_files(repo: Path) -> None:
     result = run(str(wt))
     assert result.returncode == 1 and "x.log" in result.stderr
     assert (wt / "x.log").exists()
+
+
+def test_removes_canonical_db_symlink_without_touching_database(repo: Path) -> None:
+    database = add_canonical_database(repo, b"preserve these bytes")
+    wt = make_worktree(repo, "wt-db")
+    link_canonical_database(repo, wt)
+
+    result = run(str(wt), "--delete-branch")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    assert database.read_bytes() == b"preserve these bytes"
+    assert "task/wt-db" not in git(repo, "branch", "--list")
+
+
+def test_uses_main_branch_not_worktree_list_order(repo: Path, tmp_path: Path) -> None:
+    database = add_canonical_database(repo)
+    other = make_worktree(repo, "wt-other-db")
+    other_db = other / "cultura.db"
+    other_db.write_bytes(b"not the canonical database")
+    wt = make_worktree(repo, "wt-main-last")
+    link_canonical_database(repo, wt)
+    bin_dir = make_git_wrapper(tmp_path, reverse_worktrees=True)
+
+    result = run_with_git_wrapper(wt, bin_dir, "--delete-branch")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    assert database.read_bytes() == b"canonical database"
+    assert other_db.read_bytes() == b"not the canonical database"
+
+
+def test_uses_another_worktree_for_git_admin_when_target_holds_main_branch(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-main-branch")
+    git(repo, "checkout", "--quiet", "--detach")
+    git(wt, "checkout", "--quiet", "main")
+
+    result = run(str(wt))
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    assert repo.exists()
+    assert git(repo, "branch", "--show-current") == ""
+
+
+def test_refuses_duplicate_registered_main_worktrees(repo: Path, tmp_path: Path) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, "wt-duplicate-main")
+    link = link_canonical_database(repo, wt)
+    bin_dir = make_git_wrapper(tmp_path, duplicate_main=True)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert link.is_symlink() and link.resolve() == database.resolve()
+    assert database.read_bytes() == b"canonical database"
+
+
+def test_refuses_database_symlink_without_registered_main_worktree(repo: Path) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, "wt-no-registered-main")
+    link = link_canonical_database(repo, wt)
+    git(repo, "checkout", "--quiet", "--detach")
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert link.is_symlink() and link.resolve() == database.resolve()
+    assert database.read_bytes() == b"canonical database"
+
+
+@pytest.mark.parametrize("main_kind", ["missing", "directory", "symlink"])
+def test_refuses_when_main_database_is_not_a_regular_file(repo: Path, main_kind: str) -> None:
+    (repo / ".gitignore").write_text("cultura.db\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore database")
+    database = repo / "cultura.db"
+    backing = repo / "database-backing"
+    if main_kind == "directory":
+        database.mkdir()
+    elif main_kind == "symlink":
+        backing.write_bytes(b"database backing")
+        database.symlink_to(backing)
+    wt = make_worktree(repo, f"wt-main-{main_kind}")
+    link = wt / "cultura.db"
+    link.symlink_to(database)
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert link.is_symlink()
+    if main_kind == "missing":
+        assert not database.exists()
+    elif main_kind == "directory":
+        assert database.is_dir()
+    else:
+        assert database.is_symlink() and backing.read_bytes() == b"database backing"
+
+
+def test_refuses_regular_ignored_worktree_database(repo: Path) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, "wt-regular-db")
+    local_data = wt / "cultura.db"
+    local_data.write_bytes(b"do not delete")
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert local_data.read_bytes() == b"do not delete"
+    assert database.read_bytes() == b"canonical database"
+
+
+@pytest.mark.parametrize("target_kind", ["wrong", "dangling"])
+def test_refuses_noncanonical_database_symlink(repo: Path, tmp_path: Path, target_kind: str) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, f"wt-db-{target_kind}")
+    external = tmp_path / "external.db"
+    external.write_bytes(b"external")
+    link = wt / "cultura.db"
+    link.symlink_to(external if target_kind == "wrong" else tmp_path / "missing.db")
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert link.is_symlink()
+    assert database.read_bytes() == b"canonical database"
+    assert external.read_bytes() == b"external"
+
+
+def test_refuses_other_ignored_paths_alongside_canonical_db_symlink(repo: Path) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, "wt-db-and-extra")
+    link = link_canonical_database(repo, wt)
+    extra = wt / "keep.ignored"
+    extra.write_text("keep")
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "keep.ignored" in result.stderr
+    assert link.is_symlink() and link.resolve() == database.resolve()
+    assert extra.read_text() == "keep"
+    assert database.read_bytes() == b"canonical database"
+
+
+def test_status_parser_preserves_special_ignored_paths(repo: Path) -> None:
+    (repo / ".gitignore").write_text("*.ignored\ncultura.db/\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore special names")
+    wt = make_worktree(repo, "wt-special-names")
+    names = ["line\nbreak.ignored", "tab\tname.ignored", 'quote"name.ignored', "back\\slash.ignored"]
+    for name in names:
+        (wt / name).write_text("keep")
+    (wt / "cultura.db").mkdir()
+    (wt / "cultura.db" / "child").write_text("keep nested data")
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    for name in names:
+        assert (wt / name).read_text() == "keep"
+    assert (wt / "cultura.db" / "child").read_text() == "keep nested data"
+
+
+@pytest.mark.parametrize("replacement", ["file", "directory", "dangling-symlink"])
+def test_refuses_worktree_db_symlink_replaced_before_final_validation(
+    repo: Path, tmp_path: Path, replacement: str,
+) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, f"wt-link-race-{replacement}")
+    link = link_canonical_database(repo, wt)
+    hook = {
+        "file": f"Path({str(link)!r}).unlink(); Path({str(link)!r}).write_text('new data')",
+        "directory": f"Path({str(link)!r}).unlink(); Path({str(link)!r}).mkdir()",
+        "dangling-symlink": f"Path({str(link)!r}).unlink(); Path({str(link)!r}).symlink_to({str(tmp_path / 'missing-target')!r})",
+    }[replacement]
+    bin_dir = make_git_wrapper(tmp_path, trigger=("rev-parse", "HEAD"), hook=hook)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "cultura.db symlink" in result.stderr
+    assert database.read_bytes() == b"canonical database"
+    if replacement == "file":
+        assert link.read_text() == "new data"
+    elif replacement == "directory":
+        assert link.is_dir()
+    else:
+        assert link.is_symlink() and not link.exists()
+
+
+@pytest.mark.parametrize("main_kind", ["missing", "directory", "symlink"])
+def test_refuses_main_database_type_change_before_final_validation(
+    repo: Path, tmp_path: Path, main_kind: str,
+) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, f"wt-main-race-{main_kind}")
+    link = link_canonical_database(repo, wt)
+    saved = tmp_path / f"saved-main-db-{main_kind}"
+    replacement = tmp_path / f"replacement-main-db-{main_kind}"
+    replacement.write_bytes(b"replacement")
+    if main_kind == "missing":
+        hook = f"Path({str(database)!r}).rename({str(saved)!r})"
+    elif main_kind == "directory":
+        hook = f"Path({str(database)!r}).rename({str(saved)!r}); Path({str(database)!r}).mkdir()"
+    else:
+        hook = f"Path({str(database)!r}).unlink(); Path({str(database)!r}).symlink_to({str(replacement)!r})"
+    bin_dir = make_git_wrapper(tmp_path, trigger=("rev-parse", "HEAD"), hook=hook)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "cultura.db symlink" in result.stderr
+    assert link.is_symlink() and os.readlink(link) == str(database)
+    if main_kind == "missing":
+        assert not database.exists() and saved.read_bytes() == b"canonical database"
+    elif main_kind == "directory":
+        assert database.is_dir() and saved.read_bytes() == b"canonical database"
+    else:
+        assert database.is_symlink() and replacement.read_bytes() == b"replacement"
+
+
+def test_restores_database_symlink_when_final_status_finds_new_file(repo: Path, tmp_path: Path) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, "wt-late-file")
+    link = link_canonical_database(repo, wt)
+    late = wt / "late.ignored"
+    bin_dir = make_git_wrapper(tmp_path, hook_on_second_status=True, hook=f"Path({str(late)!r}).write_text('keep')")
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "worktree changed" in result.stderr
+    assert link.is_symlink() and link.resolve() == database.resolve()
+    assert late.read_text() == "keep"
+    assert database.read_bytes() == b"canonical database"
+
+
+@pytest.mark.parametrize("replacement", ["file", "directory", "dangling-symlink"])
+def test_does_not_overwrite_path_occupied_during_database_link_restore(
+    repo: Path, tmp_path: Path, replacement: str,
+) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, f"wt-restore-collision-{replacement}")
+    link = link_canonical_database(repo, wt)
+    hook = {
+        "file": f"Path({str(link)!r}).write_text('preserve')",
+        "directory": f"Path({str(link)!r}).mkdir()",
+        "dangling-symlink": f"Path({str(link)!r}).symlink_to({str(tmp_path / 'dangling')!r})",
+    }[replacement]
+    bin_dir = make_git_wrapper(tmp_path, hook_on_second_status=True, hook=hook)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "path is occupied" in result.stderr
+    assert str(database) in result.stderr
+    assert database.read_bytes() == b"canonical database"
+    if replacement == "file":
+        assert link.read_text() == "preserve"
+    elif replacement == "directory":
+        assert link.is_dir()
+    else:
+        assert link.is_symlink() and not link.exists()
+
+
+def test_restores_database_symlink_when_git_refuses_removal(repo: Path, tmp_path: Path) -> None:
+    database = add_canonical_database(repo)
+    wt = make_worktree(repo, "wt-db-remove-refusal")
+    link = link_canonical_database(repo, wt)
+    bin_dir = make_git_wrapper(tmp_path, refuse_remove=True)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "simulated refusal" in result.stderr
+    assert link.is_symlink() and link.resolve() == database.resolve()
+    assert database.read_bytes() == b"canonical database"
 
 
 @pytest.mark.parametrize("flag", ["--assume-unchanged", "--skip-worktree"])
