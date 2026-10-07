@@ -149,5 +149,12 @@ description: Use before Git history changes.
   symlink, prints `owner:` on stderr, drops the deleted branch's config
   section, and never forces. Any refusal is a stop condition, and
   `--allow-unreferenced-reflog` needs the user's explicit approval.
+- Do not treat the mere presence of unrelated registered worktrees or branches
+  as proof of a concurrent writer; inspect their status, process activity, and
+  locks. Absence of observed activity is not proof of exclusive access:
+  linked-worktree repair/removal and shared-resource operations still require
+  all existing lock and coordination requirements for the full
+  inspection-to-completion interval, and must stop if exclusivity cannot be
+  established.
 - When reporting a commit to the user, quote its message verbatim, including its
   language, rather than paraphrasing or translating it into the reply language.
