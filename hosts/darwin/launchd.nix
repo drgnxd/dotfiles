@@ -80,7 +80,10 @@ let
   # `open -a` / AppleScript `tell application ... to quit` resolve it;
   # verify it matches the running process (`pgrep -x`) before adding
   # one.
-  postSetenvRelaunchApps = [ "CodexBar" ];
+  postSetenvRelaunchApps = [
+    "CodexBar"
+    "SwiftBar"
+  ];
 
   mkPostSetenvRelaunch = appName: ''
     /usr/bin/osascript -e 'tell application "${appName}" to quit' || true
@@ -243,6 +246,7 @@ in
     login-proton-pass = mkLoginApp "proton-pass" "Proton Pass";
     login-protonvpn = mkLoginApp "protonvpn" "ProtonVPN";
     login-sol = mkLoginApp "sol" "Sol";
+    login-swiftbar = mkLoginApp "swiftbar" "SwiftBar";
   };
 
   # ── App-native agent cleanup (home-manager activation) ──────────────
