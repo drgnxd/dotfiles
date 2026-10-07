@@ -17,8 +17,10 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   an unstated path means they write in the parent's worktree.
 - Assign disjoint edit scopes. Formatters, codegen, and dependency or lockfile
   updates are out of scope unless explicitly assigned.
-- Prefer worktrees under `~/.local/state/<repo>/worktrees/`; do not use the
-  client's built-in worktree isolation, which places them inside the repository.
+- Place worktrees under `~/.local/state/<repo>/worktrees/` (the global rules
+  require this, never `$TMPDIR`), and name and record them as `git-workflow`
+  specifies; do not use the client's built-in worktree isolation, which places
+  them inside the repository.
 - Only the integrator integrates into `main`, takes `main-integration.lock`,
   checks every worktree before `git worktree prune`, and removes worktrees and
   branches.
