@@ -53,9 +53,10 @@ update-one input:
 fmt-shell:
   git ls-files -z '*.sh' | xargs -0 shfmt -w
 
-# Run statix lints
+# Run statix and the CI ruff check
 lint:
   nix run nixpkgs#statix -- check .
+  uv tool run ruff check dot_config/opencode
 
 # Show dead Nix code
 dead:
