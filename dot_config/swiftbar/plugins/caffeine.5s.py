@@ -44,7 +44,5 @@ if len(sys.argv) > 1 and sys.argv[1] == "toggle":
     sys.exit(0)
 
 active = running_pid() is not None
-print("☕️" if active else "💤")
-print("---")
-label = "スリープ抑止を停止" if active else "スリープ抑止を開始"
-print(f'{label} | bash="{os.path.realpath(sys.argv[0])}" param1=toggle terminal=false refresh=true')
+# No dropdown items: SwiftBar then runs the title's action directly on click.
+print(f'{"☕️" if active else "💤"} | bash="{os.path.realpath(sys.argv[0])}" param1=toggle terminal=false refresh=true')
