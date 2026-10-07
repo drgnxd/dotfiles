@@ -42,6 +42,13 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 - `opencode.json`, `package.json`, and `tools/` deploy as activation-synced real files.
 - `tools/` must remain real files because Bun resolves imports from realpaths and must walk up to `node_modules`.
 
+## Public Repository Boundary
+
+- This repository is public. Never commit service names, domains, origins, personal automation job names, host names, or account identifiers, including in commit messages, branch names, tags, and PR or issue text.
+- Declarative wiring belongs here; an application (multi-file code with its own tests or runtime state) belongs in its own repository. Keep private values in `local/` or a state directory and read them at runtime, not as defaults in code.
+- Keep the private term list outside the repo at `${XDG_CONFIG_HOME:-~/.config}/dotfiles-private/public-boundary-terms` (one extended regex per line, matched case-insensitively). `scripts/check-private-terms.sh` scans tracked files, commit messages, and pushed ranges with it; the hooks fail when the list is missing outside CI.
+- Before any push, scan commit messages and ref names as well as diffs, and cover punctuation variants of every term (hyphen, space, underscore, full-width, katakana).
+
 ## Secrets
 
 - Secrets are agenix-managed; never commit plaintext secrets.

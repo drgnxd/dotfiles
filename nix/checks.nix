@@ -60,6 +60,27 @@ forAllSystems (
           entry = "${p.bash}/bin/bash ${../scripts/check-public-boundary.sh}";
           pass_filenames = false;
         };
+        private-terms-files = {
+          enable = true;
+          name = "check tracked files for private terms";
+          entry = "${p.bash}/bin/bash ${../scripts/check-private-terms.sh} files";
+          pass_filenames = false;
+        };
+        private-terms-message = {
+          enable = true;
+          name = "check commit message for private terms";
+          entry = "${p.bash}/bin/bash ${../scripts/check-private-terms.sh} message";
+          pass_filenames = true;
+          stages = [ "commit-msg" ];
+        };
+        private-terms-push = {
+          enable = true;
+          name = "check pushed commits for private terms";
+          entry = "${p.bash}/bin/bash ${../scripts/check-private-terms.sh} push";
+          pass_filenames = false;
+          always_run = true;
+          stages = [ "pre-push" ];
+        };
       };
     };
     lint-statix = p.runCommand "check-statix" { nativeBuildInputs = [ p.statix ]; } ''

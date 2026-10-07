@@ -77,6 +77,9 @@ security-audit *args:
 test-external-agents:
   bash scripts/security/test_external_agents.sh
 
+test-private-terms:
+  bash scripts/security/test_private_terms.sh
+
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
   scripts/check-public-boundary.sh
