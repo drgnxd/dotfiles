@@ -163,12 +163,18 @@ description: Use before Git history changes.
   completion, verify that no task/integration worktree or task-owned branch
   created for this task remains. If removal is refused or a task-owned branch
   must be retained, report cleanup as incomplete.
-- Do not treat the mere presence of unrelated registered worktrees or branches
-  as proof of a concurrent writer; inspect their status, process activity, and
-  locks. Absence of observed activity is not proof of exclusive access:
-  linked-worktree repair/removal and shared-resource operations still require
-  all existing lock and coordination requirements for the full
-  inspection-to-completion interval, and must stop if exclusivity cannot be
-  established.
+- Do not stop removing a task-owned worktree merely because another task
+  worktree exists or has unrelated dirty files. Scope exclusivity to the target
+  worktree and any shared resources for which cleanup requires conflicting
+  access, including shared Git or annex state accessed by `git annex restage`.
+  Preserve all existing mandatory lock-acquisition and caller-coordination
+  requirements, including the main-integration lock where required, throughout
+  the inspection-to-completion interval; process inspection is not a substitute
+  for those safeguards. An unrelated task blocks cleanup only if its activity
+  conflicts with that scope, or required exclusivity within that scope cannot be
+  established. Inspect relevant processes and locks rather than inferring
+  conflict from repository-wide status. Unlinking only the target worktree's
+  verified canonical DB symlink does not itself modify the canonical DB and
+  does not require unrelated DB users to stop.
 - When reporting a commit to the user, quote its message verbatim, including its
   language, rather than paraphrasing or translating it into the reply language.
