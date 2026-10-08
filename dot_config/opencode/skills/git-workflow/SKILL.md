@@ -131,7 +131,8 @@ description: Use before Git history changes.
   irreversible data or history loss, and stop if ownership or integration is
   ambiguous. While they remain, report the task as incomplete, not done. To remove a worktree run
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
-  --expect-owner "<task text you recorded>" [--delete-branch] [--base <ref>]`,
+  --expect-owner "<task text you recorded>" [--discard-direnv-cache]
+  [--delete-branch] [--base <ref>]`,
   where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
   `~/.local/share/claude/skills/git-workflow` (same files). Release your own
   `main-integration.lock` first; the script takes it. It refuses unless the
@@ -139,11 +140,17 @@ description: Use before Git history changes.
   in-progress operation, submodule, or process with its cwd inside (needs
   `lsof`), HEAD and every HEAD-reflog commit are reachable from `--base`
   (default `main`), and the branch description contains the `--expect-owner`
-  text; without that option ownership is not checked. The only ignored-path
-  exception is a root `cultura.db` symlink that resolves to the regular
-  `cultura.db` in the registered `main` worktree. It unlinks only the symlink,
-  rechecks the worktree, and restores the link on refusal when its path remains
-  free; the database target is never touched. The caller must exclude all
+  text; without that option ownership is not checked. A root `cultura.db`
+  symlink is accepted only when it resolves to the regular `cultura.db` in the
+  registered `main` worktree. It unlinks only the symlink, rechecks the
+  worktree, and restores the link on refusal when its path remains free; the
+  database target is never touched. A root `.direnv` path is quarantined
+  outside the worktree so it cannot block removal. Pass `--discard-direnv-cache`
+  only when the task created the cache and the helper's strict Nix-direnv
+  `use flake` layout check accepts it; it is purged only after Git confirms
+  successful removal. Unknown layouts remain quarantined and the archive path
+  is reported. Other ignored/untracked paths still cause refusal. The caller
+  must exclude all
   writers for the complete inspection-to-removal interval; the script lock
   coordinates cooperating removals only. It copes with git-annex's `.git`
   symlink, prints `owner:` on stderr, drops the deleted branch's config

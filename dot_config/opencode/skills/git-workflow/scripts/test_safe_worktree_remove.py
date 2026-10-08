@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -10,6 +12,11 @@ import pytest
 
 SCRIPT = Path(__file__).with_name("safe-worktree-remove.py")
 LOCK = "main-integration.lock"
+SPEC = importlib.util.spec_from_file_location("safe_worktree_remove", SCRIPT)
+assert SPEC is not None and SPEC.loader is not None
+HELPER = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = HELPER
+SPEC.loader.exec_module(HELPER)
 
 
 @pytest.fixture(autouse=True)
@@ -17,6 +24,7 @@ def isolated_git_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / ".local" / "state"))
 
 
 def git(cwd: Path, *args: str) -> str:
@@ -73,6 +81,38 @@ def link_canonical_database(main: Path, worktree: Path) -> Path:
     link = worktree / "cultura.db"
     link.symlink_to(main / "cultura.db")
     return link
+
+
+def add_direnv_ignore(main: Path, *, include_database: bool = False) -> None:
+    entries = [".direnv/"]
+    if include_database:
+        entries.append("cultura.db")
+    (main / ".gitignore").write_text("\n".join(entries) + "\n")
+    git(main, "add", ".gitignore")
+    git(main, "commit", "--quiet", "-m", "ignore worktree runtime state")
+
+
+def make_nix_direnv_cache(worktree: Path, store_root: Path) -> Path:
+    cache = worktree / ".direnv"
+    bin_dir = cache / "bin"
+    inputs_dir = cache / "flake-inputs"
+    bin_dir.mkdir(parents=True)
+    inputs_dir.mkdir()
+
+    input_hash = "a" * 32
+    input_target = store_root / f"{input_hash}-source"
+    input_target.mkdir(parents=True)
+    (inputs_dir / f"{input_hash}-source").symlink_to(input_target)
+
+    profile_hash = "b" * 40
+    profile_target = store_root / f"{'c' * 32}-nix-shell-env"
+    profile_target.mkdir()
+    (cache / f"flake-profile-{profile_hash}").symlink_to(profile_target)
+    (cache / f"flake-profile-{profile_hash}.rc").write_text("export PATH=/nix/store/bin\n")
+    reload = bin_dir / "nix-direnv-reload"
+    reload.write_text("#!/bin/sh\nexit 0\n")
+    reload.chmod(0o711)
+    return cache
 
 
 def make_git_wrapper(
@@ -844,3 +884,229 @@ def test_annex_call_order_and_gitfile_during_removal(repo: Path, tmp_path: Path)
     assert result.returncode == 0, result.stderr
     assert log.read_text().splitlines() == ["restage file"]
     assert not wt.exists()
+
+
+def test_parse_linux_mountinfo_detects_same_device_mountpoint() -> None:
+    mounts = HELPER.parse_linux_mountinfo(
+        "36 25 0:33 / /private/cache/flake-inputs rw,relatime shared:1 - apfs /dev/disk1 rw\n"
+    )
+    assert mounts == (Path("/private/cache/flake-inputs"),)
+
+
+def test_parse_darwin_mount_output_preserves_escaped_spaces() -> None:
+    mounts = HELPER.parse_darwin_mount_output(
+        "/dev/disk1 on / (apfs, local)\n/dev/disk2 on /Volumes/Cache\\040Disk (apfs, local)\n"
+    )
+    assert mounts == (Path("/"), Path("/Volumes/Cache Disk"))
+
+
+def test_nix_direnv_validator_rejects_same_device_nested_mountpoint(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    cache = tmp_path / "worktree" / ".direnv"
+    make_nix_direnv_cache(cache.parent, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: (cache / "flake-inputs",))
+
+    assert HELPER.nix_direnv_cache_signature(cache) is None
+
+
+def test_quarantines_unknown_direnv_and_removes_worktree(repo: Path, tmp_path: Path) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-unknown")
+    user_file = wt / ".direnv" / "user-state.txt"
+    user_file.parent.mkdir()
+    user_file.write_text("preserve this state")
+
+    result = run(str(wt), "--delete-branch")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    archive_line = next(line for line in result.stdout.splitlines() if line.startswith("preserved .direnv at "))
+    archive = Path(archive_line.removeprefix("preserved .direnv at "))
+    assert (archive / "user-state.txt").read_text() == "preserve this state"
+    manifest = json.loads((archive.parent / "manifest.json").read_text())
+    assert manifest["phase"] == "completed_preserved"
+    assert "task/wt-direnv-unknown" not in git(repo, "branch", "--list")
+
+
+def test_dry_run_reports_direnv_policy_without_moving_it(repo: Path, tmp_path: Path) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-dry-run")
+    user_file = wt / ".direnv" / "user-state.txt"
+    user_file.parent.mkdir()
+    user_file.write_text("keep")
+
+    result = run(str(wt), "--dry-run")
+
+    assert result.returncode == 0, result.stderr
+    assert ".direnv would be quarantine and retain" in result.stdout
+    assert user_file.read_text() == "keep"
+    assert not (Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine").exists()
+
+
+def test_discards_verified_nix_direnv_cache_after_success(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-discard")
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    make_nix_direnv_cache(wt, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: set())
+
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=True, lock_name=LOCK,
+        allow_unreferenced_reflog=False, discard_direnv_cache=True,
+    )
+
+    assert outcome.discarded_direnv
+    assert outcome.preserved_direnv is None
+    assert not wt.exists()
+    assert (store / f"{'a' * 32}-source").is_dir()
+    assert (store / f"{'c' * 32}-nix-shell-env").is_dir()
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+    assert "task/wt-direnv-discard" not in git(repo, "branch", "--list")
+
+
+def test_discard_flag_keeps_unknown_direnv_instead_of_deleting(repo: Path, tmp_path: Path) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-unknown-discard")
+    user_file = wt / ".direnv" / "user-state.txt"
+    user_file.parent.mkdir()
+    user_file.write_text("preserve this state")
+
+    result = run(str(wt), "--discard-direnv-cache")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    archive_line = next(line for line in result.stdout.splitlines() if line.startswith("preserved .direnv at "))
+    archive = Path(archive_line.removeprefix("preserved .direnv at "))
+    assert (archive / "user-state.txt").read_text() == "preserve this state"
+    assert "layout is not a verified Nix-direnv" in result.stderr
+
+
+def test_keeps_verified_direnv_cache_when_open_handles_cannot_be_checked(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-open-handles")
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    make_nix_direnv_cache(wt, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: None)
+
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, discard_direnv_cache=True,
+    )
+
+    assert not wt.exists()
+    assert not outcome.discarded_direnv
+    assert outcome.preserved_direnv is not None
+    assert (outcome.preserved_direnv / f"flake-profile-{'b' * 40}.rc").is_file()
+
+
+def test_cache_mutation_after_validation_is_preserved(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    cache = make_nix_direnv_cache(worktree, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    signature = HELPER.nix_direnv_cache_signature(cache)
+    assert signature is not None
+    reload_script = cache / "bin" / "nix-direnv-reload"
+    reload_script.write_text("#!/bin/sh\necho changed\n")
+
+    reason = HELPER.purge_direnv_cache(cache, signature)
+
+    assert reason is not None and "changed after inspection" in reason
+    assert reload_script.exists()
+    assert (cache / f"flake-profile-{'b' * 40}.rc").exists()
+
+
+def test_direnv_exception_does_not_allow_other_ignored_paths(repo: Path) -> None:
+    (repo / ".gitignore").write_text(".direnv/\nkeep.ignored\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore runtime files")
+    wt = make_worktree(repo, "wt-direnv-and-other")
+    (wt / ".direnv").mkdir()
+    (wt / ".direnv" / "state.txt").write_text("preserve")
+    (wt / "keep.ignored").write_text("preserve")
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "keep.ignored" in result.stderr
+    assert (wt / ".direnv" / "state.txt").read_text() == "preserve"
+    assert (wt / "keep.ignored").read_text() == "preserve"
+    assert not (Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine").exists()
+
+
+def test_restores_direnv_and_db_link_when_git_refuses_removal(repo: Path, tmp_path: Path) -> None:
+    add_direnv_ignore(repo, include_database=True)
+    database = repo / "cultura.db"
+    database.write_bytes(b"canonical database")
+    wt = make_worktree(repo, "wt-direnv-db-refused")
+    link_canonical_database(repo, wt)
+    user_file = wt / ".direnv" / "user-state.txt"
+    user_file.parent.mkdir()
+    user_file.write_text("keep")
+    bin_dir = make_git_wrapper(tmp_path, refuse_remove=True)
+
+    result = run_with_git_wrapper(wt, bin_dir, "--delete-branch")
+
+    assert result.returncode == 1 and "refused" in result.stderr
+    assert wt.exists() and (wt / ".direnv" / "user-state.txt").read_text() == "keep"
+    assert (wt / "cultura.db").is_symlink() and (wt / "cultura.db").resolve() == database.resolve()
+    assert database.read_bytes() == b"canonical database"
+    assert (wt / ".git").is_symlink()
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
+def test_does_not_overwrite_direnv_recreated_during_refusal(repo: Path, tmp_path: Path) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-race")
+    original = wt / ".direnv" / "original.txt"
+    original.parent.mkdir()
+    original.write_text("original")
+    recreated = wt / ".direnv" / "recreated.txt"
+    hook = f"Path({str(recreated.parent)!r}).mkdir(); Path({str(recreated)!r}).write_text('new')"
+    bin_dir = make_git_wrapper(
+        tmp_path, trigger=("worktree", "remove", str(wt)), hook=hook, refuse_remove=True,
+    )
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "refused" in result.stderr
+    assert recreated.read_text() == "new"
+    recovery = [line for line in result.stderr.splitlines() if line.startswith("warning: preserved recovery state at ")]
+    assert recovery
+    operation_dir = Path(recovery[0].removeprefix("warning: preserved recovery state at "))
+    assert (operation_dir / ".direnv" / "original.txt").read_text() == "original"
+
+
+def test_unresolved_transaction_refuses_implicit_retry(repo: Path) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-direnv-interrupted")
+    user_file = wt / ".direnv" / "state.txt"
+    user_file.parent.mkdir()
+    user_file.write_text("keep")
+    target = HELPER.inspect(wt)
+    quarantine = HELPER.state_quarantine_root(target)
+    operation_dir = quarantine / "interrupted-operation"
+    operation_dir.mkdir(parents=True, mode=0o700)
+    (operation_dir / "manifest.json").write_text(
+        json.dumps({"worktree": str(wt.resolve()), "phase": "direnv_quarantined"})
+    )
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "interrupted removal transaction" in result.stderr
+    assert user_file.read_text() == "keep"
+    assert wt.exists()
