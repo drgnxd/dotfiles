@@ -42,6 +42,17 @@ description: Use before Git history changes.
   existing worktree. It uses the same directory naming, and it is
   removed like other task worktrees. Existing worktrees and branches keep their
   names.
+- When verifying a linked worktree's `.git`, determine the entry's own type
+  without following symlinks; a content reader may show a symlink target as a
+  directory. Accept only a gitfile or a symlink resolving to the registered
+  worktree admin directory. For a symlink, resolve its target; for a gitfile,
+  read its `gitdir:` target. Resolve relative paths against the directory
+  containing the entry that records them. Verify the canonical target is Git's
+  registered worktree admin directory and the admin directory's `gitdir` points
+  back to that worktree's `.git`. Stop and preserve the entry and any symlink
+  target if the entry has another type, the relationship is mismatched, or
+  identity cannot be established. A successful identity check does not waive
+  other safety checks.
 - Keep implementation edits, commits, tests, generators, and conflict
   resolution in task/integration worktrees. Scope explicit and implicit output
   paths (baselines, caches, databases, logs, temp files, configs) to those
