@@ -148,7 +148,14 @@ description: Use before Git history changes.
   coordinates cooperating removals only. It copes with git-annex's `.git`
   symlink, prints `owner:` on stderr, drops the deleted branch's config
   section, and never forces. Any refusal is a stop condition, and
-  `--allow-unreferenced-reflog` needs the user's explicit approval.
+  `--allow-unreferenced-reflog` needs the user's explicit approval. Use
+  `--delete-branch` only when the worktree's branch was created for this task
+  and is confirmed task-owned; never use it for a reused or shared branch.
+  After successful removal, verify that the worktree is unregistered and, for
+  task-owned branches, that the branch ref is absent. Before reporting
+  completion, verify that no task/integration worktree or task-owned branch
+  created for this task remains. If removal is refused or a task-owned branch
+  must be retained, report cleanup as incomplete.
 - Do not treat the mere presence of unrelated registered worktrees or branches
   as proof of a concurrent writer; inspect their status, process activity, and
   locks. Absence of observed activity is not proof of exclusive access:
