@@ -32,10 +32,9 @@ $nu.user-autoload-dirs
 # => [..., ~/.config/nushell/autoload]
 ```
 
-`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`09-local.nu` でマシン固有の上書きを最後に読み込みます（他の autoload ファイルがこれより後ろに並ぶと CI が失敗します）。
+`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`09-local.nu` でマシン固有の上書きを最後に読み込みます（このリポジトリ内の他の autoload ファイルがこれより後ろに並ぶと CI が失敗します。配備先に置いた未管理ファイルは検査されません）。
 
 起動ファイル内の path は `$nu.home-dir` を基準にするため、Home Manager の `/nix/store` symlink やユーザー名の違いに応じた書き換えは不要です。
-
 
 Carapace completion は `config.nu` で直接設定します。runtime 生成ファイルを source しないため、`~/.cache` を削除しても Nushell の parse は失敗しません。
 
@@ -106,7 +105,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `lg` - LazyGit
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
-
 
 ### 関数
 - `y` - cwd追跡付きYaziファイルマネージャ

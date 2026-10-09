@@ -32,10 +32,9 @@ $nu.user-autoload-dirs
 # => [..., ~/.config/nushell/autoload]
 ```
 
-`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `09-local.nu` loads machine-specific overrides last (CI fails if another autoload file sorts after it).
+`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `09-local.nu` loads machine-specific overrides last (CI fails if another autoload file in this repository sorts after it; unmanaged files dropped into the deployed directory are not checked).
 
 Paths inside startup files remain anchored to `$nu.home-dir`, so Home Manager's `/nix/store` symlinks and different usernames do not require path rewrites.
-
 
 Carapace completion is configured directly in `config.nu`. It does not source runtime-generated files, so deleting `~/.cache` cannot break Nushell parsing.
 
@@ -106,7 +105,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `lg` - LazyGit
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
-
 
 ### Functions
 - `y` - Yazi file manager with cwd tracking

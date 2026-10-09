@@ -87,12 +87,13 @@ See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 
 **Entry Points**:
 - `env.nu` - Standard environment entry point; startup fragments load through native autoload
-- `config.nu` - Configures interactive behavior and prerequisite tool modules
+- `config.nu` - Configures interactive behavior (history, completions)
 - `autoload/*.nu` - Loaded once by Nushell in filename order after `config.nu`
 
 **Modular Architecture**:
 ```
 autoload/
+|- 00-helpers.nu       # Shared helper functions
 |- 01-env.nu           # XDG paths, ENV_CONVERSIONS
 |- 02-path.nu          # PATH with path-add helper
 |- 03-aliases.nu       # Conditional command aliases
@@ -198,7 +199,7 @@ $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
 ```
 
 **Typical Workflow**:
-```bash
+```nushell
 # 1. Create Lima VM with Docker
 limactl create --name=dev template://docker
 
@@ -206,7 +207,7 @@ limactl create --name=dev template://docker
 limactl start dev
 
 # 3. Create and select a Docker context for the VM
-docker context create dev-context --docker "host=unix://$LIMA_HOME/dev/sock/docker.sock"
+docker context create dev-context --docker $"host=unix://($env.LIMA_HOME)/dev/sock/docker.sock"
 docker context use dev-context
 
 # 4. Verify Docker connection

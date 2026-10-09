@@ -87,12 +87,13 @@
 
 **Entry Points**:
 - `env.nu` - 標準の環境 entry point。起動 fragment は native autoload で読み込み
-- `config.nu` - interactive 動作と前提 tool module を設定
+- `config.nu` - interactive 動作（履歴・補完）を設定
 - `autoload/*.nu` - `config.nu` の後に Nushell がファイル名順で1回だけ読み込み
 
 **Modular Architecture**:
 ```
 autoload/
+|- 00-helpers.nu       # 共有ヘルパー関数
 |- 01-env.nu           # XDG パス, ENV_CONVERSIONS
 |- 02-path.nu          # path-add ヘルパー付き PATH
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
@@ -198,7 +199,7 @@ $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
 ```
 
 **Typical Workflow**:
-```bash
+```nushell
 # 1. Docker 付き Lima VM を作成
 limactl create --name=dev template://docker
 
@@ -206,7 +207,7 @@ limactl create --name=dev template://docker
 limactl start dev
 
 # 3. VM 用 Docker context を作成して切替
-docker context create dev-context --docker "host=unix://$LIMA_HOME/dev/sock/docker.sock"
+docker context create dev-context --docker $"host=unix://($env.LIMA_HOME)/dev/sock/docker.sock"
 docker context use dev-context
 
 # 4. Docker 接続確認
