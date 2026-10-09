@@ -49,10 +49,16 @@ def --env direnv-sync [] {
 }
 
 # DIRENV (hooks into PWD change for automatic env loading)
-# Append: replacing the list drops the zoxide hook sourced earlier.
+# Append, guarded by a marker: replacing the list drops the zoxide hook sourced
+# earlier, and re-sourcing this file must not stack a second sync.
 if (which --all direnv | any { |entry| $entry.type == "external" }) {
     $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
-        ($config | get -o hooks.env_change.PWD | default []) ++ [ {|| direnv-sync } ]
+        let hooks = ($config | get -o hooks.env_change.PWD | default [])
+        if ($hooks | any { try { get __direnv_hook } catch { false } }) {
+            $hooks
+        } else {
+            $hooks ++ [ { __direnv_hook: true, code: {|| direnv-sync } } ]
+        }
     })
 }
 
