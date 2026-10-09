@@ -49,9 +49,10 @@ def --env direnv-sync [] {
 }
 
 # DIRENV (hooks into PWD change for automatic env loading)
+# Append: replacing the list drops the zoxide hook sourced earlier.
 if (which --all direnv | any { |entry| $entry.type == "external" }) {
     $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
-        [ {|| direnv-sync } ]
+        ($config | get -o hooks.env_change.PWD | default []) ++ [ {|| direnv-sync } ]
     })
 }
 
