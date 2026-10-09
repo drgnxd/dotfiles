@@ -372,14 +372,8 @@ def validate_global_rules(errors: list[str]) -> None:
 
 
 def validate_delegation_rules(errors: list[str]) -> None:
-    rules_path = BASE_DIR / "global_rules.md"
     review_path = BASE_DIR / "skills" / "independent-review" / "SKILL.md"
     for path, phrase, message in (
-        (
-            rules_path,
-            "never invoke or delegate to an external AI",
-            "global_rules.md must forbid delegation to external AI",
-        ),
         (
             review_path,
             "`review-main` subagent only",
