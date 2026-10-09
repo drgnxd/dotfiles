@@ -16,6 +16,7 @@
 
 let
   opencode_template = ../../../dot_config/opencode/opencode.json;
+  tui_config_template = ../../../dot_config/opencode/tui.json;
   opencode_local_example = ../../../dot_config/opencode/opencode.local.json.example;
   opencode_agents_template = ../../../dot_config/opencode/global_rules.md;
   opencode_agents_local_example = ../../../dot_config/opencode/AGENTS.local.md.example;
@@ -66,6 +67,7 @@ let
 in
 {
   xdg.configFile = {
+    "opencode/tui.json".source = tui_config_template;
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
     "opencode/opencode-notifier-scheduled.json".source = opencode_notifier_scheduled_template;
   }

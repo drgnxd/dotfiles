@@ -148,6 +148,28 @@ def validate_config(errors: list[str]) -> None:
             errors.append(f"{agent_name} must use variant {expected_variant}")
 
 
+def validate_tui_config(errors: list[str]) -> None:
+    config_path = BASE_DIR / "tui.json"
+    if not config_path.exists():
+        errors.append(f"Missing required config file: {config_path}")
+        return
+
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        errors.append(f"Invalid JSON in {config_path}: {exc}")
+        return
+
+    if not isinstance(config, dict):
+        errors.append(f"Invalid TUI config object in {config_path}")
+        return
+
+    if config.get("$schema") != "https://opencode.ai/tui.json":
+        errors.append("tui.json should set $schema to https://opencode.ai/tui.json")
+    if config.get("theme") != "system":
+        errors.append('tui.json should set theme to "system"')
+
+
 def validate_read_only_reviewer(
     agent_name: str, agent: dict, errors: list[str]
 ) -> None:
@@ -264,6 +286,7 @@ def main() -> int:
     validate_global_rules(errors)
     validate_delegation_rules(errors)
     validate_config(errors)
+    validate_tui_config(errors)
     validate_package(errors)
     validate_tools(errors)
     validate_skills(errors)
