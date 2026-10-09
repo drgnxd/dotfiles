@@ -115,7 +115,9 @@ description: Use before the first file edit or Git write in each repository for 
   `mkdir` that holds an `owner` file with your token. A directory without an
   `owner` file counts as occupied; ignore `main-integration.lock.released.*`.
   Release it only when the token matches, by renaming it to
-  `main-integration.lock.released.<token>`. Acquire it before preflight and
+  `main-integration.lock.released.<token>`, then delete that renamed directory
+  (its `owner` file, then `rmdir`; never anything with another token) so no
+  leftovers accumulate. Acquire it before preflight and
   hold it through post-check; all cooperating agents must honor it. If occupied
   or unavailable, stop without removing another owner's lock. The only
   permitted update to the main worktree/index/ref is the complete fast-forward
