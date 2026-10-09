@@ -1,6 +1,6 @@
 ---
 name: Review
-description: Independent reviewer for approved proposals and diffs.
+description: Independent review of a concrete diff or plan before approval is requested for non-trivial design, real-data, credential, irreversible, or cross-repository changes.
 model: opus
 effort: high
 disallowedTools: Bash, Edit, Write, NotebookEdit, WebFetch, WebSearch, Task, Skill

@@ -382,18 +382,11 @@ def validate_global_rules(errors: list[str]) -> None:
 
 
 def validate_delegation_rules(errors: list[str]) -> None:
-    review_path = BASE_DIR / "skills" / "independent-review" / "SKILL.md"
-    for path, phrase, message in (
-        (
-            review_path,
-            "`review-main` subagent only",
-            "independent-review must require review-main only",
-        ),
-    ):
-        if not path.exists():
-            errors.append(f"Missing required file: {path}")
-        elif phrase not in path.read_text(encoding="utf-8"):
-            errors.append(message)
+    rules_path = BASE_DIR / "global_rules.md"
+    if not rules_path.exists():
+        errors.append(f"Missing required file: {rules_path}")
+    elif "`review-main` subagent only" not in rules_path.read_text(encoding="utf-8"):
+        errors.append("global_rules.md must require review-main only")
 
 
 def main() -> int:

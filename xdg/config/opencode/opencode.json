@@ -81,7 +81,7 @@
       "prompt": "Review without editing. Report material findings first, ordered by severity, with concrete file and line references. Focus on correctness, security, behavioral regressions, architecture, edge cases, and missing tests. State residual risks when no findings are discovered."
     },
     "review-main": {
-      "description": "Reviews a concrete proposal with the independent-review model, without editing or accessing anything beyond the supplied artifact.",
+      "description": "Independent review of a concrete diff or plan before approval is requested for non-trivial design, real-data, credential, irreversible, or cross-repository changes; reads only the supplied artifact and never edits.",
       "mode": "subagent",
       "model": "openai/gpt-6.1-sol",
       "variant": "medium",
