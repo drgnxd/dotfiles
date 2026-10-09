@@ -16,7 +16,9 @@
 
 let
   render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
-  opencode_template = ../../../xdg/config/opencode/opencode.json;
+  opencode_template = pkgs.writeText "opencode.json" (render_with_theme {
+    templatePath = ../../../xdg/config/opencode/opencode.json;
+  });
   tui_config_template = ../../../xdg/config/opencode/tui.json;
   opencode_local_example = ../../../xdg/config/opencode/opencode.local.json.example;
   opencode_agents_template = ../../../xdg/config/opencode/global_rules.md;
