@@ -1,6 +1,6 @@
 # Mirrors OpenCode's managed skills into Claude Code's personal skills
 # directory (<CLAUDE_CONFIG_DIR>/skills) as Nix store symlinks, so any skill
-# added under dot_config/opencode/skills is automatically readable by both
+# added under xdg/config/opencode/skills is automatically readable by both
 # tools without touching this file. Claude Code does not discover
 # .opencode/skills on its own, but it does follow a <skill-name> entry under
 # its skills directory that is itself a symlink to a directory elsewhere on
@@ -9,7 +9,7 @@
 { lib, ... }:
 
 let
-  opencode_skills_dir = ../../../dot_config/opencode/skills;
+  opencode_skills_dir = ../../../xdg/config/opencode/skills;
   skillEntries = builtins.readDir opencode_skills_dir;
   managedSkillNames = builtins.filter (name: skillEntries.${name} == "directory") (
     builtins.attrNames skillEntries

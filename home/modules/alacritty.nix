@@ -10,11 +10,11 @@ let
 in
 {
   xdg.configFile = {
-    "alacritty/blur.toml".source = ../../dot_config/alacritty/blur.toml;
+    "alacritty/blur.toml".source = ../../xdg/config/alacritty/blur.toml;
   }
   // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     "alacritty/toggle_blur.sh" = {
-      source = ../../dot_config/alacritty/executable_toggle_blur.sh;
+      source = ../../xdg/config/alacritty/executable_toggle_blur.sh;
       executable = true;
     };
   };

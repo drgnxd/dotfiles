@@ -6,4 +6,4 @@
 flake.lock -diff linguist-generated
 
 *.nu linguist-language=Nushell
-dot_config/**/*.nu linguist-detectable
+xdg/config/**/*.nu linguist-detectable

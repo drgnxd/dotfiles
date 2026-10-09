@@ -15,7 +15,7 @@ let
   # locations) kept out of this public repo. Same local-override pattern as
   # local/identity.nix and local/packages.nix: gitignored, optional, falls
   # back to no extra entries on a fresh clone. The committed
-  # dot_local/share/claude/settings.json intentionally carries only
+  # xdg/data/claude/settings.json intentionally carries only
   # `"$defaults"` here — do not put personal environment prose back into
   # that file; add it to local/claude-auto-mode-environment.nix instead. See
   # local/claude-auto-mode-environment.nix.example for the shape.
@@ -25,9 +25,7 @@ let
       import claude_local_environment_path
     else
       [ ];
-  claude_settings_base = builtins.fromJSON (
-    builtins.readFile ../dot_local/share/claude/settings.json
-  );
+  claude_settings_base = builtins.fromJSON (builtins.readFile ../xdg/data/claude/settings.json);
   claude_notify = pkgs.writeShellScript "claude-notify" ''
     # Scheduled jobs (launchd) set this variable to run quietly.
     [ -n "$OPENCODE_NOTIFIER_CONFIG_PATH" ] && exit 0
@@ -162,11 +160,11 @@ in
     };
   };
 
-  xdg.dataFile."claude/CLAUDE.md".source = ../dot_local/share/claude/CLAUDE.md;
+  xdg.dataFile."claude/CLAUDE.md".source = ../xdg/data/claude/CLAUDE.md;
   xdg.dataFile."claude/settings.json".source = claude_settings_json;
-  xdg.dataFile."claude/agents/Explore.md".source = ../dot_local/share/claude/agents/Explore.md;
-  xdg.dataFile."claude/agents/Plan.md".source = ../dot_local/share/claude/agents/Plan.md;
-  xdg.dataFile."claude/agents/Review.md".source = ../dot_local/share/claude/agents/Review.md;
+  xdg.dataFile."claude/agents/Explore.md".source = ../xdg/data/claude/agents/Explore.md;
+  xdg.dataFile."claude/agents/Plan.md".source = ../xdg/data/claude/agents/Plan.md;
+  xdg.dataFile."claude/agents/Review.md".source = ../xdg/data/claude/agents/Review.md;
   xdg.dataFile."copilot/copilot-instructions.md".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/AGENTS.md";
   xdg.dataFile."copilot/skills".source =

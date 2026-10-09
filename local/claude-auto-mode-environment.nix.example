@@ -2,7 +2,7 @@
 # mode permission classifier's trusted-environment context), kept out of the
 # public repo. Copy to local/claude-auto-mode-environment.nix (gitignored)
 # and list plain-prose strings — each is spliced onto the committed
-# dot_local/share/claude/settings.json's `["$defaults"]` array. Omit this
+# xdg/data/claude/settings.json's `["$defaults"]` array. Omit this
 # file to run with only the classifier's built-in defaults, no personal
 # context.
 #

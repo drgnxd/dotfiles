@@ -12,12 +12,12 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 
 - Scope gates to what changed; avoid unrelated formatting or rebuild churn.
 - For `.nix` changes, run `just fmt-check`, `just lint`, and `just dead`.
-- For Python under `dot_config/opencode`, run `just lint`; it runs the same `ruff check` as CI.
+- For Python under `xdg/config/opencode`, run `just lint`; it runs the same `ruff check` as CI.
 - `fmt-check`, `lint`, and `dead` do not evaluate the configuration. For `.nix` changes that alter module output, also evaluate the full target (`nix eval --raw path:.#darwinConfigurations.darwin.system.drvPath` on macOS) and build the changed artifact.
 - For `.sh` changes, run `shfmt -d` on the changed shell files, or the repo-wide shell check when CI parity is needed.
 - For workflow changes, run `actionlint`.
-- For `dot_config/opencode/**`, run `uv run --directory dot_config/opencode python validate_opencode_setup.py`.
-- For a helper under `dot_config/opencode/skills/*/scripts/`, also run its `just test-*` recipe (for `git-workflow`: `just test-worktree-remove`).
+- For `xdg/config/opencode/**`, run `uv run --directory xdg/config/opencode python validate_opencode_setup.py`.
+- For a helper under `xdg/config/opencode/skills/*/scripts/`, also run its `just test-*` recipe (for `git-workflow`: `just test-worktree-remove`).
 - For Nushell files, run `nu --ide-check 1000 <file>` and treat any `"severity":"Error"` entry as a failure; newer Nushell releases dropped `nu --check`, which CI uses only when available.
 
 ## Refactor Discipline
@@ -38,9 +38,9 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 
 ## OpenCode Assets
 
-- Edit OpenCode sources under `dot_config/opencode/`; do not edit deployed files under `~/.config/opencode/`.
-- `dot_config/opencode/global_rules.md` is concatenated with the git-ignored `~/.config/opencode/AGENTS.local.md` during activation and deployed as a writable real file `~/.config/opencode/AGENTS.md`.
-- Global skills under `dot_config/opencode/skills/` deploy as read-only Nix-store symlinks. Repository-local skills under `.opencode/skills/` do not deploy globally.
+- Edit OpenCode sources under `xdg/config/opencode/`; do not edit deployed files under `~/.config/opencode/`.
+- `xdg/config/opencode/global_rules.md` is concatenated with the git-ignored `~/.config/opencode/AGENTS.local.md` during activation and deployed as a writable real file `~/.config/opencode/AGENTS.md`.
+- Global skills under `xdg/config/opencode/skills/` deploy as read-only Nix-store symlinks. Repository-local skills under `.opencode/skills/` do not deploy globally.
 - `opencode.json`, `package.json`, and `tools/` deploy as activation-synced real files.
 - `tools/` must remain real files because Bun resolves imports from realpaths and must walk up to `node_modules`.
 

@@ -6,9 +6,9 @@ in
 
 {
   xdg.configFile = {
-    "waybar/config.jsonc".source = ../../../dot_config/waybar/config.jsonc;
+    "waybar/config.jsonc".source = ../../../xdg/config/waybar/config.jsonc;
     "waybar/style.css".text = render_with_theme {
-      templatePath = ../../../dot_config/waybar/style.css;
+      templatePath = ../../../xdg/config/waybar/style.css;
     };
   };
 

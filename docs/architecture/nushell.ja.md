@@ -7,7 +7,7 @@ Nushellは、全てをデータとして扱うモダンなシェルです。こ�
 `autoload/`ディレクトリパターンを使用したモジュール構造を採用しています：
 
 ```
-dot_config/nushell/
+xdg/config/nushell/
 ├── env.nu                  # ~/.config/nushell/env.nu
 ├── config.nu               # ~/.config/nushell/config.nu
 ├── autoload/

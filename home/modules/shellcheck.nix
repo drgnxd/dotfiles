@@ -1,5 +1,5 @@
 _:
 
 {
-  xdg.configFile."shellcheck/shellcheckrc".source = ../../dot_config/shellcheck/shellcheckrc;
+  xdg.configFile."shellcheck/shellcheckrc".source = ../../xdg/config/shellcheck/shellcheckrc;
 }

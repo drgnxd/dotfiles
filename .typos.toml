@@ -9,5 +9,5 @@ extend-exclude = [
   "flake.lock",
   "*.plist",
   ".secrets.baseline",
-  "dot_config/opencode/node_modules/",
+  "xdg/config/opencode/node_modules/",
 ]

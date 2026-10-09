@@ -24,9 +24,9 @@ jobs:
           } >> "$GITHUB_ENV"
       - name: Symlink nushell config to XDG location
         run: |
-          cp "$GITHUB_WORKSPACE/dot_config/nushell/local.nu.example" "$GITHUB_WORKSPACE/dot_config/nushell/local.nu"
+          cp "$GITHUB_WORKSPACE/xdg/config/nushell/local.nu.example" "$GITHUB_WORKSPACE/xdg/config/nushell/local.nu"
           mkdir -p "$HOME/.config"
-          ln -s "$GITHUB_WORKSPACE/dot_config/nushell" "$HOME/.config/nushell"
+          ln -s "$GITHUB_WORKSPACE/xdg/config/nushell" "$HOME/.config/nushell"
       - name: Prepare Nix-generated init stubs
         run: |
           # In production these are derivation outputs.
@@ -51,8 +51,8 @@ jobs:
           fi
       - name: Check local overrides load last
         run: |
-          last=$(printf '%s\n' dot_config/nushell/autoload/*.nu | LC_ALL=C sort | tail -n 1)
-          if [ "$last" != "dot_config/nushell/autoload/09-local.nu" ]; then
+          last=$(printf '%s\n' xdg/config/nushell/autoload/*.nu | LC_ALL=C sort | tail -n 1)
+          if [ "$last" != "xdg/config/nushell/autoload/09-local.nu" ]; then
             echo "09-local.nu must sort last in autoload/, found: $last" >&2
             exit 1
           fi
@@ -68,16 +68,16 @@ jobs:
           fi
 
           if [ "$mode" = "check" ]; then
-            for f in dot_config/nushell/autoload/*.nu \
-                     dot_config/nushell/env.nu \
-                     dot_config/nushell/config.nu; do
+            for f in xdg/config/nushell/autoload/*.nu \
+                     xdg/config/nushell/env.nu \
+                     xdg/config/nushell/config.nu; do
               echo "Checking: $f"
               nu --check "$f" || exit 1
             done
           else
-            for f in dot_config/nushell/autoload/*.nu \
-                     dot_config/nushell/env.nu \
-                     dot_config/nushell/config.nu; do
+            for f in xdg/config/nushell/autoload/*.nu \
+                     xdg/config/nushell/env.nu \
+                     xdg/config/nushell/config.nu; do
               echo "Checking: $f"
               output=$(nu --ide-check 1000 "$f" 2>&1)
               if [ -n "$output" ]; then
@@ -103,7 +103,7 @@ jobs:
         run: brew install nushell
       - name: Run Nushell unit tests
         run: |
-          tests=(dot_config/nushell/tests/test_*.nu)
+          tests=(xdg/config/nushell/tests/test_*.nu)
           [ -e "${tests[0]}" ] || { echo "No Nushell unit tests found" >&2; exit 1; }
           for f in "${tests[@]}"; do
             echo "Running: $f"
@@ -119,7 +119,7 @@ jobs:
           version: "0.11.32"
       - name: Validate OpenCode rules, instructions, and skills
         run: |
-          uv run --directory dot_config/opencode python validate_opencode_setup.py
+          uv run --directory xdg/config/opencode python validate_opencode_setup.py
 
   validate-nix-darwin:
     runs-on: macos-latest
@@ -273,14 +273,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate desktop config files
         run: |
-          for f in dot_config/hypr/hyprland.conf \
-                   dot_config/hypr/hyprlock.conf \
-                   dot_config/hypr/hypridle.conf \
-                   dot_config/waybar/config.jsonc \
-                   dot_config/waybar/style.css \
-                   dot_config/wofi/config \
-                   dot_config/wofi/style.css \
-                   dot_config/mako/config; do
+          for f in xdg/config/hypr/hyprland.conf \
+                   xdg/config/hypr/hyprlock.conf \
+                   xdg/config/hypr/hypridle.conf \
+                   xdg/config/waybar/config.jsonc \
+                   xdg/config/waybar/style.css \
+                   xdg/config/wofi/config \
+                   xdg/config/wofi/style.css \
+                   xdg/config/mako/config; do
             if [ ! -f "$f" ]; then
               echo "Missing: $f" >&2
               exit 1
@@ -289,7 +289,7 @@ jobs:
           echo "All Linux desktop config files present"
       - name: Validate Waybar JSON
         run: |
-          sed 's|//.*||' dot_config/waybar/config.jsonc | python3 -c "import json,sys; json.load(sys.stdin)"
+          sed 's|//.*||' xdg/config/waybar/config.jsonc | python3 -c "import json,sys; json.load(sys.stdin)"
       # shellcheck for scripts/linux/hypr-* is handled in lint.yml
 
   lint-nix:

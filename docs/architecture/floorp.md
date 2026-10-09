@@ -4,7 +4,7 @@
 - Home Manager writes `user.js` into the fixed `default` Floorp profile.
 - Preferences include bookmark bar visibility via `browser.toolbars.bookmarks.visibility = "never"`.
 - `toolkit.legacyUserProfileCustomizations.stylesheets = true` enables `userChrome.css` and `userContent.css`.
-- Shared UI CSS lives in `dot_config/floorp/chrome/userChrome.css` and `dot_config/floorp/chrome/userContent.css`.
+- Shared UI CSS lives in `xdg/config/floorp/chrome/userChrome.css` and `xdg/config/floorp/chrome/userContent.css`.
 
 ## Not Managed
 - `places.sqlite` is not managed because it stores bookmarks and history as machine-local runtime state.

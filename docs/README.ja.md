@@ -122,13 +122,13 @@ in
 
 ### OpenCode プロバイダー上書き（任意）
 
-OpenCode のベース設定は `dot_config/opencode/opencode.json` で管理しています。
+OpenCode のベース設定は `xdg/config/opencode/opencode.json` で管理しています。
 マシン固有のプロバイダー設定は `~/.config/opencode/opencode.local.json` を編集してください。
 
-- `dot_config/opencode/global_rules.md` は、read-only な
+- `xdg/config/opencode/global_rules.md` は、read-only な
   `~/.config/opencode/AGENTS.md` として配布されます。
-- `dot_config/opencode/skills/` のグローバル skill は Nix store から read-only に symlink されます。`.opencode/skills/` のリポジトリローカル skill はグローバルには配布されません。
-- read-only assets は Nix store から symlink されます: `AGENTS.md`, `opencode-notifier.json`, `opencode-notifier-scheduled.json`, 管理対象 skill directories。変更する場合は `dot_config/opencode/` を編集し、rebuild または switch で反映してください。
+- `xdg/config/opencode/skills/` のグローバル skill は Nix store から read-only に symlink されます。`.opencode/skills/` のリポジトリローカル skill はグローバルには配布されません。
+- read-only assets は Nix store から symlink されます: `AGENTS.md`, `opencode-notifier.json`, `opencode-notifier-scheduled.json`, 管理対象 skill directories。変更する場合は `xdg/config/opencode/` を編集し、rebuild または switch で反映してください。
 - writable files は activation 時に実ファイルとして同期します: `opencode.json`, `opencode.local.json`, `opencode.local.json.example`, `package.json`, `package-lock.json`, `tools/`。管理対象の依存lockまたは導入済みpluginのバージョンが異なる場合だけ、activationで`npm ci --omit=dev --ignore-scripts`を実行します。
 - `tools/` は Nix store の realpath から `~/.config/opencode/node_modules` へ walk up できず Bun の module resolution が失敗するため、実ファイルとして同期します。
 - activation 時に、空でない `~/.config/opencode/opencode.local.json` はリポジトリ管理のテンプレートへ再帰マージされます。ローカルの scalar 値と配列は管理値を置き換え、object の key はマージされます。マシン固有の provider と任意 plugin はここで設定してください。
@@ -185,7 +185,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   `secrets/`: agenix暗号化シークレット（任意）
 *   `scripts/`: プラットフォーム補助スクリプト（Nix管理）
 *   `nix/`: checks、shell、apps、formatting 用の flake 補助モジュール
-*   `dot_config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
+*   `xdg/config/`: 各種ツールの設定ファイル（XDG Base Directory準拠）
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
     *   `gh/`: GitHub CLIの設定
     *   `git/`: Git設定（delta統合）

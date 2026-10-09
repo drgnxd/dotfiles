@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-LOCAL_SKILLS_DIR = BASE_DIR.parents[1] / ".opencode" / "skills"
+LOCAL_SKILLS_DIR = BASE_DIR.parents[2] / ".opencode" / "skills"
 
 REVIEW_MAIN_PROMPT = (
     "You are a fresh, independent reviewer. Review only the supplied artifact "

@@ -39,7 +39,7 @@ jobs:
           version: "0.11.32"
       - name: Run ruff
         run: |
-          uv tool run ruff check dot_config/opencode
+          uv tool run ruff check xdg/config/opencode
 
   actionlint:
     runs-on: ubuntu-latest

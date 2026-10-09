@@ -7,7 +7,7 @@ Nushell is a modern shell that treats everything as data. This configuration pro
 The configuration follows a modular structure using the `autoload/` directory pattern:
 
 ```
-dot_config/nushell/
+xdg/config/nushell/
 ├── env.nu                  # ~/.config/nushell/env.nu
 ├── config.nu               # ~/.config/nushell/config.nu
 ├── autoload/

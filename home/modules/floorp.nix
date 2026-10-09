@@ -31,9 +31,9 @@ in
   config = lib.mkIf enabled {
     home.file."${profile_rel_path}/user.js".text = mkUserJs settings;
     home.file."${profile_rel_path}/chrome/userChrome.css".source =
-      ../../dot_config/floorp/chrome/userChrome.css;
+      ../../xdg/config/floorp/chrome/userChrome.css;
     home.file."${profile_rel_path}/chrome/userContent.css".source =
-      ../../dot_config/floorp/chrome/userContent.css;
+      ../../xdg/config/floorp/chrome/userContent.css;
 
     home.activation.ensureFloorpDefaultProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       profile_root="${profile_root}"

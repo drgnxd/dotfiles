@@ -5,12 +5,12 @@ description: Use when changing this repository's OpenCode providers, agents, too
 
 # Dotfiles OpenCode Maintenance
 
-Edit sources under `dot_config/opencode/`, never deployed files under
+Edit sources under `xdg/config/opencode/`, never deployed files under
 `~/.config/opencode/`.
 
 - `global_rules.md` plus the git-ignored `AGENTS.local.md` are concatenated at
   activation into a writable real file, `~/.config/opencode/AGENTS.md`.
-- Native global skills under `dot_config/opencode/skills/*/SKILL.md` deploy
+- Native global skills under `xdg/config/opencode/skills/*/SKILL.md` deploy
   read-only. Repository-local skills under `.opencode/skills/` do not deploy.
 - `opencode.json`, `package.json`, and `tools/` are activation-synced real
   files. Tools must remain real files for Bun module resolution.

@@ -1,5 +1,5 @@
 _:
 
 {
-  xdg.configFile."glow/glow.yml".source = ../../dot_config/glow/glow.yml;
+  xdg.configFile."glow/glow.yml".source = ../../xdg/config/glow/glow.yml;
 }

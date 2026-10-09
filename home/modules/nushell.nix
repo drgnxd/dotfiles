@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 
 let
-  nushellSrc = ../../dot_config/nushell;
+  nushellSrc = ../../xdg/config/nushell;
 
   # config.nu + env.nu + autoload/*, keyed under `prefix`.
   # `extraAttrs` is merged into every entry (used to pass `force = true`).

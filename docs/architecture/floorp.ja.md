@@ -4,7 +4,7 @@
 - Home Manager が固定の Floorp `default` プロファイルに `user.js` を書き込みます。
 - 設定には `browser.toolbars.bookmarks.visibility = "never"` によるブックマークバー非表示を含みます。
 - `toolkit.legacyUserProfileCustomizations.stylesheets = true` が `userChrome.css` と `userContent.css` を有効にします。
-- 共有 UI CSS は `dot_config/floorp/chrome/userChrome.css` と `dot_config/floorp/chrome/userContent.css` にあります。
+- 共有 UI CSS は `xdg/config/floorp/chrome/userChrome.css` と `xdg/config/floorp/chrome/userContent.css` にあります。
 
 ## 管理しないもの
 - `places.sqlite` はブックマークと履歴を含むマシンローカルな実行時状態のため管理しません。

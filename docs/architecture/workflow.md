@@ -4,7 +4,7 @@
 ```bash
 # Edit configuration
 cd ~/.config/dotfiles
-$EDITOR dot_config/nushell/autoload/03-aliases.nu
+$EDITOR xdg/config/nushell/autoload/03-aliases.nu
 
 # Apply changes
 sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.

@@ -57,7 +57,7 @@
 |     |- yazi.nix                    # Yazi file manager config
 |     |- zellij.nix                  # Zellij terminal multiplexer
 |     `- zoxide.nix                  # zoxide integration
-|- dot_config/                       # Config sources (XDG)
+|- xdg/config/                       # Config sources (XDG)
 |  |- alacritty/
 |  |- git/
 |  |- helix/
@@ -130,16 +130,16 @@ Nushell's native user autoload is the only loading path for `autoload/*.nu`, pre
 
 ### 2. Linux Desktop Ecosystem (Hyprland)
 
-Linux desktop integration is managed through Home Manager modules under `home/modules/linux/` and XDG config sources under `dot_config/`.
+Linux desktop integration is managed through Home Manager modules under `home/modules/linux/` and XDG config sources under `xdg/config/`.
 
 **Desktop components**:
-- Hyprland (`dot_config/hypr/hyprland.conf`)
-- Waybar (`dot_config/waybar/config.jsonc`, `dot_config/waybar/style.css`)
-- Wofi (`dot_config/wofi/config`, `dot_config/wofi/style.css`)
-- Mako (`dot_config/mako/config`)
+- Hyprland (`xdg/config/hypr/hyprland.conf`)
+- Waybar (`xdg/config/waybar/config.jsonc`, `xdg/config/waybar/style.css`)
+- Wofi (`xdg/config/wofi/config`, `xdg/config/wofi/style.css`)
+- Mako (`xdg/config/mako/config`)
 - SwayOSD (volume/brightness OSD)
 - Hyprpicker (color picker)
-- hypridle + hyprlock (`dot_config/hypr/hypridle.conf`, `dot_config/hypr/hyprlock.conf`)
+- hypridle + hyprlock (`xdg/config/hypr/hypridle.conf`, `xdg/config/hypr/hyprlock.conf`)
 - fcitx5 + mozc (`home/modules/linux/fcitx5.nix`)
 - hypr-input-watcher (input source auto-switcher in `scripts/linux/`, supervised as a systemd user service)
 - Helper scripts (`scripts/linux/hypr-*`, including `scripts/linux/hypr-input-watcher`)
@@ -176,7 +176,7 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 
 **Architecture**: XDG-compliant container environment without symlinks
 
-**Configuration** (`dot_config/nushell/autoload/01-env.nu`):
+**Configuration** (`xdg/config/nushell/autoload/01-env.nu`):
 ```nushell
 $env.DOCKER_CONFIG = ($env.XDG_CONFIG_HOME | path join "docker")
 $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")

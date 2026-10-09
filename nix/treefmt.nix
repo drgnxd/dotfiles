@@ -9,7 +9,7 @@ _: {
     "*.age"
     "*.lock"
     "*.plist"
-    "dot_config/opencode/node_modules/**"
+    "xdg/config/opencode/node_modules/**"
     "result/**"
   ];
 }

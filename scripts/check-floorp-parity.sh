@@ -31,8 +31,8 @@ check_whole_file() {
 }
 
 check_settings_region "home/modules/floorp/settings.nix"
-check_whole_file "dot_config/floorp/chrome/userChrome.css"
-check_whole_file "dot_config/floorp/chrome/userContent.css"
+check_whole_file "xdg/config/floorp/chrome/userChrome.css"
+check_whole_file "xdg/config/floorp/chrome/userContent.css"
 
 if [ "$warned" -eq 1 ]; then
   printf '%s\n' "WARNING: Floorp parity drift guard is advisory only; exiting 0." >&2

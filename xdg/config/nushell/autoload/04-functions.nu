@@ -34,7 +34,7 @@ export def --wrapped y [...args] {
 export def save-stats [] {
     let src = ($env.HOME | path join "Library" "Preferences" "eu.exelban.Stats.plist")
     let dotfiles_dir = dotfiles-dir
-    let dest = ($dotfiles_dir | path join "dot_config" "stats" "eu.exelban.Stats.plist")
+    let dest = ($dotfiles_dir | path join "xdg" "config" "stats" "eu.exelban.Stats.plist")
     if not ($src | path exists) {
         error make { msg: $"Stats plist not found at ($src)" }
     }

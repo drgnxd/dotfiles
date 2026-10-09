@@ -3,7 +3,7 @@
 { pkgs, ... }:
 
 {
-  xdg.configFile."git/config.local.example".source = ../../dot_config/git/config.local.example;
+  xdg.configFile."git/config.local.example".source = ../../xdg/config/git/config.local.example;
 
   programs.delta = {
     enable = true;

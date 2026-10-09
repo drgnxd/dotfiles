@@ -18,9 +18,13 @@ __pycache__/
 
 # Temporary/cache directories
 .direnv/
-dot_cache/
-dot_local/share/Trash/
-dot_local/state/
+xdg/cache/
+xdg/data/Trash/
+xdg/state/
+
+# Pre-rename source dirs: untracked local data may remain on existing checkouts
+/dot_config/
+/dot_local/
 
 # Python/tooling caches
 .venv/
@@ -43,12 +47,12 @@ local/identity.nix
 local/preferences.nix
 local/packages.nix
 local/claude-auto-mode-environment.nix
-!dot_config/nushell/local.nu.example
-!dot_config/opencode/opencode.local.json.example
-!dot_config/opencode/AGENTS.local.md.example
-!dot_config/hypr/local.conf.example
+!xdg/config/nushell/local.nu.example
+!xdg/config/opencode/opencode.local.json.example
+!xdg/config/opencode/AGENTS.local.md.example
+!xdg/config/hypr/local.conf.example
 **/hosts.yml
-dot_config/npm/
+xdg/config/npm/
 
 # Machine-local external automation manifest
 scripts/security/external-agents.local
@@ -60,8 +64,8 @@ result/
 .pre-commit-config.yaml
 
 # Nushell Plan B generated init scripts (created by Nix build or CI stubs)
-dot_config/nushell/generated/
+xdg/config/nushell/generated/
 
 # Opencode
-dot_config/opencode/node_modules/
-dot_config/opencode/opencode-notifier-state.json
+xdg/config/opencode/node_modules/
+xdg/config/opencode/opencode-notifier-state.json

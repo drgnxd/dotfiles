@@ -38,12 +38,12 @@ in
 
   xdg.configFile = {
     "user-dirs.locale".text = "C\n";
-    "wofi/config".source = ../../../dot_config/wofi/config;
+    "wofi/config".source = ../../../xdg/config/wofi/config;
     "wofi/style.css".text = render_with_theme {
-      templatePath = ../../../dot_config/wofi/style.css;
+      templatePath = ../../../xdg/config/wofi/style.css;
     };
     "mako/config".text = render_with_theme {
-      templatePath = ../../../dot_config/mako/config;
+      templatePath = ../../../xdg/config/mako/config;
     };
   };
 

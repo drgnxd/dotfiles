@@ -57,7 +57,7 @@
 |     |- yazi.nix                    # Yazi ファイルマネージャ設定
 |     |- zellij.nix                  # Zellij ターミナルマルチプレクサ
 |     `- zoxide.nix                  # zoxide 連携
-|- dot_config/                       # 設定ソース（XDG）
+|- xdg/config/                       # 設定ソース（XDG）
 |  |- alacritty/
 |  |- git/
 |  |- helix/
@@ -130,16 +130,16 @@ $nu.user-autoload-dirs
 
 ### 2. Linux Desktop Ecosystem (Hyprland)
 
-Linux デスクトップ統合は `home/modules/linux/` の Home Manager モジュールと、`dot_config/` 配下の XDG 設定ソースで管理します。
+Linux デスクトップ統合は `home/modules/linux/` の Home Manager モジュールと、`xdg/config/` 配下の XDG 設定ソースで管理します。
 
 **Desktop components**:
-- Hyprland (`dot_config/hypr/hyprland.conf`)
-- Waybar (`dot_config/waybar/config.jsonc`, `dot_config/waybar/style.css`)
-- Wofi (`dot_config/wofi/config`, `dot_config/wofi/style.css`)
-- Mako (`dot_config/mako/config`)
+- Hyprland (`xdg/config/hypr/hyprland.conf`)
+- Waybar (`xdg/config/waybar/config.jsonc`, `xdg/config/waybar/style.css`)
+- Wofi (`xdg/config/wofi/config`, `xdg/config/wofi/style.css`)
+- Mako (`xdg/config/mako/config`)
 - SwayOSD（音量/輝度 OSD）
 - Hyprpicker（カラーピッカー）
-- hypridle + hyprlock (`dot_config/hypr/hypridle.conf`, `dot_config/hypr/hyprlock.conf`)
+- hypridle + hyprlock (`xdg/config/hypr/hypridle.conf`, `xdg/config/hypr/hyprlock.conf`)
 - fcitx5 + mozc (`home/modules/linux/fcitx5.nix`)
 - hypr-input-watcher（`scripts/linux/` の入力ソース自動切替、systemd ユーザーサービスで監視）
 - 補助スクリプト（`scripts/linux/hypr-*`、`scripts/linux/hypr-input-watcher` を含む）
@@ -176,7 +176,7 @@ Linux デスクトップ統合は `home/modules/linux/` の Home Manager モジ�
 
 **Architecture**: シンボリックリンク不要の XDG 準拠コンテナ環境
 
-**Configuration** (`dot_config/nushell/autoload/01-env.nu`):
+**Configuration** (`xdg/config/nushell/autoload/01-env.nu`):
 ```nushell
 $env.DOCKER_CONFIG = ($env.XDG_CONFIG_HOME | path join "docker")
 $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")

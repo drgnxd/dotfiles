@@ -1,4 +1,4 @@
-# Single source of truth: dot_config/starship/starship.toml via xdg.configFile.
+# Single source of truth: xdg/config/starship/starship.toml via xdg.configFile.
 # Plan B Nushell init uses STARSHIP_CONFIG=~/.config/starship/starship.toml.
 { lib, ... }:
 
@@ -8,7 +8,7 @@ in
 
 {
   xdg.configFile."starship/starship.toml".text = render_with_theme {
-    templatePath = ../../dot_config/starship/starship.toml;
+    templatePath = ../../xdg/config/starship/starship.toml;
   };
 
   programs.starship = {

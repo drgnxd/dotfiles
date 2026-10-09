@@ -15,21 +15,21 @@
 }:
 
 let
-  opencode_template = ../../../dot_config/opencode/opencode.json;
-  tui_config_template = ../../../dot_config/opencode/tui.json;
-  opencode_local_example = ../../../dot_config/opencode/opencode.local.json.example;
-  opencode_agents_template = ../../../dot_config/opencode/global_rules.md;
-  opencode_agents_local_example = ../../../dot_config/opencode/AGENTS.local.md.example;
-  opencode_notifier_template = ../../../dot_config/opencode/opencode-notifier.json;
-  opencode_notifier_scheduled_template = ../../../dot_config/opencode/opencode-notifier-scheduled.json;
-  opencode_package_template = ../../../dot_config/opencode/package.json;
-  opencode_package_lock_template = ../../../dot_config/opencode/package-lock.json;
-  opencode_tools_template = ../../../dot_config/opencode/tools;
-  opencode_plugins_template = ../../../dot_config/opencode/plugins;
+  opencode_template = ../../../xdg/config/opencode/opencode.json;
+  tui_config_template = ../../../xdg/config/opencode/tui.json;
+  opencode_local_example = ../../../xdg/config/opencode/opencode.local.json.example;
+  opencode_agents_template = ../../../xdg/config/opencode/global_rules.md;
+  opencode_agents_local_example = ../../../xdg/config/opencode/AGENTS.local.md.example;
+  opencode_notifier_template = ../../../xdg/config/opencode/opencode-notifier.json;
+  opencode_notifier_scheduled_template = ../../../xdg/config/opencode/opencode-notifier-scheduled.json;
+  opencode_package_template = ../../../xdg/config/opencode/package.json;
+  opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
+  opencode_tools_template = ../../../xdg/config/opencode/tools;
+  opencode_plugins_template = ../../../xdg/config/opencode/plugins;
   jaq = "${pkgs.jaq}/bin/jaq";
   node = "${pkgs.nodejs_22}/bin/node";
   npm = "${pkgs.nodejs_22}/bin/npm";
-  opencode_skills_dir = ../../../dot_config/opencode/skills;
+  opencode_skills_dir = ../../../xdg/config/opencode/skills;
   skillEntries = builtins.readDir opencode_skills_dir;
   managedSkillNames = builtins.filter (name: skillEntries.${name} == "directory") (
     builtins.attrNames skillEntries

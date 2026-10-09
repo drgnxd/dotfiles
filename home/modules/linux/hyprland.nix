@@ -18,7 +18,7 @@ in
     enable = true;
     configType = "hyprlang";
     extraConfig = render_with_theme {
-      templatePath = ../../../dot_config/hypr/hyprland.conf;
+      templatePath = ../../../xdg/config/hypr/hyprland.conf;
       includeBareHex = true;
     };
   };
@@ -32,11 +32,11 @@ in
       bind = CTRL SUPER, l, sendshortcut, ALT, Right, class:^(${browser_class})$
     '';
     "hypr/hyprlock.conf".text = render_with_theme {
-      templatePath = ../../../dot_config/hypr/hyprlock.conf;
+      templatePath = ../../../xdg/config/hypr/hyprlock.conf;
       includeBareHex = true;
     };
-    "hypr/hypridle.conf".source = ../../../dot_config/hypr/hypridle.conf;
-    "hypr/local.conf.example".source = ../../../dot_config/hypr/local.conf.example;
+    "hypr/hypridle.conf".source = ../../../xdg/config/hypr/hypridle.conf;
+    "hypr/local.conf.example".source = ../../../xdg/config/hypr/local.conf.example;
   };
 
   home.packages = with pkgs; [

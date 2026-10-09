@@ -56,7 +56,7 @@ fmt-shell:
 # Run statix and the CI ruff check
 lint:
   nix run nixpkgs#statix -- check .
-  uv tool run ruff check dot_config/opencode
+  uv tool run ruff check xdg/config/opencode
 
 # Show dead Nix code
 dead:
@@ -83,7 +83,7 @@ test-private-terms:
 
 # Test the worktree removal helper bundled with the git-workflow skill
 test-worktree-remove:
-  uv run --python 3.11 --with pytest pytest -q dot_config/opencode/skills/git-workflow/scripts/test_safe_worktree_remove.py
+  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_safe_worktree_remove.py
 
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
