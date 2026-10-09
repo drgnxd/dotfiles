@@ -98,7 +98,6 @@ autoload/
 |- 03-aliases.nu       # Conditional command aliases
 |- 04-functions.nu     # Custom wrappers and utilities
 |- 05-completions.nu   # Dynamic completions
-|- 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 |- 09-lima.nu          # Lima/Docker helpers
 |- 10-source-tools.nu  # Source Nix-built tool init + direnv PWD hook
 `- 99-local.nu         # Load unmanaged local overrides last

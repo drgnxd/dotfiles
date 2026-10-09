@@ -98,7 +98,6 @@ autoload/
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
 |- 04-functions.nu     # カスタムラッパーとユーティリティ
 |- 05-completions.nu   # 動的補完
-|- 07-abbreviations.nu # Fish風略語展開（Space/Enter）
 |- 09-lima.nu          # Lima/Docker ヘルパー
 |- 10-source-tools.nu  # Nix build済みツール初期化 + direnv PWD フック
 `- 99-local.nu         # 未管理の local 上書きを最後に読み込み

@@ -17,7 +17,6 @@ dot_config/nushell/
 │   ├── 03-aliases.nu       # フォールバック付きエイリアス
 │   ├── 04-functions.nu     # カスタム関数とラッパー
 │   ├── 05-completions.nu   # コマンド補完
-│   ├── 07-abbreviations.nu # Fish風の略語展開（Space/Enter）
 │   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
 │   ├── 10-source-tools.nu  # Nix build済みinit script読み込み
 │   └── 99-local.nu         # 未管理のlocal上書きを最後に読み込み

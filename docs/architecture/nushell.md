@@ -17,7 +17,6 @@ dot_config/nushell/
 │   ├── 03-aliases.nu       # Command aliases with fallbacks
 │   ├── 04-functions.nu     # Custom functions & wrappers
 │   ├── 05-completions.nu   # Command completions
-│   ├── 07-abbreviations.nu # Fish-style abbreviation expansion (Space/Enter)
 │   ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
 │   ├── 10-source-tools.nu  # Sources Nix-built init scripts
 │   └── 99-local.nu         # Loads unmanaged local overrides last

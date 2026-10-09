@@ -39,7 +39,7 @@ jobs:
         run: |
           # Nushell expressions must remain literal.
           # shellcheck disable=SC2016
-          nu --no-history --execute 'let count = ($env.config.keybindings | where name == nu_abbr_enter | length); if $count != 1 { print --stderr $"nu_abbr_enter loaded ($count) times"; exit 1 }; exit'
+          nu --no-history --execute 'let count = ($env.config.hooks.pre_prompt | length); if $count != 1 { print --stderr $"pre_prompt hooks registered ($count) times"; exit 1 }; exit'
       - name: Check Nushell file syntax
         run: |
           if nu --help 2>&1 | grep -q -- '--check'; then
@@ -89,7 +89,12 @@ jobs:
         run: brew install nushell
       - name: Run Nushell unit tests
         run: |
-          nu dot_config/nushell/tests/test_abbreviations.nu
+          tests=(dot_config/nushell/tests/test_*.nu)
+          [ -e "${tests[0]}" ] || { echo "No Nushell unit tests found" >&2; exit 1; }
+          for f in "${tests[@]}"; do
+            echo "Running: $f"
+            nu "$f" || exit 1
+          done
 
   validate-opencode:
     runs-on: ubuntu-latest
