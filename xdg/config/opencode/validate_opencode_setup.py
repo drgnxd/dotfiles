@@ -30,6 +30,71 @@ REVIEW_DEEP_PROMPT = (
     "security, behavioral regressions, architecture, edge cases, and missing "
     "tests. State residual risks when no findings are discovered."
 )
+THEME_COLOR_FIELDS = {
+    "primary",
+    "secondary",
+    "accent",
+    "error",
+    "warning",
+    "success",
+    "info",
+    "text",
+    "textMuted",
+    "selectedListItemText",
+    "background",
+    "backgroundPanel",
+    "backgroundElement",
+    "backgroundMenu",
+    "border",
+    "borderActive",
+    "borderSubtle",
+    "diffAdded",
+    "diffRemoved",
+    "diffContext",
+    "diffHunkHeader",
+    "diffHighlightAdded",
+    "diffHighlightRemoved",
+    "diffAddedBg",
+    "diffRemovedBg",
+    "diffContextBg",
+    "diffLineNumber",
+    "diffAddedLineNumberBg",
+    "diffRemovedLineNumberBg",
+    "markdownText",
+    "markdownHeading",
+    "markdownLink",
+    "markdownLinkText",
+    "markdownCode",
+    "markdownBlockQuote",
+    "markdownEmph",
+    "markdownStrong",
+    "markdownHorizontalRule",
+    "markdownListItem",
+    "markdownListEnumeration",
+    "markdownImage",
+    "markdownImageText",
+    "markdownCodeBlock",
+    "syntaxComment",
+    "syntaxKeyword",
+    "syntaxFunction",
+    "syntaxVariable",
+    "syntaxString",
+    "syntaxNumber",
+    "syntaxType",
+    "syntaxOperator",
+    "syntaxPunctuation",
+}
+TRANSPARENT_THEME_BACKGROUNDS = {
+    "background",
+    "backgroundPanel",
+    "backgroundElement",
+    "backgroundMenu",
+    "diffAddedBg",
+    "diffRemovedBg",
+    "diffContextBg",
+    "diffAddedLineNumberBg",
+    "diffRemovedLineNumberBg",
+}
 
 
 def _validate_skill_frontmatter(skill_file: Path, errors: list[str]) -> None:
@@ -166,8 +231,59 @@ def validate_tui_config(errors: list[str]) -> None:
 
     if config.get("$schema") != "https://opencode.ai/tui.json":
         errors.append("tui.json should set $schema to https://opencode.ai/tui.json")
-    if config.get("theme") != "system":
-        errors.append('tui.json should set theme to "system"')
+    if config.get("theme") != "terminal-transparent":
+        errors.append('tui.json should set theme to "terminal-transparent"')
+
+
+def _valid_theme_color(value: object) -> bool:
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, int):
+        return 0 <= value <= 255
+    if isinstance(value, str):
+        return value in {"none", "transparent"} or (
+            len(value) == 7
+            and value.startswith("#")
+            and all(char in "0123456789abcdefABCDEF" for char in value[1:])
+        )
+    if isinstance(value, dict):
+        return set(value) == {"dark", "light"} and all(
+            _valid_theme_color(color) for color in value.values()
+        )
+    return False
+
+
+def validate_transparent_theme(errors: list[str]) -> None:
+    theme_path = BASE_DIR / "themes" / "terminal-transparent.json"
+    if not theme_path.exists():
+        errors.append(f"Missing required theme file: {theme_path}")
+        return
+
+    try:
+        config = json.loads(theme_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        errors.append(f"Invalid JSON in {theme_path}: {exc}")
+        return
+
+    if not isinstance(config, dict):
+        errors.append(f"Invalid theme config object in {theme_path}")
+        return
+    if config.get("$schema") != "https://opencode.ai/theme.json":
+        errors.append("terminal-transparent.json should set the OpenCode theme schema")
+
+    theme = config.get("theme")
+    if not isinstance(theme, dict):
+        errors.append(f"Invalid theme color object in {theme_path}")
+        return
+    if set(theme) != THEME_COLOR_FIELDS:
+        errors.append("terminal-transparent.json must define every TUI theme color")
+
+    for field, value in theme.items():
+        if not _valid_theme_color(value):
+            errors.append(f"Invalid color value for {field} in terminal-transparent.json")
+    for field in TRANSPARENT_THEME_BACKGROUNDS:
+        if theme.get(field) != "none":
+            errors.append(f"{field} must be transparent in terminal-transparent.json")
 
 
 def validate_read_only_reviewer(
@@ -287,6 +403,7 @@ def main() -> int:
     validate_delegation_rules(errors)
     validate_config(errors)
     validate_tui_config(errors)
+    validate_transparent_theme(errors)
     validate_package(errors)
     validate_tools(errors)
     validate_skills(errors)
