@@ -203,6 +203,14 @@ def validate_config(errors: list[str]) -> None:
         "review-deep": ("openai/gpt-6.1-sol", "xhigh"),
         "review-main": ("openai/gpt-6.1-sol", "medium"),
     }
+    expected_agent_colors = {
+        "build": "#d33682",
+        "plan": "#268bd2",
+        "general": "#2aa198",
+        "explore": "#6c71c4",
+        "review-deep": "#cb4b16",
+        "review-main": "#b58900",
+    }
     if set(agents) != set(expected_routes):
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
@@ -211,6 +219,8 @@ def validate_config(errors: list[str]) -> None:
             errors.append(f"{agent_name} must use {expected_model}")
         if agent.get("variant") != expected_variant:
             errors.append(f"{agent_name} must use variant {expected_variant}")
+        if agent_name in expected_agent_colors and agent.get("color") != expected_agent_colors[agent_name]:
+            errors.append(f"{agent_name} must use its approved Solarized theme color")
 
 
 def validate_tui_config(errors: list[str]) -> None:
