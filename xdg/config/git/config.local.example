@@ -1,6 +1,5 @@
 # ~/.config/git/config.local
-# This file is ignored by git (via .chezmoiignore or .gitignore strategies usually,
-# but here it is simply not tracked by chezmoi by default unless added).
+# This is only a template; the real file is not stored in this repository.
 # Use this file to store your private git configuration.
 
 [user]
