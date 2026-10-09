@@ -31,7 +31,7 @@ $nu.user-autoload-dirs
 # => [..., ~/.config/nushell/autoload]
 ```
 
-`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `08-local.nu` loads machine-specific overrides last (CI fails if another autoload file in this repository sorts after it; unmanaged files dropped into the deployed directory are not checked).
+`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `08-local.nu` loads machine-specific overrides last. Keep `08-local.nu` numbered last: when adding a file, renumber `08-local.nu` after it (nothing enforces this).
 
 Paths inside startup files remain anchored to `$nu.home-dir`, so Home Manager's `/nix/store` symlinks and different usernames do not require path rewrites.
 

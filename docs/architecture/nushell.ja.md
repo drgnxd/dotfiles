@@ -31,7 +31,7 @@ $nu.user-autoload-dirs
 # => [..., ~/.config/nushell/autoload]
 ```
 
-`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`08-local.nu` でマシン固有の上書きを最後に読み込みます（このリポジトリ内の他の autoload ファイルがこれより後ろに並ぶと CI が失敗します。配備先に置いた未管理ファイルは検査されません）。
+`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`08-local.nu` でマシン固有の上書きを最後に読み込みます。ファイルを足すときは `08-local.nu` をその後ろの番号へ振り直して、最後に保ってください（強制する仕組みはありません）。
 
 起動ファイル内の path は `$nu.home-dir` を基準にするため、Home Manager の `/nix/store` symlink やユーザー名の違いに応じた書き換えは不要です。
 
