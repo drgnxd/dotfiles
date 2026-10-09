@@ -147,8 +147,8 @@ Linux desktop integration is managed through Home Manager modules under `home/mo
 
 | macOS | Linux (Hyprland) |
 |---------------------|------------------|
-| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
-| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Window management (retired) | Hyprland keybinds (Ctrl+Alt) |
+| Spotlight (Cmd+Space) | Wofi (Super+Space) |
 | Auto input switching (retired) | fcitx5 `windowrulev2` |
 | Caffeine mode (SwiftBar plugin) | hypridle toggle script |
 | Cheatsheet (retired) | Wofi dmenu script |

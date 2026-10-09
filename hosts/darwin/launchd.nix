@@ -235,7 +235,6 @@ in
     login-proton-mail = mkLoginApp "proton-mail" "Proton Mail";
     login-proton-pass = mkLoginApp "proton-pass" "Proton Pass";
     login-protonvpn = mkLoginApp "protonvpn" "ProtonVPN";
-    login-sol = mkLoginApp "sol" "Sol";
     login-swiftbar = mkLoginApp "swiftbar" "SwiftBar";
   };
 

@@ -233,14 +233,13 @@ in
     # GUI .app bundles go here even when nixpkgs also packages them
     # (e.g. musescore now builds on aarch64-darwin; the PDF reader Skim is
     # nixpkgs' `skimpdf`, not `skim` which is a fuzzy finder). Casks install
-    # into /Applications with working Spotlight/Sol integration and current
+    # into /Applications with working Spotlight integration and current
     # vendor builds; nixpkgs darwin apps land in a Nix Apps alias folder that
     # launchers index poorly. Use nixpkgs for CLI/dev tools (home/packages.nix).
     casks = [
       "codex"
       "codexbar"
       "copilot-cli"
-      "sol"
       "stats"
       "swiftbar"
 

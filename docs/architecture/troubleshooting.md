@@ -57,7 +57,7 @@ after `setenv`, in the same script (`postSetenvRelaunchApps` in
 `hosts/darwin/launchd.nix`), so its relative order is guaranteed regardless of
 which one the OS launches first. This is a deliberate, narrow fix: the same
 sibling-ordering race exists for every `mkLoginApp` entry (Alacritty, Floorp,
-Sol, the Proton apps), but only CodexBar has shown an observable failure so
+the Proton apps), but only CodexBar has shown an observable failure so
 far.
 
 Recover by re-seeding the session (either re-applies the agent and the values):

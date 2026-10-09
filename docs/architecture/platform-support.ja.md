@@ -23,9 +23,9 @@ home-manager switch --flake path:.#<user>@<linuxHostname>
 利用前に `local/identity.nix` を環境に合わせて設定してください。
 
 **デスクトップスタック**:
-- Hyprland — タイル型ウィンドウ管理（Sol のウィンドウ管理相当）
+- Hyprland — タイル型ウィンドウ管理
 - Waybar — ステータスバー（Stats.app 相当）
-- Wofi — アプリランチャー（Sol 相当）
+- Wofi — アプリランチャー
 - fcitx5 + mozc（または hazkey）— 日本語入力
 - cliphist + wl-clipboard — クリップボード管理（Maccy 相当）
 - hypridle + hyprlock — アイドル管理と画面ロック
@@ -44,8 +44,8 @@ home-manager switch --flake path:.#<user>@<linuxHostname>
 
 | macOS | Linux (Hyprland) |
 |---------------------|------------------|
-| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
-| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Window management (retired) | Hyprland keybinds (Ctrl+Alt) |
+| Spotlight (Cmd+Space) | Wofi (Super+Space) |
 | Auto input switching (retired) | socket2 event watcher (`hypr-input-watcher`, systemd user service) |
 | Browser control (retired) | `dispatch sendshortcut` targeting `class:^(floorp)$` |
 

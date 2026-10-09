@@ -27,7 +27,6 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Terminal Multiplexer:** Zellij
 *   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
-*   **Window Manager:** Sol (macOS only)
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Development Tools:** Git (with delta, git-lfs, git-annex, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)

@@ -23,9 +23,9 @@ home-manager switch --flake path:.#<user>@<linuxHostname>
 Set `local/identity.nix` before applying on your machine.
 
 **Desktop stack**:
-- Hyprland — tiling window manager (Sol window management equivalent)
+- Hyprland — tiling window manager
 - Waybar — status bar (Stats.app equivalent)
-- Wofi — application launcher (Sol equivalent)
+- Wofi — application launcher
 - fcitx5 + mozc (or hazkey) — Japanese input
 - cliphist + wl-clipboard — clipboard manager (Maccy equivalent)
 - hypridle + hyprlock — idle management and screen lock
@@ -44,8 +44,8 @@ Set `local/identity.nix` before applying on your machine.
 
 | macOS | Linux (Hyprland) |
 |---------------------|------------------|
-| Window management (Ctrl+Alt) | Hyprland keybinds (Ctrl+Alt) |
-| Sol launcher (Cmd+Space) | Wofi (Super+Space) |
+| Window management (retired) | Hyprland keybinds (Ctrl+Alt) |
+| Spotlight (Cmd+Space) | Wofi (Super+Space) |
 | Auto input switching (retired) | socket2 event watcher (`hypr-input-watcher`, systemd user service) |
 | Browser control (retired) | `dispatch sendshortcut` targeting `class:^(floorp)$` |
 

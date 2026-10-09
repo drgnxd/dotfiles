@@ -55,7 +55,7 @@ CodexBarです: Codex/Claudeの利用量監視CLI subprocessが`CODEX_HOME`/
 は現在、`setenv`実行後に同一スクリプト内でCodexBar自身をQuit→再起動するため
 (`hosts/darwin/launchd.nix`の`postSetenvRelaunchApps`)、OSがどちらを先に起動しても
 相対順序が保証されます。これは意図的に範囲を絞った修正です: 同じ兄弟エージェント
-間の順序レースは`mkLoginApp`の全エントリ(Alacritty・Floorp・Sol・Proton系アプリ)に
+間の順序レースは`mkLoginApp`の全エントリ(Alacritty・Floorp・Proton系アプリ)に
 原理上存在しますが、今のところ実害が確認されているのはCodexBarのみです。
 
 セッションを再シードして復旧します（エージェントと値の両方が再適用されます）:
