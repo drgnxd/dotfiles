@@ -51,6 +51,22 @@ description: Use before the first file edit or Git write in each repository for 
   [--base main]`. It is read-only and takes no lock. `ACTIVE` and `UNKNOWN` are
   never removal candidates; only `IDLE-MERGED` prints a dry-run
   `safe-worktree-remove.py` command, and unmerged work gets none.
+- `scripts/worktree_guard.py` backs the main-checkout rule as a PreToolUse hook
+  (Claude Code) and a `tool.execute.before` plugin (OpenCode). It acts only on
+  repos listed in the machine-local `$XDG_CONFIG_HOME/worktree-guard/config.json`
+  (`mode`: `warn` logs what `deny` would block; `repos`; `allow_paths` for
+  main-checkout-only runtime data such as a local database). It denies edits to
+  any non-allowed path in a protected checkout (the primary one, or a worktree
+  with the default branch checked out or a detached HEAD) and inside Git
+  directories, git write commands there, `git worktree add|remove|...`, and
+  `--no-verify`. When it denies, create a task worktree instead; never work
+  around it with Bash writes. It fails open on its own errors, does not see
+  `sed -i` or shell redirects, and Copilot CLI has no guard. Decisions are
+  logged (tool, rule, resolved path only) under `$XDG_STATE_HOME/worktree-guard/`.
+  Documented fallbacks are guard-denied unless made safe: record a description
+  with `git -C <task worktree> config branch.<b>.description ...`, create the
+  integration lock with Bash `mkdir`, and treat a manual `git worktree add` or
+  `git worktree remove` as an escalation point: ask the user.
 - A read-only agent may share a worktree only if it does not checkout, generate,
   format, update dependencies, or otherwise write files. A detached-HEAD
   worktree is allowed only for read-only inspection that cannot share an

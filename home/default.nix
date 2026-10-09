@@ -49,6 +49,20 @@ let
       environment = claude_settings_base.autoMode.environment ++ claude_local_environment;
     };
     hooks = {
+      PreToolUse = [
+        {
+          matcher = "Edit|Write|MultiEdit|NotebookEdit|Bash|EnterWorktree";
+          hooks = [
+            {
+              type = "command";
+              # No `|| true`: exit 2 must reach Claude Code. A missing script exits 0 instead of
+              # python's own exit 2, which would block every tool call.
+              command = ''f=${config.xdg.configHome}/opencode/skills/git-workflow/scripts/worktree_guard.py; [ -f "$f" ] || exit 0; WORKTREE_GUARD_GIT=${pkgs.git}/bin/git exec ${pkgs.python3}/bin/python3 -I "$f" --client claude'';
+              timeout = 10;
+            }
+          ];
+        }
+      ];
       Stop = [
         {
           hooks = [

@@ -87,7 +87,7 @@ test-worktree-remove:
 
 # Test the worktree create/audit helpers bundled with the git-workflow skill
 test-worktree-tools:
-  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_tools.py
+  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_tools.py xdg/config/opencode/skills/git-workflow/scripts/test_worktree_guard.py
 
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
