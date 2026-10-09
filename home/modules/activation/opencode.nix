@@ -15,9 +15,9 @@
 }:
 
 let
+  render_with_theme = import ../../lib/render-theme.nix { inherit lib; };
   opencode_template = ../../../xdg/config/opencode/opencode.json;
   tui_config_template = ../../../xdg/config/opencode/tui.json;
-  transparent_theme_template = ../../../xdg/config/opencode/themes/terminal-transparent.json;
   opencode_local_example = ../../../xdg/config/opencode/opencode.local.json.example;
   opencode_agents_template = ../../../xdg/config/opencode/global_rules.md;
   opencode_agents_local_example = ../../../xdg/config/opencode/AGENTS.local.md.example;
@@ -69,7 +69,9 @@ in
 {
   xdg.configFile = {
     "opencode/tui.json".source = tui_config_template;
-    "opencode/themes/terminal-transparent.json".source = transparent_theme_template;
+    "opencode/themes/terminal-transparent.json".text = render_with_theme {
+      templatePath = ../../../xdg/config/opencode/themes/terminal-transparent.json;
+    };
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
     "opencode/opencode-notifier-scheduled.json".source = opencode_notifier_scheduled_template;
   }
