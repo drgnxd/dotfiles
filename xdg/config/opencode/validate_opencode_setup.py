@@ -95,6 +95,8 @@ TRANSPARENT_THEME_BACKGROUNDS = {
     "diffAddedLineNumberBg",
     "diffRemovedLineNumberBg",
 }
+SOLARIZED_DARK_BACKGROUND = "#002b36"
+MIN_TEXT_CONTRAST_RATIO = 4.5
 
 
 def _validate_skill_frontmatter(skill_file: Path, errors: list[str]) -> None:
@@ -204,12 +206,12 @@ def validate_config(errors: list[str]) -> None:
         "review-main": ("openai/gpt-6.1-sol", "medium"),
     }
     expected_agent_colors = {
-        "build": "#d33682",
-        "plan": "#268bd2",
-        "general": "#2aa198",
-        "explore": "#6c71c4",
-        "review-deep": "#cb4b16",
-        "review-main": "#b58900",
+        "build": "#f060a6",
+        "plan": "#56b4e9",
+        "general": "#00b386",
+        "explore": "#aba4ff",
+        "review-deep": "#ff8657",
+        "review-main": "#f2ce55",
     }
     if set(agents) != set(expected_routes):
         errors.append("OpenCode agent names must match the approved route set")
@@ -219,8 +221,21 @@ def validate_config(errors: list[str]) -> None:
             errors.append(f"{agent_name} must use {expected_model}")
         if agent.get("variant") != expected_variant:
             errors.append(f"{agent_name} must use variant {expected_variant}")
-        if agent_name in expected_agent_colors and agent.get("color") != expected_agent_colors[agent_name]:
-            errors.append(f"{agent_name} must use its approved Solarized theme color")
+        if (
+            agent_name in expected_agent_colors
+            and agent.get("color") != expected_agent_colors[agent_name]
+        ):
+            errors.append(f"{agent_name} must use its approved contrast-aware color")
+        if (
+            agent_name in expected_agent_colors
+            and _contrast_ratio(
+                expected_agent_colors[agent_name], SOLARIZED_DARK_BACKGROUND
+            )
+            < MIN_TEXT_CONTRAST_RATIO
+        ):
+            errors.append(
+                f"{agent_name} color must have at least 4.5:1 contrast on Solarized Dark"
+            )
 
 
 def validate_tui_config(errors: list[str]) -> None:
@@ -263,6 +278,22 @@ def _valid_theme_color(value: object) -> bool:
     return False
 
 
+def _relative_luminance(hex_color: str) -> float:
+    channels = [int(hex_color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
+    linear = [
+        channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+        for channel in channels
+    ]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def _contrast_ratio(first: str, second: str) -> float:
+    lighter, darker = sorted(
+        (_relative_luminance(first), _relative_luminance(second)), reverse=True
+    )
+    return (lighter + 0.05) / (darker + 0.05)
+
+
 def validate_transparent_theme(errors: list[str]) -> None:
     theme_path = BASE_DIR / "themes" / "terminal-transparent.json"
     if not theme_path.exists():
@@ -290,10 +321,29 @@ def validate_transparent_theme(errors: list[str]) -> None:
 
     for field, value in theme.items():
         if not _valid_theme_color(value):
-            errors.append(f"Invalid color value for {field} in terminal-transparent.json")
+            errors.append(
+                f"Invalid color value for {field} in terminal-transparent.json"
+            )
     for field in TRANSPARENT_THEME_BACKGROUNDS:
         if theme.get(field) != "none":
             errors.append(f"{field} must be transparent in terminal-transparent.json")
+    selected_text = theme.get("selectedListItemText")
+    primary = theme.get("primary")
+    if not (
+        isinstance(selected_text, str)
+        and isinstance(primary, str)
+        and _valid_theme_color(selected_text)
+        and _valid_theme_color(primary)
+        and selected_text.startswith("#")
+        and primary.startswith("#")
+    ):
+        errors.append(
+            "selectedListItemText and primary must be hex colors for contrast validation"
+        )
+    elif _contrast_ratio(selected_text, primary) < MIN_TEXT_CONTRAST_RATIO:
+        errors.append(
+            "selectedListItemText must have at least 4.5:1 contrast on primary"
+        )
 
 
 def validate_read_only_reviewer(

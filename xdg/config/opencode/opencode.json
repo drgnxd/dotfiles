@@ -18,7 +18,7 @@
     "build": {
       "model": "openai/gpt-6-luna",
       "variant": "high",
-      "color": "#d33682",
+      "color": "#f060a6",
       "permission": {
         "task": {
           "*": "deny",
@@ -32,12 +32,12 @@
     "plan": {
       "model": "openai/gpt-6-sol",
       "variant": "medium",
-      "color": "#268bd2"
+      "color": "#56b4e9"
     },
     "general": {
       "model": "openai/gpt-6-luna",
       "variant": "medium",
-      "color": "#2aa198",
+      "color": "#00b386",
       "permission": {
         "task": {
           "*": "deny"
@@ -47,7 +47,7 @@
     "explore": {
       "model": "openai/gpt-6-luna",
       "variant": "low",
-      "color": "#6c71c4",
+      "color": "#aba4ff",
       "permission": {
         "task": {
           "*": "deny"
@@ -71,7 +71,7 @@
       "mode": "subagent",
       "model": "openai/gpt-6.1-sol",
       "variant": "xhigh",
-      "color": "#cb4b16",
+      "color": "#ff8657",
       "permission": {
         "*": "deny",
         "read": "allow",
@@ -85,7 +85,7 @@
       "mode": "subagent",
       "model": "openai/gpt-6.1-sol",
       "variant": "medium",
-      "color": "#b58900",
+      "color": "#f2ce55",
       "permission": {
         "*": "deny",
         "read": "allow",
