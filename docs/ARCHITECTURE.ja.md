@@ -98,10 +98,10 @@ autoload/
 |- 02-path.nu          # path-add ヘルパー付き PATH
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
 |- 04-functions.nu     # カスタムラッパーとユーティリティ
-|- 06-source-tools.nu  # Nix build済みツール初期化
-|- 07-direnv.nu        # ディレクトリ移動時の direnv 同期
-|- 08-pass-agent.nu    # プロンプト用 SSH エージェント状態表示
-`- 09-local.nu         # 未管理の local 上書きを最後に読み込み
+|- 05-source-tools.nu  # Nix build済みツール初期化
+|- 06-direnv.nu        # ディレクトリ移動時の direnv 同期
+|- 07-pass-agent.nu    # プロンプト用 SSH エージェント状態表示
+`- 08-local.nu         # 未管理の local 上書きを最後に読み込み
 ```
 
 **Key Features**:

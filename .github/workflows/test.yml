@@ -52,8 +52,8 @@ jobs:
       - name: Check local overrides load last
         run: |
           last=$(printf '%s\n' dot_config/nushell/autoload/*.nu | LC_ALL=C sort | tail -n 1)
-          if [ "$last" != "dot_config/nushell/autoload/09-local.nu" ]; then
-            echo "09-local.nu must sort last in autoload/, found: $last" >&2
+          if [ "$last" != "dot_config/nushell/autoload/08-local.nu" ]; then
+            echo "08-local.nu must sort last in autoload/, found: $last" >&2
             exit 1
           fi
       - name: Check Nushell file syntax
