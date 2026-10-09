@@ -14,7 +14,7 @@ in
   }
   // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     "alacritty/toggle_blur.sh" = {
-      source = ../../xdg/config/alacritty/executable_toggle_blur.sh;
+      source = ../../xdg/config/alacritty/toggle_blur.sh;
       executable = true;
     };
   };
