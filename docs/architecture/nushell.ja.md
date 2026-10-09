@@ -16,7 +16,6 @@ dot_config/nushell/
 │   ├── 02-path.nu          # path-addヘルパーを使ったPATH設定
 │   ├── 03-aliases.nu       # フォールバック付きエイリアス
 │   ├── 04-functions.nu     # カスタム関数とラッパー
-│   ├── 05-completions.nu   # コマンド補完
 │   ├── 06-source-tools.nu  # Nix build済みinit script読み込み
 │   ├── 07-direnv.nu        # ディレクトリ移動時のDirenv同期
 │   ├── 08-pass-agent.nu    # プロンプト用SSHエージェント状態表示

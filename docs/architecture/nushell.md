@@ -16,7 +16,6 @@ dot_config/nushell/
 │   ├── 02-path.nu          # PATH configuration with path-add helper
 │   ├── 03-aliases.nu       # Command aliases with fallbacks
 │   ├── 04-functions.nu     # Custom functions & wrappers
-│   ├── 05-completions.nu   # Command completions
 │   ├── 06-source-tools.nu  # Sources Nix-built init scripts
 │   ├── 07-direnv.nu        # Direnv sync on directory change
 │   ├── 08-pass-agent.nu    # SSH agent status indicator for the prompt

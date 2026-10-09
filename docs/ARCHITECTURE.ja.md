@@ -98,7 +98,6 @@ autoload/
 |- 02-path.nu          # path-add ヘルパー付き PATH
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
 |- 04-functions.nu     # カスタムラッパーとユーティリティ
-|- 05-completions.nu   # 動的補完
 |- 06-source-tools.nu  # Nix build済みツール初期化
 |- 07-direnv.nu        # ディレクトリ移動時の direnv 同期
 |- 08-pass-agent.nu    # プロンプト用 SSH エージェント状態表示
