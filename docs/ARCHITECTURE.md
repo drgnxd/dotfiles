@@ -98,8 +98,10 @@ autoload/
 |- 03-aliases.nu       # Conditional command aliases
 |- 04-functions.nu     # Custom wrappers and utilities
 |- 05-completions.nu   # Dynamic completions
-|- 10-source-tools.nu  # Source Nix-built tool init + direnv PWD hook
-`- 99-local.nu         # Load unmanaged local overrides last
+|- 06-source-tools.nu  # Source Nix-built tool init
+|- 07-direnv.nu        # Direnv sync on directory change
+|- 08-pass-agent.nu    # SSH agent status indicator for the prompt
+`- 09-local.nu         # Load unmanaged local overrides last
 ```
 
 **Key Features**:

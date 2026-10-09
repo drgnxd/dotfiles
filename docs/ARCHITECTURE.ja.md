@@ -98,8 +98,10 @@ autoload/
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
 |- 04-functions.nu     # カスタムラッパーとユーティリティ
 |- 05-completions.nu   # 動的補完
-|- 10-source-tools.nu  # Nix build済みツール初期化 + direnv PWD フック
-`- 99-local.nu         # 未管理の local 上書きを最後に読み込み
+|- 06-source-tools.nu  # Nix build済みツール初期化
+|- 07-direnv.nu        # ディレクトリ移動時の direnv 同期
+|- 08-pass-agent.nu    # プロンプト用 SSH エージェント状態表示
+`- 09-local.nu         # 未管理の local 上書きを最後に読み込み
 ```
 
 **Key Features**:
