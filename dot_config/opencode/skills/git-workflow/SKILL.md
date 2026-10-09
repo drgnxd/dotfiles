@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Use before Git history changes.
+description: Use before the first file edit or Git write in each repository for each task, whatever the task size. Not for read-only inspection or directories outside a Git work tree.
 ---
 
 # Git Workflow
