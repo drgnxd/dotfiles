@@ -17,11 +17,8 @@ dot_config/nushell/
 │   ├── 03-aliases.nu       # Command aliases with fallbacks
 │   ├── 04-functions.nu     # Custom functions & wrappers
 │   ├── 05-completions.nu   # Command completions
-│   ├── 09-lima.nu          # Lazy wrapper for Lima/Docker helpers
 │   ├── 10-source-tools.nu  # Sources Nix-built init scripts
 │   └── 99-local.nu         # Loads unmanaged local overrides last
-└── modules/
-    └── lima.nu             # Lima/Docker commands
 ```
 
 ## Module Loading
@@ -37,7 +34,6 @@ $nu.user-autoload-dirs
 
 Paths inside startup files remain anchored to `$nu.home-dir`, so Home Manager's `/nix/store` symlinks and different usernames do not require path rewrites.
 
-Reusable tool logic lives under `modules/` and is exposed by lightweight wrappers in `autoload/`. `config.nu` loads the Lima module before automatic autoload reaches `09-lima.nu`; `10-source-tools.nu` then loads the Nix-generated integrations.
 
 Carapace completion is configured directly in `config.nu`. It does not source runtime-generated files, so deleting `~/.cache` cannot break Nushell parsing.
 
@@ -109,10 +105,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
 
-### Lima/Docker
-- `lls` - List Lima VMs
-- `dctx` - Docker context switch
-- `dctx-reset` - Reset to default context
 
 ### Functions
 - `y` - Yazi file manager with cwd tracking

@@ -17,11 +17,8 @@ dot_config/nushell/
 │   ├── 03-aliases.nu       # フォールバック付きエイリアス
 │   ├── 04-functions.nu     # カスタム関数とラッパー
 │   ├── 05-completions.nu   # コマンド補完
-│   ├── 09-lima.nu          # Lima/Dockerの遅延ラッパー
 │   ├── 10-source-tools.nu  # Nix build済みinit script読み込み
 │   └── 99-local.nu         # 未管理のlocal上書きを最後に読み込み
-└── modules/
-    └── lima.nu              # Lima/Dockerコマンド
 ```
 
 ## モジュール読み込み
@@ -37,7 +34,6 @@ $nu.user-autoload-dirs
 
 起動ファイル内の path は `$nu.home-dir` を基準にするため、Home Manager の `/nix/store` symlink やユーザー名の違いに応じた書き換えは不要です。
 
-再利用するツールロジックは `modules/` に置き、`autoload/` の軽量 wrapper から公開します。`config.nu` は自動 autoload が `09-lima.nu` に到達する前に Lima module を読み込み、続く `10-source-tools.nu` が Nix 生成済み integration を読み込みます。
 
 Carapace completion は `config.nu` で直接設定します。runtime 生成ファイルを source しないため、`~/.cache` を削除しても Nushell の parse は失敗しません。
 
@@ -109,10 +105,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - `oc`, `ocd` - opencode
 - `pload` - Proton Pass CLI
 
-### Lima/Docker
-- `lls` - Lima VM一覧
-- `dctx` - Dockerコンテキスト切り替え
-- `dctx-reset` - デフォルトにリセット
 
 ### 関数
 - `y` - cwd追跡付きYaziファイルマネージャ

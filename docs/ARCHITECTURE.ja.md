@@ -48,7 +48,7 @@
 |     |- gh.nix                      # GitHub CLI 設定
 |     |- git.nix                     # git/delta + local テンプレート
 |     |- helix.nix                   # Helix 設定 + テーマ
-|     |- nushell.nix                 # Nushell ファイル（autoload/modules）
+|     |- nushell.nix                 # Nushell ファイル（autoload）
 |     |- nushell-integrations.nix    # 生成済み Nushell init スクリプト作成
 |     |- shellcheck.nix              # shellcheckrc
 |     |- starship.nix                # Starship プロンプト設定
@@ -98,7 +98,6 @@ autoload/
 |- 03-aliases.nu       # 条件付きコマンドエイリアス
 |- 04-functions.nu     # カスタムラッパーとユーティリティ
 |- 05-completions.nu   # 動的補完
-|- 09-lima.nu          # Lima/Docker ヘルパー
 |- 10-source-tools.nu  # Nix build済みツール初期化 + direnv PWD フック
 `- 99-local.nu         # 未管理の local 上書きを最後に読み込み
 ```
@@ -196,29 +195,17 @@ $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
      `- ...                # VM ランタイムデータ
 ```
 
-**Management Functions** (`dot_config/nushell/autoload/09-lima.nu`):
-
-| Function | Purpose | Example |
-|----------|---------|---------|
-| `lima-start <vm>` | VM 起動 + Docker context 自動切替 | `lima-start dev` |
-| `lima-stop <vm>` | VM を正常停止 | `lima-stop dev` |
-| `lima-status` (alias: `lls`) | VM 一覧と状態表示 | `lls` |
-| `lima-shell <vm>` | VM 内シェルを開く | `lima-shell dev` |
-| `lima-delete <vm>` | 確認付き VM 削除 | `lima-delete old-vm` |
-| `docker-ctx <name>` (alias: `dctx`) | Docker context 切替 | `dctx dev-context` |
-| `docker-ctx-reset` | default context へ戻す | `docker-ctx-reset` |
-| `lima-docker-context <vm>` | VM 用 Docker context 作成/更新 | `lima-docker-context dev` |
-
 **Typical Workflow**:
 ```bash
 # 1. Docker 付き Lima VM を作成
 limactl create --name=dev template://docker
 
-# 2. VM を起動（context があれば自動切替）
-lima-start dev
+# 2. VM を起動
+limactl start dev
 
-# 3. VM 用 Docker context を作成
-lima-docker-context dev
+# 3. VM 用 Docker context を作成して切替
+docker context create dev-context --docker "host=unix://$LIMA_HOME/dev/sock/docker.sock"
+docker context use dev-context
 
 # 4. Docker 接続確認
 docker ps
@@ -228,7 +215,7 @@ docker info
 docker run -d --name nginx nginx:alpine
 
 # 6. 作業後に VM 停止
-lima-stop dev
+limactl stop dev
 ```
 
 **Design Benefits**:

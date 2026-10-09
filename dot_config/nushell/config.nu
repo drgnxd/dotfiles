@@ -1,7 +1,4 @@
 
-# Home Manager symlinks active files into /nix/store, so anchor module paths
-# to the user's config directory instead of the active file's real path.
-const config_dir = ($nu.home-dir | path join '.config' 'nushell')
 let has_carapace = (which carapace | is-not-empty)
 
 $env.config.history = {
@@ -28,5 +25,3 @@ $env.config.completions.external = {
 
 # User startup files under autoload/ are loaded automatically in filename order
 # after config.nu. Do not source them here or hooks and keybindings will duplicate.
-
-source ($config_dir | path join 'modules' 'lima.nu')

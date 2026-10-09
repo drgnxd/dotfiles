@@ -31,7 +31,6 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Package Manager:** Nix (nix-darwin + home-manager)
 *   **Development Tools:** Git (with delta, git-lfs, git-annex, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
-    *   Lima management: `lima-start`, `lima-stop`, `lls` (list VMs), `docker-ctx` (context switch)
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
 *   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy
 *   **Project Environments:** direnv + nix-direnv with `uv` for Python; language runtimes and language-specific LSPs belong in project `devShell`s
