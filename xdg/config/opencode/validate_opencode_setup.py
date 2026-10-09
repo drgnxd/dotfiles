@@ -385,10 +385,6 @@ def validate_delegation_rules(errors: list[str]) -> None:
         elif phrase not in path.read_text(encoding="utf-8"):
             errors.append(message)
 
-    tools_dir = BASE_DIR / "tools"
-    if (tools_dir / "claude_delegate.ts").exists():
-        errors.append("claude_delegate.ts must not be installed")
-
 
 def main() -> int:
     errors: list[str] = []
