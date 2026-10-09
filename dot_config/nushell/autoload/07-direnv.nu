@@ -1,35 +1,3 @@
-# Nix-managed integrations consumer (source-only)
-#
-# requires: 00-helpers
-#
-# Starship, zoxide, and atuin init scripts are generated at nix-build time
-# and deployed to ~/.config/nushell/generated/*.nu. Carapace completion is
-# configured directly in config.nu and has no runtime init cache.
-
-# Plan B: Nix-managed init scripts (read-only, always up-to-date after rebuild)
-const starship_file = ($nu.home-dir | path join ".config" "nushell" "generated" "starship.nu")
-const zoxide_file = ($nu.home-dir | path join ".config" "nushell" "generated" "zoxide.nu")
-const atuin_file = ($nu.home-dir | path join ".config" "nushell" "generated" "atuin.nu")
-
-# STARSHIP PROMPT
-if (has-cmd starship) {
-    if ($starship_file | path exists) {
-        source $starship_file
-    }
-}
-
-# ZOXIDE
-if ((has-cmd zoxide) and ($zoxide_file | path exists)) {
-    source $zoxide_file
-}
-
-# ATUIN
-if (has-cmd atuin) {
-    if ($atuin_file | path exists) {
-        source $atuin_file
-    }
-}
-
 def --env apply-direnv-changes [changes: record] {
     let removals = ($changes | columns | where { |name| ($changes | get -o $name) == null })
     for name in $removals {
@@ -81,9 +49,16 @@ def --env direnv-sync [] {
 }
 
 # DIRENV (hooks into PWD change for automatic env loading)
+# Append, guarded by a marker: replacing the list drops the zoxide hook sourced
+# earlier, and re-sourcing this file must not stack a second sync.
 if (which --all direnv | any { |entry| $entry.type == "external" }) {
     $env.config = ($env.config | upsert hooks.env_change.PWD {|config|
-        [ {|| direnv-sync } ]
+        let hooks = ($config | get -o hooks.env_change.PWD | default [])
+        if ($hooks | any { try { get __direnv_hook } catch { false } }) {
+            $hooks
+        } else {
+            $hooks ++ [ { __direnv_hook: true, code: {|| direnv-sync } } ]
+        }
     })
 }
 
@@ -96,22 +71,3 @@ export def --env --wrapped direnv [...args] {
         direnv-sync
     }
 }
-
-# PASS SSH-AGENT INDICATOR (anomaly-only)
-# Sets PASS_AGENT_DOWN when $env.SSH_AUTH_SOCK is unset or its socket file
-# is missing; starship renders it via ${env_var.PASS_AGENT_DOWN}.
-# Socket existence is a liveness proxy: a stale socket (process died, file
-# left behind) is NOT detected. `path exists` is a builtin stat call — no
-# subprocess is spawned, keeping the prompt's zero-spawn budget intact.
-$env.config = ($env.config | upsert hooks.pre_prompt {|config|
-    ($config | get -o hooks.pre_prompt | default []) ++ [
-        {||
-            let sock = ($env.SSH_AUTH_SOCK? | default "")
-            if ($sock | is-empty) or (not ($sock | path exists)) {
-                load-env { PASS_AGENT_DOWN: "✗" }
-            } else {
-                hide-env --ignore-errors PASS_AGENT_DOWN
-            }
-        }
-    ]
-})

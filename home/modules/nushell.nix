@@ -3,7 +3,7 @@
 let
   nushellSrc = ../../dot_config/nushell;
 
-  # config.nu + env.nu + autoload/* + modules/*, keyed under `prefix`.
+  # config.nu + env.nu + autoload/*, keyed under `prefix`.
   # `extraAttrs` is merged into every entry (used to pass `force = true`).
   mkTree =
     prefix: extraAttrs:
@@ -22,8 +22,7 @@ let
       "${prefix}/config.nu" = mkEntry (nushellSrc + "/config.nu");
       "${prefix}/env.nu" = mkEntry (nushellSrc + "/env.nu");
     }
-    // mkSubdir "autoload"
-    // mkSubdir "modules";
+    // mkSubdir "autoload";
 in
 {
   xdg.configFile = mkTree "nushell" { };
@@ -42,7 +41,7 @@ in
   # own regenerated stub (the managed login config is the ~/.config copy),
   # so overwrite it without a `.before-nix` backup -- a backup here is pure
   # litter and a later mirror toggle would abort activation on the stale
-  # backup. The mirrored files source everything else (modules/, generated/,
+  # backup. The mirrored files source everything else (generated/,
   # local.nu) by absolute ~/.config/nushell path, so that tree stays the
   # single source those references resolve against.
   home.file = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (

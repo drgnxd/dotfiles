@@ -40,6 +40,22 @@ jobs:
           # Nushell expressions must remain literal.
           # shellcheck disable=SC2016
           nu --no-history --execute 'let count = ($env.config.hooks.pre_prompt | length); if $count != 1 { print --stderr $"pre_prompt hooks registered ($count) times"; exit 1 }; exit'
+      - name: Fail on startup errors
+        run: |
+          # Nushell reports parse errors in autoload files on stderr and still exits 0.
+          status=0
+          errors=$(nu --no-history --execute 'exit' 2>&1 >/dev/null) || status=$?
+          if [ -n "$errors" ] || [ "$status" -ne 0 ]; then
+            echo "$errors" >&2
+            exit 1
+          fi
+      - name: Check local overrides load last
+        run: |
+          last=$(printf '%s\n' dot_config/nushell/autoload/*.nu | LC_ALL=C sort | tail -n 1)
+          if [ "$last" != "dot_config/nushell/autoload/09-local.nu" ]; then
+            echo "09-local.nu must sort last in autoload/, found: $last" >&2
+            exit 1
+          fi
       - name: Check Nushell file syntax
         run: |
           if nu --help 2>&1 | grep -q -- '--check'; then
@@ -53,7 +69,6 @@ jobs:
 
           if [ "$mode" = "check" ]; then
             for f in dot_config/nushell/autoload/*.nu \
-                     dot_config/nushell/modules/*.nu \
                      dot_config/nushell/env.nu \
                      dot_config/nushell/config.nu; do
               echo "Checking: $f"
@@ -61,7 +76,6 @@ jobs:
             done
           else
             for f in dot_config/nushell/autoload/*.nu \
-                     dot_config/nushell/modules/*.nu \
                      dot_config/nushell/env.nu \
                      dot_config/nushell/config.nu; do
               echo "Checking: $f"

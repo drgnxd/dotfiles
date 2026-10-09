@@ -29,7 +29,6 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **開発ツール:** Git（delta・git-lfs・git-annex・git-absorb・git-cliff統合）、jujutsu（`jj`）、ast-grep、nix-diff、nixfmt、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
-    *   Lima管理コマンド: `lima-start`、`lima-stop`、`lls`（VM一覧）、`docker-ctx`（コンテキスト切り替え）
     *   完全XDG準拠（`~/.config/docker/`、`~/.local/share/lima/`）
 *   **ユーティリティ:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, mas, comma, nix-output-monitor（`nom`）, glow, gping, doggo, viddy
 *   **プロジェクト環境:** direnv + nix-direnv と Python 用の `uv`。言語ランタイムと言語別 LSP はプロジェクトの `devShell` で管理します

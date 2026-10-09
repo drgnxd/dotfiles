@@ -48,7 +48,7 @@
 |     |- gh.nix                      # GitHub CLI config
 |     |- git.nix                     # git/delta + local template
 |     |- helix.nix                   # Helix config + theme
-|     |- nushell.nix                 # Nushell files (autoload/modules)
+|     |- nushell.nix                 # Nushell files (autoload)
 |     |- nushell-integrations.nix    # Build generated Nushell init scripts
 |     |- shellcheck.nix              # shellcheckrc
 |     |- starship.nix                # Starship prompt settings
@@ -87,20 +87,22 @@ See detailed documentation: [Nushell Configuration](architecture/nushell.md)
 
 **Entry Points**:
 - `env.nu` - Standard environment entry point; startup fragments load through native autoload
-- `config.nu` - Configures interactive behavior and prerequisite tool modules
+- `config.nu` - Configures interactive behavior (history, completions)
 - `autoload/*.nu` - Loaded once by Nushell in filename order after `config.nu`
 
 **Modular Architecture**:
 ```
 autoload/
+|- 00-helpers.nu       # Shared helper functions
 |- 01-env.nu           # XDG paths, ENV_CONVERSIONS
 |- 02-path.nu          # PATH with path-add helper
 |- 03-aliases.nu       # Conditional command aliases
 |- 04-functions.nu     # Custom wrappers and utilities
 |- 05-completions.nu   # Dynamic completions
-|- 09-lima.nu          # Lima/Docker helpers
-|- 10-source-tools.nu  # Source Nix-built tool init + direnv PWD hook
-`- 99-local.nu         # Load unmanaged local overrides last
+|- 06-source-tools.nu  # Source Nix-built tool init
+|- 07-direnv.nu        # Direnv sync on directory change
+|- 08-pass-agent.nu    # SSH agent status indicator for the prompt
+`- 09-local.nu         # Load unmanaged local overrides last
 ```
 
 **Key Features**:
@@ -196,29 +198,17 @@ $env.LIMA_HOME = ($env.XDG_DATA_HOME | path join "lima")
      `- ...                # VM runtime data
 ```
 
-**Management Functions** (`dot_config/nushell/autoload/09-lima.nu`):
-
-| Function | Purpose | Example |
-|----------|---------|---------|
-| `lima-start <vm>` | Start VM and auto-switch Docker context | `lima-start dev` |
-| `lima-stop <vm>` | Stop VM gracefully | `lima-stop dev` |
-| `lima-status` (alias: `lls`) | List all VMs with status | `lls` |
-| `lima-shell <vm>` | Open shell inside VM | `lima-shell dev` |
-| `lima-delete <vm>` | Delete VM with confirmation | `lima-delete old-vm` |
-| `docker-ctx <name>` (alias: `dctx`) | Switch Docker context | `dctx dev-context` |
-| `docker-ctx-reset` | Reset to default context | `docker-ctx-reset` |
-| `lima-docker-context <vm>` | Create/update Docker context for VM | `lima-docker-context dev` |
-
 **Typical Workflow**:
-```bash
+```nushell
 # 1. Create Lima VM with Docker
 limactl create --name=dev template://docker
 
-# 2. Start VM (automatically switches Docker context if it exists)
-lima-start dev
+# 2. Start VM
+limactl start dev
 
-# 3. Create Docker context for the VM
-lima-docker-context dev
+# 3. Create and select a Docker context for the VM
+docker context create dev-context --docker $"host=unix://($env.LIMA_HOME)/dev/sock/docker.sock"
+docker context use dev-context
 
 # 4. Verify Docker connection
 docker ps
@@ -228,7 +218,7 @@ docker info
 docker run -d --name nginx nginx:alpine
 
 # 6. Stop VM when done
-lima-stop dev
+limactl stop dev
 ```
 
 **Design Benefits**:
