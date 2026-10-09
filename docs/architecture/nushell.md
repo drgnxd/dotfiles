@@ -16,11 +16,10 @@ xdg/config/nushell/
 │   ├── 02-path.nu          # PATH configuration with path-add helper
 │   ├── 03-aliases.nu       # Command aliases with fallbacks
 │   ├── 04-functions.nu     # Custom functions & wrappers
-│   ├── 05-completions.nu   # Command completions
-│   ├── 06-source-tools.nu  # Sources Nix-built init scripts
-│   ├── 07-direnv.nu        # Direnv sync on directory change
-│   ├── 08-pass-agent.nu    # SSH agent status indicator for the prompt
-│   └── 09-local.nu         # Loads unmanaged local overrides last
+│   ├── 05-source-tools.nu  # Sources Nix-built init scripts
+│   ├── 06-direnv.nu        # Direnv sync on directory change
+│   ├── 07-pass-agent.nu    # SSH agent status indicator for the prompt
+│   └── 08-local.nu         # Loads unmanaged local overrides last
 ```
 
 ## Module Loading
@@ -32,7 +31,7 @@ $nu.user-autoload-dirs
 # => [..., ~/.config/nushell/autoload]
 ```
 
-`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `09-local.nu` loads machine-specific overrides last (CI fails if another autoload file in this repository sorts after it; unmanaged files dropped into the deployed directory are not checked).
+`env.nu` and `config.nu` do not manually source these files. Using the native autoload path prevents hooks and keybindings from being registered twice. Numeric prefixes make dependencies deterministic, and `08-local.nu` loads machine-specific overrides last (CI fails if another autoload file in this repository sorts after it; unmanaged files dropped into the deployed directory are not checked).
 
 Paths inside startup files remain anchored to `$nu.home-dir`, so Home Manager's `/nix/store` symlinks and different usernames do not require path rewrites.
 
@@ -125,9 +124,9 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Atuin** - Shell history sync
 - **Direnv** - Environment management and state detection via a PWD change hook (no cache or per-prompt subprocess)
 
-Nix generates Starship, Zoxide, and Atuin init scripts during the build and deploys them under `~/.config/nushell/generated/`. `autoload/06-source-tools.nu` sources those deterministic files after activation. Carapace uses the external completer defined directly in `config.nu` and does not require an init cache.
+Nix generates Starship, Zoxide, and Atuin init scripts during the build and deploys them under `~/.config/nushell/generated/`. `autoload/05-source-tools.nu` sources those deterministic files after activation. Carapace uses the external completer defined directly in `config.nu` and does not require an init cache.
 
-Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/07-direnv.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically. A thin `direnv` wrapper reruns the same sync after a successful `direnv allow`, making the indicator update without another `cd`. The hook exposes loaded state through `DIRENV_DIR` and blocked state through `DIRENV_BLOCKED`; Starship renders both with `env_var` modules, so no direnv subprocess runs per prompt.
+Direnv integration is attached to `$env.config.hooks.env_change.PWD` in `autoload/06-direnv.nu`, so `direnv export json` runs whenever you `cd` and environment updates are applied automatically. A thin `direnv` wrapper reruns the same sync after a successful `direnv allow`, making the indicator update without another `cd`. The hook exposes loaded state through `DIRENV_DIR` and blocked state through `DIRENV_BLOCKED`; Starship renders both with `env_var` modules, so no direnv subprocess runs per prompt.
 
 ### Starship Prompt Safety Model
 
@@ -182,7 +181,7 @@ alias mylocal = echo "local alias"
 
 Security-sensitive values should live here. In particular, `OLLAMA_ORIGINS` is intentionally not set in `autoload/01-env.nu`; set a specific browser extension UUID in `local.nu` when needed.
 
-`autoload/09-local.nu` automatically sources this file after all managed startup files.
+`autoload/08-local.nu` automatically sources this file after all managed startup files.
 
 ## References
 

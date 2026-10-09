@@ -16,11 +16,10 @@ xdg/config/nushell/
 │   ├── 02-path.nu          # path-addヘルパーを使ったPATH設定
 │   ├── 03-aliases.nu       # フォールバック付きエイリアス
 │   ├── 04-functions.nu     # カスタム関数とラッパー
-│   ├── 05-completions.nu   # コマンド補完
-│   ├── 06-source-tools.nu  # Nix build済みinit script読み込み
-│   ├── 07-direnv.nu        # ディレクトリ移動時のDirenv同期
-│   ├── 08-pass-agent.nu    # プロンプト用SSHエージェント状態表示
-│   └── 09-local.nu         # 未管理のlocal上書きを最後に読み込み
+│   ├── 05-source-tools.nu  # Nix build済みinit script読み込み
+│   ├── 06-direnv.nu        # ディレクトリ移動時のDirenv同期
+│   ├── 07-pass-agent.nu    # プロンプト用SSHエージェント状態表示
+│   └── 08-local.nu         # 未管理のlocal上書きを最後に読み込み
 ```
 
 ## モジュール読み込み
@@ -32,7 +31,7 @@ $nu.user-autoload-dirs
 # => [..., ~/.config/nushell/autoload]
 ```
 
-`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`09-local.nu` でマシン固有の上書きを最後に読み込みます（このリポジトリ内の他の autoload ファイルがこれより後ろに並ぶと CI が失敗します。配備先に置いた未管理ファイルは検査されません）。
+`env.nu` と `config.nu` からこれらのファイルを手動では読み込みません。Nushell 標準の autoload だけを使うことで、hook と keybinding の二重登録を防ぎます。数字 prefix で依存順を決定し、`08-local.nu` でマシン固有の上書きを最後に読み込みます（このリポジトリ内の他の autoload ファイルがこれより後ろに並ぶと CI が失敗します。配備先に置いた未管理ファイルは検査されません）。
 
 起動ファイル内の path は `$nu.home-dir` を基準にするため、Home Manager の `/nix/store` symlink やユーザー名の違いに応じた書き換えは不要です。
 
@@ -125,9 +124,9 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 - **Atuin** - シェル履歴同期
 - **Direnv** - PWD 変更フックによる環境管理と状態検出（キャッシュと prompt ごとの subprocess はなし）
 
-Nix は Starship、Zoxide、Atuin の init script を build 時に生成し、`~/.config/nushell/generated/` 以下へ配備します。activation 後に `autoload/06-source-tools.nu` がこの再現可能な生成物を読み込みます。Carapace は `config.nu` で直接定義した external completer を使い、init cache を必要としません。
+Nix は Starship、Zoxide、Atuin の init script を build 時に生成し、`~/.config/nushell/generated/` 以下へ配備します。activation 後に `autoload/05-source-tools.nu` がこの再現可能な生成物を読み込みます。Carapace は `config.nu` で直接定義した external completer を使い、init cache を必要としません。
 
-Direnv は `autoload/07-direnv.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。薄い `direnv` wrapper は `direnv allow` が成功した後に同じ同期を再実行するため、再度 `cd` しなくても indicator が更新されます。hook は読み込み済み状態を `DIRENV_DIR`、blocked 状態を `DIRENV_BLOCKED` で公開し、Starship は両方を `env_var` module で描画するため、prompt ごとに direnv subprocess を起動しません。
+Direnv は `autoload/06-direnv.nu` で `$env.config.hooks.env_change.PWD` にフック登録されており、`cd` 時に `direnv export json` を実行して環境変数の差分を自動反映します。薄い `direnv` wrapper は `direnv allow` が成功した後に同じ同期を再実行するため、再度 `cd` しなくても indicator が更新されます。hook は読み込み済み状態を `DIRENV_DIR`、blocked 状態を `DIRENV_BLOCKED` で公開し、Starship は両方を `env_var` module で描画するため、prompt ごとに direnv subprocess を起動しません。
 
 ### Starship プロンプトの安全設計
 
@@ -182,7 +181,7 @@ alias mylocal = echo "local alias"
 
 セキュリティ上センシティブな値はこの `local.nu` に置いてください。特に `OLLAMA_ORIGINS` は `autoload/01-env.nu` では設定せず、必要な拡張機能 UUID を `local.nu` で明示設定する設計です。
 
-`autoload/09-local.nu` が、すべての管理対象起動ファイルの後でこのファイルを自動的に読み込みます。
+`autoload/08-local.nu` が、すべての管理対象起動ファイルの後でこのファイルを自動的に読み込みます。
 
 ## 参考
 
