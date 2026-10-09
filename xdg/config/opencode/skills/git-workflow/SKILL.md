@@ -31,11 +31,26 @@ description: Use before the first file edit or Git write in each repository for 
   taken and pick a higher `<NN>`, and never adopt an existing branch. A revision
   gets a fresh `<NN>`. Right after creation, the creator records the task, and
   for revisions or integrations the parent branch and base or checkpoint OID,
-  and ends the text with `client=<claude|opencode|copilot>` (the agent cannot reliably
-  know its session id, so do not record one), with
-  `git config branch.<branch>.description "<text>"` (not
+  with `git config branch.<branch>.description "<text>"` (not
   `--edit-description`, which opens an editor); this is the one shared-config
   write allowed at creation, and only before concurrent agents start.
+  Prefer `python3 <skill-dir>/scripts/worktree-create.py --slug <slug> --client
+  <claude|opencode|copilot> --task "<text>" [--from main] [--parent <branch>]
+  [--prefix integration]`: it applies the numbering rule, runs the single
+  `git worktree add -b`, checks the new `.git` identity, and writes the
+  description `<task> client=<c> session=<id> base=<OID> pid=<pid>@<start>
+  [parent=<branch>]`. Keep `client=` first after the task text; the
+  `--expect-owner` match at removal uses the task text. The session id comes only from the client's own
+  variable: `CLAUDE_CODE_SESSION_ID` for Claude Code, `OPENCODE_SESSION_ID` for
+  OpenCode (set by the `session-env` plugin), none for Copilot CLI. A missing
+  or malformed value is recorded as `session=unknown`; never guess one. Exit
+  code 3 means the worktree exists but the description was not written:
+  write the printed text by hand. Exit code 4 means the identity check failed:
+  preserve the worktree. Without the script, do the same steps by hand.
+- To find forgotten worktrees run `python3 <skill-dir>/scripts/worktree-audit.py
+  [--base main]`. It is read-only and takes no lock. `ACTIVE` and `UNKNOWN` are
+  never removal candidates; only `IDLE-MERGED` prints a dry-run
+  `safe-worktree-remove.py` command, and unmerged work gets none.
 - A read-only agent may share a worktree only if it does not checkout, generate,
   format, update dependencies, or otherwise write files. A detached-HEAD
   worktree is allowed only for read-only inspection that cannot share an
