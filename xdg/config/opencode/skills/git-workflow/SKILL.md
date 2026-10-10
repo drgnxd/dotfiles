@@ -166,6 +166,7 @@ description: Use before the first file edit or Git write in each repository for 
   unexplained changes. Inspect every used worktree/nested repo. Do not report
   completion while task changes remain outside main or verification is
   ambiguous.
+- The mere existence of other registered worktrees is not evidence of a concurrent writer; establish and maintain the exclusive access required by repository rules, then use the safe removal script and obey its explicit stop conditions.
 - Remove only task/integration branches and worktrees recorded as created by
   this task, after the integration OID is reachable from main, their tips are
   integrated, their tracked/untracked/ignored state is safe, and no worktree is
