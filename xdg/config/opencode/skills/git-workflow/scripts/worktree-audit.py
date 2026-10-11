@@ -5,15 +5,20 @@ States, in precedence order:
   ACTIVE         a positive liveness signal: the recorded agent process is alive
                  with the recorded start time, or the recorded session changed
                  within --active-hours.
-  UNKNOWN        no description, detached HEAD, `session=unknown`, or the session
-                 lookup failed. A failed lookup is never evidence of idleness.
+  UNKNOWN        no description, detached HEAD, `session=unknown`, invalid owner
+                 metadata, or a failed session lookup. A failed lookup is never
+                 evidence of idleness.
   LEGACY         a description without a `session=` trailer (created before
                  session tracking); owner text only.
   IDLE-MERGED    liveness known to be negative, HEAD has commits beyond the
-                 recorded base and is contained in --base, and tracked/untracked
-                 state is clean. Prints a dry-run `safe-worktree-remove.py` command.
+                 recorded base and is contained in --base, tracked/untracked
+                 state is clean, and the current client/session owns it. Prints
+                 a dry-run `safe-worktree-remove.py` command with its exact branch.
   IDLE-UNMERGED  liveness known to be negative but the work is not contained in
                  --base, or is dirty. Never gets a removal command.
+  IDLE-OTHER-SESSION / IDLE-OWNER-UNKNOWN
+                  otherwise removable-looking worktree without a command because
+                  the current session is not its owner or cannot be identified.
 
 Every git call uses --no-optional-locks semantics (GIT_OPTIONAL_LOCKS=0), so a
 running agent's index is never locked. The audit does not take
@@ -151,6 +156,7 @@ def change_counts(path: str) -> dict[str, int]:
 
 def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: float, helper: str) -> list[Row]:
     rows: list[Row] = []
+    current_owner = meta.current_session_identity(env)
     for entry in worktrees(repo):
         path, ref = entry["worktree"], entry.get("branch")
         branch = ref.removeprefix("refs/heads/") if ref else None
@@ -160,10 +166,16 @@ def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: 
             row.reason = "detached HEAD"
             continue
         text = meta.git(repo, "config", "--get", f"branch.{branch}.description", check=False).stdout.strip()
-        task, trailer = meta.parse_description(text)
+        _task, trailer = meta.parse_description(text)
         row.client, row.session = trailer.get("client"), trailer.get("session")
         if not text:
             row.reason = "no branch description"
+            continue
+        if row.session is None:
+            row.state, row.reason = "LEGACY", "description has no session trailer"
+            continue
+        if row.session == meta.UNKNOWN or meta.parse_owner_description(text) is None:
+            row.reason = "session owner metadata is unknown or invalid"
             continue
         row.changes = change_counts(path)
 
@@ -174,9 +186,6 @@ def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: 
         row.session_idle_hours = None if age is None else round(age, 1)
         if pid == "alive" or (age is not None and age < active_hours):
             row.state, row.reason = "ACTIVE", "agent process alive" if pid == "alive" else "session recently updated"
-            continue
-        if row.session is None:
-            row.state, row.reason = "LEGACY", "description has no session trailer"
             continue
         if age is None:
             row.reason = "session unknown or lookup failed"
@@ -192,11 +201,16 @@ def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: 
         )
         clean = row.changes.get("tracked", 0) == 0 and row.changes.get("untracked", 0) == 0
         if row.ahead_of_base and row.contained_in_base and clean:
-            row.state, row.reason = "IDLE-MERGED", f"session idle {row.session_idle_hours}h"
-            row.command = [
-                sys.executable, str(Path(helper) / REMOVE_HELPER), path,
-                "--expect-owner", task, "--base", base, "--dry-run",
-            ]
+            if current_owner is None:
+                row.state, row.reason = "IDLE-OWNER-UNKNOWN", "current client/session is unavailable"
+            elif current_owner != (row.client, row.session):
+                row.state, row.reason = "IDLE-OTHER-SESSION", "cleanup belongs to another client/session"
+            else:
+                row.state, row.reason = "IDLE-MERGED", f"session idle {row.session_idle_hours}h"
+                row.command = [
+                    sys.executable, str(Path(helper) / REMOVE_HELPER), path,
+                    "--expect-branch", branch, "--base", base, "--dry-run",
+                ]
         else:
             row.state, row.reason = "IDLE-UNMERGED", f"session idle {row.session_idle_hours}h"
     return rows

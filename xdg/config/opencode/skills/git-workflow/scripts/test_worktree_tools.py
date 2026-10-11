@@ -71,21 +71,37 @@ def description(repo: Path, branch: str) -> str:
     return meta.git(repo, "config", "--get", f"branch.{branch}.description").stdout.strip()
 
 
-def test_parse_roundtrip_and_old_expect_owner_still_matches() -> None:
+def commit(cwd: Path, name: str, message: str) -> None:
+    (cwd / name).write_text(name)
+    meta.git(cwd, "add", name)
+    meta.git(cwd, "commit", "-q", "-m", message)
+
+
+def test_parse_roundtrip_and_structured_session_owner() -> None:
     text = meta.format_description("Fix the thing", "claude", UUID, "a" * 40, None, "task/x-20260101-01")
     task, trailer = meta.parse_description(text)
     assert task == "Fix the thing"
     assert trailer == {"client": "claude", "session": UUID, "base": "a" * 40, "parent": "task/x-20260101-01"}
-    assert "Fix the thing client=claude" in text
+    assert meta.parse_owner_description(text) == ("Fix the thing", "claude", UUID)
 
 
-def test_task_text_cannot_forge_the_trailer() -> None:
-    text = meta.format_description("tidy session=forged", "opencode", OC_ID, "b" * 40, None, None)
-    task, trailer = meta.parse_description(text)
-    assert trailer["session"] == OC_ID
-    assert task == "tidy session=forged"
+def test_task_text_cannot_forge_owner_trailer() -> None:
+    with pytest.raises(ValueError, match="owner metadata tokens"):
+        meta.format_description("tidy session=forged", "opencode", OC_ID, "b" * 40, None, None)
     with pytest.raises(ValueError):
         meta.format_description("two\nlines", "claude", UUID, "b" * 40, None, None)
+
+
+def test_owner_parser_requires_structured_known_session() -> None:
+    valid = meta.format_description("same session, two tasks", "opencode", OC_ID, "b" * 40, None, None)
+    assert meta.parse_owner_description(valid) == ("same session, two tasks", "opencode", OC_ID)
+    assert meta.parse_owner_description("legacy task client=opencode") is None
+    unknown = meta.format_description("unknown task", "opencode", "unknown", "b" * 40, None, None)
+    assert meta.parse_owner_description(unknown) is None
+    duplicate = valid + " session=" + OC_ID
+    assert meta.parse_owner_description(duplicate) is None
+    malformed_pid = meta.format_description("PID boundary", "opencode", OC_ID, "b" * 40, None, None) + " pid=1@0"
+    assert meta.parse_owner_description(malformed_pid) is None
 
 
 def test_session_comes_only_from_the_clients_own_variable() -> None:
@@ -95,6 +111,11 @@ def test_session_comes_only_from_the_clients_own_variable() -> None:
     assert meta.session_from_env("copilot", env) == ("unknown", None)
     assert meta.session_from_env("opencode", {"CLAUDE_CODE_SESSION_ID": UUID})[0] == "unknown"
     assert meta.session_from_env("claude", {"CLAUDE_CODE_SESSION_ID": "not-a-uuid"})[0] == "unknown"
+    assert meta.current_session_identity({"OPENCODE_SESSION_ID": OC_ID}) == ("opencode", OC_ID)
+    assert meta.current_session_identity({"CLAUDE_CODE_SESSION_ID": UUID}) == ("claude", UUID)
+    assert meta.current_session_identity({"CLAUDE_CODE_SESSION_ID": UUID, "OPENCODE_SESSION_ID": OC_ID}) is None
+    assert meta.current_session_identity({"OPENCODE_SESSION_ID": "bad"}) is None
+    assert meta.current_session_identity({}) is None
 
 
 def test_create_numbers_branches_and_records_owner(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -123,6 +144,9 @@ def test_create_rejects_bad_slug_and_missing_source(repo: Path) -> None:
         create.main(["--repo", str(repo), "--slug", "Bad Slug", "--client", "claude", "--task", "t"])
     with pytest.raises(SystemExit):
         create.main(["--repo", str(repo), "--slug", "ok-slug", "--client", "claude", "--task", "t", "--from", "nope"])
+    with pytest.raises(SystemExit):
+        create.main(["--repo", str(repo), "--slug", "ok-slug", "--client", "claude", "--task", "tidy session=forged"])
+    assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
 
 
 def audit_rows(repo: Path, **kwargs):
@@ -165,7 +189,9 @@ def test_audit_states(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     meta.git(repo, "merge", "-q", "--ff-only", branch)
     row = audit_rows(repo)[0]
     assert row.state == "IDLE-MERGED"
-    assert row.command is not None and "--dry-run" in row.command and "Fix the thing" in row.command
+    assert row.command is not None and "--dry-run" in row.command
+    assert "--expect-branch" in row.command and branch in row.command
+    assert "--expect-owner" not in row.command
 
     (Path(wt) / "dirty.txt").write_text("y")
     assert audit_rows(repo)[0].state == "IDLE-UNMERGED"
@@ -177,6 +203,22 @@ def test_audit_pid_is_a_positive_signal(repo: Path, monkeypatch: pytest.MonkeyPa
     run_create(repo)
     set_transcript_age(30)
     assert audit_rows(repo)[0].state == "ACTIVE"
+
+
+def test_audit_never_offers_another_session_worktree(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", UUID)
+    run_create(repo)
+    branch = meta.git(repo, "branch", "--list", "task/*", "--format=%(refname:short)").stdout.split()[0]
+    wt = Path(next(e["worktree"] for e in audit.worktrees(repo)))
+    commit(wt, "work.txt", "work")
+    meta.git(repo, "merge", "--ff-only", branch)
+    set_transcript_age(30)
+    monkeypatch.delenv("CLAUDE_CODE_SESSION_ID")
+    monkeypatch.setenv("OPENCODE_SESSION_ID", OC_ID)
+
+    row = audit_rows(repo)[0]
+    assert row.state == "IDLE-OTHER-SESSION"
+    assert row.command is None
 
 
 def test_audit_legacy_and_missing_description(repo: Path) -> None:

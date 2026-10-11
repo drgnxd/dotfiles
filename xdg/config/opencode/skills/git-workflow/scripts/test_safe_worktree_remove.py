@@ -12,6 +12,10 @@ import pytest
 
 SCRIPT = Path(__file__).with_name("safe-worktree-remove.py")
 LOCK = "main-integration.lock"
+SESSION = "ses_" + "a" * 26
+sys.path.insert(0, str(SCRIPT.parent))
+import worktree_meta as meta
+
 SPEC = importlib.util.spec_from_file_location("safe_worktree_remove", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 HELPER = importlib.util.module_from_spec(SPEC)
@@ -25,14 +29,30 @@ def isolated_git_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / ".local" / "state"))
+    monkeypatch.delenv("CLAUDE_CODE_SESSION_ID", raising=False)
+    monkeypatch.setenv("OPENCODE_SESSION_ID", SESSION)
 
 
 def git(cwd: Path, *args: str) -> str:
     return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
 
 
-def run(*args: str, env: dict[str, str] | None = None, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run_raw(*args: str, env: dict[str, str] | None = None, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run([sys.executable, str(SCRIPT), *args], capture_output=True, text=True, check=False, env=env, cwd=cwd)
+
+
+def run(*args: str, env: dict[str, str] | None = None, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    actual_args = list(args)
+    if actual_args and "--expect-branch" not in actual_args and "--expect-owner" not in actual_args:
+        worktree = Path(actual_args[0])
+        if worktree.is_dir():
+            branch = subprocess.run(
+                ["git", "symbolic-ref", "--quiet", "--short", "HEAD"],
+                cwd=worktree, capture_output=True, text=True, check=False,
+            )
+            if branch.returncode == 0:
+                actual_args.extend(("--expect-branch", branch.stdout.strip()))
+    return run_raw(*actual_args, env=env, cwd=cwd)
 
 
 def commit(cwd: Path, name: str, message: str = "c") -> str:
@@ -61,11 +81,26 @@ def admin_of(wt: Path) -> Path:
 def make_worktree(main: Path, name: str, *, symlink: bool = True, extra: tuple[str, ...] = ()) -> Path:
     wt = main.parent / name
     git(main, "worktree", "add", "--quiet", *extra, "-b", f"task/{name}", str(wt))
+    description = meta.format_description(
+        f"test task {name}", "opencode", SESSION, git(wt, "rev-parse", "HEAD"), None, None,
+    )
+    git(main, "config", f"branch.task/{name}.description", description)
     if symlink:
         admin = admin_of(wt)
         (wt / ".git").unlink()
         os.symlink(os.path.relpath(admin, wt), wt / ".git")
     return wt
+
+
+def owner_description(wt: Path, task: str, *, session: str = SESSION, client: str = "opencode") -> str:
+    return meta.format_description(task, client, session, git(wt, "rev-parse", "HEAD"), None, None)
+
+
+def set_owner(main: Path, wt: Path, task: str, *, session: str = SESSION, client: str = "opencode") -> str:
+    branch = git(wt, "symbolic-ref", "--short", "HEAD")
+    description = owner_description(wt, task, session=session, client=client)
+    git(main, "config", f"branch.{branch}.description", description)
+    return description
 
 
 def add_canonical_database(main: Path, data: bytes = b"canonical database") -> Path:
@@ -212,17 +247,15 @@ def config_keys(repo: Path, pattern: str) -> str:
 
 def test_owner_goes_to_stderr_and_stdout_is_unchanged(repo: Path) -> None:
     wt = make_worktree(repo, "wt-desc")
-    git(repo, "config", "branch.task/wt-desc.description", "fix x; base abc; client=claude")
     result = run(str(wt))
     assert result.returncode == 0, result.stderr
-    assert "owner: fix x; base abc; client=claude" in result.stderr.splitlines()
+    assert f"owner: client=opencode session={SESSION}; branch=task/wt-desc; task=test task wt-desc" in result.stderr.splitlines()
     assert result.stdout == f"removed {wt.resolve()}\n"
 
 
 def test_delete_branch_drops_only_its_own_config_section(repo: Path) -> None:
     wt = make_worktree(repo, "wt-desc")
     git(repo, "branch", "task/wt-desc-x")
-    git(repo, "config", "branch.task/wt-desc.description", "d")
     git(repo, "config", "branch.task/wt-desc.remote", "origin")
     git(repo, "config", "branch.task/wt-desc-x.description", "sibling")
     assert run(str(wt), "--delete-branch").returncode == 0
@@ -230,61 +263,64 @@ def test_delete_branch_drops_only_its_own_config_section(repo: Path) -> None:
     assert git(repo, "config", "--get", "branch.task/wt-desc-x.description") == "sibling"
 
 
-def test_delete_branch_drops_section_without_description(repo: Path) -> None:
+def test_branch_without_session_owner_is_preserved(repo: Path) -> None:
     wt = make_worktree(repo, "wt-upstream")
-    git(repo, "config", "branch.task/wt-upstream.merge", "refs/heads/task/wt-upstream")
-    assert run(str(wt), "--delete-branch").returncode == 0
-    assert config_keys(repo, r"^branch\.task/wt-upstream\.") == ""
+    git(repo, "config", "--unset", "branch.task/wt-upstream.description")
+    result = run(str(wt), "--delete-branch")
+    assert result.returncode == 1 and "session-owner metadata" in result.stderr
+    assert_untouched(wt)
+    assert "task/wt-upstream" in git(repo, "branch", "--list")
 
 
 def test_unusual_branch_name_section_is_removed(repo: Path) -> None:
     wt = repo.parent / "wt-dotted"
     git(repo, "worktree", "add", "--quiet", "-b", "task/Foo.v2", str(wt))
-    git(repo, "config", "branch.task/Foo.v2.description", "dotted")
+    description = meta.format_description("dotted task", "opencode", SESSION, git(wt, "rev-parse", "HEAD"), None, None)
+    git(repo, "config", "branch.task/Foo.v2.description", description)
     assert run(str(wt), "--delete-branch").returncode == 0
     assert config_keys(repo, r"^branch\.") == ""
 
 
 def test_dry_run_prints_owner_and_keeps_description(repo: Path) -> None:
     wt = make_worktree(repo, "wt-desc2")
-    git(repo, "config", "branch.task/wt-desc2.description", "task two")
     result = run(str(wt), "--dry-run")
     assert result.returncode == 0, result.stderr
-    assert "owner: task two" in result.stderr.splitlines()
-    assert git(repo, "config", "--get", "branch.task/wt-desc2.description") == "task two"
+    assert f"owner: client=opencode session={SESSION}; branch=task/wt-desc2; task=test task wt-desc2" in result.stderr.splitlines()
+    assert "client=opencode session=" + SESSION in git(repo, "config", "--get", "branch.task/wt-desc2.description")
 
 
 def test_refusal_still_reports_owner(repo: Path) -> None:
     wt = make_worktree(repo, "wt-refused")
-    git(repo, "config", "branch.task/wt-refused.description", "refused task")
     (wt / "new.txt").write_text("x")
     result = run(str(wt))
     assert result.returncode == 1 and "not clean" in result.stderr
-    assert "owner: refused task" in result.stderr.splitlines()
+    assert f"owner: client=opencode session={SESSION}; branch=task/wt-refused; task=test task wt-refused" in result.stderr.splitlines()
 
 
-def test_multiline_description_is_one_escaped_line(repo: Path) -> None:
+def test_malformed_description_is_not_a_session_owner(repo: Path) -> None:
     wt = make_worktree(repo, "wt-multi")
     git(repo, "config", "branch.task/wt-multi.description", "line1\nline2\x1b[31m")
     result = run(str(wt))
-    assert result.returncode == 0, result.stderr
-    owners = [line for line in result.stderr.splitlines() if line.startswith("owner:")]
-    assert owners == ["owner: line1\\nline2\\x1b[31m"]
-    assert "\x1b" not in result.stderr
+    assert result.returncode == 1 and "session-owner metadata" in result.stderr
+    assert "owner: unknown; branch=task/wt-multi" in result.stderr.splitlines()
+    assert_untouched(wt)
 
 
 def test_japanese_description_is_kept_readable(repo: Path) -> None:
     wt = make_worktree(repo, "wt-ja")
-    git(repo, "config", "branch.task/wt-ja.description", "worktree命名の記録; client=claude")
+    description = meta.format_description("worktree命名の記録", "opencode", SESSION, git(wt, "rev-parse", "HEAD"), None, None)
+    git(repo, "config", "branch.task/wt-ja.description", description)
     result = run(str(wt))
-    assert "owner: worktree命名の記録; client=claude" in result.stderr.splitlines()
+    assert f"owner: client=opencode session={SESSION}; branch=task/wt-ja; task=worktree命名の記録" in result.stderr.splitlines()
+    assert git(repo, "config", "--get", "branch.task/wt-ja.description") == description
 
 
 def test_description_from_env_config_does_not_fail_the_cleanup(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     wt = make_worktree(repo, "wt-env")
+    description = meta.format_description("task from environment config", "opencode", SESSION, git(wt, "rev-parse", "HEAD"), None, None)
     monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
     monkeypatch.setenv("GIT_CONFIG_KEY_0", "branch.task/wt-env.description")
-    monkeypatch.setenv("GIT_CONFIG_VALUE_0", "from env")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", description)
     result = run(str(wt), "--delete-branch")
     assert result.returncode == 0, result.stderr
     assert not wt.exists()
@@ -293,7 +329,6 @@ def test_description_from_env_config_does_not_fail_the_cleanup(repo: Path, monke
 
 def test_busy_config_only_warns_after_removal(repo: Path) -> None:
     wt = make_worktree(repo, "wt-busy")
-    git(repo, "config", "branch.task/wt-busy.description", "busy")
     (repo / ".git" / "config.lock").write_text("")
     result = run(str(wt), "--delete-branch")
     assert result.returncode == 0, result.stderr
@@ -301,29 +336,28 @@ def test_busy_config_only_warns_after_removal(repo: Path) -> None:
     assert "warning: refs/heads/task/wt-busy removed, but config section" in result.stderr
 
 
-def test_without_description_reports_none_and_still_removes(repo: Path) -> None:
+def test_without_description_refuses_automatic_removal(repo: Path) -> None:
     wt = make_worktree(repo, "wt-nodesc")
+    git(repo, "config", "--unset", "branch.task/wt-nodesc.description")
     result = run(str(wt), "--delete-branch")
-    assert result.returncode == 0, result.stderr
-    assert "owner: none" in result.stderr
-    assert not wt.exists()
+    assert result.returncode == 1 and "session-owner metadata" in result.stderr
+    assert "owner: unknown; branch=task/wt-nodesc" in result.stderr.splitlines()
+    assert_untouched(wt)
 
 
 def test_detached_worktree_reports_none(repo: Path) -> None:
     wt = repo.parent / "wt-detached"
     git(repo, "worktree", "add", "--quiet", "--detach", str(wt))
-    result = run(str(wt))
-    assert result.returncode == 0, result.stderr
-    assert "owner: none" in result.stderr
-    assert not wt.exists()
+    result = run_raw(str(wt), "--expect-branch", "task/detached")
+    assert result.returncode == 1 and "not on a local branch" in result.stderr
+    assert_untouched(wt, symlink=False)
 
 
 def test_description_kept_when_branch_is_kept(repo: Path) -> None:
     wt = make_worktree(repo, "wt-keep")
-    git(repo, "config", "branch.task/wt-keep.description", "still on the branch")
     assert run(str(wt)).returncode == 0
     assert "task/wt-keep" in git(repo, "branch", "--list")
-    assert git(repo, "config", "--get", "branch.task/wt-keep.description") == "still on the branch"
+    assert "session=" + SESSION in git(repo, "config", "--get", "branch.task/wt-keep.description")
 
 
 def test_plain_gitfile_worktree_is_also_removed(repo: Path) -> None:
@@ -332,36 +366,83 @@ def test_plain_gitfile_worktree_is_also_removed(repo: Path) -> None:
     assert not wt.exists()
 
 
-def test_expect_owner_match_removes(repo: Path) -> None:
-    wt = make_worktree(repo, "wt-own1")
-    git(repo, "config", "branch.task/wt-own1.description", "rename helper; client=claude")
-    result = run(str(wt), "--expect-owner", "rename helper")
-    assert result.returncode == 0, result.stderr
-    assert not wt.exists()
-
-
-def test_expect_owner_mismatch_refuses_and_keeps_everything(repo: Path) -> None:
-    wt = make_worktree(repo, "wt-own2")
-    git(repo, "config", "branch.task/wt-own2.description", "someone else's task; client=opencode")
-    result = run(str(wt), "--delete-branch", "--expect-owner", "rename helper")
-    assert result.returncode == 1 and "owner mismatch" in result.stderr
-    assert_untouched(wt)
-    assert git(repo, "config", "--get", "branch.task/wt-own2.description").startswith("someone")
+def test_exact_branch_selects_one_of_two_same_session_worktrees(repo: Path) -> None:
+    first = make_worktree(repo, "wt-same-session-a")
+    second = make_worktree(repo, "wt-same-session-b")
+    result = run(str(first), "--expect-branch", "task/wt-same-session-b")
+    assert result.returncode == 1 and "branch mismatch" in result.stderr
+    assert_untouched(first)
+    assert_untouched(second)
     assert not (repo / ".git" / LOCK).exists()
 
 
-def test_expect_owner_without_description_refuses(repo: Path) -> None:
-    wt = make_worktree(repo, "wt-own3")
-    result = run(str(wt), "--expect-owner", "anything")
-    assert result.returncode == 1 and "owner mismatch" in result.stderr
+def test_other_session_cannot_remove_worktree_before_annex_restage(repo: Path, tmp_path: Path) -> None:
+    wt = make_worktree(repo, "wt-other-session")
+    other = "ses_" + "b" * 26
+    description = meta.format_description("other session task", "opencode", other, git(wt, "rev-parse", "HEAD"), None, None)
+    git(repo, "config", "branch.task/wt-other-session.description", description)
+    git(repo, "config", "filter.annex.process", "git-annex filter-process")
+    log = tmp_path / "annex.log"
+    bin_dir = tmp_path / "annex-bin"
+    bin_dir.mkdir()
+    stub = bin_dir / "git-annex"
+    stub.write_text(f'#!/bin/sh\nprintf "$*" >> "{log}"\n')
+    stub.chmod(0o755)
+    env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
+
+    result = run(str(wt), env=env)
+
+    assert result.returncode == 1 and "different client session" in result.stderr
+    assert not log.exists()
+    assert_untouched(wt)
+    assert not (repo / ".git" / LOCK).exists()
+
+
+def test_unknown_session_metadata_cannot_authorize_removal(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-unknown-session")
+    description = meta.format_description("unknown session task", "opencode", meta.UNKNOWN, git(wt, "rev-parse", "HEAD"), None, None)
+    git(repo, "config", "branch.task/wt-unknown-session.description", description)
+    result = run(str(wt))
+    assert result.returncode == 1 and "session-owner metadata" in result.stderr
     assert_untouched(wt)
 
 
-def test_expect_owner_is_enforced_in_dry_run(repo: Path) -> None:
-    wt = make_worktree(repo, "wt-own4")
-    git(repo, "config", "branch.task/wt-own4.description", "other")
-    result = run(str(wt), "--dry-run", "--expect-owner", "mine")
-    assert result.returncode == 1 and "owner mismatch" in result.stderr
+def test_invalid_pid_metadata_cannot_authorize_removal(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-invalid-pid")
+    description = meta.format_description("invalid PID task", "opencode", SESSION, git(wt, "rev-parse", "HEAD"), None, None)
+    git(repo, "config", "branch.task/wt-invalid-pid.description", description + " pid=1@0")
+    result = run(str(wt))
+    assert result.returncode == 1 and "session-owner metadata" in result.stderr
+    assert_untouched(wt)
+
+
+def test_missing_current_session_refuses(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-no-current-session")
+    env = {key: value for key, value in os.environ.items() if key not in ("OPENCODE_SESSION_ID", "CLAUDE_CODE_SESSION_ID")}
+    result = run(str(wt), env=env)
+    assert result.returncode == 1 and "current client session" in result.stderr
+    assert_untouched(wt)
+
+
+def test_ambiguous_current_sessions_refuse(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-ambiguous-session")
+    env = {**os.environ, "CLAUDE_CODE_SESSION_ID": "0e7f96a6-1234-4abc-8def-0123456789ab"}
+    result = run(str(wt), env=env)
+    assert result.returncode == 1 and "current client session" in result.stderr
+    assert_untouched(wt)
+
+
+def test_old_expect_owner_flag_is_rejected(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-old-owner-flag")
+    result = run(str(wt), "--expect-owner", "test task wt-old-owner-flag")
+    assert result.returncode == 1 and "obsolete" in result.stderr
+    assert_untouched(wt)
+
+
+def test_branch_selector_is_required(repo: Path) -> None:
+    wt = make_worktree(repo, "wt-missing-branch-selector")
+    result = run_raw(str(wt))
+    assert result.returncode == 1 and "--expect-branch is required" in result.stderr
     assert_untouched(wt)
 
 
@@ -445,15 +526,15 @@ def test_uses_main_branch_not_worktree_list_order(repo: Path, tmp_path: Path) ->
     assert other_db.read_bytes() == b"not the canonical database"
 
 
-def test_uses_another_worktree_for_git_admin_when_target_holds_main_branch(repo: Path) -> None:
+def test_refuses_removing_main_branch_worktree_without_session_owner(repo: Path) -> None:
     wt = make_worktree(repo, "wt-main-branch")
     git(repo, "checkout", "--quiet", "--detach")
     git(wt, "checkout", "--quiet", "main")
 
     result = run(str(wt))
 
-    assert result.returncode == 0, result.stderr
-    assert not wt.exists()
+    assert result.returncode == 1 and "session-owner metadata" in result.stderr
+    assert_untouched(wt)
     assert repo.exists()
     assert git(repo, "branch", "--show-current") == ""
 
@@ -705,11 +786,11 @@ def test_refuses_unintegrated_commits(repo: Path) -> None:
     assert_untouched(wt)
 
 
-def test_refuses_reflog_only_commit_on_detached_head(repo: Path) -> None:
+def test_refuses_reflog_only_commit_after_returning_to_owned_branch(repo: Path) -> None:
     wt = make_worktree(repo, "wt10")
     git(wt, "checkout", "--quiet", "--detach")
     lost = commit(wt, "lost.txt", "only in reflog")
-    git(wt, "checkout", "--quiet", "--detach", "main")
+    git(wt, "checkout", "--quiet", "task/wt10")
     result = run(str(wt))
     assert result.returncode == 1 and lost[:12] in result.stderr
     assert_untouched(wt)
@@ -859,7 +940,7 @@ def test_fails_without_git_annex_when_repo_uses_it(repo: Path, tmp_path: Path) -
     bin_dir = tmp_path / "nogitannex"
     bin_dir.mkdir()
     os.symlink(shutil.which("git"), bin_dir / "git")
-    result = run(str(wt), env={"PATH": str(bin_dir), "HOME": str(tmp_path), "GIT_CONFIG_GLOBAL": os.devnull})
+    result = run(str(wt), env={"PATH": str(bin_dir), "HOME": str(tmp_path), "GIT_CONFIG_GLOBAL": os.devnull, "OPENCODE_SESSION_ID": SESSION})
     assert result.returncode == 1 and "git-annex is not on PATH" in result.stderr
     assert_untouched(wt)
 
@@ -957,7 +1038,7 @@ def test_discards_verified_nix_direnv_cache_after_success(repo: Path, tmp_path: 
 
     outcome = HELPER.remove(
         str(wt), "main", delete_branch_too=True, lock_name=LOCK,
-        allow_unreferenced_reflog=False, discard_direnv_cache=True,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-direnv-discard", discard_direnv_cache=True,
     )
 
     assert outcome.discarded_direnv
@@ -1001,7 +1082,7 @@ def test_keeps_verified_direnv_cache_when_open_handles_cannot_be_checked(
 
     outcome = HELPER.remove(
         str(wt), "main", delete_branch_too=False, lock_name=LOCK,
-        allow_unreferenced_reflog=False, discard_direnv_cache=True,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-direnv-open-handles", discard_direnv_cache=True,
     )
 
     assert not wt.exists()

@@ -1,12 +1,13 @@
 """Shared helpers for worktree-create.py and worktree-audit.py.
 
-A task worktree records its owner in `branch.<branch>.description` as the free
-task text followed by a fixed trailer of `key=value` tokens:
+A task worktree records a human-readable task label and structured metadata in
+`branch.<branch>.description`:
 
     <task> client=<c> session=<id> base=<oid> pid=<pid>@<start-epoch> [parent=<branch>]
 
-`client=` comes first so that an `--expect-owner "<task> client=<c>"` string
-recorded before the trailer grew still matches as a substring.
+The `(client, session)` pair identifies the creating session and cleanup
+responsibility. The exact branch selects one worktree when a session created
+several. The task label is descriptive only and never authorizes removal.
 """
 
 from __future__ import annotations
@@ -31,6 +32,8 @@ INHERITED_GIT_ENV = (
     "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX",
 )
 PID_START_TOLERANCE = 5
+OID_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+PID_TOKEN_RE = re.compile(r"^(?:[2-9]|[1-9][0-9]+)@[0-9]+$")
 
 
 def git_env() -> dict[str, str]:
@@ -55,6 +58,23 @@ def session_from_env(client: str, env: dict[str, str] | None = None) -> tuple[st
     if SESSION_RE[client].match(value):
         return value, None
     return UNKNOWN, f"{name} is unset or malformed; recording session=unknown"
+
+
+def current_session_identity(env: dict[str, str] | None = None) -> tuple[str, str] | None:
+    """Return the unique valid client/session identity exposed by this process."""
+    env = os.environ if env is None else env
+    present = [
+        (client, env.get(name, ""))
+        for client, name in SESSION_ENV.items()
+        if env.get(name, "")
+    ]
+    if len(present) != 1:
+        return None
+    client, session = present[0]
+    pattern = SESSION_RE.get(client)
+    if pattern is None or not pattern.fullmatch(session):
+        return None
+    return client, session
 
 
 def agent_pid_from_env(client: str, env: dict[str, str] | None = None) -> int | None:
@@ -89,6 +109,18 @@ def format_description(
 ) -> str:
     if "\n" in task or "\r" in task:
         raise ValueError("task text must be a single line")
+    if not task.strip():
+        raise ValueError("task text must not be empty")
+    if any(token.partition("=")[0] in TRAILER_KEYS for token in task.split() if "=" in token):
+        raise ValueError("task text must not contain owner metadata tokens")
+    if client not in CLIENTS:
+        raise ValueError(f"unknown client {client!r}")
+    if session != UNKNOWN and (client not in SESSION_RE or not SESSION_RE[client].fullmatch(session)):
+        raise ValueError(f"invalid session id for client {client!r}")
+    if not OID_RE.fullmatch(base):
+        raise ValueError("base must be a full Git object ID")
+    if pid is not None and pid <= 1:
+        raise ValueError("pid must be greater than 1")
     parts = [task.strip(), f"client={client}", f"session={session}", f"base={base}"]
     if pid is not None:
         start = process_start_epoch(pid)
@@ -110,3 +142,34 @@ def parse_description(text: str) -> tuple[str, dict[str, str]]:
         trailer[key] = value
         tokens.pop()
     return " ".join(tokens), trailer
+
+
+def parse_owner_description(text: str) -> tuple[str, str, str] | None:
+    """Return (task, client, session) only for a complete, unambiguous owner trailer."""
+    task, trailer = parse_description(text)
+    if not task or not {"client", "session", "base"}.issubset(trailer):
+        return None
+    if any(token.partition("=")[0] in TRAILER_KEYS for token in task.split() if "=" in token):
+        return None
+
+    tokens = text.strip().split()
+    trailer_tokens = tokens[len(task.split()):]
+    keys = [token.partition("=")[0] for token in trailer_tokens]
+    expected = ["client", "session", "base"]
+    if "pid" in trailer:
+        expected.append("pid")
+    if "parent" in trailer:
+        expected.append("parent")
+    if keys != expected:
+        return None
+
+    client = trailer["client"]
+    session = trailer["session"]
+    session_pattern = SESSION_RE.get(client)
+    if session_pattern is None or not session_pattern.fullmatch(session):
+        return None
+    if not OID_RE.fullmatch(trailer["base"]):
+        return None
+    if "pid" in trailer and not PID_TOKEN_RE.fullmatch(trailer["pid"]):
+        return None
+    return task, client, session

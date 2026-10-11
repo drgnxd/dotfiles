@@ -91,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--slug", required=True, help="2-4 lowercase ASCII words joined by hyphens")
     parser.add_argument("--client", required=True, choices=meta.CLIENTS)
-    parser.add_argument("--task", required=True, help="single-line task text")
+    parser.add_argument("--task", required=True, help="single-line descriptive task label; owner metadata tokens are reserved")
     parser.add_argument("--from", dest="source", default="main", help="local branch to branch from (default: main)")
     parser.add_argument("--parent", help="parent branch, for a revision or integration")
     parser.add_argument("--repo", default=".", help="any path inside the repository (default: cwd)")
@@ -114,12 +114,19 @@ def main(argv: list[str] | None = None) -> int:
 
     state = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state")
     root = Path(args.worktrees_root) if args.worktrees_root else state / main_worktree.name / "worktrees"
-    root.mkdir(parents=True, exist_ok=True)
 
     stem = f"{args.slug}-{datetime.now().astimezone().strftime('%Y%m%d')}"
     session, warning = meta.session_from_env(args.client)
     if warning:
         print(f"warning: {warning}", file=sys.stderr)
+    try:
+        description = meta.format_description(
+            args.task, args.client, session, base_oid, meta.agent_pid_from_env(args.client), args.parent
+        )
+    except ValueError as error:
+        die(str(error))
+
+    root.mkdir(parents=True, exist_ok=True)
 
     last_error = ""
     for _ in range(ADD_ATTEMPTS):
@@ -140,13 +147,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {problem}; worktree preserved", file=sys.stderr)
         return 4
 
-    text = meta.format_description(
-        args.task, args.client, session, base_oid, meta.agent_pid_from_env(args.client), args.parent
-    )
-    if not write_description(repo, branch, text):
-        print(f"error: could not write branch.{branch}.description; set it by hand:\n{text}", file=sys.stderr)
+    if not write_description(repo, branch, description):
+        print(f"error: could not write branch.{branch}.description; set it by hand:\n{description}", file=sys.stderr)
         return 3
-    print(f"description={text}")
+    print(f"description={description}")
     return 0
 
 

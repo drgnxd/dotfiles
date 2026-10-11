@@ -39,8 +39,10 @@ description: Use before the first file edit or Git write in each repository for 
   [--prefix integration]`: it applies the numbering rule, runs the single
   `git worktree add -b`, checks the new `.git` identity, and writes the
   description `<task> client=<c> session=<id> base=<OID> pid=<pid>@<start>
-  [parent=<branch>]`. Keep `client=` first after the task text; the
-  `--expect-owner` match at removal uses the task text. The session id comes only from the client's own
+  [parent=<branch>]`. The `(client, session)` pair identifies cleanup ownership;
+  the exact branch selects a worktree when one session creates several. Task
+  text is descriptive only and must not contain reserved trailer tokens such as
+  `client=`, `session=`, `base=`, `pid=`, or `parent=`. The session id comes only from the client's own
   variable: `CLAUDE_CODE_SESSION_ID` for Claude Code, `OPENCODE_SESSION_ID` for
   OpenCode (set by the `session-env` plugin), none for Copilot CLI. A missing
   or malformed value is recorded as `session=unknown`; never guess one. Exit
@@ -49,8 +51,9 @@ description: Use before the first file edit or Git write in each repository for 
   preserve the worktree. Without the script, do the same steps by hand.
 - To find forgotten worktrees run `python3 <skill-dir>/scripts/worktree-audit.py
   [--base main]`. It is read-only and takes no lock. `ACTIVE` and `UNKNOWN` are
-  never removal candidates; only `IDLE-MERGED` prints a dry-run
-  `safe-worktree-remove.py` command, and unmerged work gets none.
+  never removal candidates. Only `IDLE-MERGED` worktrees owned by the current
+  `(client, session)` print a dry-run `safe-worktree-remove.py` command; other
+  sessions and unmerged work get no command.
 - `scripts/worktree_guard.py` backs the main-checkout rule as a PreToolUse hook
   (Claude Code) and a `tool.execute.before` plugin (OpenCode). It acts only on
   repos listed in the machine-local `$XDG_CONFIG_HOME/worktree-guard/config.json`
@@ -176,16 +179,22 @@ description: Use before the first file edit or Git write in each repository for 
   irreversible data or history loss, and stop if ownership or integration is
   ambiguous. While they remain, report the task as incomplete, not done. To remove a worktree run
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
-  --expect-owner "<task text you recorded>" [--discard-direnv-cache]
-  [--delete-branch] [--base <ref>]`,
+  --expect-branch "<exact local branch>" [--base <ref>] [--delete-branch]
+  [--discard-direnv-cache]`,
   where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
   `~/.local/share/claude/skills/git-workflow` (same files). Release your own
   `main-integration.lock` first; the script takes it. It refuses unless the
   worktree is clean (ignored and untracked included), has no hidden edits,
   in-progress operation, submodule, or process with its cwd inside (needs
   `lsof`), HEAD and every HEAD-reflog commit are reachable from `--base`
-  (default `main`), and the branch description contains the `--expect-owner`
-  text; without that option ownership is not checked. A root `cultura.db`
+  (default `main`), the current client session ID matches the recorded owner,
+  and `--expect-branch` exactly matches the worktree's registered local branch.
+  Session identity is read from the current client's environment variable, not
+  supplied as a free-form argument; `session=unknown`, legacy, or malformed
+  descriptions are refused. The branch name selects a target but does not
+  transfer ownership to another session. `--expect-owner` is obsolete and
+  refused. This is a cooperative session-ownership guard, not an authentication
+  boundary against a process that can modify its environment. A root `cultura.db`
   symlink is accepted only when it resolves to the regular `cultura.db` in the
   registered `main` worktree. It unlinks only the symlink, rechecks the
   worktree, and restores the link on refusal when its path remains free; the
