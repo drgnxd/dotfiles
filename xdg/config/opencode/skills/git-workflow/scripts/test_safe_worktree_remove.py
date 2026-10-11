@@ -133,6 +133,12 @@ def add_generated_cache_ignores(main: Path) -> None:
     git(main, "commit", "--quiet", "-m", "ignore generated caches")
 
 
+def add_generated_build_output_ignores(main: Path) -> None:
+    (main / ".gitignore").write_text("rust/target/\nresult\n")
+    git(main, "add", ".gitignore")
+    git(main, "commit", "--quiet", "-m", "ignore generated build outputs")
+
+
 def make_generated_caches(wt: Path) -> tuple[Path, ...]:
     paths = (
         wt / ".pytest_cache" / "v" / "cache" / "nodeids",
@@ -526,6 +532,131 @@ def test_generated_cache_flag_is_opt_in(repo: Path) -> None:
     assert all(path.read_bytes() == b"generated cache" for path in cache_files)
 
 
+def test_generated_build_output_flag_is_opt_in(repo: Path, tmp_path: Path) -> None:
+    add_generated_build_output_ignores(repo)
+    wt = make_worktree(repo, "wt-build-output-default")
+    target_file = wt / "rust" / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_text("build output")
+    result_target = tmp_path / "nix-result"
+    result_target.mkdir()
+    (result_target / "output").write_text("keep target")
+    result_link = wt / "result"
+    result_link.symlink_to(result_target)
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert_untouched(wt)
+    assert target_file.read_text() == "build output"
+    assert result_link.is_symlink() and (result_target / "output").read_text() == "keep target"
+
+
+def test_discards_only_selected_generated_build_outputs(repo: Path, tmp_path: Path) -> None:
+    add_generated_build_output_ignores(repo)
+    wt = make_worktree(repo, "wt-build-output-discard")
+    target_file = wt / "rust" / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_text("build output")
+    result_target = tmp_path / "nix-result"
+    result_target.mkdir()
+    (result_target / "output").write_text("keep target")
+    result_link = wt / "result"
+    result_link.symlink_to(result_target)
+
+    dry_run = run(str(wt), "--discard-generated-build-outputs", "--dry-run")
+    assert dry_run.returncode == 0, dry_run.stderr
+    assert "generated artifact paths would be discarded: result, rust/target" in dry_run.stdout
+    assert target_file.read_text() == "build output"
+    assert result_link.is_symlink() and (result_target / "output").read_text() == "keep target"
+
+    result = run(str(wt), "--discard-generated-build-outputs", "--delete-branch")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    assert "discarded generated artifact paths: result, rust/target" in result.stdout
+    assert (result_target / "output").read_text() == "keep target"
+    assert "task/wt-build-output-discard" not in git(repo, "branch", "--list")
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
+def test_result_symlink_does_not_probe_its_target_for_open_handles(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_build_output_ignores(repo)
+    wt = make_worktree(repo, "wt-result-no-target-probe")
+    result_target = tmp_path / "open-result-target"
+    result_target.mkdir()
+    result_link = wt / "result"
+    result_link.symlink_to(result_target)
+
+    def fail_if_target_is_probed(paths: tuple[Path, ...]) -> set[str] | None:
+        pytest.fail(f"result symlink target was passed to lsof: {paths}")
+
+    monkeypatch.setattr(HELPER, "lsof_open_paths", fail_if_target_is_probed)
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-result-no-target-probe",
+        discard_generated_build_outputs=True,
+    )
+
+    assert not wt.exists()
+    assert outcome.discarded_generated_caches == ("result",)
+    assert result_target.is_dir()
+
+
+def test_generated_build_output_selector_rejects_result_directory(repo: Path) -> None:
+    add_generated_build_output_ignores(repo)
+    wt = make_worktree(repo, "wt-result-directory")
+    result_file = wt / "result" / "must-keep"
+    result_file.parent.mkdir()
+    result_file.write_text("preserve")
+
+    result = run(str(wt), "--discard-generated-build-outputs")
+
+    assert result.returncode == 1 and "root result is not a symlink" in result.stderr
+    assert_untouched(wt)
+    assert result_file.read_text() == "preserve"
+
+
+def test_generated_build_output_flag_preserves_other_ignored_data(repo: Path) -> None:
+    (repo / ".gitignore").write_text("rust/target/\nresult\nkeep.ignored\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore generated build outputs")
+    wt = make_worktree(repo, "wt-build-output-and-user-data")
+    target_file = wt / "rust" / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_text("build output")
+    keep = wt / "keep.ignored"
+    keep.write_text("preserve")
+
+    result = run(str(wt), "--discard-generated-build-outputs")
+
+    assert result.returncode == 1 and "keep.ignored" in result.stderr
+    assert_untouched(wt)
+    assert target_file.read_text() == "build output"
+    assert keep.read_text() == "preserve"
+
+
+def test_generated_build_outputs_restore_when_git_refuses_removal(repo: Path, tmp_path: Path) -> None:
+    add_generated_build_output_ignores(repo)
+    wt = make_worktree(repo, "wt-build-output-remove-refused")
+    target_file = wt / "rust" / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_text("build output")
+    result_target = tmp_path / "preserved-result"
+    result_target.mkdir()
+    result_link = wt / "result"
+    result_link.symlink_to(result_target)
+    bin_dir = make_git_wrapper(tmp_path, refuse_remove=True)
+
+    result = run_with_git_wrapper(wt, bin_dir, "--discard-generated-build-outputs")
+
+    assert result.returncode == 1 and "simulated refusal" in result.stderr
+    assert_untouched(wt)
+    assert target_file.read_text() == "build output"
+    assert result_link.is_symlink() and result_link.resolve() == result_target
+
+
 def test_generated_cache_dry_run_enumerates_without_changes(repo: Path) -> None:
     add_generated_cache_ignores(repo)
     wt = make_worktree(repo, "wt-cache-dry-run")
@@ -534,7 +665,7 @@ def test_generated_cache_dry_run_enumerates_without_changes(repo: Path) -> None:
     result = run(str(wt), "--discard-generated-caches", "--dry-run")
 
     assert result.returncode == 0, result.stderr
-    assert "generated cache contents would be discarded" in result.stdout
+    assert "generated artifact paths would be discarded" in result.stdout
     assert ".pytest_cache, .ruff_cache," in result.stdout
     assert "scripts/__pycache__" in result.stdout
     assert all(path.read_bytes() == b"generated cache" for path in cache_files)
@@ -550,7 +681,7 @@ def test_discards_only_recognized_generated_caches_after_success(repo: Path) -> 
 
     assert result.returncode == 0, result.stderr
     assert not wt.exists()
-    assert "discarded generated cache contents" in result.stdout
+    assert "discarded generated artifact paths" in result.stdout
     assert all(not path.exists() for path in cache_files)
     assert "task/wt-cache-discard" not in git(repo, "branch", "--list")
     quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
@@ -582,6 +713,19 @@ def test_generated_cache_roots_are_deduplicated() -> None:
         (b"!!", b".direnv/flake-inputs/__pycache__/input.pyc"),
     ]
     assert HELPER.generated_cache_candidates(status) == (b".pytest_cache", b"pkg/__pycache__")
+
+
+def test_generated_build_output_candidates_are_exact() -> None:
+    status = [
+        (b"!!", b"result"),
+        (b"??", b"rust/target/debug/file"),
+        (b"!!", b"rust/other/file"),
+        (b"!!", b".direnv/rust/target/cache"),
+        (b"??", b"result-copy"),
+    ]
+    assert HELPER.generated_cache_candidates(status, caches=False, build_outputs=True) == (
+        b"result", b"rust/target",
+    )
 
 
 def test_generated_cache_option_leaves_direnv_to_its_existing_policy(repo: Path) -> None:
@@ -772,7 +916,7 @@ def test_generated_cache_mutation_during_quarantine_is_restored(repo: Path, monk
             (destination / "late-entry").write_text("preserve")
 
     monkeypatch.setattr(HELPER, "no_replace_rename", mutate_after_move)
-    with pytest.raises(HELPER.RemovalError, match="contents changed during quarantine"):
+    with pytest.raises(HELPER.RemovalError, match="changed during quarantine"):
         HELPER.remove(
             str(wt), "main", delete_branch_too=False, lock_name=LOCK,
             allow_unreferenced_reflog=False, expect_branch="task/wt-cache-mutated-move",
