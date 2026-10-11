@@ -34,7 +34,27 @@ description: Use before the first file edit or Git write in each repository for 
   with `git config branch.<branch>.description "<text>"` (not
   `--edit-description`, which opens an editor); this is the one shared-config
   write allowed at creation, and only before concurrent agents start.
-  Prefer `python3 <skill-dir>/scripts/worktree-create.py --slug <slug> --client
+  For AI-managed tasks, prefer the lifecycle wrapper:
+  `python3 <skill-dir>/scripts/worktree-task.py start --repo <repo> --slug <slug> --client <claude|opencode> --task "<text>"`.
+  `--repo` is required and never inferred from cwd. After task changes are
+  committed and verified, finish with
+  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch]`.
+  The assertion flag is valid only after checking repository-specific scheduled
+  jobs and coordinating non-cooperating writers through integration and all
+  cleanup. `status --repo <repo>` delegates to `worktree-audit.py`.
+  `finish` locks from preflight through post-check, detects path aliases, hooks,
+  filters, submodules and writer signals, and updates main only by fast-forward.
+  If main advanced from the task base, it creates an integration worktree and
+  merges the immutable task tip there before fast-forwarding main. Conflicts,
+  unrelated histories, and failed safety checks preserve worktrees and stop.
+  Post-check failures after main has moved are reported from the actual HEAD/ref
+  and are never rolled back. Successful `finish` removes worktrees by default;
+  it deletes the task branch only with `--delete-branch`. Generated caches or
+  outputs are never discarded unless the corresponding `--discard-*` flag is
+  passed. The tool invokes the actual safe remover without requiring its
+  pre-restage dry-run, which may false-positive for git-annex worktrees.
+  The lower-level creator is
+  `python3 <skill-dir>/scripts/worktree-create.py --repo <repo> --slug <slug> --client
   <claude|opencode|copilot> --task "<text>" [--from main] [--parent <branch>]
   [--prefix integration]`: it applies the numbering rule, runs the single
   `git worktree add -b`, checks the new `.git` identity, and writes the
@@ -106,13 +126,16 @@ description: Use before the first file edit or Git write in each repository for 
 - Integrate every completed task into local `main`; a task-branch commit alone
   is not completion. Record the task base OID, all task commit OIDs, and task
   tip OID; do not rebase, squash, or rewrite them. If main still equals the task
-  base, use the task tip as integration tip. If main advanced as a descendant,
-  create a fresh integration branch/worktree from current main and merge the
-  immutable task-tip OID there, preserving task commits. If histories diverged
-  or repository policy requires rewriting, stop and coordinate. If task
-  changes a submodule gitlink, treat the nested repository as a separate task;
-  verify nested HEAD/status and source availability before changing the parent,
-  and do not auto-update or push it.
+  base, use the task tip as integration tip. If task tip is already contained
+  in current main, verify it and treat it as already integrated. If the recorded
+  task base is a common ancestor of current main and task tip, create a fresh
+  integration worktree from current main and merge the immutable task tip there
+  with a merge commit; preserve all task commits, then fast-forward main to the
+  verified integration tip. A merge conflict preserves both worktrees for
+  coordination. If no common base can be verified or repository policy requires
+  rewriting, stop and coordinate. If task changes a submodule gitlink, treat the
+  nested repository as a separate task; verify nested HEAD/status and source
+  availability before changing the parent, and do not auto-update or push it.
 - Serialize local main integration with a repository-wide lock under the
   common Git directory: `main-integration.lock`, a directory created with
   `mkdir` that holds an `owner` file with your token. A directory without an
