@@ -199,9 +199,9 @@ def require_no_replace_refs(repo: Path) -> None:
         raise TaskError("replace-refs", "refs/replace is present; object identity cannot be checked safely", refs=refs)
 
 
-def tree_modes(repo: Path, oid: str) -> dict[str, str]:
+def tree_entries(repo: Path, oid: str) -> dict[str, tuple[str, str]]:
     result = git_bytes(repo, "ls-tree", "-r", "-z", oid)
-    paths: dict[str, str] = {}
+    paths: dict[str, tuple[str, str]] = {}
     for record in result.stdout.split(b"\0"):
         if not record:
             continue
@@ -209,12 +209,19 @@ def tree_modes(repo: Path, oid: str) -> dict[str, str]:
         if not separator:
             raise TaskError("tree-read-failed", "git ls-tree returned malformed output")
         try:
-            mode = metadata.split(b" ", 1)[0].decode("ascii")
+            fields = metadata.split(b" ")
+            if len(fields) != 3:
+                raise TaskError("tree-read-failed", "git ls-tree returned malformed entry metadata")
+            mode, object_oid = fields[0].decode("ascii"), fields[2].decode("ascii")
             path = raw_path.decode("utf-8", "strict")
         except UnicodeDecodeError as error:
             raise TaskError("path-unreadable", "a tracked Git path is not valid UTF-8") from error
-        paths[path] = mode
+        paths[path] = (mode, object_oid)
     return paths
+
+
+def tree_modes(repo: Path, oid: str) -> dict[str, str]:
+    return {path: mode for path, (mode, _) in tree_entries(repo, oid).items()}
 
 
 def path_key(path: str) -> tuple[str, ...]:
@@ -329,9 +336,10 @@ def changed_paths(repo: Path, base: str, tip: str) -> list[str]:
 
 
 def require_no_gitlinks(repo: Path, base: str, tip: str) -> None:
-    before, after = tree_modes(repo, base), tree_modes(repo, tip)
+    before, after = tree_entries(repo, base), tree_entries(repo, tip)
     for path in set(before) | set(after):
-        if before.get(path) != after.get(path) and (before.get(path) == "160000" or after.get(path) == "160000"):
+        old, new = before.get(path), after.get(path)
+        if old != new and ((old and old[0] == "160000") or (new and new[0] == "160000")):
             raise TaskError("submodule-change", f"submodule gitlink changes require a separate task: {path}")
 
 
@@ -361,7 +369,7 @@ def require_no_hooks(repo: Path, *, merge_commit: bool) -> None:
     hook_dir = Path(configured).expanduser() if configured else Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-path", "hooks").stdout.strip())
     if not hook_dir.is_absolute():
         hook_dir = repo / hook_dir
-    relevant = {"post-merge"}
+    relevant = {"post-merge", "reference-transaction"}
     if merge_commit:
         relevant.update({"pre-merge-commit", "pre-commit", "prepare-commit-msg", "commit-msg"})
     active = [path.name for path in hook_dir.iterdir() if path.name in relevant and path.is_file() and not path.name.endswith(".sample") and os.access(path, os.X_OK)] if hook_dir.is_dir() else []
@@ -657,7 +665,8 @@ def finish(args: argparse.Namespace) -> int:
         expected_tip = integration_tip if branch == integration_branch else task_tip
         actual_tip = branch_oid(repo, branch)
         if actual_tip != expected_tip:
-            return emit("cleanup-pending", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, task_tip=task_tip, integration_branch=integration_branch, integration_tip=integration_tip, branch=branch, expected_branch_tip=expected_tip, actual_branch_tip=actual_tip, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches)
+            emit("cleanup-pending", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, task_tip=task_tip, integration_branch=integration_branch, integration_tip=integration_tip, branch=branch, expected_branch_tip=expected_tip, actual_branch_tip=actual_tip, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches)
+            return 1
         result = safe_remove(repo, worktree, branch, args, delete_branch)
         if not args.json and result.stdout:
             print(result.stdout, end="")
@@ -670,7 +679,8 @@ def finish(args: argparse.Namespace) -> int:
                 removed_worktrees.append(branch)
             if delete_branch and not state["branch_exists"]:
                 deleted_branches.append(branch)
-            return emit("cleanup-partial", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, integration_branch=integration_branch, integration_tip=integration_tip, failed_branch=branch, helper_exit=result.returncode, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches, removal_outputs=removal_outputs, **state)
+            emit("cleanup-partial", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, integration_branch=integration_branch, integration_tip=integration_tip, failed_branch=branch, helper_exit=result.returncode, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches, removal_outputs=removal_outputs, **state)
+            return 1
         removed_worktrees.append(branch)
         if delete_branch:
             deleted_branches.append(branch)

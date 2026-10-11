@@ -247,6 +247,40 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
         self.assertTrue(worktree.is_dir())
 
+    def test_finish_rejects_existing_submodule_gitlink_oid_update(self) -> None:
+        submodule = self.root / "submodule-source"
+        submodule.mkdir()
+        git(submodule, "init", "-q", "-b", "main")
+        (submodule / "README.md").write_text("before\n", encoding="utf-8")
+        git(submodule, "add", "README.md")
+        git(submodule, "commit", "-q", "-m", "submodule before")
+        before = git(submodule, "rev-parse", "HEAD")
+        (submodule / "README.md").write_text("after\n", encoding="utf-8")
+        git(submodule, "add", "README.md")
+        git(submodule, "commit", "-q", "-m", "submodule after")
+        after = git(submodule, "rev-parse", "HEAD")
+        (self.repo / ".gitmodules").write_text(
+            f'[submodule "module"]\n\tpath = vendor/module\n\turl = {submodule}\n',
+            encoding="utf-8",
+        )
+        git(self.repo, "add", ".gitmodules")
+        git(self.repo, "update-index", "--add", "--cacheinfo", f"160000,{before},vendor/module")
+        git(self.repo, "-c", "protocol.file.allow=always", "submodule", "update", "--init", "--", "vendor/module")
+        git(self.repo, "commit", "-q", "-m", "add submodule")
+        branch, worktree = self.start()
+        git(worktree, "-c", "protocol.file.allow=always", "submodule", "update", "--init", "--", "vendor/module")
+        git(worktree, "update-index", "--cacheinfo", f"160000,{after},vendor/module")
+        git(worktree, "-c", "protocol.file.allow=always", "submodule", "update", "--init", "--", "vendor/module")
+        git(worktree, "commit", "-q", "-m", "update submodule")
+        main_tip = git(self.repo, "rev-parse", "main")
+
+        code, stdout, _ = self.finish(branch, "--delete-branch")
+
+        self.assertEqual(code, 1)
+        self.assertEqual(json.loads(stdout)["status"], "submodule-change", stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
+        self.assertTrue(worktree.is_dir())
+
     def test_safe_removal_refusal_reports_integrated_cleanup_pending(self) -> None:
         branch, worktree = self.start()
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
@@ -254,10 +288,35 @@ class WorktreeTaskTests(unittest.TestCase):
         with patch.object(task, "safe_remove", return_value=failure):
             code, stdout, _ = self.finish(branch, "--delete-branch")
         result = json.loads(stdout)
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         self.assertEqual(result["status"], "cleanup-partial")
         self.assertEqual(result["main_tip"], tip)
         self.assertTrue(result["worktree_registered"])
+        self.assertTrue(worktree.is_dir())
+
+    def test_cleanup_tip_change_returns_nonzero_and_preserves_worktree(self) -> None:
+        branch, worktree = self.start()
+        tip = self.commit_file(worktree, "task.txt", "task\n", "task")
+        tree = git(self.repo, "rev-parse", f"{tip}^{{tree}}")
+        changed_tip = git(self.repo, "commit-tree", tree, "-p", tip, "-m", "unexpected branch update")
+        original_audit = task.audit_writer_signals
+        calls = 0
+
+        def move_branch_after_postcheck(repo: Path, allowed_branches: set[str]) -> None:
+            nonlocal calls
+            calls += 1
+            if calls == 3:
+                git(repo, "update-ref", f"refs/heads/{branch}", changed_tip)
+            original_audit(repo, allowed_branches)
+
+        with patch.object(task, "audit_writer_signals", side_effect=move_branch_after_postcheck):
+            code, stdout, _ = self.finish(branch, "--delete-branch")
+
+        result = json.loads(stdout)
+        self.assertEqual(code, 1)
+        self.assertEqual(result["status"], "cleanup-pending")
+        self.assertEqual(result["main_tip"], tip)
+        self.assertEqual(git(self.repo, "rev-parse", f"refs/heads/{branch}"), changed_tip)
         self.assertTrue(worktree.is_dir())
 
     def test_keep_worktree_integrates_without_removal(self) -> None:
@@ -341,7 +400,7 @@ class WorktreeTaskTests(unittest.TestCase):
     def test_integration_creator_exit_4_is_reported(self) -> None:
         self.assert_integration_creator_partial(4)
 
-    def test_custom_merge_hooks_fail_closed_but_ff_uses_only_post_merge(self) -> None:
+    def test_commit_hooks_are_required_only_for_merge_commits(self) -> None:
         _, worktree = self.start()
         self.commit_file(worktree, "task.txt", "task\n", "task")
         hooks = Path(git(self.repo, "rev-parse", "--git-path", "hooks"))
@@ -354,6 +413,47 @@ class WorktreeTaskTests(unittest.TestCase):
         with self.assertRaises(task.TaskError) as caught:
             task.require_no_hooks(self.repo, merge_commit=True)
         self.assertEqual(caught.exception.status, "hooks-present")
+
+    def test_reference_transaction_hook_blocks_fast_forward_before_running(self) -> None:
+        branch, worktree = self.start()
+        self.commit_file(worktree, "task.txt", "task\n", "task")
+        main_tip = git(self.repo, "rev-parse", "main")
+        hooks = Path(git(self.repo, "rev-parse", "--git-path", "hooks"))
+        if not hooks.is_absolute():
+            hooks = self.repo / hooks
+        sentinel = self.root / "reference-transaction-ran"
+        hook = hooks / "reference-transaction"
+        hook.write_text(f"#!/bin/sh\nprintf called > '{sentinel}'\n", encoding="utf-8")
+        hook.chmod(0o755)
+
+        code, stdout, _ = self.finish(branch, "--delete-branch")
+
+        self.assertEqual(code, 1)
+        self.assertEqual(json.loads(stdout)["status"], "hooks-present")
+        self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
+        self.assertFalse(sentinel.exists())
+        self.assertTrue(worktree.is_dir())
+
+    def test_reference_transaction_hook_blocks_integration_before_running(self) -> None:
+        branch, worktree = self.start()
+        self.commit_file(worktree, "task.txt", "task\n", "task")
+        main_tip = self.commit_file(self.repo, "main.txt", "main\n", "main progress")
+        hooks = Path(git(self.repo, "rev-parse", "--git-path", "hooks"))
+        if not hooks.is_absolute():
+            hooks = self.repo / hooks
+        sentinel = self.root / "reference-transaction-ran"
+        hook = hooks / "reference-transaction"
+        hook.write_text(f"#!/bin/sh\nprintf called > '{sentinel}'\n", encoding="utf-8")
+        hook.chmod(0o755)
+
+        code, stdout, _ = self.finish(branch, "--delete-branch")
+
+        self.assertEqual(code, 1)
+        self.assertEqual(json.loads(stdout)["status"], "hooks-present")
+        self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
+        self.assertEqual(git(self.repo, "for-each-ref", "--format=%(refname:short)", "refs/heads/integration"), "")
+        self.assertFalse(sentinel.exists())
+        self.assertTrue(worktree.is_dir())
 
     def test_filter_attribute_is_rejected(self) -> None:
         (self.repo / ".gitattributes").write_text("*.txt filter=custom\n", encoding="utf-8")
