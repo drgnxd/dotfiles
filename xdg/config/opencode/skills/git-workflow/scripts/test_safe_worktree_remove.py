@@ -127,6 +127,24 @@ def add_direnv_ignore(main: Path, *, include_database: bool = False) -> None:
     git(main, "commit", "--quiet", "-m", "ignore worktree runtime state")
 
 
+def add_generated_cache_ignores(main: Path) -> None:
+    (main / ".gitignore").write_text(".pytest_cache/\n.ruff_cache/\n__pycache__/\nkeep.ignored\n")
+    git(main, "add", ".gitignore")
+    git(main, "commit", "--quiet", "-m", "ignore generated caches")
+
+
+def make_generated_caches(wt: Path) -> tuple[Path, ...]:
+    paths = (
+        wt / ".pytest_cache" / "v" / "cache" / "nodeids",
+        wt / ".ruff_cache" / "0.17.0" / "content",
+        wt / "xdg" / "config" / "opencode" / "skills" / "git-workflow" / "scripts" / "__pycache__" / "helper.pyc",
+    )
+    for path in paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"generated cache")
+    return paths
+
+
 def make_nix_direnv_cache(worktree: Path, store_root: Path) -> Path:
     cache = worktree / ".direnv"
     bin_dir = cache / "bin"
@@ -494,6 +512,357 @@ def test_refuses_ignored_files(repo: Path) -> None:
     result = run(str(wt))
     assert result.returncode == 1 and "x.log" in result.stderr
     assert (wt / "x.log").exists()
+
+
+def test_generated_cache_flag_is_opt_in(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-default")
+    cache_files = make_generated_caches(wt)
+
+    result = run(str(wt))
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert_untouched(wt)
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+
+
+def test_generated_cache_dry_run_enumerates_without_changes(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-dry-run")
+    cache_files = make_generated_caches(wt)
+
+    result = run(str(wt), "--discard-generated-caches", "--dry-run")
+
+    assert result.returncode == 0, result.stderr
+    assert "generated cache contents would be discarded" in result.stdout
+    assert ".pytest_cache, .ruff_cache," in result.stdout
+    assert "scripts/__pycache__" in result.stdout
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+    assert not (Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine").exists()
+
+
+def test_discards_only_recognized_generated_caches_after_success(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-discard")
+    cache_files = make_generated_caches(wt)
+
+    result = run(str(wt), "--discard-generated-caches", "--delete-branch")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    assert "discarded generated cache contents" in result.stdout
+    assert all(not path.exists() for path in cache_files)
+    assert "task/wt-cache-discard" not in git(repo, "branch", "--list")
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
+def test_generated_cache_opt_in_does_not_allow_other_ignored_paths(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-and-other")
+    cache_files = make_generated_caches(wt)
+    keep = wt / "keep.ignored"
+    keep.write_text("keep")
+
+    result = run(str(wt), "--discard-generated-caches")
+
+    assert result.returncode == 1 and "keep.ignored" in result.stderr
+    assert_untouched(wt)
+    assert keep.read_text() == "keep"
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+    assert not (Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine").exists()
+
+
+def test_generated_cache_roots_are_deduplicated() -> None:
+    status = [
+        (b"!!", b".pytest_cache/"),
+        (b"!!", b".pytest_cache/__pycache__/cache.pyc"),
+        (b"!!", b"pkg/__pycache__/module.pyc"),
+        (b"!!", b"pkg/__pycache__/nested/__pycache__/inner.pyc"),
+        (b"!!", b".direnv/flake-inputs/__pycache__/input.pyc"),
+    ]
+    assert HELPER.generated_cache_candidates(status) == (b".pytest_cache", b"pkg/__pycache__")
+
+
+def test_generated_cache_option_leaves_direnv_to_its_existing_policy(repo: Path) -> None:
+    (repo / ".gitignore").write_text(".direnv/\n.pytest_cache/\n.ruff_cache/\n__pycache__/\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore cache paths")
+    wt = make_worktree(repo, "wt-cache-direnv")
+    cache = wt / ".direnv" / "__pycache__" / "state.pyc"
+    cache.parent.mkdir(parents=True)
+    cache.write_bytes(b"preserve")
+
+    result = run(str(wt), "--discard-generated-caches")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    archive_line = next(line for line in result.stdout.splitlines() if line.startswith("preserved .direnv at "))
+    archive = Path(archive_line.removeprefix("preserved .direnv at "))
+    assert (archive / "__pycache__" / "state.pyc").read_bytes() == b"preserve"
+
+
+def test_generated_cache_symlink_refuses_without_touching_target(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-symlink")
+    cache = wt / ".pytest_cache"
+    cache.mkdir()
+    target = repo / "external-cache.txt"
+    target.write_text("preserve")
+    (cache / "linked").symlink_to(target)
+
+    result = run(str(wt), "--discard-generated-caches")
+
+    assert result.returncode == 1 and "symlink or special file" in result.stderr
+    assert_untouched(wt)
+    assert target.read_text() == "preserve"
+
+
+def test_generated_cache_nested_git_repo_refuses(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-nested-git")
+    nested = wt / ".ruff_cache" / "nested" / ".git"
+    nested.mkdir(parents=True)
+    (nested / "HEAD").write_text("ref: refs/heads/main\n")
+
+    result = run(str(wt), "--discard-generated-caches")
+
+    assert result.returncode == 1 and "nested Git repository" in result.stderr
+    assert_untouched(wt)
+    assert nested.exists()
+
+
+def test_generated_cache_refuses_if_open_handles_cannot_be_checked(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-open-unknown")
+    cache_files = make_generated_caches(wt)
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: None)
+
+    with pytest.raises(HELPER.RemovalError, match="could not verify open handles"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-open-unknown",
+            discard_generated_caches=True,
+        )
+
+    assert_untouched(wt)
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+
+
+def test_generated_cache_refuses_when_open_handles_exist(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-open")
+    cache_files = make_generated_caches(wt)
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: {"123"})
+
+    with pytest.raises(HELPER.RemovalError, match="processes still have generated cache files open"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-open",
+            discard_generated_caches=True,
+        )
+
+    assert_untouched(wt)
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+
+
+def test_generated_cache_refuses_tracked_entries(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    tracked = repo / ".pytest_cache" / "tracked"
+    tracked.parent.mkdir()
+    tracked.write_text("tracked")
+    git(repo, "add", "-f", ".pytest_cache/tracked")
+    git(repo, "commit", "--quiet", "-m", "track cache fixture")
+    wt = make_worktree(repo, "wt-cache-tracked")
+    extra = wt / ".pytest_cache" / "untracked"
+    extra.write_text("preserve")
+
+    result = run(str(wt), "--discard-generated-caches")
+
+    assert result.returncode == 1 and "contains tracked files" in result.stderr
+    assert_untouched(wt)
+    assert (wt / ".pytest_cache" / "tracked").read_text() == "tracked"
+    assert extra.read_text() == "preserve"
+
+
+def test_generated_cache_refuses_mount_points(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-mount")
+    cache_files = make_generated_caches(wt)
+    cache_root = wt / ".pytest_cache"
+    monkeypatch.setattr(HELPER, "mount_points", lambda: (cache_root.resolve(),))
+
+    with pytest.raises(HELPER.RemovalError, match="mount point"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-mount",
+            discard_generated_caches=True,
+        )
+
+    assert_untouched(wt)
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+
+
+def test_generated_caches_restore_when_git_refuses_removal(repo: Path, tmp_path: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-remove-refused")
+    cache_files = make_generated_caches(wt)
+    bin_dir = make_git_wrapper(tmp_path, refuse_remove=True)
+
+    result = run_with_git_wrapper(wt, bin_dir, "--discard-generated-caches")
+
+    assert result.returncode == 1 and "simulated refusal" in result.stderr
+    assert_untouched(wt)
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
+def test_generated_caches_restore_when_status_changes_after_quarantine(repo: Path, tmp_path: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-status-race")
+    cache_files = make_generated_caches(wt)
+    late = wt / "keep.ignored"
+    hook = f"Path({str(late)!r}).write_text('keep')"
+    bin_dir = make_git_wrapper(tmp_path, hook_on_second_status=True, hook=hook)
+
+    result = run_with_git_wrapper(wt, bin_dir, "--discard-generated-caches")
+
+    assert result.returncode == 1 and "worktree changed after removing generated state" in result.stderr
+    assert_untouched(wt)
+    assert late.read_text() == "keep"
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+
+
+def test_generated_caches_restore_after_partial_quarantine_failure(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-partial-move")
+    cache_files = make_generated_caches(wt)
+    original = HELPER.no_replace_rename
+
+    def fail_second_cache(source: Path, destination: Path) -> None:
+        if destination.name == "generated-cache-001":
+            raise OSError("simulated cache move failure")
+        original(source, destination)
+
+    monkeypatch.setattr(HELPER, "no_replace_rename", fail_second_cache)
+    with pytest.raises(OSError, match="simulated cache move failure"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-partial-move",
+            discard_generated_caches=True,
+        )
+
+    assert_untouched(wt)
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
+def test_generated_cache_mutation_during_quarantine_is_restored(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-mutated-move")
+    cache_files = make_generated_caches(wt)
+    late = wt / ".pytest_cache" / "late-entry"
+    original = HELPER.no_replace_rename
+
+    def mutate_after_move(source: Path, destination: Path) -> None:
+        original(source, destination)
+        if destination.name == "generated-cache-000":
+            (destination / "late-entry").write_text("preserve")
+
+    monkeypatch.setattr(HELPER, "no_replace_rename", mutate_after_move)
+    with pytest.raises(HELPER.RemovalError, match="contents changed during quarantine"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-mutated-move",
+            discard_generated_caches=True,
+        )
+
+    assert_untouched(wt)
+    assert late.read_text() == "preserve"
+    assert all(path.read_bytes() == b"generated cache" for path in cache_files)
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
+def test_failed_cache_purge_retains_manifest_and_recovery_data(
+    repo: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-purge-refused")
+    make_generated_caches(wt)
+    monkeypatch.setattr(HELPER, "purge_generated_cache", lambda *args: "simulated purge failure")
+
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-cache-purge-refused",
+        discard_generated_caches=True,
+    )
+
+    assert not wt.exists()
+    assert outcome.discarded_generated_caches == ()
+    assert len(outcome.preserved_generated_caches) == 3
+    for archive in outcome.preserved_generated_caches:
+        assert any(path.read_bytes() == b"generated cache" for path in archive.rglob("*" ) if path.is_file())
+    operation_dir = outcome.preserved_generated_caches[0].parent
+    manifest = json.loads((operation_dir / "manifest.json").read_text())
+    assert manifest["phase"] == "completed_preserved"
+    assert all(item["purge_state"] == "preserved" for item in manifest["generated_caches"])
+
+
+def test_cache_purge_manifest_records_git_removal_before_purging(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-purge-journal")
+    make_generated_caches(wt)
+    original = HELPER.write_manifest
+
+    def fail_after_removal(transaction: HELPER.RemovalTransaction, phase: str, *, create: bool = False) -> None:
+        if phase == "worktree_removed":
+            raise OSError("simulated interruption after Git removal")
+        original(transaction, phase, create=create)
+
+    monkeypatch.setattr(HELPER, "write_manifest", fail_after_removal)
+    with pytest.raises(OSError, match="simulated interruption"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-purge-journal",
+            discard_generated_caches=True,
+        )
+
+    assert not wt.exists()
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    operation_dir = next(quarantine.iterdir())
+    manifest = json.loads((operation_dir / "manifest.json").read_text())
+    assert manifest["phase"] == "recovery_required"
+    assert all(Path(item["quarantine_path"]).exists() for item in manifest["generated_caches"])
+
+
+def test_cache_purge_start_failure_keeps_journal_and_quarantine(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-cache-purge-start-failure")
+    make_generated_caches(wt)
+    original = HELPER.write_manifest
+
+    def fail_before_purge(transaction: HELPER.RemovalTransaction, phase: str, *, create: bool = False) -> None:
+        if phase == "generated_cache_0_purge_started":
+            raise OSError("simulated failure before cache purge")
+        original(transaction, phase, create=create)
+
+    monkeypatch.setattr(HELPER, "write_manifest", fail_before_purge)
+    with pytest.raises(OSError, match="simulated failure before cache purge"):
+        HELPER.remove(
+            str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+            allow_unreferenced_reflog=False, expect_branch="task/wt-cache-purge-start-failure",
+            discard_generated_caches=True,
+        )
+
+    assert not wt.exists()
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    operation_dir = next(quarantine.iterdir())
+    manifest = json.loads((operation_dir / "manifest.json").read_text())
+    assert manifest["phase"] == "recovery_required"
+    assert all(Path(item["quarantine_path"]).exists() for item in manifest["generated_caches"])
 
 
 def test_removes_canonical_db_symlink_without_touching_database(repo: Path) -> None:

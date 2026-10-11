@@ -21,6 +21,16 @@ purges only the verified Nix-direnv `use flake` cache after successful worktree
 removal; unknown layouts and unsafe purge conditions remain quarantined. The
 flag discards all files in that recognized cache, including edits.
 
+Other ignored and untracked paths refuse removal by default. The explicit
+`--discard-generated-caches` opt-in selects only root `.pytest_cache` and
+`.ruff_cache` directories and `__pycache__` directories beneath the worktree.
+It authorizes discarding all contents under those selected paths; their names
+do not prove provenance. Selected caches are quarantined and removed only after
+Git confirms worktree removal. Other ignored data remains a hard refusal.
+The manifest records cache moves, Git removal, and purge phases. Interrupted
+operations are not retried implicitly; inspect the worktree registration, path,
+and manifest together, and preserve the quarantine when their states disagree.
+
 Residual risk: `git worktree remove` runs its own `git status`, which can start
 the git-annex clean filter. If that turns `.git` back into a symlink, Git
 refuses and the symlink is restored; nothing is deleted.
@@ -112,10 +122,19 @@ class DirenvArtifact:
 
 
 @dataclass(frozen=True)
+class GeneratedCacheArtifact:
+    path: Path
+    worktree: Path
+    identity: tuple[int, int]
+    signature: tuple[tuple[object, ...], ...]
+
+
+@dataclass(frozen=True)
 class RemovalPlan:
     database_link: CanonicalDatabaseLink | None
     direnv: DirenvArtifact | None
     discard_direnv_cache: bool
+    generated_caches: tuple[GeneratedCacheArtifact, ...]
 
 
 @dataclass
@@ -130,6 +149,8 @@ class RemovalOutcome:
     target: Target
     preserved_direnv: Path | None = None
     discarded_direnv: bool = False
+    preserved_generated_caches: tuple[Path, ...] = ()
+    discarded_generated_caches: tuple[str, ...] = ()
 
 
 def run_git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -348,6 +369,127 @@ def direnv_tree_signature(root: Path) -> tuple[tuple[object, ...], ...]:
 
     visit(root, ".")
     return tuple(entries)
+
+
+def generated_cache_candidates(status: list[tuple[bytes, bytes]]) -> tuple[bytes, ...]:
+    candidates: set[bytes] = set()
+    for _, path in status:
+        parts = path.rstrip(b"/").split(b"/")
+        if not parts or parts[0] == b".direnv":
+            continue
+        if parts[0] in (b".pytest_cache", b".ruff_cache"):
+            candidates.add(parts[0])
+            continue
+        for index, part in enumerate(parts):
+            if part == b"__pycache__":
+                candidates.add(b"/".join(parts[:index + 1]))
+                break
+
+    roots: list[bytes] = []
+    for candidate in sorted(candidates, key=lambda value: (value.count(b"/"), value)):
+        if not any(candidate.startswith(root + b"/") for root in roots):
+            roots.append(candidate)
+    return tuple(roots)
+
+
+def generated_cache_signature(root: Path, worktree: Path) -> tuple[tuple[object, ...], ...]:
+    try:
+        relative = root.relative_to(worktree)
+        worktree_info = worktree.lstat()
+        root_info = root.lstat()
+    except (OSError, ValueError) as error:
+        raise RemovalError(f"cannot inspect generated cache path {root}: {error}") from error
+    if not relative.parts or relative.is_absolute() or any(part in ("", ".", "..") for part in relative.parts):
+        raise RemovalError(f"generated cache path is not a safe worktree-relative path: {root}")
+    if stat.S_ISLNK(worktree_info.st_mode) or not stat.S_ISDIR(worktree_info.st_mode):
+        raise RemovalError(f"worktree root is not a real directory: {worktree}")
+    if stat.S_ISLNK(root_info.st_mode) or not stat.S_ISDIR(root_info.st_mode):
+        raise RemovalError(f"generated cache root is not a real directory: {root}")
+
+    allowed = (".pytest_cache", ".ruff_cache")
+    if str(relative) not in allowed and relative.parts[-1] != "__pycache__":
+        raise RemovalError(f"unrecognized generated cache path: {root}")
+
+    cursor = worktree
+    for component in relative.parts:
+        cursor = cursor / component
+        try:
+            info = cursor.lstat()
+        except OSError as error:
+            raise RemovalError(f"cannot inspect generated cache path component {cursor}: {error}") from error
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+            raise RemovalError(f"generated cache path contains a non-directory or symlink component: {cursor}")
+
+    if root_info.st_dev != worktree_info.st_dev:
+        raise RemovalError(f"generated cache is on a different filesystem from the worktree: {root}")
+    return generated_cache_tree_signature(root, worktree_info.st_dev)
+
+
+def generated_cache_tree_signature(root: Path, expected_device: int) -> tuple[tuple[object, ...], ...]:
+    mounts = mount_points()
+    if mounts is None:
+        raise RemovalError("cannot inspect mount points; refusing generated-cache removal")
+
+    root_info = root.lstat()
+    if stat.S_ISLNK(root_info.st_mode) or not stat.S_ISDIR(root_info.st_mode):
+        raise RemovalError(f"generated cache root is not a real directory: {root}")
+    if root_info.st_dev != expected_device or is_mountpoint(root, mounts) is not False:
+        raise RemovalError(f"generated cache is on a different filesystem or is a mount point: {root}")
+    signature = direnv_tree_signature(root)
+    for entry_relative, kind, device, *_ in signature:
+        try:
+            str(entry_relative).encode("utf-8")
+        except UnicodeEncodeError as error:
+            raise RemovalError(f"generated cache contains a non-UTF-8 path: {root}") from error
+        components = str(entry_relative).split("/")
+        if ".git" in components:
+            raise RemovalError(f"generated cache contains a nested Git repository: {root / str(entry_relative)}")
+        if kind not in ("directory", "file"):
+            raise RemovalError(f"generated cache contains a symlink or special file: {root / str(entry_relative)}")
+        if device != expected_device:
+            raise RemovalError(f"generated cache crosses a filesystem boundary: {root / str(entry_relative)}")
+        if kind == "directory":
+            entry_path = root if entry_relative == "." else root / str(entry_relative)
+            if is_mountpoint(entry_path, mounts) is not False:
+                raise RemovalError(f"generated cache contains a mount point: {entry_path}")
+    return signature
+
+
+def inspect_generated_caches(
+    target: Target, status: list[tuple[bytes, bytes]],
+) -> tuple[GeneratedCacheArtifact, ...]:
+    artifacts: list[GeneratedCacheArtifact] = []
+    for relative_bytes in generated_cache_candidates(status):
+        relative = os.fsdecode(relative_bytes)
+        path = target.worktree / relative
+        matching = [
+            (item_status, item_path) for item_status, item_path in status
+            if item_path == relative_bytes or item_path.startswith(relative_bytes + b"/")
+        ]
+        if not matching or any(item_status not in (b"!!", b"??") for item_status, _ in matching):
+            raise RemovalError(f"generated cache is not exclusively ignored or untracked: {path}")
+        tracked = run_git_bytes(target.worktree, "ls-files", "--stage", "--", relative)
+        if tracked.returncode != 0:
+            raise RemovalError(f"cannot check tracked files under generated cache {path}: {tracked.stderr.decode(errors='replace').strip()}")
+        if tracked.stdout:
+            raise RemovalError(f"generated cache contains tracked files: {path}")
+
+        signature = generated_cache_signature(path, target.worktree)
+        if not any(entry[0] == "." for entry in signature):
+            raise RemovalError(f"generated cache disappeared during inspection: {path}")
+        root = next(entry for entry in signature if entry[0] == ".")
+        artifacts.append(GeneratedCacheArtifact(path, target.worktree, (int(root[2]), int(root[3])), signature))
+
+    if artifacts:
+        open_pids = lsof_open_paths(tuple(
+            artifact.path if entry[0] == "." else artifact.path / str(entry[0])
+            for artifact in artifacts for entry in artifact.signature
+        ))
+        if open_pids is None:
+            raise RemovalError("could not verify open handles to generated caches; refusing removal")
+        if open_pids:
+            raise RemovalError(f"processes still have generated cache files open (pids: {', '.join(sorted(open_pids))})")
+    return tuple(artifacts)
 
 
 def path_is_beneath(path: Path, root: Path) -> bool:
@@ -572,11 +714,26 @@ def create_transaction(target: Target, head: str, plan: RemovalPlan) -> RemovalT
         fsync_directory(root.parent)
     if direnv is not None and root_info.st_dev != direnv.identity[0]:
         raise RemovalError(f"quarantine root is on a different filesystem from {direnv.path}")
+    for cache in plan.generated_caches:
+        if root_info.st_dev != cache.identity[0]:
+            raise RemovalError(f"quarantine root is on a different filesystem from {cache.path}")
     operation_id = secrets.token_hex(16)
     operation_dir = root / operation_id
     operation_dir.mkdir(mode=0o700)
     fsync_directory(root)
     worktree_info, admin_info = target.worktree.stat(), target.admin_dir.stat()
+    generated_caches = []
+    for index, cache in enumerate(plan.generated_caches):
+        relative = cache.path.relative_to(target.worktree)
+        if relative.is_absolute() or any(part in ("", ".", "..") for part in relative.parts):
+            raise RemovalError(f"generated cache is not beneath the worktree: {cache.path}")
+        generated_caches.append({
+            "path": str(relative),
+            "identity": list(cache.identity),
+            "signature": [list(entry) for entry in cache.signature],
+            "quarantine_path": str(operation_dir / f"generated-cache-{index:03d}"),
+            "purge_state": "planned",
+        })
     manifest: dict[str, object] = {
         "schema_version": 1,
         "operation_id": operation_id,
@@ -602,6 +759,7 @@ def create_transaction(target: Target, head: str, plan: RemovalPlan) -> RemovalT
             "discard_reason": direnv.discard_reason,
             "quarantine_path": str(operation_dir / DIR_ENV_NAME),
         },
+        "generated_caches": generated_caches,
     }
     transaction = RemovalTransaction(operation_dir, operation_dir / "manifest.json", manifest)
     try:
@@ -671,6 +829,22 @@ def write_manifest(transaction: RemovalTransaction, phase: str, *, create: bool 
             temp.unlink()
 
 
+def write_post_removal_manifest(transaction: RemovalTransaction, phase: str) -> None:
+    try:
+        write_manifest(transaction, phase)
+    except (OSError, RemovalError) as error:
+        try:
+            write_manifest(transaction, "recovery_required")
+        except (OSError, RemovalError) as recovery_error:
+            print(f"warning: could not record recovery phase: {recovery_error}", file=sys.stderr)
+        print(
+            f"warning: worktree was removed; inspect transaction {transaction.manifest_path} "
+            f"after failure advancing to {phase}: {error}",
+            file=sys.stderr,
+        )
+        raise
+
+
 def transact_direnv_move(transaction: RemovalTransaction, artifact: DirenvArtifact) -> Path:
     source = artifact.path
     destination = Path(str(transaction.manifest["direnv"]["quarantine_path"]))  # type: ignore[index]
@@ -689,6 +863,162 @@ def transact_direnv_move(transaction: RemovalTransaction, artifact: DirenvArtifa
     return destination
 
 
+def generated_cache_record(transaction: RemovalTransaction, index: int) -> dict[str, object]:
+    records = transaction.manifest.get("generated_caches")
+    if not isinstance(records, list) or index >= len(records) or not isinstance(records[index], dict):
+        raise RemovalError("generated-cache transaction manifest is malformed")
+    record = records[index]
+    expected_name = f"generated-cache-{index:03d}"
+    destination = Path(str(record.get("quarantine_path", "")))
+    if destination.parent != transaction.operation_dir or destination.name != expected_name:
+        raise RemovalError("generated-cache quarantine path in manifest is invalid")
+    return record
+
+
+def generated_cache_tree_paths(root: Path, signature: tuple[tuple[object, ...], ...]) -> tuple[Path, ...]:
+    return tuple(root if entry[0] == "." else root / str(entry[0]) for entry in signature)
+
+
+def transact_generated_cache_move(
+    transaction: RemovalTransaction, artifact: GeneratedCacheArtifact, index: int,
+) -> Path:
+    record = generated_cache_record(transaction, index)
+    source = artifact.path
+    destination = Path(str(record["quarantine_path"]))
+    try:
+        source_info = source.lstat()
+    except OSError as error:
+        raise RemovalError(f"generated cache disappeared after inspection: {source}: {error}") from error
+    if (source_info.st_dev, source_info.st_ino) != artifact.identity:
+        raise RemovalError(f"generated cache changed after inspection: {source}")
+    if generated_cache_signature(source, artifact.worktree) != artifact.signature:
+        raise RemovalError(f"generated cache contents changed after inspection: {source}")
+    open_pids = lsof_open_paths(generated_cache_tree_paths(source, artifact.signature))
+    if open_pids is None:
+        raise RemovalError(f"could not verify open handles to generated cache: {source}")
+    if open_pids:
+        raise RemovalError(f"processes opened generated cache during removal (pids: {', '.join(sorted(open_pids))}): {source}")
+
+    record["purge_state"] = "move_started"
+    write_manifest(transaction, f"generated_cache_{index}_move_started")
+    source_info = source.lstat()
+    if (source_info.st_dev, source_info.st_ino) != artifact.identity:
+        raise RemovalError(f"generated cache changed before quarantine: {source}")
+    if generated_cache_signature(source, artifact.worktree) != artifact.signature:
+        raise RemovalError(f"generated cache contents changed before quarantine: {source}")
+    open_pids = lsof_open_paths(generated_cache_tree_paths(source, artifact.signature))
+    if open_pids is None:
+        raise RemovalError(f"could not verify open handles before quarantining generated cache: {source}")
+    if open_pids:
+        raise RemovalError(f"processes opened generated cache before quarantine (pids: {', '.join(sorted(open_pids))}): {source}")
+    no_replace_rename(source, destination)
+    fsync_directory(source.parent)
+    fsync_directory(destination.parent)
+    moved = destination.lstat()
+    if (moved.st_dev, moved.st_ino) != artifact.identity:
+        raise RemovalError(f"generated cache identity changed during quarantine: {destination}")
+    moved_signature = generated_cache_tree_signature(destination, artifact.identity[0])
+    if moved_signature != artifact.signature:
+        raise RemovalError(f"generated cache contents changed during quarantine: {destination}")
+    record["purge_state"] = "quarantined"
+    write_manifest(transaction, f"generated_cache_{index}_quarantined")
+    return destination
+
+
+def restore_generated_cache(transaction: RemovalTransaction, artifact: GeneratedCacheArtifact, index: int) -> bool:
+    try:
+        record = generated_cache_record(transaction, index)
+        source = artifact.path
+        quarantined = Path(str(record["quarantine_path"]))
+        source_exists = os.path.lexists(source)
+        quarantine_exists = os.path.lexists(quarantined)
+        if not quarantine_exists:
+            if not source_exists:
+                print(f"warning: both original and quarantined generated cache are missing: {source}", file=sys.stderr)
+                return False
+            info = source.lstat()
+            if (info.st_dev, info.st_ino) != artifact.identity or not stat.S_ISDIR(info.st_mode):
+                print(f"warning: generated cache path was replaced; preserving it: {source}", file=sys.stderr)
+                return False
+            return True
+        if source_exists:
+            print(f"warning: generated cache restore path is occupied; preserving {quarantined}", file=sys.stderr)
+            return False
+        info = quarantined.lstat()
+        if (info.st_dev, info.st_ino) != artifact.identity or not stat.S_ISDIR(info.st_mode):
+            print(f"warning: generated cache quarantine identity changed; preserving {quarantined}", file=sys.stderr)
+            return False
+        relative = source.relative_to(artifact.worktree)
+        worktree_info = artifact.worktree.lstat()
+        if stat.S_ISLNK(worktree_info.st_mode) or not stat.S_ISDIR(worktree_info.st_mode):
+            print(f"warning: worktree root changed; preserving {quarantined}", file=sys.stderr)
+            return False
+        cursor = artifact.worktree
+        for component in relative.parts[:-1]:
+            cursor = cursor / component
+            parent_info = cursor.lstat()
+            if stat.S_ISLNK(parent_info.st_mode) or not stat.S_ISDIR(parent_info.st_mode):
+                print(f"warning: generated cache restore parent changed; preserving {quarantined}", file=sys.stderr)
+                return False
+        no_replace_rename(quarantined, source)
+        fsync_directory(source.parent)
+        restored = source.lstat()
+        if (restored.st_dev, restored.st_ino) != artifact.identity:
+            print(f"warning: restored generated cache identity changed: {source}", file=sys.stderr)
+            return False
+        return True
+    except (OSError, RemovalError) as error:
+        print(f"warning: could not restore generated cache {artifact.path}: {error}", file=sys.stderr)
+        return False
+
+
+def purge_generated_cache(
+    root: Path, expected_signature: tuple[tuple[object, ...], ...], expected_device: int,
+) -> str | None:
+    try:
+        current = generated_cache_tree_signature(root, expected_device)
+    except (OSError, RemovalError) as error:
+        return f"could not validate generated cache after worktree removal ({error}); preserved in quarantine"
+    if current != expected_signature:
+        return "generated cache changed after inspection; preserved in quarantine"
+    open_pids = lsof_open_paths(generated_cache_tree_paths(root, expected_signature))
+    if open_pids is None:
+        return "could not verify open handles to generated cache; preserved in quarantine"
+    if open_pids:
+        return f"processes still have generated cache files open (pids: {', '.join(sorted(open_pids))}); preserved in quarantine"
+
+    for removed_entries, (relative, kind, device, inode, mode, size, mtime_ns, link_text) in enumerate(sorted(
+        expected_signature, key=lambda entry: str(entry[0]).count("/"), reverse=True,
+    )):
+        path = root if relative == "." else root / str(relative)
+        try:
+            info = path.lstat()
+        except OSError as error:
+            return f"generated cache purge stopped after {removed_entries} entries ({path}: {error})"
+        current_entry = (
+            info.st_dev, info.st_ino, info.st_mode,
+            0 if kind == "directory" else info.st_size,
+            0 if kind == "directory" else info.st_mtime_ns,
+        )
+        expected_entry = (device, inode, mode, size, mtime_ns)
+        if current_entry != expected_entry or link_text:
+            return f"generated cache purge stopped after {removed_entries} entries; entry changed: {path}"
+        try:
+            if kind == "directory":
+                path.rmdir()
+            elif kind == "file":
+                path.unlink()
+            else:
+                return f"generated cache contains an unsupported entry ({path}); preserved in quarantine"
+        except OSError as error:
+            return f"generated cache purge stopped after {removed_entries} entries ({path}: {error})"
+    try:
+        fsync_directory(root.parent)
+    except OSError as error:
+        return f"generated cache contents were removed but quarantine sync failed ({error})"
+    return None
+
+
 def lsof_open_paths(paths: tuple[Path, ...]) -> set[str] | None:
     lsof = shutil.which("lsof")
     if lsof is None:
@@ -696,16 +1026,19 @@ def lsof_open_paths(paths: tuple[Path, ...]) -> set[str] | None:
     existing = [str(path) for path in paths if os.path.lexists(path)]
     if not existing:
         return set()
-    result = subprocess.run([lsof, "-Fpn", *existing], capture_output=True, text=True, check=False)
-    if result.returncode not in (0, 1) or result.stderr.strip():
-        return None
     pids: set[str] = set()
-    pid: str | None = None
-    for line in result.stdout.splitlines():
-        if line.startswith("p"):
-            pid = line[1:]
-        elif line.startswith("n") and pid is not None:
-            pids.add(pid)
+    for offset in range(0, len(existing), 64):
+        result = subprocess.run(
+            [lsof, "-Fpn", *existing[offset:offset + 64]], capture_output=True, text=True, check=False,
+        )
+        if result.returncode not in (0, 1) or result.stderr.strip():
+            return None
+        pid: str | None = None
+        for line in result.stdout.splitlines():
+            if line.startswith("p"):
+                pid = line[1:]
+            elif line.startswith("n") and pid is not None:
+                pids.add(pid)
     return pids
 
 
@@ -873,7 +1206,7 @@ def verify_owner(target: Target, expect_branch: str) -> None:
 
 def verify_safe(
     target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_branch: str,
-    discard_direnv_cache: bool = False,
+    discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
 ) -> RemovalPlan:
     wt = target.worktree
     verify_owner(target, expect_branch)
@@ -890,6 +1223,8 @@ def verify_safe(
     status = status_entries(wt)
     db_link: CanonicalDatabaseLink | None = None
     direnv_status: list[tuple[bytes, bytes]] = []
+    generated_caches = inspect_generated_caches(target, status) if discard_generated_caches else ()
+    generated_cache_roots = tuple(os.fsencode(cache.path.relative_to(wt)) for cache in generated_caches)
     remaining: list[str] = []
     for item_status, path in status:
         if item_status == b"!!" and path == b"cultura.db" and db_link is None:
@@ -899,6 +1234,12 @@ def verify_safe(
                 continue
         if path_is_direnv_entry(path) and item_status in (b"!!", b"??"):
             direnv_status.append((item_status, path))
+            continue
+        normalized_path = path.rstrip(b"/")
+        if item_status in (b"!!", b"??") and any(
+            normalized_path == root or normalized_path.startswith(root + b"/")
+            for root in generated_cache_roots
+        ):
             continue
         remaining.append(status_description(item_status, path))
     if remaining:
@@ -937,7 +1278,7 @@ def verify_safe(
     users = processes_inside(wt)
     if users:
         raise RemovalError(f"processes still have their cwd inside the worktree (pids: {', '.join(users)})")
-    return RemovalPlan(db_link, direnv, discard_cache)
+    return RemovalPlan(db_link, direnv, discard_cache, generated_caches)
 
 
 def raise_interrupt(signum: int, frame: object) -> None:
@@ -1155,7 +1496,7 @@ def delete_branch(target: Target, head: str, base_oid: str) -> None:
 
 def remove(
     worktree_arg: str, base: str, *, delete_branch_too: bool, lock_name: str, allow_unreferenced_reflog: bool,
-    expect_branch: str, discard_direnv_cache: bool = False,
+    expect_branch: str, discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
 ) -> RemovalOutcome:
     worktree, common_dir = locate(worktree_arg)
     with exclusive_lock(common_dir, lock_name):
@@ -1172,11 +1513,11 @@ def remove(
             target = inspect(worktree)
         plan = verify_safe(
             target, base, allow_unreferenced_reflog=allow_unreferenced_reflog, expect_branch=expect_branch,
-            discard_direnv_cache=discard_direnv_cache,
+            discard_direnv_cache=discard_direnv_cache, discard_generated_caches=discard_generated_caches,
         )
         base_oid = resolve_base(target, base)
         head = git_out(worktree, "rev-parse", "HEAD")
-        transaction = create_transaction(target, head, plan) if plan.database_link or plan.direnv else None
+        transaction = create_transaction(target, head, plan) if plan.database_link or plan.direnv or plan.generated_caches else None
         direnv_moved = False
         db_link_removed = False
         git_removed = False
@@ -1184,6 +1525,9 @@ def remove(
             if plan.direnv is not None and transaction is not None:
                 transact_direnv_move(transaction, plan.direnv)
                 direnv_moved = True
+            if transaction is not None:
+                for index, cache in enumerate(plan.generated_caches):
+                    transact_generated_cache_move(transaction, cache, index)
             if target.symlink_target is not None:
                 if check_dotgit(worktree, target.admin_dir) != target.symlink_target:
                     raise RemovalError(".git changed since inspection")
@@ -1254,7 +1598,13 @@ def remove(
                 direnv_ok = restore_direnv(transaction, plan.direnv)
             elif direnv_moved:
                 direnv_ok = False
-            rollback_ok = intact and dotgit_ok and db_ok and direnv_ok
+            generated_caches_ok = True
+            if transaction is not None and intact:
+                for index, cache in reversed(tuple(enumerate(plan.generated_caches))):
+                    generated_caches_ok = restore_generated_cache(transaction, cache, index) and generated_caches_ok
+            elif plan.generated_caches:
+                generated_caches_ok = False
+            rollback_ok = intact and dotgit_ok and db_ok and direnv_ok and generated_caches_ok
             if transaction is not None:
                 if rollback_ok:
                     try:
@@ -1275,53 +1625,76 @@ def remove(
             raise
         preserved_direnv: Path | None = None
         discarded_direnv = False
-        if transaction is not None and plan.direnv is not None:
-            archive = Path(str(transaction.manifest["direnv"]["quarantine_path"]))  # type: ignore[index]
-            if plan.discard_direnv_cache:
-                write_manifest(transaction, "cache_purge_started")
-                reason = purge_direnv_cache(archive, plan.direnv.signature)
-                if reason is None:
-                    discarded_direnv = True
-                    try:
-                        write_manifest(transaction, "cache_purged")
-                        transaction_cleanup(transaction)
-                    except (OSError, RemovalError) as error:
-                        try:
-                            write_manifest(transaction, "recovery_required")
-                        except (OSError, RemovalError):
-                            pass
-                        print(
-                            f"warning: cache was discarded but transaction metadata remains at "
-                            f"{transaction.operation_dir}: {error}",
-                            file=sys.stderr,
-                        )
+        preserved_generated_caches: list[Path] = []
+        discarded_generated_caches: list[str] = []
+        if transaction is not None:
+            preservation_reasons: list[str] = []
+            if plan.direnv is not None:
+                direnv_record = transaction.manifest["direnv"]
+                assert isinstance(direnv_record, dict)
+                archive = Path(str(direnv_record["quarantine_path"]))
+                if plan.discard_direnv_cache:
+                    write_post_removal_manifest(transaction, "direnv_cache_purge_started")
+                    reason = purge_direnv_cache(archive, plan.direnv.signature)
+                    if reason is None:
+                        discarded_direnv = True
+                        direnv_record["purge_state"] = "purged"
+                        write_post_removal_manifest(transaction, "direnv_cache_purged")
+                    else:
+                        preserved_direnv = archive
+                        direnv_record["purge_state"] = "preserved"
+                        direnv_record["preserve_reason"] = reason
+                        preservation_reasons.append(reason)
+                        print(f"warning: {reason}; preserved at {archive}", file=sys.stderr)
                 else:
                     preserved_direnv = archive
-                    transaction.manifest["preserve_reason"] = reason
-                    try:
-                        write_manifest(transaction, "completed_preserved")
-                    except (OSError, RemovalError) as error:
-                        print(f"warning: could not update quarantine manifest {transaction.manifest_path}: {error}", file=sys.stderr)
-                    print(f"warning: {reason}; preserved at {archive}", file=sys.stderr)
-            else:
-                preserved_direnv = archive
+                    direnv_record["purge_state"] = "retained"
+
+            for index, cache in enumerate(plan.generated_caches):
+                cache_record = generated_cache_record(transaction, index)
+                archive = Path(str(cache_record["quarantine_path"]))
+                cache_record["purge_state"] = "started"
+                write_post_removal_manifest(transaction, f"generated_cache_{index}_purge_started")
                 try:
-                    write_manifest(transaction, "completed_preserved")
+                    reason = purge_generated_cache(archive, cache.signature, cache.identity[0])
                 except (OSError, RemovalError) as error:
-                    print(f"warning: could not update quarantine manifest {transaction.manifest_path}: {error}", file=sys.stderr)
-        elif transaction is not None:
-            try:
-                write_manifest(transaction, "worktree_removed")
-                transaction_cleanup(transaction)
-            except (OSError, RemovalError) as error:
+                    reason = f"could not purge generated cache ({error}); preserved in quarantine"
+                if reason is None or not os.path.lexists(archive):
+                    cache_record["purge_state"] = "purged" if reason is None else "purged_with_warning"
+                    discarded_generated_caches.append(str(cache.path.relative_to(target.worktree)))
+                    if reason is not None:
+                        cache_record["purge_warning"] = reason
+                        preservation_reasons.append(reason)
+                        print(f"warning: {reason}; inspect transaction {transaction.manifest_path}", file=sys.stderr)
+                    write_post_removal_manifest(transaction, f"generated_cache_{index}_purged")
+                else:
+                    cache_record["purge_state"] = "preserved"
+                    cache_record["preserve_reason"] = reason
+                    preserved_generated_caches.append(archive)
+                    preservation_reasons.append(reason)
+                    print(f"warning: {reason}; preserved at {archive}", file=sys.stderr)
+
+            if preservation_reasons or preserved_direnv is not None or preserved_generated_caches:
+                transaction.manifest["preserve_reason"] = "; ".join(preservation_reasons) or "retained .direnv state"
+                write_post_removal_manifest(transaction, "completed_preserved")
+            else:
                 try:
-                    write_manifest(transaction, "recovery_required")
-                except (OSError, RemovalError):
-                    pass
-                print(f"warning: worktree removed but transaction metadata remains: {error}", file=sys.stderr)
+                    write_post_removal_manifest(
+                        transaction,
+                        "caches_purged" if discarded_direnv or discarded_generated_caches else "worktree_removed",
+                    )
+                    transaction_cleanup(transaction)
+                except (OSError, RemovalError) as error:
+                    try:
+                        write_manifest(transaction, "recovery_required")
+                    except (OSError, RemovalError):
+                        pass
+                    print(f"warning: worktree removed but transaction metadata remains: {error}", file=sys.stderr)
         if delete_branch_too:
             delete_branch(target, head, base_oid)
-    return RemovalOutcome(target, preserved_direnv, discarded_direnv)
+    return RemovalOutcome(
+        target, preserved_direnv, discarded_direnv, tuple(preserved_generated_caches), tuple(discarded_generated_caches),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1335,6 +1708,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--discard-direnv-cache", action="store_true",
         help="discard a verified Nix-direnv use-flake cache after successful removal (including edits in the cache)",
+    )
+    parser.add_argument(
+        "--discard-generated-caches", action="store_true",
+        help="discard all contents of recognized pytest, Ruff, and Python bytecode caches after successful removal",
     )
     parser.add_argument("--dry-run", action="store_true", help="run the checks without the lock or restage; change nothing")
     parser.add_argument("--lock-name", default=DEFAULT_LOCK_NAME, help="lock directory created under the common git dir")
@@ -1354,18 +1731,27 @@ def main(argv: list[str] | None = None) -> int:
             plan = verify_safe(
                 target, args.base, allow_unreferenced_reflog=args.allow_unreferenced_reflog,
                 expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
+                discard_generated_caches=args.discard_generated_caches,
             )
             kind = f"symlink -> {target.symlink_target}" if target.symlink_target else "gitfile"
             direnv_plan = ""
             if plan.direnv is not None:
                 action = "discard after successful removal" if plan.discard_direnv_cache else "quarantine and retain"
                 direnv_plan = f"; .direnv would be {action}"
-            print(f"dry-run ok: {target.worktree} (.git is a {kind}; {target.branch_ref}) would be removed{direnv_plan}")
+            cache_plan = ""
+            if plan.generated_caches:
+                names = ", ".join(str(cache.path.relative_to(target.worktree)) for cache in plan.generated_caches)
+                cache_plan = f"; generated cache contents would be discarded: {names}"
+            print(
+                f"dry-run ok: {target.worktree} (.git is a {kind}; {target.branch_ref}) "
+                f"would be removed{direnv_plan}{cache_plan}"
+            )
             return 0
         outcome = remove(
             args.worktree, args.base, delete_branch_too=args.delete_branch,
             lock_name=args.lock_name, allow_unreferenced_reflog=args.allow_unreferenced_reflog,
             expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
+            discard_generated_caches=args.discard_generated_caches,
         )
     except RemovalError as error:
         print(f"error: {error}", file=sys.stderr)
@@ -1380,6 +1766,10 @@ def main(argv: list[str] | None = None) -> int:
         print("discarded verified Nix-direnv cache")
     elif outcome.preserved_direnv is not None:
         print(f"preserved .direnv at {outcome.preserved_direnv}")
+    if outcome.discarded_generated_caches:
+        print(f"discarded generated cache contents: {', '.join(outcome.discarded_generated_caches)}")
+    for cache in outcome.preserved_generated_caches:
+        print(f"preserved generated cache quarantine at {cache}")
     return 0
 
 

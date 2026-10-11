@@ -180,7 +180,7 @@ description: Use before the first file edit or Git write in each repository for 
   ambiguous. While they remain, report the task as incomplete, not done. To remove a worktree run
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
   --expect-branch "<exact local branch>" [--base <ref>] [--delete-branch]
-  [--discard-direnv-cache]`,
+  [--discard-direnv-cache] [--discard-generated-caches]`,
   where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
   `~/.local/share/claude/skills/git-workflow` (same files). Release your own
   `main-integration.lock` first; the script takes it. It refuses unless the
@@ -203,7 +203,20 @@ description: Use before the first file edit or Git write in each repository for 
   only when the task created the cache and the helper's strict Nix-direnv
   `use flake` layout check accepts it; it is purged only after Git confirms
   successful removal. Unknown layouts remain quarantined and the archive path
-  is reported. Other ignored/untracked paths still cause refusal. The caller
+  is reported. By default all other ignored/untracked paths still cause
+  refusal. `--discard-generated-caches` is an explicit destructive opt-in for
+  the entire contents of root `.pytest_cache`, root `.ruff_cache`, and
+  `__pycache__` directories beneath the worktree. Their names are selectors,
+  not proof of provenance; dry-run lists the selected roots. The helper rejects
+  tracked contents, symlinks, nested Git repositories, mount boundaries, and
+  caches with open handles. It quarantines selected caches, restores them on
+  pre-removal refusal without overwriting occupied paths, and purges them only
+  after Git confirms removal. Interrupted or incomplete purges remain in the
+  private quarantine with a manifest and are not retried implicitly. Inspect the
+  manifest together with `git worktree list --porcelain` and the recorded path;
+  if registration and filesystem state disagree, preserve the quarantine and
+  coordinate recovery. The
+  option is never added by `worktree-audit.py`. The caller
   must exclude all
   writers for the complete inspection-to-removal interval; the script lock
   coordinates cooperating removals only. It copes with git-annex's `.git`

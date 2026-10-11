@@ -192,6 +192,7 @@ def test_audit_states(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert row.command is not None and "--dry-run" in row.command
     assert "--expect-branch" in row.command and branch in row.command
     assert "--expect-owner" not in row.command
+    assert "--discard-generated-caches" not in row.command
 
     (Path(wt) / "dirty.txt").write_text("y")
     assert audit_rows(repo)[0].state == "IDLE-UNMERGED"
