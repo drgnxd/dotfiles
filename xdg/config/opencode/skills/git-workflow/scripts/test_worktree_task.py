@@ -241,6 +241,23 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertEqual(branches, [])
         self.assertEqual(len(task.worktree_entries(self.repo)), 1)
 
+    def test_integration_preflight_ignores_main_only_filtered_paths(self) -> None:
+        branch, worktree = self.start()
+        task_tip = self.commit_file(worktree, "task.txt", "task\n", "task")
+        (self.repo / ".gitattributes").write_text("*.annex filter=annex\n", encoding="utf-8")
+        git(self.repo, "add", ".gitattributes")
+        git(self.repo, "commit", "-q", "-m", "add annex filter")
+        self.commit_file(self.repo, "main-only.annex", "annex metadata\n", "main annex file")
+
+        code, stdout, stderr = self.finish(branch)
+
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(json.loads(stdout)["plan"], "integration-worktree-merge")
+        self.assertTrue(task.ancestor(self.repo, task_tip, "main"))
+        self.assertEqual((self.repo / "main-only.annex").read_text(encoding="utf-8"), "annex metadata\n")
+        self.assertTrue((self.repo / "task.txt").is_file())
+        self.assertFalse(worktree.exists())
+
     def test_finish_uses_repository_specific_integration_message(self) -> None:
         branch, worktree = self.start()
         task_tip = self.commit_file(worktree, "task.txt", "task\n", "task")
@@ -465,18 +482,7 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, task_wt = self.start()
         task_tip = self.commit_file(task_wt, "folder/task.txt", "task\n", "task")
         main_tip = self.commit_file(self.repo, "Folder/main.txt", "main\n", "main progress")
-        original = task.check_tree_paths
-        calls = 0
-
-        def skip_input_check(repo: Path, current: str, final: str) -> list[str]:
-            nonlocal calls
-            calls += 1
-            if calls == 1:
-                return []
-            return original(repo, current, final)
-
-        with patch.object(task, "check_tree_paths", side_effect=skip_input_check):
-            code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch, "--delete-branch")
         self.assertEqual(code, 1)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "path-collision")
@@ -631,6 +637,31 @@ class WorktreeTaskTests(unittest.TestCase):
         git(self.repo, "commit", "-q", "-m", "filter attribute")
         with self.assertRaises(task.TaskError) as caught:
             task.require_no_filters(self.repo, ["sample.txt"])
+        self.assertEqual(caught.exception.status, "filters-present")
+
+    def test_annex_filter_requires_opt_in_and_verified_commands(self) -> None:
+        (self.repo / ".gitattributes").write_text("*.annex filter=annex\n", encoding="utf-8")
+        git(self.repo, "add", ".gitattributes")
+        git(self.repo, "commit", "-q", "-m", "annex attributes")
+        for name, value in task.ANNEX_FILTER_COMMANDS.items():
+            git(self.repo, "config", name, value)
+
+        with self.assertRaises(task.TaskError) as caught:
+            task.require_no_filters(self.repo, ["sample.annex"])
+        self.assertEqual(caught.exception.status, "filters-present")
+
+        original_git = task.meta.git
+
+        def with_annex_version(cwd: Path, *args: str, **kwargs):
+            if args == ("annex", "version"):
+                return subprocess.CompletedProcess(args, 0, "git-annex test version\n", "")
+            return original_git(cwd, *args, **kwargs)
+
+        with patch.object(task.meta, "git", side_effect=with_annex_version):
+            self.assertIsNone(task.require_no_filters(self.repo, ["sample.annex"], allow_annex_filter=True))
+            git(self.repo, "config", "filter.annex.process", "untrusted command")
+            with self.assertRaises(task.TaskError) as caught:
+                task.require_no_filters(self.repo, ["sample.annex"], allow_annex_filter=True)
         self.assertEqual(caught.exception.status, "filters-present")
 
     def test_final_tree_checker_detects_case_alias_from_two_input_trees(self) -> None:

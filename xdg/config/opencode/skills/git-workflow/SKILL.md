@@ -38,7 +38,7 @@ description: Use before the first file edit or Git write in each repository for 
   `python3 <skill-dir>/scripts/worktree-task.py start --repo <repo> --slug <slug> --client <claude|opencode> --task "<text>" [--allow-repository-hooks]`.
   `--repo` is required and never inferred from cwd. After task changes are
   committed and verified, finish with
-  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--preserve-generated-artifacts]`.
+  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--allow-annex-filter] [--preserve-generated-artifacts]`.
   The assertion flag is valid only after checking repository-specific scheduled
   jobs and coordinating non-cooperating writers through integration and all
   cleanup. `status --repo <repo>` delegates to `worktree-audit.py`.
@@ -63,6 +63,11 @@ description: Use before the first file edit or Git write in each repository for 
   When main has advanced and an integration merge commit is required, supply
   `--integration-message` when the target repository's commit convention differs
   from the default message.
+  Integration preflight checks the task branch's own delta; it checks path and
+  filter conflicts again against the actual merged tree before fast-forwarding.
+  Filters are denied by default. `--allow-annex-filter` permits only the known
+  `git-annex` clean/smudge/process commands after checking their configuration
+  and that `git-annex` is available; arbitrary filters remain blocked.
   The lower-level creator is
   `python3 <skill-dir>/scripts/worktree-create.py --repo <repo> --slug <slug> --client
   <claude|opencode|copilot> --task "<text>" [--from main] [--parent <branch>]

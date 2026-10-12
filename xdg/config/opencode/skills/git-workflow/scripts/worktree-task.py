@@ -341,7 +341,28 @@ def require_no_gitlinks(repo: Path, base: str, tip: str) -> None:
             raise TaskError("submodule-change", f"submodule gitlink changes require a separate task: {path}")
 
 
-def require_no_filters(repo: Path, paths: list[str]) -> None:
+ANNEX_FILTER_COMMANDS = {
+    "filter.annex.clean": "git-annex smudge --clean -- %f",
+    "filter.annex.smudge": "git-annex smudge -- %f",
+    "filter.annex.process": "git-annex filter-process",
+}
+
+
+def require_annex_filter(repo: Path) -> None:
+    mismatches = []
+    for name, expected in ANNEX_FILTER_COMMANDS.items():
+        result = meta.git(repo, "config", "--get", name, check=False)
+        actual = result.stdout.strip() if result.returncode == 0 else ""
+        if actual != expected:
+            mismatches.append(f"{name}={actual or '<unset>'}")
+    if mismatches:
+        raise TaskError("filters-present", "git-annex filter commands do not match the reviewed local configuration", filters=mismatches)
+    version = meta.git(repo, "annex", "version", check=False)
+    if version.returncode != 0:
+        raise TaskError("filters-present", "git-annex is unavailable; run the lifecycle helper in its Nix dev shell")
+
+
+def require_no_filters(repo: Path, paths: list[str], *, allow_annex_filter: bool = False) -> None:
     if not paths:
         return
     payload = b"\0".join(path.encode("utf-8") for path in paths) + b"\0"
@@ -354,12 +375,18 @@ def require_no_filters(repo: Path, paths: list[str]) -> None:
     if len(fields) % 3:
         raise TaskError("filter-check-failed", "git check-attr returned malformed output")
     active = []
+    annex = []
     for index in range(0, len(fields), 3):
         path, _, value = fields[index:index + 3]
         if value not in (b"unspecified", b"unset"):
-            active.append(f"{path.decode('utf-8', 'replace')}:filter={value.decode('utf-8', 'replace')}")
+            entry = f"{path.decode('utf-8', 'replace')}:filter={value.decode('utf-8', 'replace')}"
+            (annex if value == b"annex" else active).append(entry)
     if active:
         raise TaskError("filters-present", "changed paths use Git filters that need manual review", paths=active)
+    if annex:
+        if not allow_annex_filter:
+            raise TaskError("filters-present", "git-annex filters require explicit --allow-annex-filter", paths=annex)
+        require_annex_filter(repo)
 
 
 def require_no_hooks(repo: Path, *, merge_commit: bool, allow_repository_hooks: bool = False) -> None:
@@ -473,6 +500,7 @@ def main_state(repo: Path) -> tuple[Path, str]:
 
 def preflight(
     repo: Path, main: Path, task_wt: Path, base: str, final_oid: str, *, allow_repository_hooks: bool,
+    allow_annex_filter: bool, check_final_paths: bool = True,
 ) -> list[str]:
     require_clean(main, "main worktree")
     require_clean(task_wt, "task/integration worktree")
@@ -482,9 +510,10 @@ def preflight(
     require_no_gitlinks(repo, base, final_oid)
     paths = changed_paths(repo, base, final_oid)
     require_no_hooks(main, merge_commit=False, allow_repository_hooks=allow_repository_hooks)
-    require_no_filters(main, paths)
-    require_no_filters(task_wt, paths)
-    check_tree_paths(main, base, final_oid)
+    require_no_filters(main, paths, allow_annex_filter=allow_annex_filter)
+    require_no_filters(task_wt, paths, allow_annex_filter=allow_annex_filter)
+    if check_final_paths:
+        check_tree_paths(main, base, final_oid)
     return paths
 
 
@@ -575,13 +604,14 @@ def finish(args: argparse.Namespace) -> int:
             direct_paths = preflight(
                 repo, main, task_wt, task_base, task_tip,
                 allow_repository_hooks=args.allow_repository_hooks,
+                allow_annex_filter=args.allow_annex_filter,
             )
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip:
                 raise TaskError("pre-merge-race", "main/task ref changed before fast-forward")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
             require_no_hooks(main, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
-            require_no_filters(main, direct_paths)
+            require_no_filters(main, direct_paths, allow_annex_filter=args.allow_annex_filter)
             update = meta.git(main, "merge", "--ff-only", "--no-overwrite-ignore", task_tip, check=False)
             integration_tip = task_tip
             if update.returncode != 0:
@@ -594,8 +624,10 @@ def finish(args: argparse.Namespace) -> int:
         elif ancestor(repo, task_base, main_tip):
             plan = "integration-worktree-merge"
             preflight(
-                repo, main, task_wt, main_tip, task_tip,
+                repo, main, task_wt, task_base, task_tip,
                 allow_repository_hooks=args.allow_repository_hooks,
+                allow_annex_filter=args.allow_annex_filter,
+                check_final_paths=False,
             )
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip:
                 raise TaskError("pre-merge-race", "main/task ref changed before creating integration worktree")
@@ -620,7 +652,7 @@ def finish(args: argparse.Namespace) -> int:
             if (int_client, int_session) != owner or int_base != main_tip:
                 raise TaskError("integration-owner-invalid", "integration branch owner/base metadata mismatch", integration_branch=integration_branch)
             require_no_hooks(main, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks)
-            require_no_filters(main, changed_paths(repo, main_tip, task_tip))
+            require_no_filters(main, changed_paths(repo, task_base, task_tip), allow_annex_filter=args.allow_annex_filter)
             require_no_hooks(integration_wt, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks)
             merge = meta.git(
                 integration_wt, "merge", "--no-edit", "--no-ff", "--no-overwrite-ignore",
@@ -637,9 +669,9 @@ def finish(args: argparse.Namespace) -> int:
             require_no_gitlinks(repo, main_tip, integration_tip)
             final_paths = changed_paths(repo, main_tip, integration_tip)
             require_no_hooks(integration_wt, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
-            require_no_filters(integration_wt, final_paths)
+            require_no_filters(integration_wt, final_paths, allow_annex_filter=args.allow_annex_filter)
             require_no_hooks(main, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
-            require_no_filters(main, final_paths)
+            require_no_filters(main, final_paths, allow_annex_filter=args.allow_annex_filter)
             check_tree_paths(main, main_tip, integration_tip)
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip or branch_oid(repo, integration_branch) != integration_tip:
                 raise TaskError("pre-merge-race", "main/task/integration ref or status changed before final fast-forward")
@@ -721,6 +753,10 @@ def main(argv: list[str] | None = None) -> int:
     finish_parser.add_argument("--discard-direnv-cache", action="store_true")
     finish_parser.add_argument("--discard-generated-caches", action="store_true")
     finish_parser.add_argument("--discard-generated-build-outputs", action="store_true")
+    finish_parser.add_argument(
+        "--allow-annex-filter", action="store_true",
+        help="allow the verified git-annex filter in addition to normal repository hooks",
+    )
     finish_parser.add_argument(
         "--preserve-generated-artifacts", action="store_true",
         help="quarantine and retain recognized caches and a marked git-hooks.nix config",
