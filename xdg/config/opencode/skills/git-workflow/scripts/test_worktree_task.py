@@ -146,6 +146,26 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertFalse(worktree.exists())
         self.assertNotEqual(subprocess.run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"], cwd=self.repo, check=False).returncode, 0)
 
+    def test_finish_ignores_active_dirty_unrelated_worktree(self) -> None:
+        branch, worktree = self.start()
+        tip = self.commit_file(worktree, "task.txt", "task\n", "task")
+        other = self.root / "other"
+        other_branch = "task/unrelated-writer"
+        git(self.repo, "worktree", "add", "-q", "-b", other_branch, str(other), "main")
+        base = git(other, "rev-parse", "HEAD")
+        description = task.meta.format_description("unrelated active task", "opencode", SESSION, base, os.getpid(), None)
+        git(self.repo, "config", "--local", f"branch.{other_branch}.description", description)
+        (other / "untracked.txt").write_text("preserve\n", encoding="utf-8")
+
+        code, stdout, stderr = self.finish(branch, "--delete-branch")
+
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "main"), tip)
+        self.assertFalse(worktree.exists())
+        self.assertTrue(other.is_dir())
+        self.assertEqual((other / "untracked.txt").read_text(encoding="utf-8"), "preserve\n")
+        self.assertEqual(git(other, "branch", "--show-current"), other_branch)
+
     def test_finish_uses_integration_worktree_when_main_advanced(self) -> None:
         branch, task_wt = self.start()
         task_tip = self.commit_file(task_wt, "task.txt", "task\n", "task")
@@ -294,27 +314,46 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertTrue(result["worktree_registered"])
         self.assertTrue(worktree.is_dir())
 
-    def test_cleanup_tip_change_returns_nonzero_and_preserves_worktree(self) -> None:
+    def test_cleanup_tip_change_after_postcheck_is_detected_before_removal(self) -> None:
         branch, worktree = self.start()
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
         tree = git(self.repo, "rev-parse", f"{tip}^{{tree}}")
         changed_tip = git(self.repo, "commit-tree", tree, "-p", tip, "-m", "unexpected branch update")
-        original_audit = task.audit_writer_signals
-        calls = 0
+        original_postcheck = task.postcheck
 
-        def move_branch_after_postcheck(repo: Path, allowed_branches: set[str]) -> None:
-            nonlocal calls
-            calls += 1
-            if calls == 3:
-                git(repo, "update-ref", f"refs/heads/{branch}", changed_tip)
-            original_audit(repo, allowed_branches)
+        def move_branch_after_postcheck(repo, main, expected, task_branch, task_tip, integration_branch, integration_tip):
+            result = original_postcheck(repo, main, expected, task_branch, task_tip, integration_branch, integration_tip)
+            git(repo, "update-ref", f"refs/heads/{branch}", changed_tip)
+            return result
 
-        with patch.object(task, "audit_writer_signals", side_effect=move_branch_after_postcheck):
+        with patch.object(task, "postcheck", side_effect=move_branch_after_postcheck), patch.object(task, "safe_remove") as remove:
             code, stdout, _ = self.finish(branch, "--delete-branch")
 
         result = json.loads(stdout)
         self.assertEqual(code, 1)
         self.assertEqual(result["status"], "cleanup-pending")
+        self.assertEqual(result["main_tip"], tip)
+        self.assertEqual(git(self.repo, "rev-parse", f"refs/heads/{branch}"), changed_tip)
+        self.assertTrue(worktree.is_dir())
+        remove.assert_not_called()
+
+    def test_safe_remove_refuses_branch_tip_change_after_cleanup_check(self) -> None:
+        branch, worktree = self.start()
+        tip = self.commit_file(worktree, "task.txt", "task\n", "task")
+        tree = git(self.repo, "rev-parse", f"{tip}^{{tree}}")
+        changed_tip = git(self.repo, "commit-tree", tree, "-p", tip, "-m", "unexpected branch update")
+        original_remove = task.safe_remove
+
+        def move_branch_during_removal(repo, target, target_branch, args, delete_branch):
+            git(repo, "update-ref", f"refs/heads/{branch}", changed_tip)
+            return original_remove(repo, target, target_branch, args, delete_branch)
+
+        with patch.object(task, "safe_remove", side_effect=move_branch_during_removal):
+            code, stdout, _ = self.finish(branch, "--delete-branch")
+
+        result = json.loads(stdout)
+        self.assertEqual(code, 1)
+        self.assertEqual(result["status"], "cleanup-partial")
         self.assertEqual(result["main_tip"], tip)
         self.assertEqual(git(self.repo, "rev-parse", f"refs/heads/{branch}"), changed_tip)
         self.assertTrue(worktree.is_dir())

@@ -42,8 +42,10 @@ description: Use before the first file edit or Git write in each repository for 
   The assertion flag is valid only after checking repository-specific scheduled
   jobs and coordinating non-cooperating writers through integration and all
   cleanup. `status --repo <repo>` delegates to `worktree-audit.py`.
-  `finish` locks from preflight through post-check, detects path aliases, hooks,
-  filters, submodules and writer signals, and updates main only by fast-forward.
+  `finish` locks from preflight through post-check, checks path aliases, hooks,
+  filters and submodules, and updates main only by fast-forward. Another task
+  worktree's active-session status alone does not block this task's integration
+  or cleanup.
   If main advanced from the task base, it creates an integration worktree and
   merges the immutable task tip there before fast-forwarding main. Conflicts,
   unrelated histories, and failed safety checks preserve worktrees and stop.
@@ -192,7 +194,7 @@ description: Use before the first file edit or Git write in each repository for 
   unexplained changes. Inspect every used worktree/nested repo. Do not report
   completion while task changes remain outside main or verification is
   ambiguous.
-- The mere existence of other registered worktrees is not evidence of a concurrent writer; establish and maintain the exclusive access required by repository rules, then use the safe removal script and obey its explicit stop conditions.
+- The mere existence or active-session status of another task worktree is not evidence of a conflicting writer. Separate task worktrees isolate their filesystem and index; the integration lock serializes shared-ref updates, and integration checks detect path conflicts. Do not block a task's integration or cleanup on an unrelated worktree's activity. Still honor concrete shared-resource conflicts, the external-writer assertion, target-worktree process checks, and all required locks.
 - Remove only task/integration branches and worktrees recorded as created by
   this task, after the integration OID is reachable from main, their tips are
   integrated, their tracked/untracked/ignored state is safe, and no worktree is
@@ -243,10 +245,9 @@ description: Use before the first file edit or Git write in each repository for 
   manifest together with `git worktree list --porcelain` and the recorded path;
   if registration and filesystem state disagree, preserve the quarantine and
   coordinate recovery. Neither option is ever added by `worktree-audit.py`. The
-  caller
-  must exclude all
-  writers for the complete inspection-to-removal interval; the script lock
-  coordinates cooperating removals only. It copes with git-annex's `.git`
+  caller must exclude writers that can affect the target worktree or shared
+  resources for the complete inspection-to-removal interval; the script lock
+  coordinates cooperating integration and cleanup operations. It copes with git-annex's `.git`
   symlink, prints `owner:` on stderr, drops the deleted branch's config
   section, and never forces. Any refusal is a stop condition, and
   `--allow-unreferenced-reflog` needs the user's explicit approval. Use
@@ -257,9 +258,9 @@ description: Use before the first file edit or Git write in each repository for 
   completion, verify that no task/integration worktree or task-owned branch
   created for this task remains. If removal is refused or a task-owned branch
   must be retained, report cleanup as incomplete.
-- Do not stop removing a task-owned worktree merely because another task
-  worktree exists or has unrelated dirty files. Scope exclusivity to the target
-  worktree and any shared resources for which cleanup requires conflicting
+- Do not stop integrating or removing a task-owned worktree merely because
+  another task worktree exists, is active, or has unrelated dirty files. Scope
+  exclusivity to the target worktree and any shared resources for which cleanup requires conflicting
   access, including shared Git or annex state accessed by `git annex restage`.
   Preserve all existing mandatory lock-acquisition and caller-coordination
   requirements, including the main-integration lock where required, throughout

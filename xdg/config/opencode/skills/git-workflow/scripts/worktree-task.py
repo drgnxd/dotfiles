@@ -28,7 +28,6 @@ AUDIT_HELPER = HERE / "worktree-audit.py"
 REMOVE_HELPER = HERE / "safe-worktree-remove.py"
 LOCK_NAME = "main-integration.lock"
 MAIN_BRANCH = "main"
-WRITER_STATES = {"ACTIVE", "UNKNOWN", "LEGACY", "IDLE-OTHER-SESSION", "IDLE-OWNER-UNKNOWN"}
 
 
 class TaskError(RuntimeError):
@@ -379,19 +378,6 @@ def require_no_hooks(repo: Path, *, merge_commit: bool) -> None:
         raise TaskError("commit-signing", "integration merge may require interactive signing; use the manual procedure")
 
 
-def audit_writer_signals(repo: Path, allowed_branches: set[str]) -> None:
-    result = subprocess.run([sys.executable, str(AUDIT_HELPER), "--repo", str(repo), "--base", MAIN_BRANCH, "--json"], cwd=repo, env=meta.git_env(), text=True, capture_output=True, check=False)
-    if result.returncode != 0:
-        raise TaskError("audit-failed", result.stderr.strip() or result.stdout.strip())
-    try:
-        rows = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise TaskError("audit-failed", "worktree-audit returned invalid JSON") from error
-    blockers = [row for row in rows if row.get("branch") not in allowed_branches and row.get("state") in WRITER_STATES]
-    if blockers:
-        raise TaskError("writer-signal", "other worktrees have unresolved writer/owner signals", worktrees=[{k: row.get(k) for k in ("path", "branch", "state", "reason")} for row in blockers])
-
-
 def create_worktree(repo: Path, *, slug: str, client: str, task: str, source: str, parent: str | None, prefix: str, worktrees_root: str | None = None) -> subprocess.CompletedProcess[str]:
     argv = [sys.executable, str(CREATE_HELPER), "--repo", str(repo), "--slug", slug, "--client", client, "--task", task, "--from", source, "--prefix", prefix]
     if parent:
@@ -555,7 +541,6 @@ def finish(args: argparse.Namespace) -> int:
     task_wt, task_base, task_tip = require_owned_branch(repo, args.branch)
     if not ancestor(repo, task_base, task_tip):
         raise TaskError("invalid-task-history", "recorded task base is not an ancestor of task tip")
-    audit_writer_signals(repo, {args.branch})
 
     remover = load_helper("safe_worktree_remove", REMOVE_HELPER)
     common = common_dir(repo)
@@ -569,7 +554,6 @@ def finish(args: argparse.Namespace) -> int:
         task_wt, current_base, current_task_tip = require_owned_branch(repo, args.branch)
         if current_base != task_base or current_task_tip != task_tip:
             raise TaskError("task-ref-changed", "task metadata/ref changed during preflight")
-        audit_writer_signals(repo, {args.branch})
 
         if main_tip == task_base:
             plan = "direct-fast-forward"
@@ -629,7 +613,6 @@ def finish(args: argparse.Namespace) -> int:
             require_no_hooks(main, merge_commit=False)
             require_no_filters(main, final_paths)
             check_tree_paths(main, main_tip, integration_tip)
-            audit_writer_signals(repo, {args.branch, integration_branch})
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip or branch_oid(repo, integration_branch) != integration_tip:
                 raise TaskError("pre-merge-race", "main/task/integration ref or status changed before final fast-forward")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
@@ -658,10 +641,6 @@ def finish(args: argparse.Namespace) -> int:
     deleted_branches: list[str] = []
     removal_outputs: list[dict[str, Any]] = []
     for worktree, branch, delete_branch in removals:
-        allowed = {args.branch}
-        if integration_branch is not None:
-            allowed.add(integration_branch)
-        audit_writer_signals(repo, allowed)
         expected_tip = integration_tip if branch == integration_branch else task_tip
         actual_tip = branch_oid(repo, branch)
         if actual_tip != expected_tip:
