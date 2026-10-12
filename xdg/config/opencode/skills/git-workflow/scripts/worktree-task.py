@@ -599,7 +599,13 @@ def finish(args: argparse.Namespace) -> int:
         if current_base != task_base or current_task_tip != task_tip:
             raise TaskError("task-ref-changed", "task metadata/ref changed during preflight")
 
-        if main_tip == task_base:
+        if ancestor(repo, task_tip, main_tip):
+            require_clean(task_wt, "task/integration worktree")
+            require_no_index_flags(task_wt, "task/integration worktree")
+            plan = "already-integrated"
+            integration_tip = task_tip
+            expected_main = main_tip
+        elif main_tip == task_base:
             plan = "direct-fast-forward"
             direct_paths = preflight(
                 repo, main, task_wt, task_base, task_tip,
@@ -617,10 +623,6 @@ def finish(args: argparse.Namespace) -> int:
             if update.returncode != 0:
                 raise TaskError("integration-verification-failed", "main update command failed; actual main state inspected and no cleanup attempted", expected=task_tip, **inspect_main_state(repo), stderr=update.stderr.strip())
             expected_main = task_tip
-        elif ancestor(repo, task_tip, main_tip):
-            plan = "already-integrated"
-            integration_tip = task_tip
-            expected_main = main_tip
         elif ancestor(repo, task_base, main_tip):
             plan = "integration-worktree-merge"
             preflight(

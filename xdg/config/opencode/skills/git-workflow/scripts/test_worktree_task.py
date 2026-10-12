@@ -293,6 +293,21 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertEqual(git(self.repo, "rev-parse", "HEAD"), tip)
         self.assertFalse(worktree.exists())
 
+    def test_finish_removes_empty_already_integrated_worktree_without_hooks(self) -> None:
+        branch, worktree = self.start()
+        hook = self.hooks_dir() / "post-merge"
+        marker = self.root / "post-merge-ran"
+        hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n", encoding="utf-8")
+        hook.chmod(0o755)
+
+        code, stdout, stderr = self.finish(branch, "--delete-branch")
+
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(json.loads(stdout)["plan"], "already-integrated")
+        self.assertEqual(git(self.repo, "rev-parse", "main"), git(self.repo, "rev-parse", "HEAD"))
+        self.assertFalse(marker.exists())
+        self.assertFalse(worktree.exists())
+
     def test_finish_rejects_unrelated_history(self) -> None:
         main_tip = git(self.repo, "rev-parse", "main")
         git(self.repo, "checkout", "--orphan", "unrelated")
