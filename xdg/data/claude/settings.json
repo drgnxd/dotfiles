@@ -2,7 +2,7 @@
   "theme": "dark",
   "model": "sonnet",
   "autoMemoryEnabled": false,
-  "preferredNotifChannel": "notifications_disabled",
+  "preferredNotifChannel": "terminal_bell",
   "env": {
     "CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION": "1000"
   },
