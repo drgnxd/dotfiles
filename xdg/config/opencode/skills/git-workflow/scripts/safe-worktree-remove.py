@@ -39,9 +39,11 @@ The manifest records cache moves, Git removal, and purge phases. Interrupted
 operations are not retried implicitly; inspect the worktree registration, path,
 and manifest together, and preserve the quarantine when their states disagree.
 
-Residual risk: `git worktree remove` runs its own `git status`, which can start
-the git-annex clean filter. If that turns `.git` back into a symlink, Git
-refuses and the symlink is restored; nothing is deleted.
+After the final status check, the script normalizes a verified Annex `.git`
+symlink to a gitfile immediately before `git worktree remove`. Git validates
+that pointer before its own cleanliness check, which may run Annex filters.
+If Git refuses, the script restores the verified pointer form and preserves the
+worktree.
 
 Cleanup ownership is the creating `(client, session_id)` pair in the branch
 description. The active client session is read from its own environment
@@ -1696,6 +1698,7 @@ def remove(
         direnv_moved = False
         db_link_removed = False
         git_removed = False
+        dotgit_symlink_before_normalization = target.symlink_target
         try:
             if plan.direnv is not None and transaction is not None:
                 transact_direnv_move(transaction, plan.direnv)
@@ -1703,14 +1706,7 @@ def remove(
             if transaction is not None:
                 for index, cache in enumerate(plan.generated_caches):
                     transact_generated_cache_move(transaction, cache, index)
-            if target.symlink_target is not None:
-                if check_dotgit(worktree, target.admin_dir) != target.symlink_target:
-                    raise RemovalError(".git changed since inspection")
-                replace_dotgit(worktree, gitfile=target.admin_dir)
-                if transaction is not None:
-                    write_manifest(transaction, "dotgit_normalized")
-            if check_dotgit(worktree, target.admin_dir) is not None:
-                raise RemovalError(".git became a symlink again before removal")
+            check_dotgit(worktree, target.admin_dir)
             if git_out(worktree, "rev-parse", "HEAD") != head:
                 raise RemovalError("HEAD changed during removal")
             if plan.database_link is not None:
@@ -1729,13 +1725,22 @@ def remove(
                     plan.database_link.target, plan.database_link.target_identity,
                 ):
                     raise RemovalError("canonical main database changed during worktree removal")
-                if check_dotgit(worktree, target.admin_dir) is not None:
-                    raise RemovalError(".git became a symlink again before removal")
             elif status_entries(worktree):
                 raise RemovalError(
                     "worktree changed after removing generated state:\n  "
                     + show_status_entries(status_entries(worktree))
                 )
+            # Annex filters can restore the symlink during status; normalize only after that check.
+            dotgit_symlink_before_normalization = check_dotgit(worktree, target.admin_dir)
+            if dotgit_symlink_before_normalization is not None:
+                if target.symlink_target is None and not target.uses_annex:
+                    raise RemovalError(".git changed from a gitfile to a symlink during removal")
+                replace_dotgit(worktree, gitfile=target.admin_dir)
+                if transaction is not None:
+                    transaction.manifest["original_dotgit_symlink"] = dotgit_symlink_before_normalization
+                    write_manifest(transaction, "dotgit_normalized")
+            if check_dotgit(worktree, target.admin_dir) is not None:
+                raise RemovalError(".git is not a gitfile immediately before worktree removal")
             if transaction is not None:
                 write_manifest(transaction, "worktree_remove_started")
             result = run_git(target.main_worktree, "worktree", "remove", str(worktree))
@@ -1764,7 +1769,7 @@ def remove(
             intact = transaction is None or transaction_worktree_intact(target, transaction)
             if not intact:
                 print("warning: worktree/admin identity changed; refusing automatic rollback", file=sys.stderr)
-            dotgit_ok = rollback(target, target.symlink_target, cause) if intact else False
+            dotgit_ok = rollback(target, dotgit_symlink_before_normalization, cause) if intact else False
             db_ok = True
             if db_link_removed and plan.database_link is not None and intact:
                 db_ok = restore_database_symlink(target, plan.database_link)

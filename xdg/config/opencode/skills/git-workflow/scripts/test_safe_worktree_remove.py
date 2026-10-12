@@ -1720,6 +1720,68 @@ def test_annex_call_order_and_gitfile_during_removal(repo: Path, tmp_path: Path)
     assert not wt.exists()
 
 
+def test_normalizes_annex_recreated_git_symlink_after_final_status(repo: Path, tmp_path: Path) -> None:
+    wt = make_worktree(repo, "wt-annex-status-symlink", symlink=False)
+    git(repo, "config", "filter.annex.process", "git-annex filter-process")
+    admin = admin_of(wt)
+    bin_dir = make_git_wrapper(
+        tmp_path,
+        hook_on_second_status=True,
+        hook=(
+            f"dotgit = Path({str(wt / '.git')!r})\n"
+            "if dotgit.is_file():\n"
+            "    admin = Path(dotgit.read_text().removeprefix('gitdir: ').strip()).resolve()\n"
+            "    dotgit.unlink()\n"
+            "    dotgit.symlink_to(admin)\n"
+        ),
+    )
+    annex_stub = bin_dir / "git-annex"
+    annex_stub.write_text("#!/bin/sh\nexit 0\n")
+    annex_stub.chmod(0o755)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    assert not admin.exists()
+
+
+def test_annex_symlink_from_final_status_is_restored_when_git_refuses_removal(
+    repo: Path, tmp_path: Path,
+) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-annex-status-refusal", symlink=False)
+    git(repo, "config", "filter.annex.process", "git-annex filter-process")
+    admin = admin_of(wt)
+    user_state = wt / ".direnv" / "user-state.txt"
+    user_state.parent.mkdir()
+    user_state.write_text("preserve")
+    bin_dir = make_git_wrapper(
+        tmp_path,
+        hook_on_second_status=True,
+        refuse_remove=True,
+        hook=(
+            f"dotgit = Path({str(wt / '.git')!r})\n"
+            "if dotgit.is_file():\n"
+            "    admin = Path(dotgit.read_text().removeprefix('gitdir: ').strip()).resolve()\n"
+            "    dotgit.unlink()\n"
+            "    dotgit.symlink_to(admin)\n"
+        ),
+    )
+    annex_stub = bin_dir / "git-annex"
+    annex_stub.write_text("#!/bin/sh\nexit 0\n")
+    annex_stub.chmod(0o755)
+
+    result = run_with_git_wrapper(wt, bin_dir)
+
+    assert result.returncode == 1 and "simulated refusal" in result.stderr
+    assert_untouched(wt, symlink=True)
+    assert (wt / ".git").resolve() == admin
+    assert user_state.read_text() == "preserve"
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    assert list(quarantine.iterdir()) == []
+
+
 def test_parse_linux_mountinfo_detects_same_device_mountpoint() -> None:
     mounts = HELPER.parse_linux_mountinfo(
         "36 25 0:33 / /private/cache/flake-inputs rw,relatime shared:1 - apfs /dev/disk1 rw\n"
