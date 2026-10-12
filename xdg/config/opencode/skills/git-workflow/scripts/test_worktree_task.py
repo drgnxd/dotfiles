@@ -557,6 +557,28 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertEqual(caught.exception.status, "hooks-present")
         self.assertIsNone(task.require_no_hooks(self.repo, merge_commit=True, allow_repository_hooks=True))
 
+    def test_commit_signing_is_detected_before_creating_integration_worktree(self) -> None:
+        branch, worktree = self.start()
+        self.commit_file(worktree, "task.txt", "task\n", "task")
+        main_tip = self.commit_file(self.repo, "main.txt", "main\n", "main progress")
+        git(self.repo, "config", "commit.gpgsign", "true")
+
+        code, stdout, _ = self.finish(branch)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(json.loads(stdout)["status"], "commit-signing")
+        self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
+        self.assertEqual(git(self.repo, "for-each-ref", "--format=%(refname:short)", "refs/heads/integration"), "")
+        self.assertTrue(worktree.is_dir())
+
+    def test_commit_signing_requires_explicit_opt_in(self) -> None:
+        git(self.repo, "config", "commit.gpgsign", "true")
+
+        with self.assertRaises(task.TaskError) as caught:
+            task.require_no_hooks(self.repo, merge_commit=True)
+        self.assertEqual(caught.exception.status, "commit-signing")
+        self.assertIsNone(task.require_no_hooks(self.repo, merge_commit=True, allow_commit_signing=True))
+
     def test_post_merge_hook_requires_explicit_opt_in(self) -> None:
         hook = self.hooks_dir() / "post-merge"
         hook.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")

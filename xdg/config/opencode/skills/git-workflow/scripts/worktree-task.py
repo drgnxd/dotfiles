@@ -389,7 +389,9 @@ def require_no_filters(repo: Path, paths: list[str], *, allow_annex_filter: bool
         require_annex_filter(repo)
 
 
-def require_no_hooks(repo: Path, *, merge_commit: bool, allow_repository_hooks: bool = False) -> None:
+def require_no_hooks(
+    repo: Path, *, merge_commit: bool, allow_repository_hooks: bool = False, allow_commit_signing: bool = False,
+) -> None:
     relevant = {"post-merge", "reference-transaction"}
     if merge_commit:
         relevant.update({"pre-merge-commit", "pre-commit", "prepare-commit-msg", "commit-msg"})
@@ -405,8 +407,14 @@ def require_no_hooks(repo: Path, *, merge_commit: bool, allow_repository_hooks: 
             else "inspect repository hooks, then pass --allow-repository-hooks to run them normally"
         )
         raise TaskError("hooks-present", detail, hooks=sorted(blocked))
-    if merge_commit and meta.git(repo, "config", "--bool", "--get", "commit.gpgsign", check=False).stdout.strip().lower() == "true":
-        raise TaskError("commit-signing", "integration merge may require interactive signing; use the manual procedure")
+    if (
+        merge_commit and not allow_commit_signing
+        and meta.git(repo, "config", "--bool", "--get", "commit.gpgsign", check=False).stdout.strip().lower() == "true"
+    ):
+        raise TaskError(
+            "commit-signing",
+            "integration merge is configured to sign; authorize and pass --allow-commit-signing to use the configured signer",
+        )
 
 
 def create_worktree(
@@ -635,6 +643,10 @@ def finish(args: argparse.Namespace) -> int:
                 raise TaskError("pre-merge-race", "main/task ref changed before creating integration worktree")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
+            require_no_hooks(
+                main, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks,
+                allow_commit_signing=args.allow_commit_signing,
+            )
 
             created = create_worktree(
                 repo, slug="integration-merge", client=owner[0], task=f"Integrate {args.branch}",
@@ -653,9 +665,15 @@ def finish(args: argparse.Namespace) -> int:
             _, int_client, int_session, int_base = branch_metadata(repo, integration_branch)
             if (int_client, int_session) != owner or int_base != main_tip:
                 raise TaskError("integration-owner-invalid", "integration branch owner/base metadata mismatch", integration_branch=integration_branch)
-            require_no_hooks(main, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks)
+            require_no_hooks(
+                main, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks,
+                allow_commit_signing=args.allow_commit_signing,
+            )
             require_no_filters(main, changed_paths(repo, task_base, task_tip), allow_annex_filter=args.allow_annex_filter)
-            require_no_hooks(integration_wt, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks)
+            require_no_hooks(
+                integration_wt, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks,
+                allow_commit_signing=args.allow_commit_signing,
+            )
             merge = meta.git(
                 integration_wt, "merge", "--no-edit", "--no-ff", "--no-overwrite-ignore",
                 "-m", args.integration_message, task_tip, check=False,
@@ -751,6 +769,10 @@ def main(argv: list[str] | None = None) -> int:
     finish_parser.add_argument("--branch", required=True)
     finish_parser.add_argument("--external-writers-quiesced", action="store_true", help="assert known non-cooperating writers are stopped through integration and all cleanup")
     finish_parser.add_argument("--integration-message", default="chore: integrate task branch")
+    finish_parser.add_argument(
+        "--allow-commit-signing", action="store_true",
+        help="allow Git to use the repository-configured signer for the integration commit",
+    )
     finish_parser.add_argument("--delete-branch", action="store_true")
     finish_parser.add_argument("--discard-direnv-cache", action="store_true")
     finish_parser.add_argument("--discard-generated-caches", action="store_true")

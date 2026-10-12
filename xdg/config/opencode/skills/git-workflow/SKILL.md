@@ -38,7 +38,7 @@ description: Use before the first file edit or Git write in each repository for 
   `python3 <skill-dir>/scripts/worktree-task.py start --repo <repo> --slug <slug> --client <claude|opencode> --task "<text>" [--allow-repository-hooks]`.
   `--repo` is required and never inferred from cwd. After task changes are
   committed and verified, finish with
-  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--allow-annex-filter] [--preserve-generated-artifacts]`.
+  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--allow-annex-filter] [--allow-commit-signing] [--preserve-generated-artifacts]`.
   The assertion flag is valid only after checking repository-specific scheduled
   jobs and coordinating non-cooperating writers through integration and all
   cleanup. `status --repo <repo>` delegates to `worktree-audit.py`.
@@ -68,6 +68,9 @@ description: Use before the first file edit or Git write in each repository for 
   Filters are denied by default. `--allow-annex-filter` permits only the known
   `git-annex` clean/smudge/process commands after checking their configuration
   and that `git-annex` is available; arbitrary filters remain blocked.
+  If the target repository configures signed commits, `finish` stops before
+  creating an integration worktree. Pass `--allow-commit-signing` only after the
+  user authorizes use of that repository's configured signer.
   The lower-level creator is
   `python3 <skill-dir>/scripts/worktree-create.py --repo <repo> --slug <slug> --client
   <claude|opencode|copilot> --task "<text>" [--from main] [--parent <branch>]
