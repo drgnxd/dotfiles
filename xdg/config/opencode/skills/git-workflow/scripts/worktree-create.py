@@ -97,6 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repo", default=".", help="any path inside the repository (default: cwd)")
     parser.add_argument("--worktrees-root", help="override <state>/<repo>/worktrees")
     parser.add_argument("--prefix", default="task", help="branch prefix (task, integration)")
+    parser.add_argument("--allow-repository-hooks", action="store_true", help="run an inspected post-checkout hook normally")
     args = parser.parse_args(argv)
 
     if not SLUG_RE.match(args.slug):
@@ -106,6 +107,10 @@ def main(argv: list[str] | None = None) -> int:
 
     repo = Path(args.repo).resolve()
     common = common_dir(repo)
+    configured_hooks = meta.git(repo, "config", "--path", "--get", "core.hooksPath", check=False).stdout.strip()
+    configured_hook_path = Path(configured_hooks).expanduser() if configured_hooks else None
+    if configured_hook_path is not None and not configured_hook_path.is_absolute() and ".." in configured_hook_path.parts:
+        die("cannot safely inspect a relative core.hooksPath containing '..' before worktree creation; use an absolute path")
     main_worktree = common.parent if common.name == ".git" else common
     base = meta.git(repo, "rev-parse", "--verify", f"refs/heads/{args.source}", check=False)
     if base.returncode != 0:
@@ -134,6 +139,13 @@ def main(argv: list[str] | None = None) -> int:
         name = f"{stem}-{number:02d}"
         branch = f"{args.prefix}/{name}"
         path = root / name
+        hooks = set(meta.executable_hooks(
+            repo, {"post-checkout", "reference-transaction"}, worktree_root=path, source_oid=base_oid,
+        ))
+        if "reference-transaction" in hooks:
+            die("reference-transaction hooks are never run during task worktree creation")
+        if "post-checkout" in hooks and not args.allow_repository_hooks:
+            die("inspect post-checkout hooks, then pass --allow-repository-hooks to run them normally")
         result = meta.git(repo, "worktree", "add", "-b", branch, str(path), base_oid, check=False)
         if result.returncode == 0:
             break

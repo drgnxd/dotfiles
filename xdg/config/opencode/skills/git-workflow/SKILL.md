@@ -35,10 +35,10 @@ description: Use before the first file edit or Git write in each repository for 
   `--edit-description`, which opens an editor); this is the one shared-config
   write allowed at creation, and only before concurrent agents start.
   For AI-managed tasks, prefer the lifecycle wrapper:
-  `python3 <skill-dir>/scripts/worktree-task.py start --repo <repo> --slug <slug> --client <claude|opencode> --task "<text>"`.
+  `python3 <skill-dir>/scripts/worktree-task.py start --repo <repo> --slug <slug> --client <claude|opencode> --task "<text>" [--allow-repository-hooks]`.
   `--repo` is required and never inferred from cwd. After task changes are
   committed and verified, finish with
-  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch]`.
+  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--preserve-generated-artifacts]`.
   The assertion flag is valid only after checking repository-specific scheduled
   jobs and coordinating non-cooperating writers through integration and all
   cleanup. `status --repo <repo>` delegates to `worktree-audit.py`.
@@ -53,11 +53,20 @@ description: Use before the first file edit or Git write in each repository for 
   and are never rolled back. Successful `finish` removes worktrees by default;
   it deletes the task branch only with `--delete-branch`. Generated caches or
   outputs are never discarded unless the corresponding `--discard-*` flag is
-  passed. The tool invokes the actual safe remover without requiring its
+  passed. `--preserve-generated-artifacts` quarantines recognized caches and a
+  marked Nix-generated `.pre-commit-config.yaml` without discarding contents.
+  The tool invokes the actual safe remover without requiring its
   pre-restage dry-run, which may false-positive for git-annex worktrees.
+  Executable repository hooks block by default. After inspecting every relevant
+  hook, `--allow-repository-hooks` lets Git run them normally, but never allows a
+  `reference-transaction` hook because it may alter refs during integration.
+  When main has advanced and an integration merge commit is required, supply
+  `--integration-message` when the target repository's commit convention differs
+  from the default message.
   The lower-level creator is
   `python3 <skill-dir>/scripts/worktree-create.py --repo <repo> --slug <slug> --client
   <claude|opencode|copilot> --task "<text>" [--from main] [--parent <branch>]
+  [--allow-repository-hooks]
   [--prefix integration]`: it applies the numbering rule, runs the single
   `git worktree add -b`, checks the new `.git` identity, and writes the
   description `<task> client=<c> session=<id> base=<OID> pid=<pid>@<start>
@@ -206,7 +215,7 @@ description: Use before the first file edit or Git write in each repository for 
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
   --expect-branch "<exact local branch>" [--base <ref>] [--delete-branch]
   [--discard-direnv-cache] [--discard-generated-caches]
-  [--discard-generated-build-outputs]`,
+  [--discard-generated-build-outputs] [--preserve-generated-artifacts]`,
   where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
   `~/.local/share/claude/skills/git-workflow` (same files). Release your own
   `main-integration.lock` first; the script takes it. It refuses unless the
@@ -230,7 +239,11 @@ description: Use before the first file edit or Git write in each repository for 
   `use flake` layout check accepts it; it is purged only after Git confirms
   successful removal. Unknown layouts remain quarantined and the archive path
   is reported. By default all other ignored/untracked paths still cause
-  refusal. `--discard-generated-caches` is an explicit destructive opt-in for
+  refusal. `--preserve-generated-artifacts` quarantines recognized cache
+  directories and the root `.pre-commit-config.yaml` only when its Nix-generated
+  file marker matches, including Nix-store symlink outputs, retaining the file
+  or link in the private quarantine.
+  `--discard-generated-caches` is an explicit destructive opt-in for
   the entire contents of root `.pytest_cache`, root `.ruff_cache`, and
   `__pycache__` directories beneath the worktree. The separate
   `--discard-generated-build-outputs` opt-in selects only `rust/target` and the

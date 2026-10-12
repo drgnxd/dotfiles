@@ -149,6 +149,128 @@ def test_create_rejects_bad_slug_and_missing_source(repo: Path) -> None:
     assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
 
 
+def test_create_requires_opt_in_for_post_checkout_hook(repo: Path, tmp_path: Path) -> None:
+    hooks = Path(meta.git(repo, "rev-parse", "--git-path", "hooks").stdout.strip())
+    if not hooks.is_absolute():
+        hooks = repo / hooks
+    marker = tmp_path / "post-checkout-ran"
+    hook = hooks / "post-checkout"
+    hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n")
+    hook.chmod(0o755)
+    argv = ["--repo", str(repo), "--slug", "fix-thing", "--client", "claude", "--task", "Fix the thing"]
+
+    with pytest.raises(SystemExit) as caught:
+        create.main(argv)
+
+    assert caught.value.code == 2
+    assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
+
+    assert create.main([*argv, "--allow-repository-hooks"]) == 0
+    assert marker.read_text() == "called"
+
+
+def test_create_checks_relative_hooks_from_the_source_tree(repo: Path, tmp_path: Path) -> None:
+    meta.git(repo, "switch", "-q", "-c", "hooked-source")
+    marker = tmp_path / "source-post-checkout-ran"
+    hook = repo / ".githooks" / "post-checkout"
+    hook.parent.mkdir()
+    hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n")
+    hook.chmod(0o755)
+    meta.git(repo, "add", ".githooks/post-checkout")
+    meta.git(repo, "commit", "-q", "-m", "add source hook")
+    meta.git(repo, "switch", "-q", "main")
+    meta.git(repo, "config", "core.hooksPath", "./.githooks")
+    argv = [
+        "--repo", str(repo), "--slug", "fix-thing", "--client", "claude", "--task", "Fix the thing",
+        "--from", "hooked-source",
+    ]
+
+    with pytest.raises(SystemExit) as caught:
+        create.main(argv)
+
+    assert caught.value.code == 2
+    assert not marker.exists()
+    assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
+
+
+def test_create_blocks_hook_beneath_source_tree_symlink_ancestor(repo: Path, tmp_path: Path) -> None:
+    external_hooks = tmp_path / "external" / "hooks"
+    external_hooks.mkdir(parents=True)
+    marker = tmp_path / "external-post-checkout-ran"
+    hook = external_hooks / "post-checkout"
+    hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n")
+    hook.chmod(0o755)
+    meta.git(repo, "switch", "-q", "-c", "hooked-source")
+    (repo / "tools").symlink_to(tmp_path / "external", target_is_directory=True)
+    meta.git(repo, "add", "tools")
+    meta.git(repo, "commit", "-q", "-m", "add hook symlink ancestor")
+    meta.git(repo, "switch", "-q", "main")
+    meta.git(repo, "config", "core.hooksPath", "tools/hooks")
+
+    with pytest.raises(SystemExit) as caught:
+        create.main([
+            "--repo", str(repo), "--slug", "fix-thing", "--client", "claude", "--task", "Fix the thing",
+            "--from", "hooked-source",
+        ])
+
+    assert caught.value.code == 2
+    assert not marker.exists()
+    assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
+
+
+def test_create_runs_relative_hooks_from_repository_and_target_paths(repo: Path, tmp_path: Path) -> None:
+    hook_root = repo / ".githooks"
+    hook_root.mkdir()
+    marker = tmp_path / "relative-post-checkout-ran"
+    hook = hook_root / "post-checkout"
+    hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n")
+    hook.chmod(0o755)
+    meta.git(repo, "add", ".githooks/post-checkout")
+    meta.git(repo, "commit", "-q", "-m", "add relative checkout hook")
+    meta.git(repo, "config", "core.hooksPath", "./.githooks")
+    argv = ["--repo", str(repo), "--slug", "fix-thing", "--client", "claude", "--task", "Fix the thing"]
+
+    with pytest.raises(SystemExit) as caught:
+        create.main(argv)
+    assert caught.value.code == 2 and not marker.exists()
+    assert create.main([*argv, "--allow-repository-hooks"]) == 0
+    assert marker.read_text() == "called"
+
+
+def test_create_never_allows_reference_transaction_hook(repo: Path, tmp_path: Path) -> None:
+    hooks = Path(meta.git(repo, "rev-parse", "--git-path", "hooks").stdout.strip())
+    if not hooks.is_absolute():
+        hooks = repo / hooks
+    marker = tmp_path / "reference-transaction-ran"
+    hook = hooks / "reference-transaction"
+    hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n")
+    hook.chmod(0o755)
+    argv = [
+        "--repo", str(repo), "--slug", "fix-thing", "--client", "claude", "--task", "Fix the thing",
+        "--allow-repository-hooks",
+    ]
+
+    with pytest.raises(SystemExit) as caught:
+        create.main(argv)
+
+    assert caught.value.code == 2
+    assert not marker.exists()
+    assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
+
+
+def test_create_refuses_uninspectable_parent_relative_hooks_path(repo: Path) -> None:
+    meta.git(repo, "config", "core.hooksPath", "tools/../hooks")
+
+    with pytest.raises(SystemExit) as caught:
+        create.main([
+            "--repo", str(repo), "--slug", "fix-thing", "--client", "claude", "--task", "Fix the thing",
+            "--allow-repository-hooks",
+        ])
+
+    assert caught.value.code == 2
+    assert meta.git(repo, "worktree", "list", "--porcelain").stdout.count("worktree ") == 1
+
+
 def audit_rows(repo: Path, **kwargs):
     return audit.audit(
         repo, "main", kwargs.get("active_hours", 2.0), dict(os.environ), kwargs.get("now", time.time()),

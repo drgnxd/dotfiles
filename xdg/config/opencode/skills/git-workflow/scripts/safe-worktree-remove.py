@@ -21,9 +21,15 @@ purges only the verified Nix-direnv `use flake` cache after successful worktree
 removal; unknown layouts and unsafe purge conditions remain quarantined. The
 flag discards all files in that recognized cache, including edits.
 
-Other ignored and untracked paths refuse removal by default. The explicit
-`--discard-generated-caches` opt-in selects only root `.pytest_cache` and
-`.ruff_cache` directories and `__pycache__` directories beneath the worktree.
+Other ignored and untracked paths refuse removal by default.
+`--preserve-generated-artifacts` quarantines recognized root `.pytest_cache`
+and `.ruff_cache` directories, `__pycache__` directories beneath the worktree,
+and a root `.pre-commit-config.yaml` carrying the git-hooks.nix generated-file
+marker, either as a regular file or a symlink to its marked Nix-store output.
+All selected contents and links are retained in the private state quarantine.
+The explicit `--discard-generated-caches` opt-in selects only root
+`.pytest_cache` and `.ruff_cache` directories and `__pycache__` directories
+beneath the worktree.
 `--discard-generated-build-outputs` separately selects only `rust/target` and
 the root `result` symlink. These flags authorize discarding all contents under
 selected directories; names do not prove provenance. Selected paths are
@@ -49,6 +55,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import hashlib
 import json
 import os
 import re
@@ -69,7 +76,9 @@ import worktree_meta as meta
 
 DEFAULT_LOCK_NAME = "main-integration.lock"
 DIR_ENV_NAME = ".direnv"
+PRECOMMIT_CONFIG_NAME = ".pre-commit-config.yaml"
 NIX_STORE_ROOT = Path("/nix/store")
+MAX_PRECOMMIT_CONFIG_SIZE = 16 * 1024 * 1024
 IN_PROGRESS = (
     "rebase-merge", "rebase-apply", "MERGE_HEAD", "CHERRY_PICK_HEAD",
     "REVERT_HEAD", "BISECT_LOG", "BISECT_START", "sequencer",
@@ -129,6 +138,7 @@ class GeneratedCacheArtifact:
     worktree: Path
     identity: tuple[int, int]
     signature: tuple[tuple[object, ...], ...]
+    preserve: bool = False
 
 
 @dataclass(frozen=True)
@@ -375,9 +385,13 @@ def direnv_tree_signature(root: Path) -> tuple[tuple[object, ...], ...]:
 
 def generated_cache_candidates(
     status: list[tuple[bytes, bytes]], *, caches: bool = True, build_outputs: bool = False,
+    preserve_config: bool = False,
 ) -> tuple[bytes, ...]:
     candidates: set[bytes] = set()
     for _, path in status:
+        if preserve_config and path == PRECOMMIT_CONFIG_NAME.encode():
+            candidates.add(path)
+            continue
         parts = path.rstrip(b"/").split(b"/")
         if not parts or parts[0] == b".direnv":
             continue
@@ -415,11 +429,11 @@ def generated_cache_signature(root: Path, worktree: Path) -> tuple[tuple[object,
     relative_text = str(relative)
     result_link = relative_text == "result"
     if not (result_link or relative_text in (".pytest_cache", ".ruff_cache", "rust/target")
-            or relative.parts[-1] == "__pycache__"):
+            or relative_text == PRECOMMIT_CONFIG_NAME or relative.parts[-1] == "__pycache__"):
         raise RemovalError(f"unrecognized generated artifact path: {root}")
 
     cursor = worktree
-    for component in relative.parts[:-1] if result_link else relative.parts:
+    for component in relative.parts[:-1] if result_link or relative_text == PRECOMMIT_CONFIG_NAME else relative.parts:
         cursor = cursor / component
         try:
             info = cursor.lstat()
@@ -432,6 +446,8 @@ def generated_cache_signature(root: Path, worktree: Path) -> tuple[tuple[object,
         if not stat.S_ISLNK(root_info.st_mode):
             raise RemovalError(f"root result is not a symlink: {root}")
         return direnv_tree_signature(root)
+    if relative_text == PRECOMMIT_CONFIG_NAME:
+        return generated_precommit_config_signature(root, worktree_info.st_dev)
     if stat.S_ISLNK(root_info.st_mode) or not stat.S_ISDIR(root_info.st_mode):
         raise RemovalError(f"generated artifact root is not a real directory: {root}")
     if root_info.st_dev != worktree_info.st_dev:
@@ -439,15 +455,115 @@ def generated_cache_signature(root: Path, worktree: Path) -> tuple[tuple[object,
     return generated_cache_tree_signature(root, worktree_info.st_dev)
 
 
+def generated_precommit_config_signature(path: Path, expected_device: int) -> tuple[tuple[object, ...], ...]:
+    try:
+        link_info = path.lstat()
+    except OSError as error:
+        raise RemovalError(f"cannot inspect generated pre-commit config {path}: {error}") from error
+    if stat.S_ISLNK(link_info.st_mode):
+        if link_info.st_dev != expected_device:
+            raise RemovalError(f"generated pre-commit config link is on a different filesystem: {path}")
+        try:
+            target = Path(os.readlink(path))
+            store_root = NIX_STORE_ROOT.resolve(strict=True)
+            target_parent = target.parent.resolve(strict=True) if target.is_absolute() else None
+            resolved_target = target.resolve(strict=True) if target.is_absolute() else None
+        except OSError as error:
+            raise RemovalError(f"cannot inspect generated pre-commit config target {path}: {error}") from error
+        if (
+            not target.is_absolute()
+            or target_parent != store_root
+            or not target.name.endswith("-pre-commit-config.json")
+            or resolved_target != target
+        ):
+            raise RemovalError(f"{path} is not a symlink to a Nix-store git-hooks.nix config")
+        generated_precommit_file_signature(target, expected_device=None)
+        signature = direnv_tree_signature(path)
+        if len(signature) != 1:
+            raise RemovalError(f"generated pre-commit config link changed while signing: {path}")
+        relative, kind, device, inode, mode, _, _, link_text = signature[0]
+        if (
+            relative != "."
+            or kind != "symlink"
+            or (device, inode, mode) != (link_info.st_dev, link_info.st_ino, link_info.st_mode)
+            or link_text != os.readlink(path)
+            or link_text != str(target)
+        ):
+            raise RemovalError(f"generated pre-commit config link changed while signing: {path}")
+        return signature
+    return generated_precommit_file_signature(path, expected_device=expected_device)
+
+
+def generated_precommit_file_signature(path: Path, expected_device: int | None) -> tuple[tuple[object, ...], ...]:
+    fd = -1
+    try:
+        info = path.lstat()
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
+            raise RemovalError(f"generated pre-commit config is not a regular file: {path}")
+        if expected_device is not None and info.st_dev != expected_device:
+            raise RemovalError(f"generated pre-commit config is on a different filesystem: {path}")
+        if info.st_size > MAX_PRECOMMIT_CONFIG_SIZE:
+            raise RemovalError(f"generated pre-commit config exceeds the size limit: {path}")
+        flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+        fd = os.open(path, flags)
+        opened = os.fstat(fd)
+        if (
+            not stat.S_ISREG(opened.st_mode)
+            or (opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)
+            or (expected_device is not None and opened.st_dev != expected_device)
+            or opened.st_size > MAX_PRECOMMIT_CONFIG_SIZE
+        ):
+            raise RemovalError(f"generated pre-commit config changed while opening: {path}")
+        contents = bytearray()
+        while len(contents) <= MAX_PRECOMMIT_CONFIG_SIZE:
+            chunk = os.read(fd, min(1024 * 1024, MAX_PRECOMMIT_CONFIG_SIZE + 1 - len(contents)))
+            if not chunk:
+                break
+            contents.extend(chunk)
+        if len(contents) > MAX_PRECOMMIT_CONFIG_SIZE:
+            raise RemovalError(f"generated pre-commit config exceeds the size limit: {path}")
+        after_read = os.fstat(fd)
+        if (
+            (after_read.st_dev, after_read.st_ino, after_read.st_size, after_read.st_mtime_ns)
+            != (opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns)
+            or len(contents) != after_read.st_size
+        ):
+            raise RemovalError(f"generated pre-commit config changed while reading: {path}")
+        lines = bytes(contents).splitlines()
+        if len(lines) < 2 or lines[0] != b"# DO NOT MODIFY" or lines[1] != b"# This file was generated by git-hooks.nix":
+            raise RemovalError(f"{path} is not the generated git-hooks.nix file")
+        digest = hashlib.sha256(contents).hexdigest()
+        info = after_read
+    except OSError as error:
+        raise RemovalError(f"cannot inspect generated pre-commit config {path}: {error}") from error
+    finally:
+        if fd >= 0:
+            os.close(fd)
+    return ((".", "file", info.st_dev, info.st_ino, info.st_mode, info.st_size, info.st_mtime_ns, digest),)
+
+
 def generated_cache_tree_signature(root: Path, expected_device: int) -> tuple[tuple[object, ...], ...]:
     root_info = root.lstat()
     if stat.S_ISLNK(root_info.st_mode):
         if root_info.st_dev != expected_device:
             raise RemovalError(f"unrecognized generated artifact symlink: {root}")
+        target = Path(os.readlink(root))
+        try:
+            is_precommit_config = (
+                target.is_absolute()
+                and target.parent.resolve(strict=True) == NIX_STORE_ROOT.resolve(strict=True)
+                and target.name.endswith("-pre-commit-config.json")
+            )
+        except OSError as error:
+            raise RemovalError(f"cannot inspect generated config symlink target {root}: {error}") from error
+        if is_precommit_config:
+            return generated_precommit_config_signature(root, expected_device)
         signature = direnv_tree_signature(root)
         if len(signature) != 1 or signature[0][1] != "symlink":
             raise RemovalError(f"result symlink changed during inspection: {root}")
         return signature
+    if stat.S_ISREG(root_info.st_mode):
+        return generated_precommit_config_signature(root, expected_device)
     if not stat.S_ISDIR(root_info.st_mode):
         raise RemovalError(f"generated artifact root is not a real directory: {root}")
     mounts = mount_points()
@@ -477,9 +593,12 @@ def generated_cache_tree_signature(root: Path, expected_device: int) -> tuple[tu
 
 def inspect_generated_caches(
     target: Target, status: list[tuple[bytes, bytes]], *, caches: bool, build_outputs: bool,
+    preserve_config: bool = False, preserve: bool = False,
 ) -> tuple[GeneratedCacheArtifact, ...]:
     artifacts: list[GeneratedCacheArtifact] = []
-    for relative_bytes in generated_cache_candidates(status, caches=caches, build_outputs=build_outputs):
+    for relative_bytes in generated_cache_candidates(
+        status, caches=caches, build_outputs=build_outputs, preserve_config=preserve_config,
+    ):
         relative = os.fsdecode(relative_bytes)
         path = target.worktree / relative
         matching = [
@@ -498,7 +617,10 @@ def inspect_generated_caches(
         if not any(entry[0] == "." for entry in signature):
             raise RemovalError(f"generated cache disappeared during inspection: {path}")
         root = next(entry for entry in signature if entry[0] == ".")
-        artifacts.append(GeneratedCacheArtifact(path, target.worktree, (int(root[2]), int(root[3])), signature))
+        artifacts.append(GeneratedCacheArtifact(
+            path, target.worktree, (int(root[2]), int(root[3])), signature,
+            preserve and relative_bytes not in (b"result", b"rust/target"),
+        ))
 
     paths = tuple(
         artifact.path if entry[0] == "." else artifact.path / str(entry[0])
@@ -753,6 +875,7 @@ def create_transaction(target: Target, head: str, plan: RemovalPlan) -> RemovalT
             "identity": list(cache.identity),
             "signature": [list(entry) for entry in cache.signature],
             "quarantine_path": str(operation_dir / f"generated-cache-{index:03d}"),
+            "preserve": cache.preserve,
             "purge_state": "planned",
         })
     manifest: dict[str, object] = {
@@ -962,9 +1085,11 @@ def restore_generated_cache(transaction: RemovalTransaction, artifact: Generated
         root_kind = next(entry[1] for entry in artifact.signature if entry[0] == ".")
 
         def matches_root_kind(info: os.stat_result) -> bool:
-            return stat.S_ISLNK(info.st_mode) if root_kind == "symlink" else (
-                stat.S_ISDIR(info.st_mode) and not stat.S_ISLNK(info.st_mode)
-            )
+            if root_kind == "symlink":
+                return stat.S_ISLNK(info.st_mode)
+            if root_kind == "file":
+                return stat.S_ISREG(info.st_mode) and not stat.S_ISLNK(info.st_mode)
+            return stat.S_ISDIR(info.st_mode) and not stat.S_ISLNK(info.st_mode)
 
         source_exists = os.path.lexists(source)
         quarantine_exists = os.path.lexists(quarantined)
@@ -1035,7 +1160,9 @@ def purge_generated_cache(
             info.st_dev, info.st_ino, info.st_mode,
             0 if kind == "directory" else info.st_size,
             0 if kind == "directory" else info.st_mtime_ns,
-            os.readlink(path) if stat.S_ISLNK(info.st_mode) else "",
+            os.readlink(path) if stat.S_ISLNK(info.st_mode) else (
+                hashlib.sha256(path.read_bytes()).hexdigest() if kind == "file" and link_text else ""
+            ),
         )
         expected_entry = (device, inode, mode, size, mtime_ns, link_text)
         if current_entry != expected_entry:
@@ -1244,7 +1371,7 @@ def verify_owner(target: Target, expect_branch: str) -> None:
 def verify_safe(
     target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_branch: str,
     discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
-    discard_generated_build_outputs: bool = False,
+    discard_generated_build_outputs: bool = False, preserve_generated_artifacts: bool = False,
 ) -> RemovalPlan:
     wt = target.worktree
     verify_owner(target, expect_branch)
@@ -1263,9 +1390,11 @@ def verify_safe(
     direnv_status: list[tuple[bytes, bytes]] = []
     generated_caches = (
         inspect_generated_caches(
-            target, status, caches=discard_generated_caches,
+            target, status, caches=discard_generated_caches or preserve_generated_artifacts,
             build_outputs=discard_generated_build_outputs,
-        ) if discard_generated_caches or discard_generated_build_outputs else ()
+            preserve_config=preserve_generated_artifacts,
+            preserve=preserve_generated_artifacts,
+        ) if discard_generated_caches or discard_generated_build_outputs or preserve_generated_artifacts else ()
     )
     generated_cache_roots = tuple(os.fsencode(cache.path.relative_to(wt)) for cache in generated_caches)
     remaining: list[str] = []
@@ -1540,7 +1669,7 @@ def delete_branch(target: Target, head: str, base_oid: str) -> None:
 def remove(
     worktree_arg: str, base: str, *, delete_branch_too: bool, lock_name: str, allow_unreferenced_reflog: bool,
     expect_branch: str, discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
-    discard_generated_build_outputs: bool = False,
+    discard_generated_build_outputs: bool = False, preserve_generated_artifacts: bool = False,
 ) -> RemovalOutcome:
     worktree, common_dir = locate(worktree_arg)
     with exclusive_lock(common_dir, lock_name):
@@ -1559,6 +1688,7 @@ def remove(
             target, base, allow_unreferenced_reflog=allow_unreferenced_reflog, expect_branch=expect_branch,
             discard_direnv_cache=discard_direnv_cache, discard_generated_caches=discard_generated_caches,
             discard_generated_build_outputs=discard_generated_build_outputs,
+            preserve_generated_artifacts=preserve_generated_artifacts,
         )
         base_oid = resolve_base(target, base)
         head = git_out(worktree, "rev-parse", "HEAD")
@@ -1698,6 +1828,13 @@ def remove(
             for index, cache in enumerate(plan.generated_caches):
                 cache_record = generated_cache_record(transaction, index)
                 archive = Path(str(cache_record["quarantine_path"]))
+                if cache.preserve:
+                    cache_record["purge_state"] = "retained"
+                    cache_record["preserve_reason"] = "explicitly retained generated artifact"
+                    preserved_generated_caches.append(archive)
+                    preservation_reasons.append(str(cache.path.relative_to(target.worktree)))
+                    write_post_removal_manifest(transaction, f"generated_cache_{index}_retained")
+                    continue
                 cache_record["purge_state"] = "started"
                 write_post_removal_manifest(transaction, f"generated_cache_{index}_purge_started")
                 try:
@@ -1762,6 +1899,10 @@ def main(argv: list[str] | None = None) -> int:
         "--discard-generated-build-outputs", action="store_true",
         help="discard only rust/target and unlink the root result symlink after successful removal",
     )
+    parser.add_argument(
+        "--preserve-generated-artifacts", action="store_true",
+        help="quarantine and retain recognized caches and a marked git-hooks.nix config",
+    )
     parser.add_argument("--dry-run", action="store_true", help="run the checks without the lock or restage; change nothing")
     parser.add_argument("--lock-name", default=DEFAULT_LOCK_NAME, help="lock directory created under the common git dir")
     args = parser.parse_args(argv)
@@ -1770,6 +1911,8 @@ def main(argv: list[str] | None = None) -> int:
             raise RemovalError("--expect-owner is obsolete; use --expect-branch; session ownership is read from the current client environment")
         if not args.expect_branch:
             raise RemovalError("--expect-branch is required; session ownership is read from the current client environment")
+        if args.discard_generated_caches and args.preserve_generated_artifacts:
+            raise RemovalError("--discard-generated-caches cannot be combined with --preserve-generated-artifacts")
         if args.dry_run:
             worktree, _ = locate(args.worktree)
             target = inspect(worktree)
@@ -1782,6 +1925,7 @@ def main(argv: list[str] | None = None) -> int:
                 expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
                 discard_generated_caches=args.discard_generated_caches,
                 discard_generated_build_outputs=args.discard_generated_build_outputs,
+                preserve_generated_artifacts=args.preserve_generated_artifacts,
             )
             kind = f"symlink -> {target.symlink_target}" if target.symlink_target else "gitfile"
             direnv_plan = ""
@@ -1790,8 +1934,15 @@ def main(argv: list[str] | None = None) -> int:
                 direnv_plan = f"; .direnv would be {action}"
             cache_plan = ""
             if plan.generated_caches:
-                names = ", ".join(str(cache.path.relative_to(target.worktree)) for cache in plan.generated_caches)
-                cache_plan = f"; generated artifact paths would be discarded: {names}"
+                actions = []
+                for preserve, label in ((True, "quarantined and retained"), (False, "discarded")):
+                    names = ", ".join(
+                        str(cache.path.relative_to(target.worktree))
+                        for cache in plan.generated_caches if cache.preserve is preserve
+                    )
+                    if names:
+                        actions.append(f"{label}: {names}")
+                cache_plan = "; generated artifact paths would be " + "; ".join(actions)
             print(
                 f"dry-run ok: {target.worktree} (.git is a {kind}; {target.branch_ref}) "
                 f"would be removed{direnv_plan}{cache_plan}"
@@ -1803,6 +1954,7 @@ def main(argv: list[str] | None = None) -> int:
             expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
             discard_generated_caches=args.discard_generated_caches,
             discard_generated_build_outputs=args.discard_generated_build_outputs,
+            preserve_generated_artifacts=args.preserve_generated_artifacts,
         )
     except RemovalError as error:
         print(f"error: {error}", file=sys.stderr)
@@ -1819,8 +1971,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"preserved .direnv at {outcome.preserved_direnv}")
     if outcome.discarded_generated_caches:
         print(f"discarded generated artifact paths: {', '.join(outcome.discarded_generated_caches)}")
-    for cache in outcome.preserved_generated_caches:
-        print(f"preserved generated cache quarantine at {cache}")
+    for artifact in outcome.preserved_generated_caches:
+        print(f"preserved generated artifact quarantine at {artifact}")
     return 0
 
 

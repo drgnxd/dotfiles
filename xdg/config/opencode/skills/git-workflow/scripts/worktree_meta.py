@@ -1,4 +1,4 @@
-"""Shared helpers for worktree-create.py and worktree-audit.py.
+"""Shared helpers for worktree lifecycle tools.
 
 A task worktree records a human-readable task label and structured metadata in
 `branch.<branch>.description`:
@@ -46,6 +46,75 @@ def git(cwd: Path | str, *args: str, check: bool = True) -> subprocess.Completed
     return subprocess.run(
         ["git", *args], cwd=cwd, env=git_env(), capture_output=True, text=True, check=check
     )
+
+
+def executable_hooks(
+    repo: Path, names: set[str], *, worktree_root: Path | None = None, source_oid: str | None = None,
+) -> tuple[str, ...]:
+    configured = git(repo, "config", "--path", "--get", "core.hooksPath", check=False).stdout.strip()
+    configured_path = Path(configured).expanduser() if configured else None
+
+    def scan(directory: Path) -> set[str]:
+        return {
+            path.name for path in directory.iterdir()
+            if path.name in names and path.is_file() and not path.name.endswith(".sample") and os.access(path, os.X_OK)
+        } if directory.is_dir() else set()
+
+    if configured_path is None:
+        hook_dir = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-path", "hooks").stdout.strip())
+        return tuple(sorted(scan(hook_dir)))
+    if configured_path.is_absolute():
+        return tuple(sorted(scan(configured_path)))
+
+    active = scan(repo / configured_path)
+    if worktree_root is None:
+        return tuple(sorted(active))
+    prospective = worktree_root / configured_path
+    active.update(scan(prospective))
+    if source_oid is None:
+        return tuple(sorted(active))
+
+    root = worktree_root.resolve()
+    prospective = prospective.resolve(strict=False)
+    try:
+        relative_root = prospective.relative_to(root)
+    except ValueError:
+        return tuple(sorted(active))
+    relative_text = relative_root.as_posix()
+
+    def source_mode(path: str) -> str | None:
+        result = git(repo, "--literal-pathspecs", "ls-tree", "-z", source_oid, "--", path, check=False)
+        if result.returncode != 0:
+            raise RuntimeError(f"cannot inspect source tree hook path {path}: {result.stderr.strip()}")
+        for record in result.stdout.split("\0"):
+            if not record:
+                continue
+            metadata, separator, entry_path = record.partition("\t")
+            if not separator:
+                raise RuntimeError("git ls-tree returned a malformed hook entry")
+            if entry_path == path:
+                return metadata.split(" ", 1)[0]
+        return None
+
+    prefix = "" if relative_text == "." else relative_text + "/"
+    for name in names:
+        expected = prefix + name
+        parts = expected.split("/")
+        for depth in range(1, len(parts) + 1):
+            entry_path = "/".join(parts[:depth])
+            mode = source_mode(entry_path)
+            if mode is None:
+                break
+            if mode == "120000":
+                active.add(name)
+                break
+            if depth == len(parts):
+                if mode == "100755":
+                    active.add(name)
+                break
+            if mode not in ("040000",):
+                break
+    return tuple(sorted(active))
 
 
 def session_from_env(client: str, env: dict[str, str] | None = None) -> tuple[str, str | None]:

@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
-import os
 import subprocess
 import sys
 import unicodedata
@@ -363,27 +362,37 @@ def require_no_filters(repo: Path, paths: list[str]) -> None:
         raise TaskError("filters-present", "changed paths use Git filters that need manual review", paths=active)
 
 
-def require_no_hooks(repo: Path, *, merge_commit: bool) -> None:
-    configured = meta.git(repo, "config", "--path", "--get", "core.hooksPath", check=False).stdout.strip()
-    hook_dir = Path(configured).expanduser() if configured else Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-path", "hooks").stdout.strip())
-    if not hook_dir.is_absolute():
-        hook_dir = repo / hook_dir
+def require_no_hooks(repo: Path, *, merge_commit: bool, allow_repository_hooks: bool = False) -> None:
     relevant = {"post-merge", "reference-transaction"}
     if merge_commit:
         relevant.update({"pre-merge-commit", "pre-commit", "prepare-commit-msg", "commit-msg"})
-    active = [path.name for path in hook_dir.iterdir() if path.name in relevant and path.is_file() and not path.name.endswith(".sample") and os.access(path, os.X_OK)] if hook_dir.is_dir() else []
-    if active:
-        raise TaskError("hooks-present", "executable Git hooks need manual review before integration", hooks=sorted(active), hook_dir=str(hook_dir))
+    blocked = set(meta.executable_hooks(repo, relevant))
+    if allow_repository_hooks:
+        blocked.discard("post-merge")
+        if merge_commit:
+            blocked.difference_update({"pre-merge-commit", "pre-commit", "prepare-commit-msg", "commit-msg"})
+    if blocked:
+        detail = (
+            "reference-transaction hooks are never run during task integration"
+            if "reference-transaction" in blocked
+            else "inspect repository hooks, then pass --allow-repository-hooks to run them normally"
+        )
+        raise TaskError("hooks-present", detail, hooks=sorted(blocked))
     if merge_commit and meta.git(repo, "config", "--bool", "--get", "commit.gpgsign", check=False).stdout.strip().lower() == "true":
         raise TaskError("commit-signing", "integration merge may require interactive signing; use the manual procedure")
 
 
-def create_worktree(repo: Path, *, slug: str, client: str, task: str, source: str, parent: str | None, prefix: str, worktrees_root: str | None = None) -> subprocess.CompletedProcess[str]:
+def create_worktree(
+    repo: Path, *, slug: str, client: str, task: str, source: str, parent: str | None, prefix: str,
+    worktrees_root: str | None = None, allow_repository_hooks: bool = False,
+) -> subprocess.CompletedProcess[str]:
     argv = [sys.executable, str(CREATE_HELPER), "--repo", str(repo), "--slug", slug, "--client", client, "--task", task, "--from", source, "--prefix", prefix]
     if parent:
         argv.extend(("--parent", parent))
     if worktrees_root:
         argv.extend(("--worktrees-root", worktrees_root))
+    if allow_repository_hooks:
+        argv.append("--allow-repository-hooks")
     return subprocess.run(argv, cwd=repo, text=True, capture_output=True, check=False)
 
 
@@ -428,6 +437,7 @@ def start(args: argparse.Namespace) -> int:
     result = create_worktree(
         repo, slug=args.slug, client=args.client, task=args.task, source=args.source,
         parent=args.parent, prefix=args.prefix, worktrees_root=args.worktrees_root,
+        allow_repository_hooks=args.allow_repository_hooks,
     )
     if result.stderr:
         print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
@@ -461,7 +471,9 @@ def main_state(repo: Path) -> tuple[Path, str]:
     return main, head
 
 
-def preflight(repo: Path, main: Path, task_wt: Path, base: str, final_oid: str) -> list[str]:
+def preflight(
+    repo: Path, main: Path, task_wt: Path, base: str, final_oid: str, *, allow_repository_hooks: bool,
+) -> list[str]:
     require_clean(main, "main worktree")
     require_clean(task_wt, "task/integration worktree")
     require_no_index_flags(main, "main worktree")
@@ -469,7 +481,7 @@ def preflight(repo: Path, main: Path, task_wt: Path, base: str, final_oid: str) 
     require_no_replace_refs(repo)
     require_no_gitlinks(repo, base, final_oid)
     paths = changed_paths(repo, base, final_oid)
-    require_no_hooks(main, merge_commit=False)
+    require_no_hooks(main, merge_commit=False, allow_repository_hooks=allow_repository_hooks)
     require_no_filters(main, paths)
     require_no_filters(task_wt, paths)
     check_tree_paths(main, base, final_oid)
@@ -527,7 +539,10 @@ def safe_remove(repo: Path, worktree: Path, branch: str, args: argparse.Namespac
     command = [sys.executable, str(REMOVE_HELPER), str(worktree), "--expect-branch", branch, "--base", MAIN_BRANCH]
     if delete_branch:
         command.append("--delete-branch")
-    for name in ("discard_direnv_cache", "discard_generated_caches", "discard_generated_build_outputs"):
+    for name in (
+        "discard_direnv_cache", "discard_generated_caches", "discard_generated_build_outputs",
+        "preserve_generated_artifacts",
+    ):
         if getattr(args, name, False):
             command.append("--" + name.replace("_", "-"))
     return subprocess.run(command, cwd=repo, env=meta.git_env(), text=True, capture_output=True, check=False)
@@ -557,12 +572,15 @@ def finish(args: argparse.Namespace) -> int:
 
         if main_tip == task_base:
             plan = "direct-fast-forward"
-            direct_paths = preflight(repo, main, task_wt, task_base, task_tip)
+            direct_paths = preflight(
+                repo, main, task_wt, task_base, task_tip,
+                allow_repository_hooks=args.allow_repository_hooks,
+            )
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip:
                 raise TaskError("pre-merge-race", "main/task ref changed before fast-forward")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
-            require_no_hooks(main, merge_commit=False)
+            require_no_hooks(main, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
             require_no_filters(main, direct_paths)
             update = meta.git(main, "merge", "--ff-only", "--no-overwrite-ignore", task_tip, check=False)
             integration_tip = task_tip
@@ -575,13 +593,20 @@ def finish(args: argparse.Namespace) -> int:
             expected_main = main_tip
         elif ancestor(repo, task_base, main_tip):
             plan = "integration-worktree-merge"
-            preflight(repo, main, task_wt, main_tip, task_tip)
+            preflight(
+                repo, main, task_wt, main_tip, task_tip,
+                allow_repository_hooks=args.allow_repository_hooks,
+            )
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip:
                 raise TaskError("pre-merge-race", "main/task ref changed before creating integration worktree")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
 
-            created = create_worktree(repo, slug="integration-merge", client=owner[0], task=f"Integrate {args.branch}", source=MAIN_BRANCH, parent=args.branch, prefix="integration")
+            created = create_worktree(
+                repo, slug="integration-merge", client=owner[0], task=f"Integrate {args.branch}",
+                source=MAIN_BRANCH, parent=args.branch, prefix="integration",
+                allow_repository_hooks=args.allow_repository_hooks,
+            )
             if created.returncode != 0:
                 raise creator_partial(repo, created, "integration")
             values = parse_key_values(created.stdout)
@@ -594,10 +619,13 @@ def finish(args: argparse.Namespace) -> int:
             _, int_client, int_session, int_base = branch_metadata(repo, integration_branch)
             if (int_client, int_session) != owner or int_base != main_tip:
                 raise TaskError("integration-owner-invalid", "integration branch owner/base metadata mismatch", integration_branch=integration_branch)
-            require_no_hooks(main, merge_commit=True)
+            require_no_hooks(main, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks)
             require_no_filters(main, changed_paths(repo, main_tip, task_tip))
-            require_no_hooks(integration_wt, merge_commit=True)
-            merge = meta.git(integration_wt, "merge", "--no-edit", "--no-ff", "--no-overwrite-ignore", "-m", "chore: integrate task branch", task_tip, check=False)
+            require_no_hooks(integration_wt, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks)
+            merge = meta.git(
+                integration_wt, "merge", "--no-edit", "--no-ff", "--no-overwrite-ignore",
+                "-m", args.integration_message, task_tip, check=False,
+            )
             if merge.returncode != 0:
                 raise TaskError("integration-conflict", "integration merge failed; task and integration worktrees are preserved", integration_worktree=str(integration_wt), integration_branch=integration_branch, stderr=merge.stderr.strip())
 
@@ -608,9 +636,9 @@ def finish(args: argparse.Namespace) -> int:
             require_no_index_flags(integration_wt, "integration worktree")
             require_no_gitlinks(repo, main_tip, integration_tip)
             final_paths = changed_paths(repo, main_tip, integration_tip)
-            require_no_hooks(integration_wt, merge_commit=False)
+            require_no_hooks(integration_wt, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
             require_no_filters(integration_wt, final_paths)
-            require_no_hooks(main, merge_commit=False)
+            require_no_hooks(main, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
             require_no_filters(main, final_paths)
             check_tree_paths(main, main_tip, integration_tip)
             if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip or branch_oid(repo, integration_branch) != integration_tip:
@@ -678,6 +706,7 @@ def main(argv: list[str] | None = None) -> int:
     start_parser.add_argument("--parent")
     start_parser.add_argument("--prefix", default="task", choices=("task", "integration"))
     start_parser.add_argument("--worktrees-root")
+    start_parser.add_argument("--allow-repository-hooks", action="store_true")
     start_parser.add_argument("--json", action="store_true")
     status_parser = sub.add_parser("status", help="delegate liveness/ownership status to worktree-audit.py")
     status_parser.add_argument("--repo", required=True)
@@ -687,10 +716,19 @@ def main(argv: list[str] | None = None) -> int:
     finish_parser.add_argument("--repo", required=True)
     finish_parser.add_argument("--branch", required=True)
     finish_parser.add_argument("--external-writers-quiesced", action="store_true", help="assert known non-cooperating writers are stopped through integration and all cleanup")
+    finish_parser.add_argument("--integration-message", default="chore: integrate task branch")
     finish_parser.add_argument("--delete-branch", action="store_true")
     finish_parser.add_argument("--discard-direnv-cache", action="store_true")
     finish_parser.add_argument("--discard-generated-caches", action="store_true")
     finish_parser.add_argument("--discard-generated-build-outputs", action="store_true")
+    finish_parser.add_argument(
+        "--preserve-generated-artifacts", action="store_true",
+        help="quarantine and retain recognized caches and a marked git-hooks.nix config",
+    )
+    finish_parser.add_argument(
+        "--allow-repository-hooks", action="store_true",
+        help="run inspected repository hooks except reference-transaction hooks",
+    )
     finish_parser.add_argument("--keep-worktree", action="store_true")
     finish_parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
@@ -703,8 +741,15 @@ def main(argv: list[str] | None = None) -> int:
             if args.json:
                 command.append("--json")
             return subprocess.run(command, cwd=repo, check=False).returncode
-        if args.keep_worktree and (args.delete_branch or args.discard_direnv_cache or args.discard_generated_caches or args.discard_generated_build_outputs):
-            raise TaskError("invalid-options", "--keep-worktree cannot be combined with branch deletion/discard flags")
+        if not args.integration_message.strip() or "\n" in args.integration_message or "\r" in args.integration_message:
+            raise TaskError("invalid-options", "--integration-message must be a non-empty single line")
+        if args.discard_generated_caches and args.preserve_generated_artifacts:
+            raise TaskError("invalid-options", "--discard-generated-caches cannot be combined with --preserve-generated-artifacts")
+        if args.keep_worktree and (
+            args.delete_branch or args.discard_direnv_cache or args.discard_generated_caches
+            or args.discard_generated_build_outputs or args.preserve_generated_artifacts
+        ):
+            raise TaskError("invalid-options", "--keep-worktree cannot be combined with branch deletion/cache/output flags")
         return finish(args)
     except TaskError as error:
         return emit_error(error, getattr(args, "json", False))
