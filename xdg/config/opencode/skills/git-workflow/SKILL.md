@@ -39,6 +39,9 @@ description: Use before the first file edit or Git write in each repository for 
   `--repo` is required and never inferred from cwd. After task changes are
   committed and verified, finish with
   `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--allow-annex-filter] [--allow-commit-signing] [--preserve-generated-artifacts]`.
+  Run `finish` from outside the task/integration worktree being removed (prefer
+  the repository's main checkout); the caller's own cwd is included in the
+  process-use check and otherwise blocks cleanup.
   The assertion flag is valid only after checking repository-specific scheduled
   jobs and coordinating non-cooperating writers through integration and all
   cleanup. `status --repo <repo>` delegates to `worktree-audit.py`.
