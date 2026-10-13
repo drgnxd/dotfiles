@@ -1191,6 +1191,52 @@ def test_purges_legacy_quarantine_manifest_without_generated_cache_list(
     assert not transaction.exists()
 
 
+def test_legacy_direnv_override_still_rejects_unverified_layout(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-legacy-direnv-layout-mismatch")
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    make_nix_direnv_cache(wt, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: set())
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-legacy-direnv-layout-mismatch",
+        preserve_generated_artifacts=True,
+    )
+    archive = outcome.preserved_direnv
+    assert archive is not None
+    transaction = archive.parent
+    external_target = tmp_path / "detached-profile-target"
+    external_target.mkdir()
+    (external_target / "state").write_text("keep target")
+    profile_rc = next(path for path in archive.glob("flake-profile-*.rc") if path.is_file())
+    profile_rc_before = profile_rc.read_bytes()
+    profile_link = next(path for path in archive.glob("flake-profile-*") if path.is_symlink())
+    profile_link.unlink()
+    profile_link.symlink_to(external_target)
+    manifest_path = transaction / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["direnv"].pop("signature")
+    manifest_path.write_text(json.dumps(manifest))
+    manifest_before = manifest_path.read_bytes()
+    tree_before = HELPER.direnv_tree_signature(archive)
+
+    with pytest.raises(HELPER.RemovalError, match="no longer matches the verified Nix-direnv layout"):
+        HELPER.purge_preserved_quarantine(
+            str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+            discard_unverified_direnv=True,
+        )
+    assert HELPER.direnv_tree_signature(archive) == tree_before
+    assert manifest_path.read_bytes() == manifest_before
+    assert profile_rc.read_bytes() == profile_rc_before
+    assert (external_target / "state").read_text() == "keep target"
+    assert transaction.exists()
+
+
 def test_preserved_quarantine_rejects_malformed_generated_cache_list(repo: Path) -> None:
     add_generated_cache_ignores(repo)
     wt = make_worktree(repo, "wt-malformed-cache-list")
