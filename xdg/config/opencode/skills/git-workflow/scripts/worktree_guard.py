@@ -218,6 +218,12 @@ def locate(path: str, repos: list[Repo]) -> tuple[Repo, str] | None:
     return None
 
 
+def is_lock_owner_file(canon: str) -> bool:
+    """The integration lock's owner file is written by the skill's own procedure."""
+    lock = Path(canon).parent
+    return Path(canon).name == "owner" and lock.name == "main-integration.lock" and lock.parent.name == ".git"
+
+
 def check_path(path: str, cwd: str, cfg: dict, repos: list[Repo]) -> Decision:
     canon = canonical(path, cwd)
     k = key(canon)
@@ -228,6 +234,8 @@ def check_path(path: str, cwd: str, cfg: dict, repos: list[Repo]) -> Decision:
         return Decision()
     repo, kind = found
     if kind == "gitdir":
+        if is_lock_owner_file(canon):
+            return Decision()
         return Decision("deny", "git-dir", f"{canon} is inside a Git directory; do not edit it.", canon)
     if kind == "protected":
         for pattern in string_list(cfg.get("allow_paths")):
@@ -472,7 +480,11 @@ def check_bash(command: str, cwd: str, repos: list[Repo], depth: int = 0) -> Dec
     result = Decision()
     current: str | None = cwd
     stack: list[str | None] = []
-    for tokens in split_segments(command):
+    try:
+        segments = split_segments(command)
+    except ValueError:
+        return Decision("warn", "unparsed-command", "The command could not be parsed, so it was not analysed.", cwd)
+    for tokens in segments:
         if tokens == PAREN_OPEN:
             stack.append(current)
             continue

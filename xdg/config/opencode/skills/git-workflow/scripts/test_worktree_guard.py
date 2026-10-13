@@ -102,6 +102,20 @@ def test_patch_with_several_paths(world: dict[str, Path]) -> None:
     assert blocked and decision.target.endswith("added.txt")
 
 
+def test_integration_lock_owner_file_is_writable(world: dict[str, Path]) -> None:
+    owner = world["main"] / ".git" / "main-integration.lock" / "owner"
+    assert decide("Write", {"file_path": str(owner)}, world["task"])[0].action == "allow"
+    other = world["main"] / ".git" / "main-integration.lock" / "other"
+    nested = world["main"] / ".git" / "hooks" / "main-integration.lock" / "owner"
+    assert decide("Write", {"file_path": str(other)}, world["task"])[0].rule == "git-dir"
+    assert decide("Write", {"file_path": str(nested)}, world["task"])[0].rule == "git-dir"
+
+
+def test_unbalanced_quote_is_reported_not_crashed(world: dict[str, Path]) -> None:
+    decision, blocked = bash("git commit -m 'unterminated", world["main"])
+    assert decision.rule == "unparsed-command" and not blocked
+
+
 @pytest.mark.parametrize(
     "command, cwd, blocked",
     [
