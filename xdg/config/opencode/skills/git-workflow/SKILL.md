@@ -54,10 +54,13 @@ description: Use before the first file edit or Git write in each repository for 
   unrelated histories, and failed safety checks preserve worktrees and stop.
   Post-check failures after main has moved are reported from the actual HEAD/ref
   and are never rolled back. Successful `finish` removes worktrees by default;
-  it deletes the task branch only with `--delete-branch`. Generated caches or
-  outputs are never discarded unless the corresponding `--discard-*` flag is
-  passed. `--preserve-generated-artifacts` quarantines recognized caches and a
-  marked Nix-generated `.pre-commit-config.yaml` without discarding contents.
+  it deletes the task branch only with `--delete-branch`. `finish` discards
+  recognized generated caches and build outputs by default after successful
+  removal, while unknown ignored/untracked data still blocks cleanup. Use
+  `--preserve-generated-artifacts` to quarantine and retain recognized caches,
+  build outputs, and a marked Nix-generated `.pre-commit-config.yaml` instead.
+  Direct low-level `safe-worktree-remove.py` calls remain opt-in: pass
+  `--discard-generated-artifacts` to discard the same recognized artifacts.
   The tool invokes the actual safe remover without requiring its
   pre-restage dry-run, which may false-positive for git-annex worktrees.
   Executable repository hooks block by default. After inspecting every relevant
@@ -222,11 +225,13 @@ description: Use before the first file edit or Git write in each repository for 
   remediation for that refusal; if none applies or it stops, preserve them and
   report the blocker. Never force-remove. Get explicit approval before any
   irreversible data or history loss, and stop if ownership or integration is
-  ambiguous. While they remain, report the task as incomplete, not done. To remove a worktree run
+  ambiguous. While they remain, report the task as incomplete, not done. To remove
+  a worktree directly, run
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
   --expect-branch "<exact local branch>" [--base <ref>] [--delete-branch]
   [--discard-direnv-cache] [--discard-generated-caches]
-  [--discard-generated-build-outputs] [--preserve-generated-artifacts]`,
+  [--discard-generated-build-outputs] [--discard-generated-artifacts]
+  [--preserve-generated-artifacts]`,
   where `<skill-dir>` is `~/.config/opencode/skills/git-workflow` or
   `~/.local/share/claude/skills/git-workflow` (same files). Release your own
   `main-integration.lock` first; the script takes it. It refuses unless the
@@ -244,33 +249,40 @@ description: Use before the first file edit or Git write in each repository for 
   symlink is accepted only when it resolves to the regular `cultura.db` in the
   registered `main` worktree. It unlinks only the symlink, rechecks the
   worktree, and restores the link on refusal when its path remains free; the
-  database target is never touched. A root `.direnv` path is quarantined
-  outside the worktree so it cannot block removal. Pass `--discard-direnv-cache`
-  only when the task created the cache and the helper's strict Nix-direnv
-  `use flake` layout check accepts it; it is purged only after Git confirms
-  successful removal. Unknown layouts remain quarantined and the archive path
-  is reported. By default all other ignored/untracked paths still cause
-  refusal. `--preserve-generated-artifacts` quarantines recognized cache
-  directories, root `target`/`rust/target` build directories, the root
-  `result` symlink, and the root `.pre-commit-config.yaml` only when its
-  Nix-generated file marker matches, including Nix-store symlink outputs.
-  Selected contents are retained in the private quarantine.
-  `--discard-generated-caches` is an explicit destructive opt-in for
+  database target is never touched. The standard `worktree-task finish` passes
+  `--discard-generated-artifacts` by default; direct low-level calls require
+  that flag to discard cache/build roots. A root `.direnv` path is quarantined
+  and retained by direct calls unless `--discard-direnv-cache` or
+  `--discard-generated-artifacts` is passed; it is deleted only when its strict
+  Nix-direnv `use flake` layout verifies. Unknown layouts remain quarantined and
+  the archive path is reported. By default all other ignored/untracked paths still cause
+  refusal. `--discard-generated-artifacts` selects the verified Nix-direnv
+  cache, recognized cache/build paths, the root `result` symlink, and the root
+  `.pre-commit-config.yaml` only when its Nix-generated marker matches. The
+  standard `worktree-task finish` workflow passes this option by default.
+  `--preserve-generated-artifacts` is an opt-out that quarantines and retains
+  those recognized cache/build paths and marked generated config.
+  `--discard-generated-caches` selects
   the entire contents of root `.pytest_cache`, root `.ruff_cache`, and
   `__pycache__` directories beneath the worktree. The separate
-  `--discard-generated-build-outputs` opt-in selects only root `target`,
+  `--discard-generated-build-outputs` flag selects only root `target`,
   `rust/target`, and the root `result` symlink; the symlink itself is unlinked
   and its target is never followed or removed. Names are selectors, not proof
-  of provenance; dry-run
-  lists the selected paths. The helper rejects tracked contents, unsafe path
+  of provenance: every entry beneath a selected cache/build root is discarded,
+  including hand-edited files. Do not store independent user data there; use
+  `--preserve-generated-artifacts` to retain recognized roots. Dry-run lists
+  the selected paths. The helper rejects tracked contents, unsafe path
   types, nested Git repositories, mount boundaries, and selected directories
   with open handles. It quarantines selected paths, restores them on
   pre-removal refusal without overwriting occupied paths, and purges them only
-  after Git confirms removal. Interrupted or incomplete purges remain in the
-  private quarantine with a manifest and are not retried implicitly. Inspect the
-  manifest together with `git worktree list --porcelain` and the recorded path;
-  if registration and filesystem state disagree, preserve the quarantine and
-  coordinate recovery. Neither option is ever added by `worktree-audit.py`. The
+  after Git confirms removal. Interrupted purges retain per-entry progress in
+  the private manifest. Resume them with
+  `safe-worktree-remove.py --purge-preserved-quarantine <operation-id> --repo <repo>`;
+  this verifies repository identity, saved signatures, open handles, and the
+  current main ancestry under the repository lock. Legacy `.direnv` quarantines
+  without a saved signature require the additional `--discard-unverified-direnv`
+  opt-in. Unknown or changed entries remain preserved for inspection. The
+  discard option is never added by `worktree-audit.py`. The
   caller must exclude writers that can affect the target worktree or shared
   resources for the complete inspection-to-removal interval; the script lock
   coordinates cooperating integration and cleanup operations. It copes with git-annex's `.git`

@@ -15,30 +15,30 @@ symlink itself before Git removes the worktree; it never opens or removes the
 database target. The caller must exclude all writers for the full operation;
 the script lock coordinates cooperating removals only.
 
-A root `.direnv` path is moved to a private state quarantine so it does not block
-Git removal. By default its contents are retained. `--discard-direnv-cache`
-purges only the verified Nix-direnv `use flake` cache after successful worktree
-removal; unknown layouts and unsafe purge conditions remain quarantined. The
-flag discards all files in that recognized cache, including edits.
-
-Other ignored and untracked paths refuse removal by default.
-`--preserve-generated-artifacts` quarantines recognized root `.pytest_cache`
-and `.ruff_cache` directories, `__pycache__` directories beneath the worktree,
-root `target` and `rust/target` build directories, the root `result` symlink,
-and a root `.pre-commit-config.yaml` carrying the git-hooks.nix generated-file
-marker, either as a regular file or a symlink to its marked Nix-store output.
-All selected contents and links are retained in the private state quarantine.
-The explicit `--discard-generated-caches` opt-in selects only root
-`.pytest_cache` and `.ruff_cache` directories and `__pycache__` directories
-beneath the worktree.
-`--discard-generated-build-outputs` separately selects only root `target`,
-`rust/target`, and the root `result` symlink. These flags authorize discarding all contents under
-selected directories; names do not prove provenance. Selected paths are
-quarantined and removed only after Git confirms worktree removal. Other ignored
-data remains a hard refusal.
-The manifest records cache moves, Git removal, and purge phases. Interrupted
-operations are not retried implicitly; inspect the worktree registration, path,
-and manifest together, and preserve the quarantine when their states disagree.
+The `worktree-task finish` workflow passes `--discard-generated-artifacts` by
+default. Direct low-level removal refuses recognized cache/build paths unless
+that flag is passed or `--preserve-generated-artifacts` explicitly retains
+them. A root `.direnv` path is separately quarantined by direct calls, and is
+discarded only with `--discard-direnv-cache` or `--discard-generated-artifacts`
+when its Nix-direnv `use flake` layout is verified. The generated-artifact flag
+selects root `.pytest_cache` and `.ruff_cache`, `__pycache__` directories, root
+`target` and `rust/target` build directories, the root `result` symlink, the
+verified `.direnv` cache, and a root `.pre-commit-config.yaml` carrying the
+git-hooks.nix generated-file marker. Unknown `.direnv` layouts and all other
+ignored or untracked paths remain quarantined or refuse removal. Recognized
+cache/build roots select all contents beneath them, so independent user data
+must not be stored inside those paths.
+`--preserve-generated-artifacts` opts out and quarantines recognized
+cache/build paths and the marked generated config, retaining all selected
+contents and links in the private state quarantine. The individual `--discard-*`
+options remain available for partial cleanup. Generated paths are quarantined
+first and purged only after Git confirms worktree removal.
+The manifest records cache moves, Git removal, and per-entry purge progress.
+Interrupted purges can be resumed with `--purge-preserved-quarantine` after the
+repository identity, saved signatures, open handles, and main ancestry are
+rechecked. Legacy `.direnv` transactions without a stored signature require an
+explicit `--discard-unverified-direnv` override. Changed or unrecognized
+quarantine entries remain preserved for inspection.
 
 After the final status check, the script normalizes a verified Annex `.git`
 symlink to a gitfile immediately before `git worktree remove`. Git validates
@@ -388,11 +388,11 @@ def direnv_tree_signature(root: Path) -> tuple[tuple[object, ...], ...]:
 
 def generated_cache_candidates(
     status: list[tuple[bytes, bytes]], *, caches: bool = True, build_outputs: bool = False,
-    preserve_config: bool = False,
+    include_generated_config: bool = False,
 ) -> tuple[bytes, ...]:
     candidates: set[bytes] = set()
     for _, path in status:
-        if preserve_config and path == PRECOMMIT_CONFIG_NAME.encode():
+        if include_generated_config and path == PRECOMMIT_CONFIG_NAME.encode():
             candidates.add(path)
             continue
         parts = path.rstrip(b"/").split(b"/")
@@ -600,11 +600,11 @@ def generated_cache_tree_signature(root: Path, expected_device: int) -> tuple[tu
 
 def inspect_generated_caches(
     target: Target, status: list[tuple[bytes, bytes]], *, caches: bool, build_outputs: bool,
-    preserve_config: bool = False, preserve: bool = False, discard_build_outputs: bool = False,
+    include_generated_config: bool = False, preserve: bool = False, discard_build_outputs: bool = False,
 ) -> tuple[GeneratedCacheArtifact, ...]:
     artifacts: list[GeneratedCacheArtifact] = []
     for relative_bytes in generated_cache_candidates(
-        status, caches=caches, build_outputs=build_outputs, preserve_config=preserve_config,
+        status, caches=caches, build_outputs=build_outputs, include_generated_config=include_generated_config,
     ):
         relative = os.fsdecode(relative_bytes)
         path = target.worktree / relative
@@ -906,6 +906,7 @@ def create_transaction(target: Target, head: str, plan: RemovalPlan) -> RemovalT
         "direnv": None if direnv is None else {
             "path": str(direnv.path),
             "identity": list(direnv.identity),
+            "signature": [list(entry) for entry in direnv.signature],
             "discard_requested": plan.discard_direnv_cache,
             "discardable": direnv.discardable,
             "discard_reason": direnv.discard_reason,
@@ -1379,7 +1380,8 @@ def verify_owner(target: Target, expect_branch: str) -> None:
 def verify_safe(
     target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_branch: str,
     discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
-    discard_generated_build_outputs: bool = False, preserve_generated_artifacts: bool = False,
+    discard_generated_build_outputs: bool = False, discard_generated_artifacts: bool = False,
+    preserve_generated_artifacts: bool = False,
 ) -> RemovalPlan:
     wt = target.worktree
     verify_owner(target, expect_branch)
@@ -1398,12 +1400,13 @@ def verify_safe(
     direnv_status: list[tuple[bytes, bytes]] = []
     generated_caches = (
         inspect_generated_caches(
-            target, status, caches=discard_generated_caches or preserve_generated_artifacts,
-            build_outputs=discard_generated_build_outputs or preserve_generated_artifacts,
-            preserve_config=preserve_generated_artifacts,
+            target, status,
+            caches=discard_generated_caches or discard_generated_artifacts or preserve_generated_artifacts,
+            build_outputs=discard_generated_build_outputs or discard_generated_artifacts or preserve_generated_artifacts,
+            include_generated_config=discard_generated_artifacts or preserve_generated_artifacts,
             preserve=preserve_generated_artifacts,
-            discard_build_outputs=discard_generated_build_outputs,
-        ) if discard_generated_caches or discard_generated_build_outputs or preserve_generated_artifacts else ()
+            discard_build_outputs=discard_generated_build_outputs or discard_generated_artifacts,
+        ) if discard_generated_caches or discard_generated_build_outputs or discard_generated_artifacts or preserve_generated_artifacts else ()
     )
     generated_cache_roots = tuple(os.fsencode(cache.path.relative_to(wt)) for cache in generated_caches)
     remaining: list[str] = []
@@ -1433,8 +1436,9 @@ def verify_safe(
         direnv = inspect_direnv(wt)
         if direnv is None:
             raise RemovalError("Git reports .direnv state, but the root path is missing; re-inspect the worktree")
-    discard_cache = bool(discard_direnv_cache and direnv is not None and direnv.discardable)
-    if discard_direnv_cache and direnv is not None and not direnv.discardable:
+    discard_direnv = discard_direnv_cache or discard_generated_artifacts
+    discard_cache = bool(discard_direnv and direnv is not None and direnv.discardable)
+    if discard_direnv and direnv is not None and not direnv.discardable:
         print(
             f"warning: {direnv.discard_reason}; .direnv will be preserved in quarantine",
             file=sys.stderr,
@@ -1649,6 +1653,464 @@ def transaction_cleanup(transaction: RemovalTransaction) -> None:
     fsync_directory(transaction.operation_dir.parent)
 
 
+def known_generated_artifact_path(value: object) -> bool:
+    if not isinstance(value, str) or not value or "\\" in value:
+        return False
+    parts = value.split("/")
+    if any(part in ("", ".", "..") for part in parts) or ".direnv" in parts:
+        return False
+    path = Path(value)
+    if path.is_absolute():
+        return False
+    text = path.as_posix()
+    return (
+        text in (PRECOMMIT_CONFIG_NAME, ".pytest_cache", ".ruff_cache", "target", "rust/target", "result")
+        or path.name == "__pycache__"
+    )
+
+
+def purgeable_transaction_phase(phase: object) -> bool:
+    if phase in {
+        "completed_preserved", "purging_preserved", "caches_purged",
+        "worktree_remove_started", "worktree_removed", "direnv_cache_purge_started",
+        "direnv_cache_purged",
+    }:
+        return True
+    return isinstance(phase, str) and re.fullmatch(
+        r"generated_cache_\d+_(?:move_started|quarantined|retained|purge_started|purged)", phase,
+    ) is not None
+
+
+def parse_quarantine_signature(raw: object, label: str) -> tuple[tuple[object, ...], ...]:
+    if not isinstance(raw, list):
+        raise RemovalError(f"quarantine signature is malformed: {label}")
+    signature: list[tuple[object, ...]] = []
+    for entry in raw:
+        if (
+            not isinstance(entry, list) or len(entry) != 8
+            or not isinstance(entry[0], str)
+            or entry[1] not in ("directory", "file", "symlink")
+            or any(not isinstance(value, int) or isinstance(value, bool) for value in entry[2:7])
+            or not isinstance(entry[7], str)
+        ):
+            raise RemovalError(f"quarantine signature is malformed: {label}")
+        relative = entry[0]
+        if (
+            relative != "."
+            and (relative.startswith("/") or "\\" in relative
+                 or any(part in ("", ".", "..") for part in relative.removeprefix("./").split("/")))
+        ):
+            raise RemovalError(f"quarantine signature contains an unsafe path: {label}")
+        signature.append(tuple(entry))
+    if not signature or signature[0][0] != ".":
+        raise RemovalError(f"quarantine signature has no root entry: {label}")
+    return tuple(signature)
+
+
+def signature_order(signature: tuple[tuple[object, ...], ...]) -> tuple[tuple[object, ...], ...]:
+    return tuple(sorted(signature, key=lambda entry: str(entry[0]).count("/"), reverse=True))
+
+
+def verify_signature_entry(root: Path, entry: tuple[object, ...]) -> bool:
+    relative, kind, device, inode, mode, size, mtime_ns, link_text = entry
+    path = root if relative == "." else root / str(relative)
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return False
+    if (info.st_dev, info.st_ino, info.st_mode) != (device, inode, mode):
+        return False
+    current_size = 0 if kind == "directory" else info.st_size
+    current_mtime = 0 if kind == "directory" else info.st_mtime_ns
+    if kind == "symlink":
+        current_link = os.readlink(path)
+    elif kind == "file" and link_text:
+        current_link = hashlib.sha256(path.read_bytes()).hexdigest()
+    elif kind in ("directory", "file"):
+        current_link = ""
+    else:
+        return False
+    return (current_size, current_mtime, current_link) == (size, mtime_ns, link_text)
+
+
+def verify_purge_progress(
+    root: Path, signature: tuple[tuple[object, ...], ...], record: dict[str, object],
+) -> None:
+    entries = signature_order(signature)
+    cursor = record.get("purge_cursor", 0)
+    pending = record.get("purge_pending")
+    if not isinstance(cursor, int) or isinstance(cursor, bool) or not 0 <= cursor <= len(entries):
+        raise RemovalError(f"invalid purge cursor in quarantine manifest: {root}")
+    if pending is not None and (cursor >= len(entries) or pending != entries[cursor][0]):
+        raise RemovalError(f"invalid pending purge entry in quarantine manifest: {root}")
+    for index, entry in enumerate(entries):
+        path = root if entry[0] == "." else root / str(entry[0])
+        exists = os.path.lexists(path)
+        if index < cursor:
+            if exists:
+                raise RemovalError(f"already-purged entry reappeared in quarantine: {path}")
+        elif index == cursor and pending == entry[0]:
+            if exists and not verify_signature_entry(root, entry):
+                raise RemovalError(f"pending generated artifact changed in quarantine: {path}")
+        elif not exists or not verify_signature_entry(root, entry):
+            raise RemovalError(f"generated artifact changed during an interrupted purge: {path}")
+    expected_paths = {
+        str(entry[0]) for index, entry in enumerate(entries)
+        if index >= cursor
+        and not (index == cursor and pending == entry[0] and not os.path.lexists(root if entry[0] == "." else root / str(entry[0])))
+    }
+    observed_paths = {str(entry[0]) for entry in direnv_tree_signature(root)}
+    if observed_paths != expected_paths:
+        extras = sorted(observed_paths - expected_paths)
+        missing = sorted(expected_paths - observed_paths)
+        details = []
+        if extras:
+            details.append("unrecognized entries: " + ", ".join(extras[:5]))
+        if missing:
+            details.append("missing signed entries: " + ", ".join(missing[:5]))
+        raise RemovalError(f"quarantine contents changed during an interrupted purge ({'; '.join(details)}): {root}")
+
+
+def verify_purge_root_missing(
+    signature: tuple[tuple[object, ...], ...], record: dict[str, object], label: str,
+) -> None:
+    entries = signature_order(signature)
+    if not entries or entries[-1][0] != ".":
+        raise RemovalError(f"purge signature has no final root entry: {label}")
+    cursor = record.get("purge_cursor", 0)
+    pending = record.get("purge_pending")
+    if not isinstance(cursor, int) or isinstance(cursor, bool):
+        raise RemovalError(f"invalid purge cursor for missing root: {label}")
+    root_index = len(entries) - 1
+    if not (
+        (pending == "." and cursor == root_index)
+        or (pending is None and cursor == len(entries))
+    ):
+        raise RemovalError(f"quarantine root disappeared before its signed purge step: {label}")
+
+
+def purge_signature_tree(
+    root: Path, signature: tuple[tuple[object, ...], ...], record: dict[str, object],
+    transaction: RemovalTransaction,
+) -> str | None:
+    entries = signature_order(signature)
+    open_paths = tuple(
+        root if entry[0] == "." else root / str(entry[0])
+        for entry in entries if entry[1] != "symlink"
+    )
+    open_pids = lsof_open_paths(open_paths) if open_paths else set()
+    if open_pids is None:
+        return f"could not verify open handles to generated artifact: {root}"
+    if open_pids:
+        return f"processes still have generated artifact paths open (pids: {', '.join(sorted(open_pids))}): {root}"
+    cursor = record.get("purge_cursor", 0)
+    pending = record.get("purge_pending")
+    if not isinstance(cursor, int) or isinstance(cursor, bool) or not 0 <= cursor <= len(entries):
+        return f"invalid purge cursor for {root}"
+    if pending is not None and (cursor >= len(entries) or pending != entries[cursor][0]):
+        return f"invalid pending purge entry for {root}"
+    for index in range(cursor, len(entries)):
+        relative, kind = entries[index][0], entries[index][1]
+        path = root if relative == "." else root / str(relative)
+        if index == cursor and pending == relative and not os.path.lexists(path):
+            record["purge_cursor"] = index + 1
+            record.pop("purge_pending", None)
+            write_manifest(transaction, "purging_preserved")
+            continue
+        if not verify_signature_entry(root, entries[index]):
+            return f"generated artifact changed or a purge entry disappeared: {path}"
+        record["purge_state"] = "purging"
+        record["purge_cursor"] = index
+        record["purge_pending"] = relative
+        write_manifest(transaction, "purging_preserved")
+        try:
+            if kind == "directory":
+                path.rmdir()
+            elif kind in ("file", "symlink"):
+                path.unlink()
+            else:
+                return f"unsupported entry in generated artifact: {path}"
+            fsync_directory(path.parent)
+        except OSError as error:
+            record["purge_warning"] = f"could not purge {path}: {error}"
+            write_manifest(transaction, "purging_preserved")
+            return str(record["purge_warning"])
+        record["purge_cursor"] = index + 1
+        record.pop("purge_pending", None)
+        record.pop("purge_warning", None)
+        write_manifest(transaction, "purging_preserved")
+    record["purge_state"] = "purged"
+    for key in ("purge_cursor", "purge_pending", "purge_warning"):
+        record.pop(key, None)
+    write_manifest(transaction, "purging_preserved")
+    return None
+
+
+def load_preserved_transaction(
+    repo_arg: str, operation_id: str, *, discard_unverified_direnv: bool = False,
+) -> tuple[Path, RemovalTransaction, list[tuple[int, GeneratedCacheArtifact | None]], DirenvArtifact | None]:
+    if not re.fullmatch(r"[0-9a-f]{32}", operation_id):
+        raise RemovalError("quarantine operation ID must be 32 lowercase hexadecimal characters")
+    repo = Path(git_out(Path(repo_arg).expanduser().resolve(), "rev-parse", "--show-toplevel")).resolve()
+    entries = list_worktrees(repo)
+    main = registered_main_worktree(entries)
+    if main is None:
+        raise RemovalError("repository does not have exactly one registered main worktree")
+    common = Path(git_out(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")).resolve()
+    state_home = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))).expanduser()
+    if not state_home.is_absolute():
+        raise RemovalError("XDG_STATE_HOME must be absolute for quarantine cleanup")
+    root = state_home / main.name / "worktrees" / ".removal-quarantine"
+    operation = root / operation_id
+    if not os.path.lexists(root) or not os.path.lexists(operation):
+        raise RemovalError(f"preserved quarantine transaction not found: {operation}")
+    root_info, operation_info = root.lstat(), operation.lstat()
+    if (
+        not stat.S_ISDIR(root_info.st_mode) or stat.S_ISLNK(root_info.st_mode)
+        or root_info.st_uid != os.getuid() or root_info.st_mode & 0o077
+    ):
+        raise RemovalError(f"quarantine root is not a private directory owned by the current user: {root}")
+    if (
+        not stat.S_ISDIR(operation_info.st_mode) or stat.S_ISLNK(operation_info.st_mode)
+        or operation_info.st_uid != os.getuid() or operation_info.st_mode & 0o077
+        or operation_info.st_dev != root_info.st_dev
+    ):
+        raise RemovalError(f"quarantine operation is not a private directory on the expected filesystem: {operation}")
+    manifest_path = operation / "manifest.json"
+    manifest_info = manifest_path.lstat()
+    if (
+        not stat.S_ISREG(manifest_info.st_mode) or stat.S_ISLNK(manifest_info.st_mode)
+        or manifest_info.st_uid != os.getuid() or manifest_info.st_mode & 0o077
+    ):
+        raise RemovalError(f"quarantine manifest is not a regular file owned by the current user: {manifest_path}")
+    if manifest_info.st_size > 64 * 1024 * 1024:
+        raise RemovalError(f"quarantine manifest exceeds the size limit: {manifest_path}")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RemovalError(f"cannot read quarantine manifest {manifest_path}: {error}") from error
+    if (
+        manifest.get("schema_version") != 1
+        or manifest.get("operation_id") != operation_id
+        or manifest.get("common_dir") != str(common)
+        or not purgeable_transaction_phase(manifest.get("phase"))
+    ):
+        raise RemovalError(f"quarantine manifest is not a completed preserved transaction for this repository: {manifest_path}")
+    worktree = Path(str(manifest.get("worktree", ""))).expanduser()
+    if not worktree.is_absolute() or os.path.lexists(worktree):
+        raise RemovalError(f"original worktree still exists or its path is invalid: {worktree}")
+    if any(entry["path"] == worktree.resolve(strict=False) for entry in entries):
+        raise RemovalError(f"original worktree is still registered: {worktree}")
+    head = manifest.get("head")
+    if not isinstance(head, str) or not re.fullmatch(r"[0-9a-f]{40,64}", head):
+        raise RemovalError("quarantine manifest has no valid HEAD object ID")
+    if run_git(main, "merge-base", "--is-ancestor", head, "main").returncode != 0:
+        raise RemovalError("original worktree HEAD is not contained in the current main branch")
+    branch_ref = manifest.get("branch_ref")
+    if branch_ref is not None and (not isinstance(branch_ref, str) or not branch_ref.startswith("refs/heads/")):
+        raise RemovalError("quarantine manifest has an invalid local branch ref")
+    if isinstance(branch_ref, str):
+        branch = run_git(main, "rev-parse", "--verify", branch_ref)
+        if branch.returncode == 0 and branch.stdout.strip() != head:
+            raise RemovalError(f"original worktree branch moved after removal: {branch_ref}")
+
+    transaction = RemovalTransaction(operation, manifest_path, manifest)
+    records = manifest.get("generated_caches")
+    if not isinstance(records, list):
+        raise RemovalError("quarantine manifest has an invalid generated-cache list")
+    expected_entries = {"manifest.json"}
+    artifacts: list[tuple[int, GeneratedCacheArtifact | None]] = []
+    for index, record in enumerate(records):
+        if not isinstance(record, dict) or not known_generated_artifact_path(record.get("path")):
+            raise RemovalError("quarantine manifest contains an unrecognized generated-artifact path")
+        cache_record = generated_cache_record(transaction, index)
+        archive = Path(str(cache_record["quarantine_path"]))
+        state = cache_record.get("purge_state")
+        if state == "purged":
+            if os.path.lexists(archive):
+                raise RemovalError(f"manifest marks an artifact purged but its quarantine path remains: {archive}")
+            continue
+        if state not in (None, "planned", "move_started", "quarantined", "started", "retained", "preserved", "purging"):
+            raise RemovalError(f"generated artifact is not a retained quarantine entry: {archive}")
+        identity = cache_record.get("identity")
+        raw_signature = cache_record.get("signature")
+        if (
+            not isinstance(identity, list) or len(identity) != 2
+            or any(not isinstance(value, int) or isinstance(value, bool) for value in identity)
+            or not isinstance(raw_signature, list)
+        ):
+            raise RemovalError(f"generated artifact identity/signature is malformed: {archive}")
+        signature = parse_quarantine_signature(raw_signature, str(archive))
+        root_entry = next((entry for entry in signature if entry[0] == "."), None)
+        if root_entry is None or (root_entry[2], root_entry[3]) != tuple(identity):
+            raise RemovalError(f"generated artifact root identity disagrees with its signature: {archive}")
+        if not os.path.lexists(archive):
+            if state == "purging":
+                verify_purge_root_missing(signature, cache_record, str(archive))
+                artifacts.append((index, None))
+                continue
+            raise RemovalError(f"retained generated artifact is missing: {archive}")
+        artifact_info = archive.lstat()
+        if (artifact_info.st_dev, artifact_info.st_ino) != tuple(identity):
+            raise RemovalError(f"generated artifact identity changed in quarantine: {archive}")
+        if state == "purging":
+            verify_purge_progress(archive, signature, cache_record)
+        elif generated_cache_tree_signature(archive, int(identity[0])) != signature:
+            raise RemovalError(f"generated artifact contents changed in quarantine: {archive}")
+        open_pids = generated_cache_open_pids(archive, signature)
+        if open_pids is None or open_pids:
+            detail = "could not inspect open handles" if open_pids is None else f"open by pids {', '.join(sorted(open_pids))}"
+            raise RemovalError(f"generated artifact cannot be purged while {detail}: {archive}")
+        expected_entries.add(archive.name)
+        artifacts.append((index, GeneratedCacheArtifact(
+            archive, worktree, (int(identity[0]), int(identity[1])), signature, False,
+        )))
+
+    direnv_record = manifest.get("direnv")
+    direnv: DirenvArtifact | None = None
+    if direnv_record is not None:
+        if not isinstance(direnv_record, dict):
+            raise RemovalError("quarantine manifest has an invalid .direnv record")
+        archive = operation / DIR_ENV_NAME
+        if direnv_record.get("quarantine_path") != str(archive):
+            raise RemovalError(".direnv quarantine path in manifest is invalid")
+        state = direnv_record.get("purge_state")
+        if state == "purged":
+            if os.path.lexists(archive):
+                raise RemovalError(f"manifest marks .direnv purged but its quarantine path remains: {archive}")
+        elif state == "purging" and not os.path.lexists(archive):
+            identity = direnv_record.get("identity")
+            signature = parse_quarantine_signature(direnv_record.get("signature"), str(archive))
+            root_entry = next((entry for entry in signature if entry[0] == "."), None)
+            if (
+                not isinstance(identity, list) or len(identity) != 2
+                or any(not isinstance(value, int) or isinstance(value, bool) for value in identity)
+                or root_entry is None or (root_entry[2], root_entry[3]) != tuple(identity)
+            ):
+                raise RemovalError(f".direnv root identity disagrees with its signature: {archive}")
+            verify_purge_root_missing(signature, direnv_record, str(archive))
+            expected_entries.discard(DIR_ENV_NAME)
+        else:
+            if state not in (None, "started", "retained", "preserved", "purging") or not direnv_record.get("discardable"):
+                raise RemovalError("quarantined .direnv is not a verified disposable Nix-direnv cache")
+            identity = direnv_record.get("identity")
+            if (
+                not isinstance(identity, list) or len(identity) != 2
+                or any(not isinstance(value, int) or isinstance(value, bool) for value in identity)
+                or not os.path.lexists(archive)
+            ):
+                raise RemovalError(f"verified .direnv quarantine is missing or malformed: {archive}")
+            info = archive.lstat()
+            if (info.st_dev, info.st_ino) != tuple(identity):
+                raise RemovalError(f".direnv identity changed in quarantine: {archive}")
+            raw_signature = direnv_record.get("signature")
+            if state == "purging":
+                signature = parse_quarantine_signature(raw_signature, str(archive))
+                verify_purge_progress(archive, signature, direnv_record)
+            else:
+                observed_signature = nix_direnv_cache_signature(archive)
+                if observed_signature is None:
+                    raise RemovalError(f".direnv no longer matches the verified Nix-direnv layout: {archive}")
+                if raw_signature is None:
+                    if not discard_unverified_direnv:
+                        raise RemovalError(
+                            "preserved .direnv has no saved content signature; explicit "
+                            "--discard-unverified-direnv is required for this legacy transaction"
+                        )
+                    signature = observed_signature
+                else:
+                    signature = parse_quarantine_signature(raw_signature, str(archive))
+                    if observed_signature != signature:
+                        raise RemovalError(f".direnv content changed since quarantine: {archive}")
+            open_paths = tuple(
+                archive / str(entry[0]) if entry[0] != "." else archive
+                for entry in signature if entry[1] in ("directory", "file")
+            )
+            open_pids = lsof_open_paths(open_paths)
+            if open_pids is None or open_pids:
+                detail = "could not inspect open handles" if open_pids is None else f"open by pids {', '.join(sorted(open_pids))}"
+                raise RemovalError(f".direnv cannot be purged while {detail}: {archive}")
+            direnv = DirenvArtifact(archive, (int(identity[0]), int(identity[1])), signature, True, None)
+            expected_entries.add(DIR_ENV_NAME)
+
+    unexpected = sorted(entry.name for entry in operation.iterdir() if entry.name not in expected_entries)
+    if unexpected:
+        raise RemovalError("quarantine contains unrecognized entries; preserving it: " + ", ".join(unexpected[:10]))
+    return common, transaction, artifacts, direnv
+
+
+def purge_preserved_quarantine(
+    repo_arg: str, operation_id: str, *, dry_run: bool, lock_name: str,
+    discard_unverified_direnv: bool = False,
+) -> None:
+    common, transaction, artifacts, direnv = load_preserved_transaction(
+        repo_arg, operation_id, discard_unverified_direnv=discard_unverified_direnv,
+    )
+    direnv_record = transaction.manifest.get("direnv")
+    paths = ([".direnv"] if isinstance(direnv_record, dict) and direnv_record.get("purge_state") != "purged" else []) + [
+        str(transaction.manifest["generated_caches"][index]["path"])  # type: ignore[index]
+        for index, _ in artifacts
+    ]
+    if dry_run:
+        print(f"dry-run ok: would purge preserved generated artifacts from {transaction.operation_dir}: {', '.join(paths) or 'none'}")
+        return
+    with exclusive_lock(common, lock_name):
+        common, transaction, artifacts, direnv = load_preserved_transaction(
+            repo_arg, operation_id, discard_unverified_direnv=discard_unverified_direnv,
+        )
+        direnv_record = transaction.manifest.get("direnv")
+        if isinstance(direnv_record, dict) and direnv_record.get("purge_state") == "purging" and direnv is None:
+            direnv_record["purge_state"] = "purged"
+            direnv_record.pop("purge_cursor", None)
+            direnv_record.pop("purge_pending", None)
+            direnv_record.pop("purge_warning", None)
+            write_manifest(transaction, "purging_preserved")
+        elif direnv is not None:
+            record = transaction.manifest["direnv"]
+            assert isinstance(record, dict)
+            record["purge_state"] = "purging"
+            record.setdefault("signature", [list(entry) for entry in direnv.signature])
+            write_manifest(transaction, "purging_preserved")
+            reason = purge_signature_tree(direnv.path, direnv.signature, record, transaction)
+            if reason is not None:
+                record["purge_warning"] = reason
+                write_manifest(transaction, "purging_preserved")
+                raise RemovalError(f"preserved .direnv remains in quarantine: {reason}")
+            record["purge_state"] = "purged"
+            record.pop("purge_cursor", None)
+            record.pop("purge_pending", None)
+            record.pop("purge_warning", None)
+            write_manifest(transaction, "purging_preserved")
+
+        records = transaction.manifest["generated_caches"]
+        assert isinstance(records, list)
+        for index, artifact in artifacts:
+            record = records[index]
+            assert isinstance(record, dict)
+            if artifact is None:
+                record["purge_state"] = "purged"
+                record.pop("purge_cursor", None)
+                record.pop("purge_pending", None)
+                record.pop("purge_warning", None)
+                write_manifest(transaction, "purging_preserved")
+                continue
+            record["purge_state"] = "purging"
+            write_manifest(transaction, "purging_preserved")
+            reason = purge_signature_tree(artifact.path, artifact.signature, record, transaction)
+            if reason is not None:
+                record["purge_warning"] = reason
+                write_manifest(transaction, "purging_preserved")
+                raise RemovalError(f"preserved generated artifact remains in quarantine: {reason}")
+            record["purge_state"] = "purged"
+            record.pop("purge_cursor", None)
+            record.pop("purge_pending", None)
+            record.pop("purge_warning", None)
+            write_manifest(transaction, "purging_preserved")
+        write_manifest(transaction, "caches_purged")
+        transaction_cleanup(transaction)
+    print(f"purged preserved generated artifacts from {transaction.operation_dir}: {', '.join(paths) or 'none'}")
+
+
 def show_status_entries(entries: list[tuple[bytes, bytes]]) -> str:
     return "\n  ".join(status_description(status, path) for status, path in entries[:10])
 
@@ -1678,7 +2140,8 @@ def delete_branch(target: Target, head: str, base_oid: str) -> None:
 def remove(
     worktree_arg: str, base: str, *, delete_branch_too: bool, lock_name: str, allow_unreferenced_reflog: bool,
     expect_branch: str, discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
-    discard_generated_build_outputs: bool = False, preserve_generated_artifacts: bool = False,
+    discard_generated_build_outputs: bool = False, discard_generated_artifacts: bool = False,
+    preserve_generated_artifacts: bool = False,
 ) -> RemovalOutcome:
     worktree, common_dir = locate(worktree_arg)
     with exclusive_lock(common_dir, lock_name):
@@ -1697,6 +2160,7 @@ def remove(
             target, base, allow_unreferenced_reflog=allow_unreferenced_reflog, expect_branch=expect_branch,
             discard_direnv_cache=discard_direnv_cache, discard_generated_caches=discard_generated_caches,
             discard_generated_build_outputs=discard_generated_build_outputs,
+            discard_generated_artifacts=discard_generated_artifacts,
             preserve_generated_artifacts=preserve_generated_artifacts,
         )
         base_oid = resolve_base(target, base)
@@ -1822,15 +2286,36 @@ def remove(
                 archive = Path(str(direnv_record["quarantine_path"]))
                 if plan.discard_direnv_cache:
                     write_post_removal_manifest(transaction, "direnv_cache_purge_started")
-                    reason = purge_direnv_cache(archive, plan.direnv.signature)
+                    direnv_record["purge_state"] = "purging"
+                    direnv_record["signature"] = [list(entry) for entry in plan.direnv.signature]
+                    write_post_removal_manifest(transaction, "direnv_cache_purge_started")
+                    reason = purge_signature_tree(archive, plan.direnv.signature, direnv_record, transaction)
                     if reason is None:
                         discarded_direnv = True
                         direnv_record["purge_state"] = "purged"
+                        direnv_record.pop("purge_cursor", None)
+                        direnv_record.pop("purge_pending", None)
+                        direnv_record.pop("purge_warning", None)
                         write_post_removal_manifest(transaction, "direnv_cache_purged")
+                    elif not os.path.lexists(archive):
+                        try:
+                            verify_purge_root_missing(plan.direnv.signature, direnv_record, str(archive))
+                        except RemovalError as error:
+                            reason = f"{reason}; root disappearance did not match the purge journal ({error})"
+                            preserved_direnv = archive
+                            direnv_record["purge_warning"] = reason
+                            preservation_reasons.append(reason)
+                            print(f"warning: {reason}; inspect transaction {transaction.manifest_path}", file=sys.stderr)
+                        else:
+                            discarded_direnv = True
+                            direnv_record["purge_state"] = "purged"
+                            direnv_record.pop("purge_cursor", None)
+                            direnv_record.pop("purge_pending", None)
+                            direnv_record.pop("purge_warning", None)
+                            write_post_removal_manifest(transaction, "direnv_cache_purged")
                     else:
                         preserved_direnv = archive
-                        direnv_record["purge_state"] = "preserved"
-                        direnv_record["preserve_reason"] = reason
+                        direnv_record["purge_warning"] = reason
                         preservation_reasons.append(reason)
                         print(f"warning: {reason}; preserved at {archive}", file=sys.stderr)
                 else:
@@ -1847,23 +2332,37 @@ def remove(
                     preservation_reasons.append(str(cache.path.relative_to(target.worktree)))
                     write_post_removal_manifest(transaction, f"generated_cache_{index}_retained")
                     continue
-                cache_record["purge_state"] = "started"
+                cache_record["purge_state"] = "purging"
                 write_post_removal_manifest(transaction, f"generated_cache_{index}_purge_started")
                 try:
-                    reason = purge_generated_cache(archive, cache.signature, cache.identity[0])
+                    reason = purge_signature_tree(archive, cache.signature, cache_record, transaction)
                 except (OSError, RemovalError) as error:
                     reason = f"could not purge generated cache ({error}); preserved in quarantine"
-                if reason is None or not os.path.lexists(archive):
+                if reason is None:
                     cache_record["purge_state"] = "purged" if reason is None else "purged_with_warning"
+                    cache_record.pop("purge_cursor", None)
+                    cache_record.pop("purge_pending", None)
+                    cache_record.pop("purge_warning", None)
                     discarded_generated_caches.append(str(cache.path.relative_to(target.worktree)))
-                    if reason is not None:
+                    write_post_removal_manifest(transaction, f"generated_cache_{index}_purged")
+                elif not os.path.lexists(archive):
+                    try:
+                        verify_purge_root_missing(cache.signature, cache_record, str(archive))
+                    except RemovalError as error:
+                        reason = f"{reason}; root disappearance did not match the purge journal ({error})"
                         cache_record["purge_warning"] = reason
+                        preserved_generated_caches.append(archive)
                         preservation_reasons.append(reason)
                         print(f"warning: {reason}; inspect transaction {transaction.manifest_path}", file=sys.stderr)
-                    write_post_removal_manifest(transaction, f"generated_cache_{index}_purged")
+                    else:
+                        cache_record["purge_state"] = "purged"
+                        cache_record.pop("purge_cursor", None)
+                        cache_record.pop("purge_pending", None)
+                        cache_record.pop("purge_warning", None)
+                        discarded_generated_caches.append(str(cache.path.relative_to(target.worktree)))
+                        write_post_removal_manifest(transaction, f"generated_cache_{index}_purged")
                 else:
-                    cache_record["purge_state"] = "preserved"
-                    cache_record["preserve_reason"] = reason
+                    cache_record["purge_warning"] = reason
                     preserved_generated_caches.append(archive)
                     preservation_reasons.append(reason)
                     print(f"warning: {reason}; preserved at {archive}", file=sys.stderr)
@@ -1893,7 +2392,13 @@ def remove(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Safely remove a linked Git worktree (git-annex aware).")
-    parser.add_argument("worktree", help="path of the linked worktree to remove")
+    parser.add_argument("worktree", nargs="?", help="path of the linked worktree to remove")
+    parser.add_argument("--repo", help="repository containing a preserved quarantine transaction")
+    parser.add_argument("--purge-preserved-quarantine", metavar="OPERATION_ID", help="purge one completed preserved transaction by its exact 32-hex ID")
+    parser.add_argument(
+        "--discard-unverified-direnv", action="store_true",
+        help="allow purging a legacy preserved .direnv cache without its original content signature",
+    )
     parser.add_argument("--base", default="main", help="ref that must already contain HEAD (default: main)")
     parser.add_argument("--delete-branch", action="store_true", help="also delete the worktree's branch when it is fully contained in --base")
     parser.add_argument("--allow-unreferenced-reflog", action="store_true", help="accept commits that only this worktree's HEAD reflog references")
@@ -1912,6 +2417,10 @@ def main(argv: list[str] | None = None) -> int:
         help="discard only rust/target and unlink the root result symlink after successful removal",
     )
     parser.add_argument(
+        "--discard-generated-artifacts", action="store_true",
+        help="discard all recognized generated artifacts after successful removal",
+    )
+    parser.add_argument(
         "--preserve-generated-artifacts", action="store_true",
         help="quarantine and retain recognized caches and a marked git-hooks.nix config",
     )
@@ -1919,10 +2428,31 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--lock-name", default=DEFAULT_LOCK_NAME, help="lock directory created under the common git dir")
     args = parser.parse_args(argv)
     try:
+        if args.purge_preserved_quarantine is not None:
+            if args.worktree is not None or args.repo is None:
+                raise RemovalError("--purge-preserved-quarantine requires --repo and must not be combined with a worktree path")
+            if any((
+                args.expect_owner, args.expect_branch, args.delete_branch, args.discard_direnv_cache,
+                args.discard_generated_caches, args.discard_generated_build_outputs,
+                args.discard_generated_artifacts, args.preserve_generated_artifacts,
+                args.allow_unreferenced_reflog,
+            )):
+                raise RemovalError("quarantine purge mode cannot be combined with worktree-removal options")
+            purge_preserved_quarantine(
+                args.repo, args.purge_preserved_quarantine, dry_run=args.dry_run,
+                lock_name=args.lock_name, discard_unverified_direnv=args.discard_unverified_direnv,
+            )
+            return 0
+        if args.worktree is None or args.repo is not None:
+            raise RemovalError("worktree removal requires a worktree path and does not accept --repo")
+        if args.discard_unverified_direnv:
+            raise RemovalError("--discard-unverified-direnv is only valid with --purge-preserved-quarantine")
         if args.expect_owner is not None:
             raise RemovalError("--expect-owner is obsolete; use --expect-branch; session ownership is read from the current client environment")
         if not args.expect_branch:
             raise RemovalError("--expect-branch is required; session ownership is read from the current client environment")
+        if args.discard_generated_artifacts and args.preserve_generated_artifacts:
+            raise RemovalError("--discard-generated-artifacts cannot be combined with --preserve-generated-artifacts")
         if args.discard_generated_caches and args.preserve_generated_artifacts:
             raise RemovalError("--discard-generated-caches cannot be combined with --preserve-generated-artifacts")
         if args.dry_run:
@@ -1937,6 +2467,7 @@ def main(argv: list[str] | None = None) -> int:
                 expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
                 discard_generated_caches=args.discard_generated_caches,
                 discard_generated_build_outputs=args.discard_generated_build_outputs,
+                discard_generated_artifacts=args.discard_generated_artifacts,
                 preserve_generated_artifacts=args.preserve_generated_artifacts,
             )
             kind = f"symlink -> {target.symlink_target}" if target.symlink_target else "gitfile"
@@ -1966,6 +2497,7 @@ def main(argv: list[str] | None = None) -> int:
             expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
             discard_generated_caches=args.discard_generated_caches,
             discard_generated_build_outputs=args.discard_generated_build_outputs,
+            discard_generated_artifacts=args.discard_generated_artifacts,
             preserve_generated_artifacts=args.preserve_generated_artifacts,
         )
     except RemovalError as error:

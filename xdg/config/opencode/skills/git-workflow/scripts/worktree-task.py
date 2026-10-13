@@ -576,6 +576,8 @@ def safe_remove(repo: Path, worktree: Path, branch: str, args: argparse.Namespac
     command = [sys.executable, str(REMOVE_HELPER), str(worktree), "--expect-branch", branch, "--base", MAIN_BRANCH]
     if delete_branch:
         command.append("--delete-branch")
+    if not args.preserve_generated_artifacts:
+        command.append("--discard-generated-artifacts")
     for name in (
         "discard_direnv_cache", "discard_generated_caches", "discard_generated_build_outputs",
         "preserve_generated_artifacts",
