@@ -24,14 +24,15 @@ flag discards all files in that recognized cache, including edits.
 Other ignored and untracked paths refuse removal by default.
 `--preserve-generated-artifacts` quarantines recognized root `.pytest_cache`
 and `.ruff_cache` directories, `__pycache__` directories beneath the worktree,
+root `target` and `rust/target` build directories, the root `result` symlink,
 and a root `.pre-commit-config.yaml` carrying the git-hooks.nix generated-file
 marker, either as a regular file or a symlink to its marked Nix-store output.
 All selected contents and links are retained in the private state quarantine.
 The explicit `--discard-generated-caches` opt-in selects only root
 `.pytest_cache` and `.ruff_cache` directories and `__pycache__` directories
 beneath the worktree.
-`--discard-generated-build-outputs` separately selects only `rust/target` and
-the root `result` symlink. These flags authorize discarding all contents under
+`--discard-generated-build-outputs` separately selects only root `target`,
+`rust/target`, and the root `result` symlink. These flags authorize discarding all contents under
 selected directories; names do not prove provenance. Selected paths are
 quarantined and removed only after Git confirms worktree removal. Other ignored
 data remains a hard refusal.
@@ -400,8 +401,12 @@ def generated_cache_candidates(
         if caches and parts[0] in (b".pytest_cache", b".ruff_cache"):
             candidates.add(parts[0])
             continue
-        if build_outputs and (parts[0] == b"result" or parts[:2] == [b"rust", b"target"]):
-            candidates.add(b"result" if parts[0] == b"result" else b"rust/target")
+        if build_outputs and (
+            parts[0] == b"result" or parts[0] == b"target" or parts[:2] == [b"rust", b"target"]
+        ):
+            candidates.add(
+                b"result" if parts[0] == b"result" else b"target" if parts[0] == b"target" else b"rust/target"
+            )
             continue
         if not caches:
             continue
@@ -430,7 +435,7 @@ def generated_cache_signature(root: Path, worktree: Path) -> tuple[tuple[object,
         raise RemovalError(f"worktree root is not a real directory: {worktree}")
     relative_text = str(relative)
     result_link = relative_text == "result"
-    if not (result_link or relative_text in (".pytest_cache", ".ruff_cache", "rust/target")
+    if not (result_link or relative_text in (".pytest_cache", ".ruff_cache", "target", "rust/target")
             or relative_text == PRECOMMIT_CONFIG_NAME or relative.parts[-1] == "__pycache__"):
         raise RemovalError(f"unrecognized generated artifact path: {root}")
 
@@ -595,7 +600,7 @@ def generated_cache_tree_signature(root: Path, expected_device: int) -> tuple[tu
 
 def inspect_generated_caches(
     target: Target, status: list[tuple[bytes, bytes]], *, caches: bool, build_outputs: bool,
-    preserve_config: bool = False, preserve: bool = False,
+    preserve_config: bool = False, preserve: bool = False, discard_build_outputs: bool = False,
 ) -> tuple[GeneratedCacheArtifact, ...]:
     artifacts: list[GeneratedCacheArtifact] = []
     for relative_bytes in generated_cache_candidates(
@@ -619,9 +624,10 @@ def inspect_generated_caches(
         if not any(entry[0] == "." for entry in signature):
             raise RemovalError(f"generated cache disappeared during inspection: {path}")
         root = next(entry for entry in signature if entry[0] == ".")
+        is_build_output = relative_bytes in (b"result", b"target", b"rust/target")
         artifacts.append(GeneratedCacheArtifact(
             path, target.worktree, (int(root[2]), int(root[3])), signature,
-            preserve and relative_bytes not in (b"result", b"rust/target"),
+            preserve and not (discard_build_outputs and is_build_output),
         ))
 
     paths = tuple(
@@ -1393,9 +1399,10 @@ def verify_safe(
     generated_caches = (
         inspect_generated_caches(
             target, status, caches=discard_generated_caches or preserve_generated_artifacts,
-            build_outputs=discard_generated_build_outputs,
+            build_outputs=discard_generated_build_outputs or preserve_generated_artifacts,
             preserve_config=preserve_generated_artifacts,
             preserve=preserve_generated_artifacts,
+            discard_build_outputs=discard_generated_build_outputs,
         ) if discard_generated_caches or discard_generated_build_outputs or preserve_generated_artifacts else ()
     )
     generated_cache_roots = tuple(os.fsencode(cache.path.relative_to(wt)) for cache in generated_caches)

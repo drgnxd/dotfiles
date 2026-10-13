@@ -134,7 +134,7 @@ def add_generated_cache_ignores(main: Path) -> None:
 
 
 def add_generated_build_output_ignores(main: Path) -> None:
-    (main / ".gitignore").write_text("rust/target/\nresult\n")
+    (main / ".gitignore").write_text("target/\nrust/target/\nresult\n")
     git(main, "add", ".gitignore")
     git(main, "commit", "--quiet", "-m", "ignore generated build outputs")
 
@@ -532,12 +532,31 @@ def test_generated_cache_flag_is_opt_in(repo: Path) -> None:
     assert all(path.read_bytes() == b"generated cache" for path in cache_files)
 
 
+def test_generated_cache_flag_does_not_select_root_build_output(repo: Path) -> None:
+    (repo / ".gitignore").write_text("target/\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore root build output")
+    wt = make_worktree(repo, "wt-cache-does-not-select-target")
+    target_file = wt / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_text("keep build output")
+
+    result = run(str(wt), "--discard-generated-caches")
+
+    assert result.returncode == 1 and "not clean" in result.stderr
+    assert_untouched(wt)
+    assert target_file.read_text() == "keep build output"
+
+
 def test_generated_build_output_flag_is_opt_in(repo: Path, tmp_path: Path) -> None:
     add_generated_build_output_ignores(repo)
     wt = make_worktree(repo, "wt-build-output-default")
     target_file = wt / "rust" / "target" / "debug" / "artifact"
     target_file.parent.mkdir(parents=True)
     target_file.write_text("build output")
+    root_target_file = wt / "target" / "debug" / "artifact"
+    root_target_file.parent.mkdir(parents=True)
+    root_target_file.write_text("root build output")
     result_target = tmp_path / "nix-result"
     result_target.mkdir()
     (result_target / "output").write_text("keep target")
@@ -549,6 +568,7 @@ def test_generated_build_output_flag_is_opt_in(repo: Path, tmp_path: Path) -> No
     assert result.returncode == 1 and "not clean" in result.stderr
     assert_untouched(wt)
     assert target_file.read_text() == "build output"
+    assert root_target_file.read_text() == "root build output"
     assert result_link.is_symlink() and (result_target / "output").read_text() == "keep target"
 
 
@@ -558,6 +578,9 @@ def test_discards_only_selected_generated_build_outputs(repo: Path, tmp_path: Pa
     target_file = wt / "rust" / "target" / "debug" / "artifact"
     target_file.parent.mkdir(parents=True)
     target_file.write_text("build output")
+    root_target_file = wt / "target" / "debug" / "artifact"
+    root_target_file.parent.mkdir(parents=True)
+    root_target_file.write_text("root build output")
     result_target = tmp_path / "nix-result"
     result_target.mkdir()
     (result_target / "output").write_text("keep target")
@@ -566,7 +589,7 @@ def test_discards_only_selected_generated_build_outputs(repo: Path, tmp_path: Pa
 
     dry_run = run(str(wt), "--discard-generated-build-outputs", "--dry-run")
     assert dry_run.returncode == 0, dry_run.stderr
-    assert "generated artifact paths would be discarded: result, rust/target" in dry_run.stdout
+    assert "generated artifact paths would be discarded: result, target, rust/target" in dry_run.stdout
     assert target_file.read_text() == "build output"
     assert result_link.is_symlink() and (result_target / "output").read_text() == "keep target"
 
@@ -574,11 +597,85 @@ def test_discards_only_selected_generated_build_outputs(repo: Path, tmp_path: Pa
 
     assert result.returncode == 0, result.stderr
     assert not wt.exists()
-    assert "discarded generated artifact paths: result, rust/target" in result.stdout
+    assert "discarded generated artifact paths: result, target, rust/target" in result.stdout
     assert (result_target / "output").read_text() == "keep target"
     assert "task/wt-build-output-discard" not in git(repo, "branch", "--list")
     quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
     assert list(quarantine.iterdir()) == []
+
+
+def test_preserves_generated_build_outputs_with_generated_artifacts(repo: Path, tmp_path: Path) -> None:
+    add_generated_build_output_ignores(repo)
+    wt = make_worktree(repo, "wt-preserve-build-outputs")
+    target_file = wt / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_bytes(b"preserved root build output")
+    rust_target_file = wt / "rust" / "target" / "debug" / "artifact"
+    rust_target_file.parent.mkdir(parents=True)
+    rust_target_file.write_bytes(b"preserved nested build output")
+    result_target = tmp_path / "nix-result"
+    result_target.mkdir()
+    (result_target / "output").write_bytes(b"external result target")
+    result_link = wt / "result"
+    result_link.symlink_to(result_target)
+
+    result = run(str(wt), "--preserve-generated-artifacts")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    transaction = next(quarantine.iterdir())
+    manifest = json.loads((transaction / "manifest.json").read_text())
+    records = {item["path"]: item for item in manifest["generated_caches"]}
+    assert (Path(records["target"]["quarantine_path"]) / "debug" / "artifact").read_bytes() == b"preserved root build output"
+    assert (Path(records["rust/target"]["quarantine_path"]) / "debug" / "artifact").read_bytes() == b"preserved nested build output"
+    archived_result = Path(records["result"]["quarantine_path"])
+    assert archived_result.is_symlink()
+    assert os.readlink(archived_result) == os.fspath(result_target)
+    assert (result_target / "output").read_bytes() == b"external result target"
+    assert all(record["purge_state"] == "retained" for record in records.values())
+    assert manifest["phase"] == "completed_preserved"
+
+
+def test_preserve_caches_can_discard_only_explicitly_selected_build_outputs(
+    repo: Path, tmp_path: Path,
+) -> None:
+    (repo / ".gitignore").write_text(".ruff_cache/\ntarget/\n")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "--quiet", "-m", "ignore caches and build output")
+    wt = make_worktree(repo, "wt-preserve-cache-discard-target")
+    cache_file = wt / ".ruff_cache" / "content"
+    cache_file.parent.mkdir()
+    cache_file.write_bytes(b"preserved cache")
+    target_file = wt / "target" / "debug" / "artifact"
+    target_file.parent.mkdir(parents=True)
+    target_file.write_bytes(b"discarded build output")
+    rust_target_file = wt / "rust" / "target" / "debug" / "artifact"
+    rust_target_file.parent.mkdir(parents=True)
+    rust_target_file.write_bytes(b"discarded nested build output")
+    result_target = tmp_path / "external-result-target"
+    result_target.mkdir()
+    (result_target / "output").write_bytes(b"preserved external target")
+    result_link = wt / "result"
+    result_link.symlink_to(result_target)
+
+    result = run(
+        str(wt), "--preserve-generated-artifacts", "--discard-generated-build-outputs",
+    )
+
+    assert result.returncode == 0, result.stderr
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    transaction = next(quarantine.iterdir())
+    manifest = json.loads((transaction / "manifest.json").read_text())
+    records = {item["path"]: item for item in manifest["generated_caches"]}
+    assert (Path(records[".ruff_cache"]["quarantine_path"]) / "content").read_bytes() == b"preserved cache"
+    assert records[".ruff_cache"]["purge_state"] == "retained"
+    assert all(records[path]["purge_state"] == "purged" for path in ("target", "rust/target", "result"))
+    assert all(
+        not os.path.lexists(records[path]["quarantine_path"])
+        for path in ("target", "rust/target", "result")
+    )
+    assert (result_target / "output").read_bytes() == b"preserved external target"
 
 
 def test_result_symlink_does_not_probe_its_target_for_open_handles(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -936,13 +1033,14 @@ def test_generated_cache_roots_are_deduplicated() -> None:
 def test_generated_build_output_candidates_are_exact() -> None:
     status = [
         (b"!!", b"result"),
+        (b"!!", b"target/debug/file"),
         (b"??", b"rust/target/debug/file"),
         (b"!!", b"rust/other/file"),
         (b"!!", b".direnv/rust/target/cache"),
         (b"??", b"result-copy"),
     ]
     assert HELPER.generated_cache_candidates(status, caches=False, build_outputs=True) == (
-        b"result", b"rust/target",
+        b"result", b"target", b"rust/target",
     )
 
 

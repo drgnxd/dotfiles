@@ -248,15 +248,17 @@ description: Use before the first file edit or Git write in each repository for 
   successful removal. Unknown layouts remain quarantined and the archive path
   is reported. By default all other ignored/untracked paths still cause
   refusal. `--preserve-generated-artifacts` quarantines recognized cache
-  directories and the root `.pre-commit-config.yaml` only when its Nix-generated
-  file marker matches, including Nix-store symlink outputs, retaining the file
-  or link in the private quarantine.
+  directories, root `target`/`rust/target` build directories, the root
+  `result` symlink, and the root `.pre-commit-config.yaml` only when its
+  Nix-generated file marker matches, including Nix-store symlink outputs.
+  Selected contents are retained in the private quarantine.
   `--discard-generated-caches` is an explicit destructive opt-in for
   the entire contents of root `.pytest_cache`, root `.ruff_cache`, and
   `__pycache__` directories beneath the worktree. The separate
-  `--discard-generated-build-outputs` opt-in selects only `rust/target` and the
-  root `result` symlink; the symlink itself is unlinked and its target is never
-  followed or removed. Names are selectors, not proof of provenance; dry-run
+  `--discard-generated-build-outputs` opt-in selects only root `target`,
+  `rust/target`, and the root `result` symlink; the symlink itself is unlinked
+  and its target is never followed or removed. Names are selectors, not proof
+  of provenance; dry-run
   lists the selected paths. The helper rejects tracked contents, unsafe path
   types, nested Git repositories, mount boundaries, and selected directories
   with open handles. It quarantines selected paths, restores them on

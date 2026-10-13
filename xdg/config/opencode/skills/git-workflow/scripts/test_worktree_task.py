@@ -175,7 +175,7 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertNotEqual(subprocess.run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"], cwd=self.repo, check=False).returncode, 0)
 
     def test_finish_preserves_generated_artifacts_before_removing_worktree(self) -> None:
-        (self.repo / ".gitignore").write_text(".ruff_cache/\n.pre-commit-config.yaml\n", encoding="utf-8")
+        (self.repo / ".gitignore").write_text(".ruff_cache/\n.pre-commit-config.yaml\ntarget/\n", encoding="utf-8")
         git(self.repo, "add", ".gitignore")
         git(self.repo, "commit", "-q", "-m", "ignore generated files")
         branch, worktree = self.start()
@@ -189,6 +189,9 @@ class WorktreeTaskTests(unittest.TestCase):
             encoding="utf-8",
         )
         expected_config = config.read_bytes()
+        target_artifact = worktree / "target" / "debug" / "artifact"
+        target_artifact.parent.mkdir(parents=True)
+        target_artifact.write_bytes(b"build output")
 
         code, stdout, stderr = self.finish(branch, "--preserve-generated-artifacts")
 
@@ -202,6 +205,7 @@ class WorktreeTaskTests(unittest.TestCase):
         artifacts = {item["path"]: Path(item["quarantine_path"]) for item in manifest["generated_caches"]}
         self.assertEqual((artifacts[".ruff_cache"] / "content").read_bytes(), b"cache bytes")
         self.assertEqual(artifacts[".pre-commit-config.yaml"].read_bytes(), expected_config)
+        self.assertEqual((artifacts["target"] / "debug" / "artifact").read_bytes(), b"build output")
         self.assertEqual(manifest["phase"], "completed_preserved")
 
     def test_finish_ignores_active_dirty_unrelated_worktree(self) -> None:
