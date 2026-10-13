@@ -1,19 +1,21 @@
 """Shared helpers for worktree lifecycle tools.
 
-A task worktree records a human-readable task label and structured metadata in
-`branch.<branch>.description`:
+A detached task worktree records a human-readable task label and structured
+metadata in a private owner file in its verified Git admin directory:
 
-    <task> client=<c> session=<id> base=<oid> pid=<pid>@<start-epoch> [parent=<branch>]
+    <task> client=<c> session=<id> base=<oid> pid=<pid>@<start-epoch> [parent=<worktree-id>]
 
 The `(client, session)` pair identifies the creating session and cleanup
-responsibility. The exact branch selects one worktree when a session created
-several. The task label is descriptive only and never authorizes removal.
+responsibility. The worktree ID selects one worktree when a session created
+several. Legacy branch-backed worktrees keep their description in Git config.
+The task label is descriptive only and never authorizes removal.
 """
 
 from __future__ import annotations
 
 import os
 import re
+import stat
 import subprocess
 import time
 from pathlib import Path
@@ -34,6 +36,7 @@ INHERITED_GIT_ENV = (
 PID_START_TOLERANCE = 5
 OID_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 PID_TOKEN_RE = re.compile(r"^(?:[2-9]|[1-9][0-9]+)@[0-9]+$")
+TASK_METADATA_FILE = "agent-task"
 
 
 def git_env() -> dict[str, str]:
@@ -242,3 +245,78 @@ def parse_owner_description(text: str) -> tuple[str, str, str] | None:
     if "pid" in trailer and not PID_TOKEN_RE.fullmatch(trailer["pid"]):
         return None
     return task, client, session
+
+
+def worktree_admin_dir(worktree: Path, common_dir: Path) -> Path:
+    dot_git = worktree / ".git"
+    if dot_git.is_symlink():
+        admin = dot_git.resolve()
+    elif dot_git.is_file():
+        text = dot_git.read_text(encoding="utf-8").strip()
+        if not text.startswith("gitdir:"):
+            raise ValueError(f"{dot_git} is not a Git worktree pointer")
+        pointer = Path(text.split(":", 1)[1].strip())
+        admin = pointer if pointer.is_absolute() else worktree / pointer
+        admin = admin.resolve()
+    else:
+        raise ValueError(f"{dot_git} is neither a gitfile nor a symlink")
+
+    expected_root = (common_dir / "worktrees").resolve()
+    if admin.parent.resolve() != expected_root:
+        raise ValueError(f"{dot_git} points outside {expected_root}: {admin}")
+    back = admin / "gitdir"
+    if not back.is_file():
+        raise ValueError(f"{back} is missing")
+    back_pointer = Path(back.read_text(encoding="utf-8").strip())
+    if not back_pointer.is_absolute():
+        back_pointer = admin / back_pointer
+    if back_pointer.name != ".git" or back_pointer.parent.resolve() != worktree.resolve():
+        raise ValueError(f"{back} does not point back to {dot_git}")
+    return admin
+
+
+def write_worktree_owner(worktree: Path, common_dir: Path, description: str) -> str:
+    admin = worktree_admin_dir(worktree, common_dir)
+    owner_file = admin / TASK_METADATA_FILE
+    descriptor = os.open(owner_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as output:
+        output.write(description + "\n")
+        output.flush()
+        os.fsync(output.fileno())
+    return admin.name
+
+
+def read_worktree_owner(worktree: Path, common_dir: Path) -> tuple[str, str, tuple[str, str, str, str]] | None:
+    admin = worktree_admin_dir(worktree, common_dir)
+    owner_file = admin / TASK_METADATA_FILE
+    try:
+        mode = owner_file.lstat().st_mode
+    except FileNotFoundError:
+        return None
+    if not stat.S_ISREG(mode):
+        raise ValueError(f"{owner_file} is not a regular file")
+    description = owner_file.read_text(encoding="utf-8").strip()
+    task, trailer = parse_description(description)
+    client, session = trailer.get("client", ""), trailer.get("session", "")
+    parsed = parse_owner_description(description)
+    if parsed is None:
+        tokens = description.split()
+        trailer_tokens = tokens[len(task.split()):]
+        keys = [token.partition("=")[0] for token in trailer_tokens]
+        expected = ["client", "session", "base"]
+        if "pid" in trailer:
+            expected.append("pid")
+        if "parent" in trailer:
+            expected.append("parent")
+        unknown_session = (
+            task and client in CLIENTS and session == UNKNOWN and keys == expected
+            and not any(token.partition("=")[0] in TRAILER_KEYS for token in task.split() if "=" in token)
+        )
+        if not unknown_session:
+            raise ValueError(f"{owner_file} contains invalid task owner metadata")
+    else:
+        task, client, session = parsed
+    base = trailer.get("base", "")
+    if not OID_RE.fullmatch(base):
+        raise ValueError(f"{owner_file} contains an invalid base OID")
+    return admin.name, description, (task, client, session, base)

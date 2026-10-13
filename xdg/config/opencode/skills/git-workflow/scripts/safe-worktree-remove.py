@@ -46,12 +46,14 @@ that pointer before its own cleanliness check, which may run Annex filters.
 If Git refuses, the script restores the verified pointer form and preserves the
 worktree.
 
-Cleanup ownership is the creating `(client, session_id)` pair in the branch
-description. The active client session is read from its own environment
-variable; `--expect-branch` selects the exact local branch within that session.
-Task text is descriptive only, and unknown or legacy session metadata fails
-closed. The session check prevents cooperative cross-session mistakes; it is
-not an authentication boundary against a process that can alter its environment.
+Cleanup ownership is the creating `(client, session_id)` pair in the detached
+worktree's owner file inside its verified Git admin directory. The active client
+session is read from its own environment variable; `--expect-worktree-id` selects
+the exact detached worktree. Legacy branch-backed worktrees can still use
+`--expect-branch`. Task text is descriptive only, and unknown or malformed
+session metadata fails closed. The session check prevents cooperative
+cross-session mistakes; it is not an authentication boundary against a process
+that can alter its environment.
 """
 
 from __future__ import annotations
@@ -104,6 +106,7 @@ class Target:
     main_worktree: Path
     main_branch_worktree: Path | None
     branch_ref: str | None
+    worktree_id: str | None
     uses_annex: bool
     symlink_target: str | None
     description: str | None
@@ -113,10 +116,12 @@ class Target:
         branch = self.branch_ref.removeprefix("refs/heads/") if self.branch_ref else "detached"
         owner = meta.parse_owner_description(self.description or "")
         if owner is None:
-            return f"owner: unknown; branch={branch}"
+            suffix = f"; worktree_id={self.worktree_id}" if self.worktree_id else ""
+            return f"owner: unknown; branch={branch}{suffix}"
         task, client, session = owner
         one_line = "".join(c if c.isprintable() else c.encode("unicode_escape").decode() for c in task)
-        return f"owner: client={client} session={session}; branch={branch}; task={one_line}"
+        suffix = f"; worktree_id={self.worktree_id}" if self.worktree_id else ""
+        return f"owner: client={client} session={session}; branch={branch}{suffix}; task={one_line}"
 
 
 @dataclass(frozen=True)
@@ -1326,11 +1331,19 @@ def inspect(worktree: Path) -> Target:
         raise RemovalError("this repository uses git-annex but git-annex is not on PATH")
     branch_ref = run_git(worktree, "symbolic-ref", "-q", "HEAD").stdout.strip() or None
     description = None
+    worktree_id = None
     if branch_ref and branch_ref.startswith("refs/heads/"):
         description = run_git(worktree, "config", "--get", f"branch.{branch_ref.removeprefix('refs/heads/')}.description").stdout.strip() or None
+    else:
+        try:
+            record = meta.read_worktree_owner(worktree, common_dir)
+        except (OSError, ValueError) as error:
+            raise RemovalError(f"detached worktree owner metadata is invalid: {error}") from error
+        if record is not None:
+            worktree_id, description, _ = record
     return Target(
         worktree, git_dir, common_dir, worktree_command_root(entries, worktree), registered_main_worktree(entries),
-        branch_ref, uses_annex, symlink_target, description,
+        branch_ref, worktree_id, uses_annex, symlink_target, description,
     )
 
 
@@ -1357,18 +1370,23 @@ def resolve_base(target: Target, base: str) -> str:
     return git_out(target.worktree, "rev-parse", "--verify", "--end-of-options", f"{base}^{{commit}}")
 
 
-def verify_owner(target: Target, expect_branch: str) -> None:
-    if not expect_branch:
-        raise RemovalError("--expect-branch is required to select the exact worktree branch")
-    if target.branch_ref is None or not target.branch_ref.startswith("refs/heads/"):
-        raise RemovalError("target worktree is not on a local branch")
-    branch = target.branch_ref.removeprefix("refs/heads/")
-    if expect_branch != branch:
-        raise RemovalError(f"branch mismatch: expected {expect_branch!r}; target is {branch!r}")
-
+def verify_owner(target: Target, expect_branch: str | None, expect_worktree_id: str | None = None) -> None:
+    if bool(expect_branch) == bool(expect_worktree_id):
+        raise RemovalError("provide exactly one of --expect-branch or --expect-worktree-id")
+    if expect_branch:
+        if target.branch_ref is None or not target.branch_ref.startswith("refs/heads/"):
+            raise RemovalError("target worktree is not on a local branch")
+        branch = target.branch_ref.removeprefix("refs/heads/")
+        if expect_branch != branch:
+            raise RemovalError(f"branch mismatch: expected {expect_branch!r}; target is {branch!r}")
+    else:
+        if target.branch_ref is not None:
+            raise RemovalError("target worktree is branch-backed; use --expect-branch")
+        if target.worktree_id != expect_worktree_id:
+            raise RemovalError(f"worktree ID mismatch: expected {expect_worktree_id!r}; target is {target.worktree_id!r}")
     owner = meta.parse_owner_description(target.description or "")
     if owner is None:
-        raise RemovalError("target branch has missing, unknown, or invalid session-owner metadata")
+        raise RemovalError("target worktree has missing, unknown, or invalid session-owner metadata")
     _, owner_client, owner_session = owner
     current = meta.current_session_identity()
     if current is None:
@@ -1378,13 +1396,14 @@ def verify_owner(target: Target, expect_branch: str) -> None:
 
 
 def verify_safe(
-    target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_branch: str,
+    target: Target, base: str, *, allow_unreferenced_reflog: bool, expect_branch: str | None,
+    expect_worktree_id: str | None = None,
     discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
     discard_generated_build_outputs: bool = False, discard_generated_artifacts: bool = False,
     preserve_generated_artifacts: bool = False,
 ) -> RemovalPlan:
     wt = target.worktree
-    verify_owner(target, expect_branch)
+    verify_owner(target, expect_branch, expect_worktree_id)
     busy = [name for name in IN_PROGRESS if (target.admin_dir / name).exists()]
     refs_dir = target.admin_dir / "refs"
     if refs_dir.is_dir() and any(p.is_file() for p in refs_dir.rglob("*")):
@@ -2141,7 +2160,8 @@ def delete_branch(target: Target, head: str, base_oid: str) -> None:
 
 def remove(
     worktree_arg: str, base: str, *, delete_branch_too: bool, lock_name: str, allow_unreferenced_reflog: bool,
-    expect_branch: str, discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
+    expect_branch: str | None, expect_worktree_id: str | None = None,
+    discard_direnv_cache: bool = False, discard_generated_caches: bool = False,
     discard_generated_build_outputs: bool = False, discard_generated_artifacts: bool = False,
     preserve_generated_artifacts: bool = False,
 ) -> RemovalOutcome:
@@ -2152,14 +2172,15 @@ def remove(
         pending = unresolved_transaction(target)
         if pending is not None:
             raise RemovalError(f"an interrupted removal transaction needs inspection first: {pending}")
-        verify_owner(target, expect_branch)
+        verify_owner(target, expect_branch, expect_worktree_id)
         if target.uses_annex:
             result = run_git(worktree, "annex", "restage")
             if result.returncode != 0:
                 raise RemovalError(f"git annex restage failed: {result.stderr.strip()}")
             target = inspect(worktree)
         plan = verify_safe(
-            target, base, allow_unreferenced_reflog=allow_unreferenced_reflog, expect_branch=expect_branch,
+            target, base, allow_unreferenced_reflog=allow_unreferenced_reflog,
+            expect_branch=expect_branch, expect_worktree_id=expect_worktree_id,
             discard_direnv_cache=discard_direnv_cache, discard_generated_caches=discard_generated_caches,
             discard_generated_build_outputs=discard_generated_build_outputs,
             discard_generated_artifacts=discard_generated_artifacts,
@@ -2404,7 +2425,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--base", default="main", help="ref that must already contain HEAD (default: main)")
     parser.add_argument("--delete-branch", action="store_true", help="also delete the worktree's branch when it is fully contained in --base")
     parser.add_argument("--allow-unreferenced-reflog", action="store_true", help="accept commits that only this worktree's HEAD reflog references")
-    parser.add_argument("--expect-branch", metavar="BRANCH", help="exact local branch to remove; the current client session must own it")
+    parser.add_argument("--expect-branch", metavar="BRANCH", help="exact legacy local branch to remove; the current client session must own it")
+    parser.add_argument("--expect-worktree-id", metavar="ID", help="exact detached task worktree ID to remove; the current client session must own it")
     parser.add_argument("--expect-owner", metavar="TEXT", help=argparse.SUPPRESS)
     parser.add_argument(
         "--discard-direnv-cache", action="store_true",
@@ -2434,7 +2456,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.worktree is not None or args.repo is None:
                 raise RemovalError("--purge-preserved-quarantine requires --repo and must not be combined with a worktree path")
             if any((
-                args.expect_owner, args.expect_branch, args.delete_branch, args.discard_direnv_cache,
+                args.expect_owner, args.expect_branch, args.expect_worktree_id, args.delete_branch, args.discard_direnv_cache,
                 args.discard_generated_caches, args.discard_generated_build_outputs,
                 args.discard_generated_artifacts, args.preserve_generated_artifacts,
                 args.allow_unreferenced_reflog,
@@ -2450,9 +2472,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.discard_unverified_direnv:
             raise RemovalError("--discard-unverified-direnv is only valid with --purge-preserved-quarantine")
         if args.expect_owner is not None:
-            raise RemovalError("--expect-owner is obsolete; use --expect-branch; session ownership is read from the current client environment")
-        if not args.expect_branch:
-            raise RemovalError("--expect-branch is required; session ownership is read from the current client environment")
+            raise RemovalError("--expect-owner is obsolete; use an exact worktree selector; session ownership is read from the current client environment")
+        if bool(args.expect_branch) == bool(args.expect_worktree_id):
+            raise RemovalError("provide exactly one of --expect-branch or --expect-worktree-id")
+        if args.expect_worktree_id and args.delete_branch:
+            raise RemovalError("--delete-branch is only valid for a branch-backed legacy worktree")
         if args.discard_generated_artifacts and args.preserve_generated_artifacts:
             raise RemovalError("--discard-generated-artifacts cannot be combined with --preserve-generated-artifacts")
         if args.discard_generated_caches and args.preserve_generated_artifacts:
@@ -2466,7 +2490,8 @@ def main(argv: list[str] | None = None) -> int:
                 raise RemovalError(f"an interrupted removal transaction needs inspection first: {pending}")
             plan = verify_safe(
                 target, args.base, allow_unreferenced_reflog=args.allow_unreferenced_reflog,
-                expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
+                expect_branch=args.expect_branch, expect_worktree_id=args.expect_worktree_id,
+                discard_direnv_cache=args.discard_direnv_cache,
                 discard_generated_caches=args.discard_generated_caches,
                 discard_generated_build_outputs=args.discard_generated_build_outputs,
                 discard_generated_artifacts=args.discard_generated_artifacts,
@@ -2496,7 +2521,8 @@ def main(argv: list[str] | None = None) -> int:
         outcome = remove(
             args.worktree, args.base, delete_branch_too=args.delete_branch,
             lock_name=args.lock_name, allow_unreferenced_reflog=args.allow_unreferenced_reflog,
-            expect_branch=args.expect_branch, discard_direnv_cache=args.discard_direnv_cache,
+            expect_branch=args.expect_branch, expect_worktree_id=args.expect_worktree_id,
+            discard_direnv_cache=args.discard_direnv_cache,
             discard_generated_caches=args.discard_generated_caches,
             discard_generated_build_outputs=args.discard_generated_build_outputs,
             discard_generated_artifacts=args.discard_generated_artifacts,

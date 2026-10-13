@@ -26,8 +26,10 @@ SESSION = "ses_" + "a" * 26
 def git(cwd: Path, *args: str, input_text: str | None = None) -> str:
     result = subprocess.run(
         ["git", *args], cwd=cwd, input=input_text, text=True,
-        capture_output=True, check=True,
+        capture_output=True, check=False,
     )
+    if result.returncode != 0:
+        raise AssertionError(f"git {' '.join(args)} failed in {cwd}: {result.stderr.strip()}")
     return result.stdout.strip()
 
 
@@ -80,11 +82,20 @@ class WorktreeTaskTests(unittest.TestCase):
         ])
         self.assertEqual(code, 0, msg=stderr + stdout)
         record = json.loads(stdout)
-        return record["branch"], Path(record["worktree"])
+        return record["worktree_id"], Path(record["worktree"])
+
+    def start_legacy_branch(self, name: str = "legacy-task") -> tuple[str, Path]:
+        branch = f"task/{name}"
+        worktree = self.root / name
+        base = git(self.repo, "rev-parse", "main")
+        git(self.repo, "worktree", "add", "-q", "-b", branch, str(worktree), base)
+        description = task.meta.format_description("legacy task", "opencode", SESSION, base, None, None)
+        git(self.repo, "config", "--local", f"branch.{branch}.description", description)
+        return branch, worktree
 
     def finish(self, branch: str, *extra: str) -> tuple[int, str, str]:
         return self.invoke([
-            "finish", "--repo", str(self.repo), "--branch", branch,
+            "finish", "--repo", str(self.repo), "--worktree-id", branch,
             "--external-writers-quiesced", "--json", *extra,
         ])
 
@@ -114,14 +125,19 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertEqual(len(task.worktree_entries(self.repo)), 1)
 
     def test_start_uses_explicit_repo_and_preserves_creator_fields(self) -> None:
-        branch, worktree = self.start()
+        worktree_id, worktree = self.start()
         self.assertTrue(worktree.is_dir())
         self.assertEqual(Path(git(worktree, "rev-parse", "--show-toplevel")).resolve(), worktree.resolve())
-        description = git(self.repo, "config", "--get", f"branch.{branch}.description")
-        self.assertIn(f"client=opencode session={SESSION}", description)
+        self.assertEqual(git(worktree, "rev-parse", "--abbrev-ref", "HEAD"), "HEAD")
+        common = Path(git(self.repo, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+        record = task.meta.read_worktree_owner(worktree, common)
+        self.assertIsNotNone(record)
+        self.assertEqual(record[0], worktree_id)
+        self.assertIn(f"client=opencode session={SESSION}", record[1])
+        self.assertEqual(git(self.repo, "branch", "--list", "task/*"), "")
 
     def test_creator_partial_status_is_reported_without_cleanup(self) -> None:
-        fake = subprocess.CompletedProcess([], 3, "worktree=/missing\nbranch=task/partial\n", "owner metadata failed\n")
+        fake = subprocess.CompletedProcess([], 3, "worktree=/missing\nworktree_id=partial\n", "owner metadata failed\n")
         with patch.object(task, "create_worktree", return_value=fake):
             code, stdout, _ = self.invoke([
                 "start", "--repo", str(self.repo), "--slug", "fix-feature",
@@ -133,7 +149,7 @@ class WorktreeTaskTests(unittest.TestCase):
     def test_finish_refuses_without_external_writer_assertion(self) -> None:
         branch, worktree = self.start()
         before = git(self.repo, "rev-parse", "HEAD")
-        code, stdout, _ = self.invoke(["finish", "--repo", str(self.repo), "--branch", branch, "--json"])
+        code, stdout, _ = self.invoke(["finish", "--repo", str(self.repo), "--worktree-id", branch, "--json"])
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "external-writers-not-confirmed")
         self.assertEqual(git(self.repo, "rev-parse", "HEAD"), before)
@@ -166,13 +182,75 @@ class WorktreeTaskTests(unittest.TestCase):
     def test_finish_fast_forwards_and_removes_task_worktree(self) -> None:
         branch, worktree = self.start()
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
-        code, stdout, stderr = self.finish(branch, "--delete-branch")
+        code, stdout, stderr = self.finish(branch)
         self.assertEqual(code, 0, msg=stderr + stdout)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "removed")
         self.assertEqual(git(self.repo, "rev-parse", "HEAD"), tip)
         self.assertFalse(worktree.exists())
+        self.assertEqual(git(self.repo, "branch", "--list", "task/*"), "")
+
+    def test_legacy_finish_keeps_branch_without_explicit_delete_flag(self) -> None:
+        branch, worktree = self.start_legacy_branch()
+        tip = self.commit_file(worktree, "legacy.txt", "legacy\n", "legacy")
+        code, stdout, stderr = self.invoke([
+            "finish", "--repo", str(self.repo), "--branch", branch,
+            "--external-writers-quiesced", "--json",
+        ])
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "main"), tip)
+        self.assertFalse(worktree.exists())
+        self.assertEqual(git(self.repo, "rev-parse", branch), tip)
+
+    def test_legacy_finish_deletes_branch_only_with_explicit_flag(self) -> None:
+        branch, worktree = self.start_legacy_branch()
+        tip = self.commit_file(worktree, "legacy.txt", "legacy\n", "legacy")
+        code, stdout, stderr = self.invoke([
+            "finish", "--repo", str(self.repo), "--branch", branch,
+            "--external-writers-quiesced", "--delete-branch", "--json",
+        ])
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "main"), tip)
+        self.assertFalse(worktree.exists())
         self.assertNotEqual(subprocess.run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"], cwd=self.repo, check=False).returncode, 0)
+
+    def test_finish_holds_integration_lock_through_postcheck(self) -> None:
+        worktree_id, worktree = self.start()
+        tip = self.commit_file(worktree, "task.txt", "task\n", "task")
+        original_postcheck = task.postcheck
+        nested_results: list[dict[str, str]] = []
+
+        def nested_finish_during_postcheck(*args):
+            self.assertTrue((self.repo / ".git" / task.LOCK_NAME).is_dir())
+            code, stdout, _ = self.finish(worktree_id)
+            self.assertEqual(code, 1)
+            nested_results.append(json.loads(stdout))
+            return original_postcheck(*args)
+
+        with patch.object(task, "postcheck", side_effect=nested_finish_during_postcheck):
+            code, stdout, stderr = self.finish(worktree_id)
+
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(nested_results[0]["status"], "integration-lock-failed")
+        self.assertEqual(git(self.repo, "rev-parse", "main"), tip)
+        self.assertFalse(worktree.exists())
+        self.assertFalse((self.repo / ".git" / task.LOCK_NAME).exists())
+
+    def test_finish_integrates_detached_worktree_with_gitdir_symlink(self) -> None:
+        worktree_id, worktree = self.start()
+        canonical_worktree = worktree.resolve()
+        common = Path(git(self.repo, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+        admin = task.meta.worktree_admin_dir(worktree, common)
+        (canonical_worktree / ".git").unlink()
+        os.symlink(os.path.relpath(admin, canonical_worktree), canonical_worktree / ".git")
+        tip = self.commit_file(worktree, "task.txt", "task\n", "task")
+
+        code, stdout, stderr = self.finish(worktree_id)
+
+        self.assertEqual(code, 0, msg=stderr + stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "main"), tip)
+        self.assertFalse(worktree.exists())
+        self.assertEqual(git(self.repo, "branch", "--list", "task/*"), "")
 
     def test_finish_discards_recognized_generated_artifacts_by_default(self) -> None:
         (self.repo / ".gitignore").write_text(
@@ -198,7 +276,7 @@ class WorktreeTaskTests(unittest.TestCase):
         (result_target / "output").write_bytes(b"preserve symlink target")
         (worktree / "result").symlink_to(result_target)
 
-        code, stdout, stderr = self.finish(branch, "--delete-branch")
+        code, stdout, stderr = self.finish(branch)
 
         self.assertEqual(code, 0, msg=stderr + stdout)
         self.assertFalse(worktree.exists())
@@ -219,7 +297,7 @@ class WorktreeTaskTests(unittest.TestCase):
         user_file = worktree / "keep.ignored"
         user_file.write_bytes(b"preserve user data")
 
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
 
         result = json.loads(stdout)
         self.assertEqual(code, 1)
@@ -274,7 +352,7 @@ class WorktreeTaskTests(unittest.TestCase):
         git(self.repo, "config", "--local", f"branch.{other_branch}.description", description)
         (other / "untracked.txt").write_text("preserve\n", encoding="utf-8")
 
-        code, stdout, stderr = self.finish(branch, "--delete-branch")
+        code, stdout, stderr = self.finish(branch)
 
         self.assertEqual(code, 0, msg=stderr + stdout)
         self.assertEqual(git(self.repo, "rev-parse", "main"), tip)
@@ -287,7 +365,7 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, task_wt = self.start()
         task_tip = self.commit_file(task_wt, "task.txt", "task\n", "task")
         main_tip = self.commit_file(self.repo, "main.txt", "main\n", "main progress")
-        code, stdout, stderr = self.finish(branch, "--delete-branch")
+        code, stdout, stderr = self.finish(branch)
         self.assertEqual(code, 0, msg=stderr + stdout)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "removed")
@@ -299,6 +377,38 @@ class WorktreeTaskTests(unittest.TestCase):
         branches = git(self.repo, "for-each-ref", "--format=%(refname:short)", "refs/heads/integration").splitlines()
         self.assertEqual(branches, [])
         self.assertEqual(len(task.worktree_entries(self.repo)), 1)
+
+    def test_integration_stops_if_owner_metadata_changes_before_fast_forward(self) -> None:
+        worktree_id, task_wt = self.start()
+        task_tip = self.commit_file(task_wt, "task.txt", "task\n", "task")
+        main_tip = self.commit_file(self.repo, "main.txt", "main\n", "main progress")
+        original_require = task.require_owned_worktree
+        changed_ids: list[str] = []
+
+        def change_integration_owner(repo: Path, candidate_id: str):
+            result = original_require(repo, candidate_id)
+            if candidate_id != worktree_id:
+                integration_wt, _, _, _ = result
+                record = task.meta.read_worktree_owner(integration_wt, task.common_dir(repo))
+                self.assertIsNotNone(record)
+                task_text, client, _, base = record[2]
+                changed = task.meta.format_description(task_text, client, "ses_" + "b" * 26, base, None, None)
+                owner_file = task.meta.worktree_admin_dir(integration_wt, task.common_dir(repo)) / task.meta.TASK_METADATA_FILE
+                owner_file.write_text(changed + "\n", encoding="utf-8")
+                changed_ids.append(candidate_id)
+            return result
+
+        with patch.object(task, "require_owned_worktree", side_effect=change_integration_owner):
+            code, stdout, _ = self.finish(worktree_id)
+
+        result = json.loads(stdout)
+        self.assertEqual(code, 1)
+        self.assertEqual(result["status"], "pre-merge-race")
+        self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
+        self.assertEqual(changed_ids, [result["integration_worktree_id"]])
+        self.assertTrue(task_wt.is_dir())
+        self.assertGreaterEqual(len(task.worktree_entries(self.repo)), 3)
+        self.assertFalse(task.ancestor(self.repo, task_tip, main_tip))
 
     def test_integration_preflight_ignores_main_only_filtered_paths(self) -> None:
         branch, worktree = self.start()
@@ -344,8 +454,8 @@ class WorktreeTaskTests(unittest.TestCase):
     def test_finish_recognizes_already_integrated_task(self) -> None:
         branch, worktree = self.start()
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
-        git(self.repo, "merge", "--ff-only", branch)
-        code, stdout, stderr = self.finish(branch, "--delete-branch")
+        git(self.repo, "merge", "--ff-only", tip)
+        code, stdout, stderr = self.finish(branch)
         self.assertEqual(code, 0, msg=stderr + stdout)
         result = json.loads(stdout)
         self.assertEqual(result["plan"], "already-integrated")
@@ -359,7 +469,7 @@ class WorktreeTaskTests(unittest.TestCase):
         hook.write_text(f"#!/bin/sh\nprintf called > '{marker}'\n", encoding="utf-8")
         hook.chmod(0o755)
 
-        code, stdout, stderr = self.finish(branch, "--delete-branch")
+        code, stdout, stderr = self.finish(branch)
 
         self.assertEqual(code, 0, msg=stderr + stdout)
         self.assertEqual(json.loads(stdout)["plan"], "already-integrated")
@@ -376,7 +486,7 @@ class WorktreeTaskTests(unittest.TestCase):
         git(self.repo, "checkout", "main")
         branch, worktree = self.start(source="unrelated")
         self.commit_file(worktree, "task.txt", "task\n", "task")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "histories-diverged")
         self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
@@ -386,7 +496,7 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, worktree = self.start()
         (worktree / "untracked.txt").write_text("unfinished\n", encoding="utf-8")
         main_tip = git(self.repo, "rev-parse", "main")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "dirty-worktree")
         self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
@@ -395,7 +505,7 @@ class WorktreeTaskTests(unittest.TestCase):
     def test_finish_rejects_assume_unchanged_index_entries(self) -> None:
         branch, _ = self.start()
         git(self.repo, "update-index", "--assume-unchanged", "README.md")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "index-flags")
         git(self.repo, "update-index", "--no-assume-unchanged", "README.md")
@@ -405,7 +515,7 @@ class WorktreeTaskTests(unittest.TestCase):
         replacement = self.commit_file(worktree, "task.txt", "task\n", "task")
         main_tip = git(self.repo, "rev-parse", "main")
         git(self.repo, "update-ref", f"refs/replace/{main_tip}", replacement)
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         git(self.repo, "update-ref", "-d", f"refs/replace/{main_tip}")
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "replace-refs")
@@ -420,7 +530,7 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, worktree = self.start()
         self.commit_file(worktree, "ignored.txt", "task\n", "task", force=True)
         main_tip = git(self.repo, "rev-parse", "main")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "path-collision")
         self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
@@ -434,7 +544,7 @@ class WorktreeTaskTests(unittest.TestCase):
         git(worktree, "add", ".gitattributes", "task.txt")
         git(worktree, "commit", "-q", "-m", "add custom filter")
         main_tip = git(self.repo, "rev-parse", "main")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "filters-present")
         self.assertEqual(git(self.repo, "rev-parse", "main"), main_tip)
@@ -467,7 +577,7 @@ class WorktreeTaskTests(unittest.TestCase):
         git(worktree, "commit", "-q", "-m", "update submodule")
         main_tip = git(self.repo, "rev-parse", "main")
 
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
 
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "submodule-change", stdout)
@@ -479,7 +589,7 @@ class WorktreeTaskTests(unittest.TestCase):
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
         failure = subprocess.CompletedProcess([], 1, "", "helper refused\n")
         with patch.object(task, "safe_remove", return_value=failure):
-            code, stdout, _ = self.finish(branch, "--delete-branch")
+            code, stdout, _ = self.finish(branch)
         result = json.loads(stdout)
         self.assertEqual(code, 1)
         self.assertEqual(result["status"], "cleanup-partial")
@@ -488,47 +598,47 @@ class WorktreeTaskTests(unittest.TestCase):
         self.assertTrue(worktree.is_dir())
 
     def test_cleanup_tip_change_after_postcheck_is_detected_before_removal(self) -> None:
-        branch, worktree = self.start()
+        worktree_id, worktree = self.start()
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
         tree = git(self.repo, "rev-parse", f"{tip}^{{tree}}")
-        changed_tip = git(self.repo, "commit-tree", tree, "-p", tip, "-m", "unexpected branch update")
+        changed_tip = git(worktree, "commit-tree", tree, "-p", tip, "-m", "unexpected detached HEAD update")
         original_postcheck = task.postcheck
 
-        def move_branch_after_postcheck(repo, main, expected, task_branch, task_tip, integration_branch, integration_tip):
-            result = original_postcheck(repo, main, expected, task_branch, task_tip, integration_branch, integration_tip)
-            git(repo, "update-ref", f"refs/heads/{branch}", changed_tip)
+        def move_head_after_postcheck(*args):
+            result = original_postcheck(*args)
+            git(worktree, "checkout", "--detach", changed_tip)
             return result
 
-        with patch.object(task, "postcheck", side_effect=move_branch_after_postcheck), patch.object(task, "safe_remove") as remove:
-            code, stdout, _ = self.finish(branch, "--delete-branch")
+        with patch.object(task, "postcheck", side_effect=move_head_after_postcheck), patch.object(task, "safe_remove") as remove:
+            code, stdout, _ = self.finish(worktree_id)
 
         result = json.loads(stdout)
         self.assertEqual(code, 1)
         self.assertEqual(result["status"], "cleanup-pending")
         self.assertEqual(result["main_tip"], tip)
-        self.assertEqual(git(self.repo, "rev-parse", f"refs/heads/{branch}"), changed_tip)
+        self.assertEqual(git(worktree, "rev-parse", "HEAD"), changed_tip)
         self.assertTrue(worktree.is_dir())
         remove.assert_not_called()
 
-    def test_safe_remove_refuses_branch_tip_change_after_cleanup_check(self) -> None:
-        branch, worktree = self.start()
+    def test_safe_remove_refuses_detached_head_change_after_cleanup_check(self) -> None:
+        worktree_id, worktree = self.start()
         tip = self.commit_file(worktree, "task.txt", "task\n", "task")
         tree = git(self.repo, "rev-parse", f"{tip}^{{tree}}")
-        changed_tip = git(self.repo, "commit-tree", tree, "-p", tip, "-m", "unexpected branch update")
+        changed_tip = git(worktree, "commit-tree", tree, "-p", tip, "-m", "unexpected detached HEAD update")
         original_remove = task.safe_remove
 
-        def move_branch_during_removal(repo, target, target_branch, args, delete_branch):
-            git(repo, "update-ref", f"refs/heads/{branch}", changed_tip)
-            return original_remove(repo, target, target_branch, args, delete_branch)
+        def move_head_during_removal(repo, target, target_branch, target_id, args, delete_branch):
+            git(target, "checkout", "--detach", changed_tip)
+            return original_remove(repo, target, target_branch, target_id, args, delete_branch)
 
-        with patch.object(task, "safe_remove", side_effect=move_branch_during_removal):
-            code, stdout, _ = self.finish(branch, "--delete-branch")
+        with patch.object(task, "safe_remove", side_effect=move_head_during_removal):
+            code, stdout, _ = self.finish(worktree_id)
 
         result = json.loads(stdout)
         self.assertEqual(code, 1)
         self.assertEqual(result["status"], "cleanup-partial")
         self.assertEqual(result["main_tip"], tip)
-        self.assertEqual(git(self.repo, "rev-parse", f"refs/heads/{branch}"), changed_tip)
+        self.assertEqual(git(worktree, "rev-parse", "HEAD"), changed_tip)
         self.assertTrue(worktree.is_dir())
 
     def test_keep_worktree_integrates_without_removal(self) -> None:
@@ -544,7 +654,7 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, task_wt = self.start()
         self.commit_file(task_wt, "README.md", "task change\n", "task change")
         main_tip = self.commit_file(self.repo, "README.md", "main change\n", "main change")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "integration-conflict")
@@ -556,7 +666,7 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, task_wt = self.start()
         task_tip = self.commit_file(task_wt, "folder/task.txt", "task\n", "task")
         main_tip = self.commit_file(self.repo, "Folder/main.txt", "main\n", "main progress")
-        code, stdout, _ = self.finish(branch, "--delete-branch")
+        code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "path-collision")
@@ -569,25 +679,26 @@ class WorktreeTaskTests(unittest.TestCase):
         branch, worktree = self.start()
         task_tip = self.commit_file(worktree, "task.txt", "task\n", "task")
         with patch.object(task, "postcheck", return_value={"ok": False, "failures": ["test failure"]}):
-            code, stdout, _ = self.finish(branch, "--delete-branch")
+            code, stdout, _ = self.finish(branch)
         self.assertEqual(code, 1)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "integration-verification-failed")
         self.assertEqual(git(self.repo, "rev-parse", "HEAD"), task_tip)
         self.assertTrue(worktree.is_dir())
-        self.assertEqual(subprocess.run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"], cwd=self.repo, check=False).returncode, 0)
+        self.assertEqual(git(self.repo, "branch", "--list", "task/*"), "")
 
     def assert_integration_creator_partial(self, helper_exit: int) -> None:
-        branch, _ = self.start(slug=f"fix-partial{helper_exit}")
-        self.commit_file(task.worktree_for_branch(self.repo, branch), f"task-{helper_exit}.txt", "task\n", "task")
+        worktree_id, _ = self.start(slug=f"fix-partial{helper_exit}")
+        task_worktree = task.require_owned_worktree(self.repo, worktree_id)[0]
+        self.commit_file(task_worktree, f"task-{helper_exit}.txt", "task\n", "task")
         main_tip = self.commit_file(self.repo, f"main-{helper_exit}.txt", "main\n", "main progress")
         fake = subprocess.CompletedProcess(
             [], helper_exit,
-            f"worktree=/missing-{helper_exit}\nbranch=integration/partial-{helper_exit}\n",
+            f"worktree=/missing-{helper_exit}\nworktree_id=partial-{helper_exit}\n",
             f"partial creator failure {helper_exit}\n",
         )
         with patch.object(task, "create_worktree", return_value=fake):
-            code, stdout, _ = self.finish(branch, "--delete-branch")
+            code, stdout, _ = self.finish(worktree_id)
         self.assertEqual(code, 1)
         result = json.loads(stdout)
         self.assertEqual(result["status"], "integration-worktree-create-partial")
@@ -698,7 +809,7 @@ class WorktreeTaskTests(unittest.TestCase):
         hook.write_text(f"#!/bin/sh\nprintf called > '{sentinel}'\n", encoding="utf-8")
         hook.chmod(0o755)
 
-        code, stdout, _ = self.finish(branch, "--delete-branch", "--allow-repository-hooks")
+        code, stdout, _ = self.finish(branch, "--allow-repository-hooks")
 
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "hooks-present")
@@ -718,7 +829,7 @@ class WorktreeTaskTests(unittest.TestCase):
         hook.write_text(f"#!/bin/sh\nprintf called > '{sentinel}'\n", encoding="utf-8")
         hook.chmod(0o755)
 
-        code, stdout, _ = self.finish(branch, "--delete-branch", "--allow-repository-hooks")
+        code, stdout, _ = self.finish(branch, "--allow-repository-hooks")
 
         self.assertEqual(code, 1)
         self.assertEqual(json.loads(stdout)["status"], "hooks-present")

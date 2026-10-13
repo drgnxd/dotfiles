@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -278,6 +279,31 @@ def test_case_differing_path_is_still_protected(world: dict[str, Path]) -> None:
 def test_detached_task_worktree_is_protected(world: dict[str, Path]) -> None:
     sh(world["task"], "checkout", "-q", "--detach")
     assert decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
+
+
+def test_owned_detached_task_worktree_is_allowed(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    sh(world["task"], "checkout", "-q", "--detach")
+    session = "ses_" + "a" * 26
+    monkeypatch.setenv("OPENCODE_SESSION_ID", session)
+    common = Path(guard.run_git(str(world["main"]), "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
+    admin = guard.meta.worktree_admin_dir(world["task"], common)
+    (world["task"] / ".git").unlink()
+    (world["task"] / ".git").symlink_to(os.path.relpath(admin, world["task"]))
+    base = guard.meta.git(world["main"], "rev-parse", "HEAD").stdout.strip()
+    description = guard.meta.format_description("detached task", "opencode", session, base, None, None)
+    guard.meta.write_worktree_owner(world["task"], common, description)
+    assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
+
+
+def test_valid_detached_task_worktree_can_be_shared_with_writer_session(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    sh(world["task"], "checkout", "-q", "--detach")
+    owner_session, current_session = "ses_" + "a" * 26, "ses_" + "b" * 26
+    monkeypatch.setenv("OPENCODE_SESSION_ID", current_session)
+    common = Path(guard.run_git(str(world["main"]), "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
+    base = guard.meta.git(world["main"], "rev-parse", "HEAD").stdout.strip()
+    description = guard.meta.format_description("detached task", "opencode", owner_session, base, None, None)
+    guard.meta.write_worktree_owner(world["task"], common, description)
+    assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
 
 
 def test_non_guarded_tools_skip_git_entirely(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:

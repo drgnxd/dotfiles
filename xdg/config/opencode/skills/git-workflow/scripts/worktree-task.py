@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 import unicodedata
@@ -27,6 +28,7 @@ AUDIT_HELPER = HERE / "worktree-audit.py"
 REMOVE_HELPER = HERE / "safe-worktree-remove.py"
 LOCK_NAME = "main-integration.lock"
 MAIN_BRANCH = "main"
+WORKTREE_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 class TaskError(RuntimeError):
@@ -144,6 +146,76 @@ def require_owned_branch(repo: Path, branch: str) -> tuple[Path, str, str]:
     if problem:
         raise TaskError("worktree-identity", problem)
     return worktree, base, meta.git(worktree, "rev-parse", "HEAD").stdout.strip()
+
+
+def worktree_for_id(repo: Path, worktree_id: str) -> Path:
+    if not WORKTREE_ID_RE.fullmatch(worktree_id):
+        raise TaskError("invalid-worktree-id", "worktree ID must be a single Git admin-directory name")
+    common = common_dir(repo)
+    admin = common / "worktrees" / worktree_id
+    gitdir_file = admin / "gitdir"
+    if not admin.is_dir() or not gitdir_file.is_file():
+        raise TaskError("worktree-id-missing", f"no registered worktree has ID {worktree_id}")
+    pointer = Path(gitdir_file.read_text(encoding="utf-8").strip())
+    if not pointer.is_absolute():
+        pointer = admin / pointer
+    worktree = pointer.parent.resolve()
+    matches = [Path(row["worktree"]).resolve() for row in worktree_entries(repo) if Path(row["worktree"]).resolve() == worktree]
+    if pointer.name != ".git" or len(matches) != 1:
+        raise TaskError("worktree-id-unregistered", f"worktree ID {worktree_id} does not resolve to exactly one registered worktree")
+    return worktree
+
+
+def require_owned_worktree(repo: Path, worktree_id: str) -> tuple[Path, str, str, str]:
+    owner = current_owner()
+    worktree = worktree_for_id(repo, worktree_id)
+    try:
+        record = meta.read_worktree_owner(worktree, common_dir(repo))
+    except (OSError, ValueError) as error:
+        raise TaskError("owner-invalid", f"cannot verify detached worktree metadata: {error}") from error
+    if record is None or record[0] != worktree_id:
+        raise TaskError("owner-unknown", f"detached worktree {worktree_id} has no valid owner metadata")
+    _, description, (_task, client, session, base) = record
+    if (client, session) != owner:
+        raise TaskError("foreign-owner", f"worktree belongs to {client}/{session}, not the current session")
+    if meta.git(worktree, "symbolic-ref", "--quiet", "HEAD", check=False).returncode == 0:
+        raise TaskError("worktree-not-detached", f"task worktree {worktree_id} is unexpectedly attached to a branch")
+    if not ancestor(repo, base, meta.git(worktree, "rev-parse", "HEAD").stdout.strip()):
+        raise TaskError("invalid-task-history", f"recorded base is not an ancestor of detached worktree {worktree_id}")
+    root = Path(meta.git(worktree, "rev-parse", "--show-toplevel").stdout.strip()).resolve()
+    if root != worktree:
+        raise TaskError("worktree-identity", f"registered worktree root mismatch: {root}")
+    creator = load_helper("worktree_create", CREATE_HELPER)
+    problem = creator.verify_identity(worktree, common_dir(repo))
+    if problem:
+        raise TaskError("worktree-identity", problem)
+    return worktree, base, meta.git(worktree, "rev-parse", "HEAD").stdout.strip(), description
+
+
+def task_tip_matches(
+    repo: Path, worktree: Path, branch: str | None, worktree_id: str | None, expected: str,
+    expected_owner: str | None = None,
+) -> bool:
+    actual = branch_oid(repo, branch) if branch else meta.git(worktree, "rev-parse", "HEAD").stdout.strip()
+    if actual != expected:
+        return False
+    if worktree_id:
+        if meta.git(worktree, "symbolic-ref", "--quiet", "HEAD", check=False).returncode == 0:
+            return False
+        try:
+            record = meta.read_worktree_owner(worktree, common_dir(repo))
+        except (OSError, ValueError):
+            return False
+        return (
+            record is not None and record[0] == worktree_id
+            and (expected_owner is None or record[1] == expected_owner)
+        )
+    return True
+
+
+def description_owner(description: str) -> tuple[str, str] | None:
+    owner = meta.parse_owner_description(description)
+    return owner[1:] if owner is not None else None
 
 
 def status_records(repo: Path) -> list[tuple[str, str]]:
@@ -418,10 +490,10 @@ def require_no_hooks(
 
 
 def create_worktree(
-    repo: Path, *, slug: str, client: str, task: str, source: str, parent: str | None, prefix: str,
+    repo: Path, *, slug: str, client: str, task: str, source: str, parent: str | None,
     worktrees_root: str | None = None, allow_repository_hooks: bool = False,
 ) -> subprocess.CompletedProcess[str]:
-    argv = [sys.executable, str(CREATE_HELPER), "--repo", str(repo), "--slug", slug, "--client", client, "--task", task, "--from", source, "--prefix", prefix]
+    argv = [sys.executable, str(CREATE_HELPER), "--repo", str(repo), "--slug", slug, "--client", client, "--task", task, "--from", source]
     if parent:
         argv.extend(("--parent", parent))
     if worktrees_root:
@@ -446,6 +518,7 @@ def inspect_creation(repo: Path, output: str) -> dict[str, Any]:
     return {
         "created_worktree": path,
         "created_branch": branch,
+        "created_worktree_id": values.get("worktree_id"),
         "worktree_registered": bool(path and any(Path(row["worktree"]).resolve() == Path(path).resolve() for row in worktree_entries(repo))),
         "branch_exists": bool(branch and meta.git(repo, "show-ref", "--verify", "--quiet", f"refs/heads/{branch}", check=False).returncode == 0),
     }
@@ -471,7 +544,7 @@ def start(args: argparse.Namespace) -> int:
     owner = current_owner(args.client)
     result = create_worktree(
         repo, slug=args.slug, client=args.client, task=args.task, source=args.source,
-        parent=args.parent, prefix=args.prefix, worktrees_root=args.worktrees_root,
+        parent=args.parent, worktrees_root=args.worktrees_root,
         allow_repository_hooks=args.allow_repository_hooks,
     )
     if result.stderr:
@@ -536,7 +609,12 @@ def inspect_main_state(repo: Path) -> dict[str, Any]:
         return {"inspection_error": str(error)}
 
 
-def postcheck(repo: Path, main: Path, expected: str, task_branch: str, task_tip: str, integration_branch: str | None, integration_tip: str) -> dict[str, Any]:
+def postcheck(
+    repo: Path, main: Path, expected: str, task_branch: str | None, task_worktree: Path,
+    task_worktree_id: str | None, task_description: str | None, task_tip: str,
+    integration_worktree: Path | None, integration_worktree_id: str | None,
+    integration_description: str | None, integration_tip: str,
+) -> dict[str, Any]:
     actual, live = meta.git(main, "rev-parse", "HEAD").stdout.strip(), branch_oid(repo, MAIN_BRANCH)
     status_rows = [(code, path) for code, path in status_records(main) if code != "!!"]
     failures = []
@@ -550,10 +628,12 @@ def postcheck(repo: Path, main: Path, expected: str, task_branch: str, task_tip:
         failures.append("task tip is not reachable from main")
     if not ancestor(repo, integration_tip, actual):
         failures.append("integration tip is not reachable from main")
-    if branch_oid(repo, task_branch) != task_tip:
-        failures.append("task branch tip changed during integration")
-    if integration_branch and branch_oid(repo, integration_branch) != integration_tip:
-        failures.append("integration branch tip changed during integration")
+    if not task_tip_matches(repo, task_worktree, task_branch, task_worktree_id, task_tip, task_description):
+        failures.append("task worktree tip or owner metadata changed during integration")
+    if integration_worktree is not None and not task_tip_matches(
+        repo, integration_worktree, None, integration_worktree_id, integration_tip, integration_description,
+    ):
+        failures.append("integration worktree tip or owner metadata changed during integration")
     expected_tree = meta.git(repo, "rev-parse", f"{expected}^{{tree}}").stdout.strip()
     actual_tree = meta.git(repo, "rev-parse", f"{actual}^{{tree}}").stdout.strip()
     if expected_tree != actual_tree:
@@ -566,15 +646,25 @@ def creator_partial(repo: Path, result: subprocess.CompletedProcess[str], stage:
     return TaskError(f"{stage}-worktree-create-partial", f"creator exited {result.returncode}; merge/update/cleanup stopped", helper_exit=result.returncode, helper_output=result.stdout + result.stderr, **state)
 
 
-def cleanup_state(repo: Path, worktree: Path, branch: str) -> dict[str, Any]:
+def cleanup_state(repo: Path, worktree: Path, branch: str | None, worktree_id: str | None) -> dict[str, Any]:
     registered = any(Path(row["worktree"]).resolve() == worktree.resolve() for row in worktree_entries(repo))
-    ref = meta.git(repo, "show-ref", "--verify", "--hash", f"refs/heads/{branch}", check=False)
-    return {"worktree_registered": registered, "worktree_path_exists": worktree.exists(), "branch_exists": ref.returncode == 0, "branch_oid": ref.stdout.strip() if ref.returncode == 0 else None}
+    ref = meta.git(repo, "show-ref", "--verify", "--hash", f"refs/heads/{branch}", check=False) if branch else None
+    return {
+        "worktree_registered": registered,
+        "worktree_path_exists": worktree.exists(),
+        "branch_exists": ref is not None and ref.returncode == 0,
+        "branch_oid": ref.stdout.strip() if ref is not None and ref.returncode == 0 else None,
+        "worktree_id": worktree_id,
+    }
 
 
-def safe_remove(repo: Path, worktree: Path, branch: str, args: argparse.Namespace, delete_branch: bool) -> subprocess.CompletedProcess[str]:
-    command = [sys.executable, str(REMOVE_HELPER), str(worktree), "--expect-branch", branch, "--base", MAIN_BRANCH]
-    if delete_branch:
+def safe_remove(
+    repo: Path, worktree: Path, branch: str | None, worktree_id: str | None, args: argparse.Namespace,
+    delete_branch: bool,
+) -> subprocess.CompletedProcess[str]:
+    selector = ["--expect-branch", branch] if branch else ["--expect-worktree-id", worktree_id or ""]
+    command = [sys.executable, str(REMOVE_HELPER), str(worktree), *selector, "--base", MAIN_BRANCH]
+    if delete_branch and branch:
         command.append("--delete-branch")
     if not args.preserve_generated_artifacts:
         command.append("--discard-generated-artifacts")
@@ -592,22 +682,34 @@ def finish(args: argparse.Namespace) -> int:
         raise TaskError("external-writers-not-confirmed", "inspect repo-specific scheduled/non-cooperating writers; pass --external-writers-quiesced only while they remain stopped through all cleanup")
     repo = repo_root(args.repo)
     owner = current_owner()
-    task_wt, task_base, task_tip = require_owned_branch(repo, args.branch)
+    task_branch = args.branch
+    task_worktree_id = args.worktree_id
+
+    def owned_task() -> tuple[Path, str, str, str | None]:
+        if task_branch:
+            worktree, base, tip = require_owned_branch(repo, task_branch)
+            return worktree, base, tip, None
+        worktree, base, tip, description = require_owned_worktree(repo, task_worktree_id or "")
+        return worktree, base, tip, description
+
+    task_wt, task_base, task_tip, task_description = owned_task()
     if not ancestor(repo, task_base, task_tip):
         raise TaskError("invalid-task-history", "recorded task base is not an ancestor of task tip")
 
     remover = load_helper("safe_worktree_remove", REMOVE_HELPER)
     common = common_dir(repo)
     integration_wt: Path | None = None
-    integration_branch: str | None = None
+    integration_worktree_id: str | None = None
+    integration_description: str | None = None
     plan = ""
     integration_tip = ""
     with integration_lock(remover, common):
         lock_token = (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0]
         main, main_tip = main_state(repo)
-        task_wt, current_base, current_task_tip = require_owned_branch(repo, args.branch)
-        if current_base != task_base or current_task_tip != task_tip:
-            raise TaskError("task-ref-changed", "task metadata/ref changed during preflight")
+        task_wt, current_base, current_task_tip, current_description = owned_task()
+        if current_base != task_base or current_task_tip != task_tip or current_description != task_description:
+            raise TaskError("task-worktree-changed", "task metadata/HEAD changed during preflight")
+        task_selector = task_branch or task_worktree_id
 
         if ancestor(repo, task_tip, main_tip):
             require_clean(task_wt, "task/integration worktree")
@@ -622,8 +724,9 @@ def finish(args: argparse.Namespace) -> int:
                 allow_repository_hooks=args.allow_repository_hooks,
                 allow_annex_filter=args.allow_annex_filter,
             )
-            if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip:
-                raise TaskError("pre-merge-race", "main/task ref changed before fast-forward")
+            current_task = owned_task()
+            if main_state(repo)[1] != main_tip or current_task[2] != task_tip or current_task[3] != task_description:
+                raise TaskError("pre-merge-race", "main/task worktree changed before fast-forward")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
             require_no_hooks(main, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
@@ -641,8 +744,9 @@ def finish(args: argparse.Namespace) -> int:
                 allow_annex_filter=args.allow_annex_filter,
                 check_final_paths=False,
             )
-            if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip:
-                raise TaskError("pre-merge-race", "main/task ref changed before creating integration worktree")
+            current_task = owned_task()
+            if main_state(repo)[1] != main_tip or current_task[2:] != (task_tip, task_description):
+                raise TaskError("pre-merge-race", "main/task worktree changed before creating integration worktree")
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
             require_no_hooks(
@@ -651,22 +755,24 @@ def finish(args: argparse.Namespace) -> int:
             )
 
             created = create_worktree(
-                repo, slug="integration-merge", client=owner[0], task=f"Integrate {args.branch}",
-                source=MAIN_BRANCH, parent=args.branch, prefix="integration",
+                repo, slug="integration-merge", client=owner[0], task=f"Integrate {task_selector}",
+                source=main_tip, parent=task_selector,
                 allow_repository_hooks=args.allow_repository_hooks,
             )
             if created.returncode != 0:
                 raise creator_partial(repo, created, "integration")
             values = parse_key_values(created.stdout)
-            if "worktree" not in values or "branch" not in values:
-                raise TaskError("integration-worktree-create-partial", "creator succeeded without reporting its worktree and branch", helper_output=created.stdout)
-            integration_wt, integration_branch = Path(values["worktree"]).resolve(), values["branch"]
+            if "worktree" not in values or "worktree_id" not in values:
+                raise TaskError("integration-worktree-create-partial", "creator succeeded without reporting its worktree and ID", helper_output=created.stdout)
+            integration_wt = Path(values["worktree"]).resolve()
+            integration_worktree_id = values["worktree_id"]
             identity_problem = load_helper("worktree_create", CREATE_HELPER).verify_identity(integration_wt, common)
             if identity_problem:
-                raise TaskError("integration-worktree-identity", identity_problem, integration_worktree=str(integration_wt), integration_branch=integration_branch)
-            _, int_client, int_session, int_base = branch_metadata(repo, integration_branch)
-            if (int_client, int_session) != owner or int_base != main_tip:
-                raise TaskError("integration-owner-invalid", "integration branch owner/base metadata mismatch", integration_branch=integration_branch)
+                raise TaskError("integration-worktree-identity", identity_problem, integration_worktree=str(integration_wt), integration_worktree_id=integration_worktree_id)
+            int_wt, int_base, int_head, int_description = require_owned_worktree(repo, integration_worktree_id)
+            if int_wt != integration_wt or description_owner(int_description) != owner or int_base != main_tip or int_head != main_tip:
+                raise TaskError("integration-owner-invalid", "integration worktree owner/base metadata mismatch", integration_worktree_id=integration_worktree_id)
+            integration_description = int_description
             require_no_hooks(
                 main, merge_commit=True, allow_repository_hooks=args.allow_repository_hooks,
                 allow_commit_signing=args.allow_commit_signing,
@@ -681,10 +787,10 @@ def finish(args: argparse.Namespace) -> int:
                 "-m", args.integration_message, task_tip, check=False,
             )
             if merge.returncode != 0:
-                raise TaskError("integration-conflict", "integration merge failed; task and integration worktrees are preserved", integration_worktree=str(integration_wt), integration_branch=integration_branch, stderr=merge.stderr.strip())
+                raise TaskError("integration-conflict", "integration merge failed; task and integration worktrees are preserved", integration_worktree=str(integration_wt), integration_worktree_id=integration_worktree_id, stderr=merge.stderr.strip())
 
             integration_tip = meta.git(integration_wt, "rev-parse", "HEAD").stdout.strip()
-            if branch_oid(repo, integration_branch) != integration_tip or not ancestor(repo, main_tip, integration_tip) or not ancestor(repo, task_tip, integration_tip):
+            if meta.git(integration_wt, "symbolic-ref", "--quiet", "HEAD", check=False).returncode == 0 or not ancestor(repo, main_tip, integration_tip) or not ancestor(repo, task_tip, integration_tip):
                 raise TaskError("integration-tree-invalid", "integration tip does not preserve both verified parents", integration_tip=integration_tip)
             require_clean(integration_wt, "integration worktree")
             require_no_index_flags(integration_wt, "integration worktree")
@@ -695,57 +801,69 @@ def finish(args: argparse.Namespace) -> int:
             require_no_hooks(main, merge_commit=False, allow_repository_hooks=args.allow_repository_hooks)
             require_no_filters(main, final_paths, allow_annex_filter=args.allow_annex_filter)
             check_tree_paths(main, main_tip, integration_tip)
-            if main_state(repo)[1] != main_tip or branch_oid(repo, args.branch) != task_tip or branch_oid(repo, integration_branch) != integration_tip:
-                raise TaskError("pre-merge-race", "main/task/integration ref or status changed before final fast-forward")
+            if (
+                main_state(repo)[1] != main_tip
+                or owned_task()[2:] != (task_tip, task_description)
+                or not task_tip_matches(
+                    repo, integration_wt, None, integration_worktree_id, integration_tip, integration_description,
+                )
+            ):
+                raise TaskError(
+                    "pre-merge-race", "main/task/integration worktree or status changed before final fast-forward",
+                    integration_worktree=str(integration_wt), integration_worktree_id=integration_worktree_id,
+                )
             if (common / LOCK_NAME / "owner").read_text(encoding="utf-8").splitlines()[0] != lock_token:
                 raise TaskError("lock-owner-changed", "integration lock ownership changed")
             update = meta.git(main, "merge", "--ff-only", "--no-overwrite-ignore", integration_tip, check=False)
             expected_main = integration_tip
             if update.returncode != 0:
-                raise TaskError("integration-verification-failed", "main fast-forward failed; actual state inspected and no cleanup attempted", expected=integration_tip, **inspect_main_state(repo), stderr=update.stderr.strip(), integration_worktree=str(integration_wt), integration_branch=integration_branch)
+                raise TaskError("integration-verification-failed", "main fast-forward failed; actual state inspected and no cleanup attempted", expected=integration_tip, **inspect_main_state(repo), stderr=update.stderr.strip(), integration_worktree=str(integration_wt), integration_worktree_id=integration_worktree_id)
         else:
             raise TaskError("histories-diverged", "no verified common base between task and current main; no refs changed", task_base=task_base, main_tip=main_tip, task_tip=task_tip)
 
         try:
-            checked = postcheck(repo, main, expected_main, args.branch, task_tip, integration_branch, integration_tip)
+            checked = postcheck(
+                repo, main, expected_main, task_branch, task_wt, task_worktree_id, task_description, task_tip,
+                integration_wt, integration_worktree_id, integration_description, integration_tip,
+            )
         except Exception as error:
             raise TaskError("integration-verification-failed", "post-check raised after main update; all worktrees preserved", expected=expected_main, **inspect_main_state(repo), detail=str(error)) from error
         if not checked["ok"]:
             raise TaskError("integration-verification-failed", "main post-check failed; no rollback or cleanup attempted", **checked)
 
     if args.keep_worktree:
-        return emit("integrated-kept", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, task_tip=task_tip, integration_branch=integration_branch, integration_tip=integration_tip, plan=plan)
+        return emit("integrated-kept", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=task_branch, task_worktree_id=task_worktree_id, task_tip=task_tip, integration_worktree_id=integration_worktree_id, integration_tip=integration_tip, plan=plan)
 
-    removals = [(task_wt, args.branch, args.delete_branch)]
-    if integration_wt is not None and integration_branch is not None:
-        removals.append((integration_wt, integration_branch, True))
+    removals = [(task_wt, task_branch, task_worktree_id, bool(task_branch) and args.delete_branch)]
+    if integration_wt is not None and integration_worktree_id is not None:
+        removals.append((integration_wt, None, integration_worktree_id, False))
     removed_worktrees: list[str] = []
     deleted_branches: list[str] = []
     removal_outputs: list[dict[str, Any]] = []
-    for worktree, branch, delete_branch in removals:
-        expected_tip = integration_tip if branch == integration_branch else task_tip
-        actual_tip = branch_oid(repo, branch)
+    for worktree, branch, worktree_id, delete_branch in removals:
+        expected_tip = integration_tip if worktree == integration_wt else task_tip
+        actual_tip = branch_oid(repo, branch) if branch else meta.git(worktree, "rev-parse", "HEAD").stdout.strip()
         if actual_tip != expected_tip:
-            emit("cleanup-pending", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, task_tip=task_tip, integration_branch=integration_branch, integration_tip=integration_tip, branch=branch, expected_branch_tip=expected_tip, actual_branch_tip=actual_tip, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches)
+            emit("cleanup-pending", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=task_branch, task_worktree_id=task_worktree_id, task_tip=task_tip, integration_worktree_id=integration_worktree_id, integration_tip=integration_tip, branch=branch, worktree_id=worktree_id, expected_tip=expected_tip, actual_tip=actual_tip, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches)
             return 1
-        result = safe_remove(repo, worktree, branch, args, delete_branch)
+        result = safe_remove(repo, worktree, branch, worktree_id, args, delete_branch)
         if not args.json and result.stdout:
             print(result.stdout, end="")
         if not args.json and result.stderr:
             print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
         removal_outputs.append({"branch": branch, "exit": result.returncode, "stdout": result.stdout, "stderr": result.stderr})
         if result.returncode != 0:
-            state = cleanup_state(repo, worktree, branch)
+            state = cleanup_state(repo, worktree, branch, worktree_id)
             if not state["worktree_registered"]:
-                removed_worktrees.append(branch)
+                removed_worktrees.append(branch or worktree_id or str(worktree))
             if delete_branch and not state["branch_exists"]:
                 deleted_branches.append(branch)
-            emit("cleanup-partial", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, integration_branch=integration_branch, integration_tip=integration_tip, failed_branch=branch, helper_exit=result.returncode, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches, removal_outputs=removal_outputs, **state)
+            emit("cleanup-partial", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=task_branch, task_worktree_id=task_worktree_id, integration_worktree_id=integration_worktree_id, integration_tip=integration_tip, failed_branch=branch, failed_worktree_id=worktree_id, helper_exit=result.returncode, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches, removal_outputs=removal_outputs, **state)
             return 1
-        removed_worktrees.append(branch)
+        removed_worktrees.append(branch or worktree_id or str(worktree))
         if delete_branch:
             deleted_branches.append(branch)
-    return emit("removed", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=args.branch, task_tip=task_tip, integration_branch=integration_branch, integration_tip=integration_tip, plan=plan, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches, removal_outputs=removal_outputs)
+    return emit("removed", args.json, repo=str(repo), main_tip=branch_oid(repo, MAIN_BRANCH), task_branch=task_branch, task_worktree_id=task_worktree_id, task_tip=task_tip, integration_worktree_id=integration_worktree_id, integration_tip=integration_tip, plan=plan, removed_worktrees=removed_worktrees, deleted_branches=deleted_branches, removal_outputs=removal_outputs)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -758,7 +876,6 @@ def main(argv: list[str] | None = None) -> int:
     start_parser.add_argument("--task", required=True)
     start_parser.add_argument("--from", dest="source", default=MAIN_BRANCH)
     start_parser.add_argument("--parent")
-    start_parser.add_argument("--prefix", default="task", choices=("task", "integration"))
     start_parser.add_argument("--worktrees-root")
     start_parser.add_argument("--allow-repository-hooks", action="store_true")
     start_parser.add_argument("--json", action="store_true")
@@ -768,9 +885,11 @@ def main(argv: list[str] | None = None) -> int:
     status_parser.add_argument("--json", action="store_true")
     finish_parser = sub.add_parser("finish", help="integrate and safely remove an owned task worktree")
     finish_parser.add_argument("--repo", required=True)
-    finish_parser.add_argument("--branch", required=True)
+    selector = finish_parser.add_mutually_exclusive_group(required=True)
+    selector.add_argument("--worktree-id", help="exact detached task worktree ID from start output")
+    selector.add_argument("--branch", help="legacy task branch for an already-created branch-backed worktree")
     finish_parser.add_argument("--external-writers-quiesced", action="store_true", help="assert known non-cooperating writers are stopped through integration and all cleanup")
-    finish_parser.add_argument("--integration-message", default="chore: integrate task branch")
+    finish_parser.add_argument("--integration-message", default="chore: integrate task worktree")
     finish_parser.add_argument(
         "--allow-commit-signing", action="store_true",
         help="allow Git to use the repository-configured signer for the integration commit",
@@ -812,6 +931,8 @@ def main(argv: list[str] | None = None) -> int:
             or args.discard_generated_build_outputs or args.preserve_generated_artifacts
         ):
             raise TaskError("invalid-options", "--keep-worktree cannot be combined with branch deletion/cache/output flags")
+        if args.worktree_id and args.delete_branch:
+            raise TaskError("invalid-options", "--delete-branch cannot be used for a detached task worktree")
         return finish(args)
     except TaskError as error:
         return emit_error(error, getattr(args, "json", False))

@@ -13,32 +13,29 @@ description: Use before the first file edit or Git write in each repository for 
   style established in `git log --oneline -20`; fall back to Conventional
   Commits only when neither source establishes a convention.
 - Keep one logical change per commit.
-- Never make task edits with `main` checked out or in detached HEAD. For every
-  user-requested task, regardless of size, record the live local
-  `refs/heads/main` OID and create a fresh uniquely named task branch/worktree
-  from that exact OID before editing. Verify the branch, path, and base OID;
-  if names/paths exist or the branch is in use, choose new ones or stop.
-- Unless the target repository documents its own branch naming, name the
-  worktree directory `<slug>-<YYYYMMDD>-<NN>` and its branch
-  `task/<slug>-<YYYYMMDD>-<NN>` (`integration/...` for an integration branch).
-  `<slug>` is 2-4 lowercase ASCII words of letters and digits joined by hyphens
-  that say what the task does; the date is local. `<NN>` is a two-digit number
-  greater than every number already seen for that slug and date in local
-  branches, worktree directories, `git worktree list --porcelain` entries,
-  stale `.git/worktrees/` admin directories, and remote-tracking refs; never
-  fill a gap. Create branch and worktree in one
-  `git worktree add -b <branch> <path> <OID>`; if it fails, treat the name as
-  taken and pick a higher `<NN>`, and never adopt an existing branch. A revision
-  gets a fresh `<NN>`. Right after creation, the creator records the task, and
-  for revisions or integrations the parent branch and base or checkpoint OID,
-  with `git config branch.<branch>.description "<text>"` (not
-  `--edit-description`, which opens an editor); this is the one shared-config
-  write allowed at creation, and only before concurrent agents start.
+- Never make task edits with `main` checked out. For every user-requested task,
+  regardless of size, record the live local `refs/heads/main` OID and create a
+  fresh uniquely named detached task worktree at that exact commit before
+  editing. Task and integration worktrees do not create branches. Verify the
+  worktree ID, path, base OID, and owner metadata; if names/paths exist or
+  metadata cannot be written and verified, choose new ones or stop.
+- Unless the target repository documents its own worktree naming, name each
+  worktree directory `<slug>-<YYYYMMDD>-<NN>`. `<slug>` is 2-4 lowercase ASCII
+  words of letters and digits joined by hyphens that say what the task does;
+  the date is local. `<NN>` is a two-digit number greater than every number
+  already seen for that slug and date in worktree directories,
+  `git worktree list --porcelain` entries, and stale `.git/worktrees/` admin
+  directories; never fill a gap. Create a detached worktree with
+  `git worktree add --detach <path> <OID>`; if it fails, treat the name as
+  taken and pick a higher `<NN>`. A revision gets a fresh `<NN>`. Right after
+  creation, the creator records the task, client/session, base OID, agent PID,
+  and optional parent task in a private owner file inside the verified per-
+  worktree Git admin directory. Do not create task or integration branch refs.
   For AI-managed tasks, prefer the lifecycle wrapper:
   `python3 <skill-dir>/scripts/worktree-task.py start --repo <repo> --slug <slug> --client <claude|opencode> --task "<text>" [--allow-repository-hooks]`.
   `--repo` is required and never inferred from cwd. After task changes are
   committed and verified, finish with
-  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --branch <exact-task-branch> --external-writers-quiesced [--delete-branch] [--integration-message <message>] [--allow-repository-hooks] [--allow-annex-filter] [--allow-commit-signing] [--preserve-generated-artifacts]`.
+  `python3 <skill-dir>/scripts/worktree-task.py finish --repo <repo> --worktree-id <exact-worktree-id> --external-writers-quiesced [--integration-message <message>] [--allow-repository-hooks] [--allow-annex-filter] [--allow-commit-signing] [--preserve-generated-artifacts]`.
   Run `finish` from outside the task/integration worktree being removed (prefer
   the repository's main checkout); the caller's own cwd is included in the
   process-use check and otherwise blocks cleanup.
@@ -49,13 +46,14 @@ description: Use before the first file edit or Git write in each repository for 
   filters and submodules, and updates main only by fast-forward. Another task
   worktree's active-session status alone does not block this task's integration
   or cleanup.
-  If main advanced from the task base, it creates an integration worktree and
-  merges the immutable task tip there before fast-forwarding main. Conflicts,
+  If main advanced from the task base, it creates a detached integration
+  worktree and merges the immutable task-tip OID there before fast-forwarding main. Conflicts,
   unrelated histories, and failed safety checks preserve worktrees and stop.
   Post-check failures after main has moved are reported from the actual HEAD/ref
   and are never rolled back. Successful `finish` removes worktrees by default;
-  it deletes the task branch only with `--delete-branch`. `finish` discards
-  recognized generated caches and build outputs by default after successful
+  removes detached task/integration worktrees after successful integration.
+  It creates no task or integration branch refs. `finish` discards recognized
+  generated caches and build outputs by default after successful
   removal, while unknown ignored/untracked data still blocks cleanup. Use
   `--preserve-generated-artifacts` to quarantine and retain recognized caches,
   build outputs, and a marked Nix-generated `.pre-commit-config.yaml` instead.
@@ -69,7 +67,7 @@ description: Use before the first file edit or Git write in each repository for 
   When main has advanced and an integration merge commit is required, supply
   `--integration-message` when the target repository's commit convention differs
   from the default message.
-  Integration preflight checks the task branch's own delta; it checks path and
+  Integration preflight checks the task worktree's own delta; it checks path and
   filter conflicts again against the actual merged tree before fast-forwarding.
   Filters are denied by default. `--allow-annex-filter` permits only the known
   `git-annex` clean/smudge/process commands after checking their configuration
@@ -79,21 +77,20 @@ description: Use before the first file edit or Git write in each repository for 
   user authorizes use of that repository's configured signer.
   The lower-level creator is
   `python3 <skill-dir>/scripts/worktree-create.py --repo <repo> --slug <slug> --client
-  <claude|opencode|copilot> --task "<text>" [--from main] [--parent <branch>]
-  [--allow-repository-hooks]
-  [--prefix integration]`: it applies the numbering rule, runs the single
-  `git worktree add -b`, checks the new `.git` identity, and writes the
-  description `<task> client=<c> session=<id> base=<OID> pid=<pid>@<start>
-  [parent=<branch>]`. The `(client, session)` pair identifies cleanup ownership;
-  the exact branch selects a worktree when one session creates several. Task
+  <claude|opencode|copilot> --task "<text>" [--from <commit>] [--parent <worktree-id>]
+  [--allow-repository-hooks]`: it applies the numbering rule, runs
+  `git worktree add --detach`, checks the new `.git` identity, and writes the
+  owner metadata into the verified per-worktree Git admin directory. The
+  `(client, session)` pair identifies cleanup ownership; the worktree ID selects
+  one worktree when a session creates several. Task
   text is descriptive only and must not contain reserved trailer tokens such as
   `client=`, `session=`, `base=`, `pid=`, or `parent=`. The session id comes only from the client's own
   variable: `CLAUDE_CODE_SESSION_ID` for Claude Code, `OPENCODE_SESSION_ID` for
   OpenCode (set by the `session-env` plugin), none for Copilot CLI. A missing
   or malformed value is recorded as `session=unknown`; never guess one. Exit
-  code 3 means the worktree exists but the description was not written:
-  write the printed text by hand. Exit code 4 means the identity check failed:
-  preserve the worktree. Without the script, do the same steps by hand.
+  code 3 means the worktree exists but owner metadata was not written. Exit code
+  4 means the identity check failed: preserve the worktree. Without the script,
+  do the same steps by hand.
 - To find forgotten worktrees run `python3 <skill-dir>/scripts/worktree-audit.py
   [--base main]`. It is read-only and takes no lock. `ACTIVE` and `UNKNOWN` are
   never removal candidates. Only `IDLE-MERGED` worktrees owned by the current
@@ -104,23 +101,23 @@ description: Use before the first file edit or Git write in each repository for 
   repos listed in the machine-local `$XDG_CONFIG_HOME/worktree-guard/config.json`
   (`mode`: `warn` logs what `deny` would block; `repos`; `allow_paths` for
   main-checkout-only runtime data such as a local database). It denies edits to
-  any non-allowed path in a protected checkout (the primary one, or a worktree
-  with the default branch checked out or a detached HEAD) and inside Git
-  directories, git write commands there, `git worktree add|remove|...`, and
+  any non-allowed path in a protected checkout (the primary one, a worktree
+  with the default branch checked out, or a detached worktree without valid
+  task owner metadata) and inside Git directories, git write commands there,
+  `git worktree add|remove|...`, and
   `--no-verify`. When it denies, create a task worktree instead; never work
   around it with Bash writes. It fails open on its own errors, does not see
   `sed -i` or shell redirects, and Copilot CLI has no guard. Decisions are
   logged (tool, rule, resolved path only) under `$XDG_STATE_HOME/worktree-guard/`.
-  Documented fallbacks are guard-denied unless made safe: record a description
-  with `git -C <task worktree> config branch.<b>.description ...`, create the
-  integration lock with Bash `mkdir`, and treat a manual `git worktree add` or
-  `git worktree remove` as an escalation point: ask the user.
+  Documented fallbacks are guard-denied unless made safe: create the worktree
+  owner metadata with `worktree-create.py`, create the integration lock with
+  Bash `mkdir`, and treat a manual `git worktree add` or `git worktree remove`
+  as an escalation point: ask the user.
 - A read-only agent may share a worktree only if it does not checkout, generate,
-  format, update dependencies, or otherwise write files. A detached-HEAD
-  worktree is allowed only for read-only inspection that cannot share an
-  existing worktree. It uses the same directory naming, and it is
-  removed like other task worktrees. Existing worktrees and branches keep their
-  names.
+  format, update dependencies, or otherwise write files. Writable task agents
+  use separate detached worktrees with verified per-worktree owner metadata;
+  commits stay on detached HEAD until integrated into `main`. Existing
+  branch-backed worktrees remain supported for cleanup and migration.
 - When verifying a linked worktree's `.git`, determine the entry's own type
   without following symlinks; a content reader may show a symlink target as a
   directory. Accept only a gitfile or a symlink resolving to the registered
@@ -139,23 +136,24 @@ description: Use before the first file edit or Git write in each repository for 
   refs, or write outside the current worktree. Preserve user data; do not use
   reset/restore/clean/stash/delete to make a worktree appear clean.
 - For a revision before integration, verify remaining changes are task-owned,
-  checkpoint them in the current task branch, inspect ignored/untracked state,
-  then create a fresh revision branch/worktree from that checkpoint. If
-  ownership is unclear, stop and coordinate. For revisions after integration,
-  create a fresh branch/worktree from current main. Never reuse prior names.
-- When other writers may be active, record the commit OID and the intended
-  branch tip right after committing. Before reporting completion verify the OID
-  is still reachable from that branch and the branch tree still contains the
-  change; if the tip moved or either check fails, stop and re-inspect status,
+  checkpoint them with a commit on detached HEAD, inspect ignored/untracked
+  state, then create a fresh revision worktree from that checkpoint and record
+  the parent worktree ID. If ownership is unclear, stop and coordinate. For
+  revisions after integration, create a fresh detached worktree from current
+  main. Never reuse prior names.
+- When other writers may be active, record each commit OID and the detached
+  worktree tip immediately after committing. Before reporting completion verify
+  the OID is reachable from that worktree's HEAD and the worktree still contains
+  the change; if the tip moved or either check fails, stop and re-inspect status,
   history, and the target diff.
-- Integrate every completed task into local `main`; a task-branch commit alone
+- Integrate every completed task into local `main`; a detached task commit alone
   is not completion. Record the task base OID, all task commit OIDs, and task
   tip OID; do not rebase, squash, or rewrite them. If main still equals the task
   base, use the task tip as integration tip. If task tip is already contained
   in current main, verify it and treat it as already integrated. If the recorded
   task base is a common ancestor of current main and task tip, create a fresh
-  integration worktree from current main and merge the immutable task tip there
-  with a merge commit; preserve all task commits, then fast-forward main to the
+  detached integration worktree from current main and merge the immutable task
+  tip OID there with a merge commit; preserve all task commits, then fast-forward main to the
   verified integration tip. A merge conflict preserves both worktrees for
   coordination. If no common base can be verified or repository policy requires
   rewriting, stop and coordinate. If task changes a submodule gitlink, treat the
@@ -210,25 +208,26 @@ description: Use before the first file edit or Git write in each repository for 
   overwrite user data. Inspect invoked hooks/filters for writes, remote access,
   and submodule recursion; stop if unsafe or unknown.
 - Immediately before fast-forward, recheck the recorded main OID, integration
-  OID, lock ownership, and worktree state; stop/rebuild if any changed. Verify
-  the task/integration branch refs changed only through the recorded commands.
+  OID, lock ownership, and each detached worktree's ID, owner metadata, and HEAD;
+  stop/rebuild if any changed. Verify no refs other than the recorded main
+  fast-forward were changed.
   After integration, verify live main ref and HEAD/tree equal the recorded
   integration tip, task commits/content are present, and main status has no
   unexplained changes. Inspect every used worktree/nested repo. Do not report
   completion while task changes remain outside main or verification is
   ambiguous.
 - The mere existence or active-session status of another task worktree is not evidence of a conflicting writer. Separate task worktrees isolate their filesystem and index; the integration lock serializes shared-ref updates, and integration checks detect path conflicts. Do not block a task's integration or cleanup on an unrelated worktree's activity. Still honor concrete shared-resource conflicts, the external-writer assertion, target-worktree process checks, and all required locks.
-- Remove only task/integration branches and worktrees recorded as created by
-  this task, after the integration OID is reachable from main, their tips are
-  integrated, their tracked/untracked/ignored state is safe, and no worktree is
-  using them. If Git refuses removal, apply the target repository's documented
-  remediation for that refusal; if none applies or it stops, preserve them and
+- Remove only task/integration worktrees recorded as created by this task,
+  after the integration OID is reachable from main, their tips are integrated,
+  their tracked/untracked/ignored state is safe, and no process is using them.
+  If Git refuses removal, apply the target repository's documented remediation
+  for that refusal; if none applies or it stops, preserve the worktree and
   report the blocker. Never force-remove. Get explicit approval before any
   irreversible data or history loss, and stop if ownership or integration is
-  ambiguous. While they remain, report the task as incomplete, not done. To remove
-  a worktree directly, run
+  ambiguous. While they remain, report the task as incomplete, not done. To
+  remove a detached worktree directly, run
   `python3 <skill-dir>/scripts/safe-worktree-remove.py <worktree>
-  --expect-branch "<exact local branch>" [--base <ref>] [--delete-branch]
+  --expect-worktree-id "<exact worktree ID>" [--base <ref>]
   [--discard-direnv-cache] [--discard-generated-caches]
   [--discard-generated-build-outputs] [--discard-generated-artifacts]
   [--preserve-generated-artifacts]`,
@@ -239,10 +238,12 @@ description: Use before the first file edit or Git write in each repository for 
   in-progress operation, submodule, or process with its cwd inside (needs
   `lsof`), HEAD and every HEAD-reflog commit are reachable from `--base`
   (default `main`), the current client session ID matches the recorded owner,
-  and `--expect-branch` exactly matches the worktree's registered local branch.
+  and the exact `--expect-worktree-id` matches the detached worktree's verified
+  Git admin directory and owner metadata. Legacy branch-backed worktrees can
+  still be selected with `--expect-branch`; new task worktrees are detached.
   Session identity is read from the current client's environment variable, not
   supplied as a free-form argument; `session=unknown`, legacy, or malformed
-  descriptions are refused. The branch name selects a target but does not
+  owner metadata are refused. A worktree ID selects a target but does not
   transfer ownership to another session. `--expect-owner` is obsolete and
   refused. This is a cooperative session-ownership guard, not an authentication
   boundary against a process that can modify its environment. A root `cultura.db`
@@ -286,16 +287,14 @@ description: Use before the first file edit or Git write in each repository for 
   caller must exclude writers that can affect the target worktree or shared
   resources for the complete inspection-to-removal interval; the script lock
   coordinates cooperating integration and cleanup operations. It copes with git-annex's `.git`
-  symlink, prints `owner:` on stderr, drops the deleted branch's config
-  section, and never forces. Any refusal is a stop condition, and
+  symlink, prints `owner:` on stderr, and never forces. `--delete-branch` is
+  retained only for legacy branch-backed worktrees. Any refusal is a stop condition, and
   `--allow-unreferenced-reflog` needs the user's explicit approval. Use
-  `--delete-branch` only when the worktree's branch was created for this task
-  and is confirmed task-owned; never use it for a reused or shared branch.
-  After successful removal, verify that the worktree is unregistered and, for
-  task-owned branches, that the branch ref is absent. Before reporting
-  completion, verify that no task/integration worktree or task-owned branch
-  created for this task remains. If removal is refused or a task-owned branch
-  must be retained, report cleanup as incomplete.
+  `--delete-branch` only when explicitly removing a task-owned legacy branch;
+  never use it for a reused or shared branch. After successful removal, verify
+  that the worktree is unregistered. Before reporting completion, verify that
+  no task/integration worktree created for this task remains. If removal is
+  refused, report cleanup as incomplete.
 - Do not stop integrating or removing a task-owned worktree merely because
   another task worktree exists, is active, or has unrelated dirty files. Scope
   exclusivity to the target worktree and any shared resources for which cleanup requires conflicting

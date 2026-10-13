@@ -100,6 +100,16 @@ def make_worktree(main: Path, name: str, *, symlink: bool = True, extra: tuple[s
     return wt
 
 
+def make_detached_worktree(main: Path, name: str, *, session: str = SESSION) -> tuple[Path, str]:
+    wt = main.parent / name
+    git(main, "worktree", "add", "--quiet", "--detach", str(wt), "main")
+    description = meta.format_description(
+        f"detached test task {name}", "opencode", session, git(wt, "rev-parse", "HEAD"), None, None,
+    )
+    common = Path(git(main, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+    return wt, meta.write_worktree_owner(wt, common, description)
+
+
 def owner_description(wt: Path, task: str, *, session: str = SESSION, client: str = "opencode") -> str:
     return meta.format_description(task, client, session, git(wt, "rev-parse", "HEAD"), None, None)
 
@@ -474,8 +484,53 @@ def test_old_expect_owner_flag_is_rejected(repo: Path) -> None:
 def test_branch_selector_is_required(repo: Path) -> None:
     wt = make_worktree(repo, "wt-missing-branch-selector")
     result = run_raw(str(wt))
-    assert result.returncode == 1 and "--expect-branch is required" in result.stderr
+    assert result.returncode == 1 and "provide exactly one" in result.stderr
     assert_untouched(wt)
+
+
+def test_detached_worktree_requires_exact_id_and_current_owner(repo: Path) -> None:
+    wt, worktree_id = make_detached_worktree(repo, "detached-owner")
+    tip = commit(wt, "task.txt")
+    git(repo, "merge", "--ff-only", tip)
+    wrong = run(str(wt), "--expect-worktree-id", "wrong-id", "--base", "main")
+    assert wrong.returncode == 1 and "worktree ID mismatch" in wrong.stderr
+    assert_untouched(wt, symlink=False)
+    foreign_session = "ses_" + "b" * 26
+    foreign = run(
+        str(wt), "--expect-worktree-id", worktree_id, "--base", "main",
+        env={**os.environ, "OPENCODE_SESSION_ID": foreign_session},
+    )
+    assert foreign.returncode == 1 and "different client session" in foreign.stderr
+    assert_untouched(wt, symlink=False)
+    removed = run(str(wt), "--expect-worktree-id", worktree_id, "--base", "main")
+    assert removed.returncode == 0, removed.stderr
+    assert "worktree_id=" + worktree_id in removed.stderr
+    assert not wt.exists()
+    assert git(repo, "branch", "--list", "task/*") == ""
+
+
+def test_detached_worktree_never_deletes_a_branch(repo: Path) -> None:
+    wt, worktree_id = make_detached_worktree(repo, "detached-no-branch-delete")
+    result = run(str(wt), "--expect-worktree-id", worktree_id, "--delete-branch")
+    assert result.returncode == 1 and "only valid for a branch-backed" in result.stderr
+    assert_untouched(wt, symlink=False)
+
+
+def test_detached_worktree_with_annex_style_git_symlink_is_verified_and_removed(repo: Path) -> None:
+    wt, worktree_id = make_detached_worktree(repo, "detached-annex-pointer")
+    admin = admin_of(wt)
+    (wt / ".git").unlink()
+    os.symlink(os.path.relpath(admin, wt), wt / ".git")
+    common = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+    record = meta.read_worktree_owner(wt, common)
+    assert record is not None and record[0] == worktree_id
+    tip = commit(wt, "task.txt")
+    git(repo, "merge", "--ff-only", tip)
+
+    result = run(str(wt), "--expect-worktree-id", worktree_id, "--base", "main")
+
+    assert result.returncode == 0, result.stderr
+    assert not wt.exists()
 
 
 def git_supports_relative_paths() -> bool:
@@ -2230,6 +2285,22 @@ def test_refuses_reflog_only_commit_after_returning_to_owned_branch(repo: Path) 
     assert result.returncode == 1 and lost[:12] in result.stderr
     assert_untouched(wt)
     assert run(str(wt), "--allow-unreferenced-reflog").returncode == 0
+
+
+def test_refuses_detached_worktree_reflog_only_commit(repo: Path) -> None:
+    wt, worktree_id = make_detached_worktree(repo, "detached-reflog-only")
+    base = git(repo, "rev-parse", "main")
+    lost = commit(wt, "lost.txt", "only in detached HEAD reflog")
+    git(wt, "checkout", "--quiet", "--detach", base)
+    result = run(str(wt), "--expect-worktree-id", worktree_id, "--base", "main")
+    assert result.returncode == 1 and lost[:12] in result.stderr
+    assert_untouched(wt, symlink=False)
+    removed = run(
+        str(wt), "--expect-worktree-id", worktree_id, "--base", "main",
+        "--allow-unreferenced-reflog",
+    )
+    assert removed.returncode == 0, removed.stderr
+    assert not wt.exists()
 
 
 def test_refuses_per_worktree_refs_and_in_progress_state(repo: Path) -> None:

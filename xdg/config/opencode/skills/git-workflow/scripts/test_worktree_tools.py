@@ -118,25 +118,32 @@ def test_session_comes_only_from_the_clients_own_variable() -> None:
     assert meta.current_session_identity({}) is None
 
 
-def test_create_numbers_branches_and_records_owner(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_numbers_detached_worktrees_and_records_owner(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", UUID)
     monkeypatch.setenv("CLAUDE_PID", str(os.getpid()))
     run_create(repo)
     run_create(repo)
-    branches = meta.git(repo, "branch", "--list", "task/*", "--format=%(refname:short)").stdout.split()
-    assert any(b.endswith("-01") for b in branches) and any(b.endswith("-02") for b in branches)
-    second = next(b for b in branches if b.endswith("-02"))
-    text = description(repo, second)
+    entries = [block for block in meta.git(repo, "worktree", "list", "--porcelain").stdout.strip().split("\n\n") if "worktree " in block]
+    assert len(entries) == 3
+    assert all("detached" in block and "branch " not in block for block in entries[1:])
+    records = [meta.read_worktree_owner(Path(block.splitlines()[0].removeprefix("worktree ")), Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip())) for block in entries[1:]]
+    ids = [record[0] for record in records if record is not None]
+    assert any(item.endswith("-01") for item in ids) and any(item.endswith("-02") for item in ids)
+    assert meta.git(repo, "branch", "--list", "task/*").stdout == ""
+    second = next(item for item in records if item is not None and item[0].endswith("-02"))
+    text = second[1]
     base = meta.git(repo, "rev-parse", "main").stdout.strip()
     assert f"client=claude session={UUID} base={base}" in text
     assert f"pid={os.getpid()}@" in text
-    assert (Path(os.environ["XDG_STATE_HOME"]) / "proj" / "worktrees" / second.split("/", 1)[1]).is_dir()
+    assert (Path(os.environ["XDG_STATE_HOME"]) / "proj" / "worktrees" / second[0]).is_dir()
 
 
 def test_create_without_session_records_unknown(repo: Path) -> None:
     run_create(repo)
-    branch = meta.git(repo, "branch", "--list", "task/*", "--format=%(refname:short)").stdout.split()[0]
-    assert "session=unknown" in description(repo, branch)
+    entry = meta.git(repo, "worktree", "list", "--porcelain").stdout.strip().split("\n\n")[1]
+    worktree = Path(entry.splitlines()[0].removeprefix("worktree "))
+    record = meta.read_worktree_owner(worktree, Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()))
+    assert record is not None and "session=unknown" in record[1]
 
 
 def test_create_rejects_bad_slug_and_missing_source(repo: Path) -> None:
@@ -290,8 +297,10 @@ def set_transcript_age(hours: float) -> None:
 def test_audit_states(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", UUID)
     run_create(repo)
-    branch = meta.git(repo, "branch", "--list", "task/*", "--format=%(refname:short)").stdout.split()[0]
     wt = next(e["worktree"] for e in audit.worktrees(repo))
+    record = meta.read_worktree_owner(Path(wt), Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()))
+    assert record is not None
+    worktree_id = record[0]
 
     assert audit_rows(repo)[0].state == "UNKNOWN"  # transcript not found: never idle
 
@@ -308,11 +317,11 @@ def test_audit_states(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     row = audit_rows(repo)[0]
     assert row.state == "IDLE-UNMERGED" and row.command is None
 
-    meta.git(repo, "merge", "-q", "--ff-only", branch)
+    meta.git(repo, "merge", "-q", "--ff-only", meta.git(wt, "rev-parse", "HEAD").stdout.strip())
     row = audit_rows(repo)[0]
     assert row.state == "IDLE-MERGED"
     assert row.command is not None and "--dry-run" in row.command
-    assert "--expect-branch" in row.command and branch in row.command
+    assert "--expect-worktree-id" in row.command and worktree_id in row.command
     assert "--expect-owner" not in row.command
     assert "--discard-generated-caches" not in row.command
 
@@ -331,10 +340,11 @@ def test_audit_pid_is_a_positive_signal(repo: Path, monkeypatch: pytest.MonkeyPa
 def test_audit_never_offers_another_session_worktree(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", UUID)
     run_create(repo)
-    branch = meta.git(repo, "branch", "--list", "task/*", "--format=%(refname:short)").stdout.split()[0]
     wt = Path(next(e["worktree"] for e in audit.worktrees(repo)))
+    record = meta.read_worktree_owner(wt, Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()))
+    assert record is not None
     commit(wt, "work.txt", "work")
-    meta.git(repo, "merge", "--ff-only", branch)
+    meta.git(repo, "merge", "--ff-only", meta.git(wt, "rev-parse", "HEAD").stdout.strip())
     set_transcript_age(30)
     monkeypatch.delenv("CLAUDE_CODE_SESSION_ID")
     monkeypatch.setenv("OPENCODE_SESSION_ID", OC_ID)

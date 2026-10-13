@@ -32,7 +32,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from worktree_meta import git_env
+import worktree_meta as meta
 
 GIT_TIMEOUT = 3
 EDIT_TOOLS = {"edit", "write", "multiedit", "notebookedit", "patch", "apply_patch"}
@@ -162,7 +162,7 @@ def canonical(path: str, cwd: str) -> str:
 def run_git(cwd: str, *args: str) -> str:
     try:
         proc = subprocess.run(
-            [os.environ.get("WORKTREE_GUARD_GIT") or "git", *args], cwd=cwd, env=git_env(),
+            [os.environ.get("WORKTREE_GUARD_GIT") or "git", *args], cwd=cwd, env=meta.git_env(),
             capture_output=True, text=True, timeout=GIT_TIMEOUT, check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
@@ -176,8 +176,8 @@ def load_repo(root_text: str, default_branch: str) -> Repo | None:
     root = canonical(root_text, "/")
     if not os.path.isdir(root):
         return None
-    common = run_git(root, "rev-parse", "--git-common-dir").strip()
-    repo = Repo(root=root, gitdir=canonical(common, root))
+    common = Path(run_git(root, "rev-parse", "--path-format=absolute", "--git-common-dir").strip()).resolve()
+    repo = Repo(root=root, gitdir=canonical(str(common), root))
     ref = f"refs/heads/{default_branch}"
     for entry in run_git(root, "worktree", "list", "--porcelain").split("\n\n"):
         fields = dict(
@@ -186,7 +186,15 @@ def load_repo(root_text: str, default_branch: str) -> Repo | None:
         path = fields.get("worktree")
         if not path or key(canonical(path, "/")) == key(root) or "bare" in fields:
             continue
-        protected = "detached" in fields or fields.get("branch") == ref
+        if "detached" in fields:
+            try:
+                record = meta.read_worktree_owner(Path(path).resolve(), common)
+            except (OSError, ValueError):
+                record = None
+            registered_task = record is not None and meta.parse_owner_description(record[1]) is not None
+            protected = not registered_task
+        else:
+            protected = fields.get("branch") == ref
         repo.worktrees.append(Worktree(canonical(path, "/"), protected))
     return repo
 
@@ -468,9 +476,8 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
     if protected and is_git_write(sub, args):
         return Decision(
             "deny", "main-checkout",
-            f"git {sub} would write the protected checkout {target}. Use a task worktree "
-            "(worktree-create.py); to record a description use `git -C <task worktree> config ...`; "
-            "integrate with the skill's ff-only procedure.",
+            f"git {sub} would write the protected checkout {target}. Use a detached task worktree "
+            "created by worktree-create.py; integrate with the skill's ff-only procedure.",
             target,
         )
     return Decision()

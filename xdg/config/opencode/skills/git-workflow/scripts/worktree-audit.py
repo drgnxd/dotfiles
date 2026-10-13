@@ -5,15 +5,16 @@ States, in precedence order:
   ACTIVE         a positive liveness signal: the recorded agent process is alive
                  with the recorded start time, or the recorded session changed
                  within --active-hours.
-  UNKNOWN        no description, detached HEAD, `session=unknown`, invalid owner
-                 metadata, or a failed session lookup. A failed lookup is never
-                 evidence of idleness.
+  UNKNOWN        no owner metadata, invalid owner metadata, `session=unknown`,
+                  or a failed session lookup. A failed lookup is never evidence
+                  of idleness.
   LEGACY         a description without a `session=` trailer (created before
                  session tracking); owner text only.
   IDLE-MERGED    liveness known to be negative, HEAD has commits beyond the
                  recorded base and is contained in --base, tracked/untracked
-                 state is clean, and the current client/session owns it. Prints
-                 a dry-run `safe-worktree-remove.py` command with its exact branch.
+                  state is clean, and the current client/session owns it. Prints
+                  a dry-run `safe-worktree-remove.py` command with its exact
+                  worktree ID or legacy branch selector.
   IDLE-UNMERGED  liveness known to be negative but the work is not contained in
                  --base, or is dirty. Never gets a removal command.
   IDLE-OTHER-SESSION / IDLE-OWNER-UNKNOWN
@@ -51,6 +52,7 @@ REMOVE_HELPER = "safe-worktree-remove.py"
 class Row:
     path: str
     branch: str | None
+    worktree_id: str | None
     state: str
     reason: str
     client: str | None = None
@@ -157,17 +159,29 @@ def change_counts(path: str) -> dict[str, int]:
 def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: float, helper: str) -> list[Row]:
     rows: list[Row] = []
     current_owner = meta.current_session_identity(env)
+    common = Path(meta.git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.strip()).resolve()
     for entry in worktrees(repo):
         path, ref = entry["worktree"], entry.get("branch")
         branch = ref.removeprefix("refs/heads/") if ref else None
-        row = Row(path=path, branch=branch, state="UNKNOWN", reason="")
+        row = Row(path=path, branch=branch, worktree_id=None, state="UNKNOWN", reason="")
         rows.append(row)
+        base_oid = ""
         if branch is None:
-            row.reason = "detached HEAD"
-            continue
-        text = meta.git(repo, "config", "--get", f"branch.{branch}.description", check=False).stdout.strip()
+            try:
+                record = meta.read_worktree_owner(Path(path), common)
+            except (OSError, ValueError):
+                row.reason = "invalid detached worktree owner metadata"
+                continue
+            if record is None:
+                row.reason = "detached HEAD without task owner metadata"
+                continue
+            row.worktree_id, text, owner_record = record
+            _task, row.client, row.session, base_oid = owner_record
+        else:
+            text = meta.git(repo, "config", "--get", f"branch.{branch}.description", check=False).stdout.strip()
         _task, trailer = meta.parse_description(text)
-        row.client, row.session = trailer.get("client"), trailer.get("session")
+        row.client = row.client or trailer.get("client")
+        row.session = row.session or trailer.get("session")
         if not text:
             row.reason = "no branch description"
             continue
@@ -191,7 +205,10 @@ def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: 
             row.reason = "session unknown or lookup failed"
             continue
 
-        base_oid = trailer.get("base")
+        base_oid = base_oid or trailer.get("base", "")
+        if not base_oid:
+            row.reason = "owner metadata has no base OID"
+            continue
         head = entry.get("HEAD", "")
         row.ahead_of_base = bool(base_oid) and head != base_oid and (
             meta.git(repo, "merge-base", "--is-ancestor", base_oid, head, check=False).returncode == 0
@@ -207,10 +224,8 @@ def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: 
                 row.state, row.reason = "IDLE-OTHER-SESSION", "cleanup belongs to another client/session"
             else:
                 row.state, row.reason = "IDLE-MERGED", f"session idle {row.session_idle_hours}h"
-                row.command = [
-                    sys.executable, str(Path(helper) / REMOVE_HELPER), path,
-                    "--expect-branch", branch, "--base", base, "--dry-run",
-                ]
+                selector = ["--expect-branch", branch] if branch else ["--expect-worktree-id", row.worktree_id or ""]
+                row.command = [sys.executable, str(Path(helper) / REMOVE_HELPER), path, *selector, "--base", base, "--dry-run"]
         else:
             row.state, row.reason = "IDLE-UNMERGED", f"session idle {row.session_idle_hours}h"
     return rows
@@ -226,6 +241,8 @@ def render(rows: list[Row]) -> str:
             extra.append("changes=" + ",".join(f"{k}:{v}" for k, v in row.changes.items() if v))
         lines.append(f"{row.state:<14} {row.branch or '(detached)'}  {row.path}")
         lines.append(f"{'':<14} client={row.client or '-'} session={row.session or '-'} {row.reason} {' '.join(extra)}".rstrip())
+        if row.worktree_id:
+            lines.append(f"{'':<14} worktree_id={row.worktree_id}")
         if row.command:
             lines.append(f"{'':<14} dry-run: {' '.join(shlex.quote(part) for part in row.command)}")
     return "\n".join(lines)
