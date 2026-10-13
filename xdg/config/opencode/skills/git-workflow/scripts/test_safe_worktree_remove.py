@@ -1158,6 +1158,64 @@ def test_legacy_direnv_quarantine_requires_explicit_discard_override(
     assert not transaction.exists()
 
 
+def test_purges_legacy_quarantine_manifest_without_generated_cache_list(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-legacy-manifest-cache-list")
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    make_nix_direnv_cache(wt, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: set())
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-legacy-manifest-cache-list",
+        preserve_generated_artifacts=True,
+    )
+    archive = outcome.preserved_direnv
+    assert archive is not None
+    transaction = archive.parent
+    manifest_path = transaction / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest.pop("generated_caches")
+    manifest["direnv"].pop("signature")
+    manifest_path.write_text(json.dumps(manifest))
+
+    HELPER.purge_preserved_quarantine(
+        str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+        discard_unverified_direnv=True,
+    )
+
+    assert not transaction.exists()
+
+
+def test_preserved_quarantine_rejects_malformed_generated_cache_list(repo: Path) -> None:
+    add_generated_cache_ignores(repo)
+    wt = make_worktree(repo, "wt-malformed-cache-list")
+    cache_file = wt / ".ruff_cache" / "content"
+    cache_file.parent.mkdir()
+    cache_file.write_bytes(b"generated cache")
+    removed = run(str(wt), "--preserve-generated-artifacts")
+    assert removed.returncode == 0, removed.stderr
+    quarantine = Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine"
+    transaction = next(quarantine.iterdir())
+    manifest_path = transaction / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    cache = Path(manifest["generated_caches"][0]["quarantine_path"]) / "content"
+    manifest["generated_caches"] = None
+    manifest_path.write_text(json.dumps(manifest))
+
+    with pytest.raises(HELPER.RemovalError, match="invalid generated-cache list"):
+        HELPER.purge_preserved_quarantine(
+            str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+        )
+    assert transaction.exists()
+    assert cache.read_bytes() == b"generated cache"
+    assert (Path(os.environ["XDG_STATE_HOME"]) / repo.name / "worktrees" / ".removal-quarantine").is_dir()
+
+
 def test_result_symlink_does_not_probe_its_target_for_open_handles(repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     add_generated_build_output_ignores(repo)
     wt = make_worktree(repo, "wt-result-no-target-probe")

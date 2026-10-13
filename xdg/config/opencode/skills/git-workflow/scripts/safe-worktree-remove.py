@@ -1889,6 +1889,8 @@ def load_preserved_transaction(
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise RemovalError(f"cannot read quarantine manifest {manifest_path}: {error}") from error
+    if "generated_caches" not in manifest:
+        manifest["generated_caches"] = []
     if (
         manifest.get("schema_version") != 1
         or manifest.get("operation_id") != operation_id
