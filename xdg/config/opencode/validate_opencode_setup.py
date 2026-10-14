@@ -204,6 +204,8 @@ def validate_config(errors: list[str]) -> None:
         "summary": ("openai/gpt-6-luna", "low"),
         "review-deep": ("openai/gpt-6.1-sol", "xhigh"),
         "review-main": ("openai/gpt-6.1-sol", "medium"),
+        "research-lead": ("openai/gpt-6-sol", "medium"),
+        "researcher": ("openai/gpt-6-luna", "medium"),
     }
     expected_agent_colors = {
         "build": "#f060a6",
@@ -212,7 +214,34 @@ def validate_config(errors: list[str]) -> None:
         "explore": "#aba4ff",
         "review-deep": "#ff8657",
         "review-main": "#f2ce55",
+        "research-lead": "#5fd7c8",
+        "researcher": "#9ccc65",
     }
+    if config.get("subagent_depth") != 2:
+        errors.append("subagent_depth must be 2 so research-lead can delegate")
+    if agents.get("researcher", {}).get("permission") != {
+        "*": "deny",
+        "webfetch": "allow",
+        "websearch": "allow",
+    }:
+        errors.append("researcher must allow only webfetch and websearch")
+    if agents.get("research-lead", {}).get("permission") != {
+        "*": "deny",
+        "todowrite": "allow",
+        "task": {"*": "deny", "researcher": "allow"},
+    }:
+        errors.append("research-lead must delegate only to researcher")
+    for worker in ("general", "explore"):
+        worker_permission = agents.get(worker, {}).get("permission", {})
+        for tool in ("webfetch", "websearch", "codesearch"):
+            if worker_permission.get(tool) != "deny":
+                errors.append(f"{worker} must deny {tool}")
+    if agents.get("explore", {}).get("permission", {}).get("bash") != "deny":
+        errors.append("explore must deny bash")
+    for planner in ("build", "plan"):
+        task_rules = agents.get(planner, {}).get("permission", {}).get("task", {})
+        if task_rules.get("*") != "deny" or "researcher" in task_rules:
+            errors.append(f"{planner} must deny task by default and not call researcher")
     if set(agents) != set(expected_routes):
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
