@@ -36,9 +36,12 @@ first and purged only after Git confirms worktree removal.
 The manifest records cache moves, Git removal, and per-entry purge progress.
 Interrupted purges can be resumed with `--purge-preserved-quarantine` after the
 repository identity, saved signatures, open handles, and main ancestry are
-rechecked. Legacy `.direnv` transactions without a stored signature require an
-explicit `--discard-unverified-direnv` override. Changed or unrecognized
-quarantine entries remain preserved for inspection.
+rechecked. Legacy `.direnv` transactions without a stored signature or with an
+unrecognized layout require an explicit `--discard-unverified-direnv` override.
+That path captures a no-follow tree signature and still rejects special files,
+nested Git repositories, mount points, and filesystem boundaries. Symlink
+targets are never opened. Changed or unrecognized quarantine entries remain
+preserved for inspection.
 
 After the final status check, the script normalizes a verified Annex `.git`
 symlink to a gitfile immediately before `git worktree remove`. Git validates
@@ -138,6 +141,7 @@ class DirenvArtifact:
     signature: tuple[tuple[object, ...], ...]
     discardable: bool
     discard_reason: str | None
+    unverified_layout: bool = False
 
 
 @dataclass(frozen=True)
@@ -162,6 +166,7 @@ class RemovalTransaction:
     operation_dir: Path
     manifest_path: Path
     manifest: dict[str, object]
+    operation_identity: tuple[int, int] | None = None
 
 
 @dataclass(frozen=True)
@@ -389,6 +394,96 @@ def direnv_tree_signature(root: Path) -> tuple[tuple[object, ...], ...]:
 
     visit(root, ".")
     return tuple(entries)
+
+
+def open_directory_path_nofollow(path: Path) -> int:
+    if not path.is_absolute() or not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
+        raise RemovalError(f"no-follow directory access is unavailable: {path}")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    descriptor = os.open(path.anchor, flags)
+    try:
+        for component in path.parts[1:]:
+            next_descriptor = os.open(component, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = next_descriptor
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def unverified_direnv_tree_signature(
+    root: Path, expected_device: int,
+) -> tuple[tuple[object, ...], ...]:
+    mounts = mount_points()
+    if mounts is None:
+        raise RemovalError(f"cannot inspect mount points; refusing unverified .direnv purge: {root}")
+    parent_fd = open_directory_path_nofollow(root.parent)
+    root_fd = -1
+    entries: list[tuple[object, ...]] = []
+    try:
+        root_info = os.stat(root.name, dir_fd=parent_fd, follow_symlinks=False)
+        if not stat.S_ISDIR(root_info.st_mode) or root_info.st_dev != expected_device:
+            raise RemovalError(f"unverified .direnv root changed type or filesystem: {root}")
+        if is_mountpoint(root, mounts) is not False:
+            raise RemovalError(f"unverified .direnv root is a mount point: {root}")
+        root_fd = os.open(root.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent_fd)
+        opened_root = os.fstat(root_fd)
+        if (opened_root.st_dev, opened_root.st_ino, opened_root.st_mode) != (
+            root_info.st_dev, root_info.st_ino, root_info.st_mode,
+        ):
+            raise RemovalError(f"unverified .direnv root changed during inspection: {root}")
+
+        def visit(descriptor: int, relative: str) -> None:
+            info = os.fstat(descriptor)
+            entries.append((relative, "directory", info.st_dev, info.st_ino, info.st_mode, 0, 0, ""))
+            for name in sorted(os.listdir(descriptor)):
+                child_relative = f"{relative}/{name}" if relative != "." else f"./{name}"
+                try:
+                    child_relative.encode("utf-8")
+                except UnicodeEncodeError as error:
+                    raise RemovalError(f"unverified .direnv contains a non-UTF-8 path: {root / child_relative}") from error
+                if "\\" in child_relative:
+                    raise RemovalError(f"unverified .direnv contains an unsafe path: {root / child_relative}")
+                if name == ".git":
+                    raise RemovalError(f"unverified .direnv contains a nested Git repository: {root / child_relative}")
+                child_info = os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+                if child_info.st_dev != expected_device:
+                    raise RemovalError(f"unverified .direnv crosses a filesystem boundary: {root / child_relative}")
+                if stat.S_ISLNK(child_info.st_mode):
+                    kind = "symlink"
+                    link = os.readlink(name, dir_fd=descriptor)
+                elif stat.S_ISDIR(child_info.st_mode):
+                    child_path = root / child_relative
+                    if is_mountpoint(child_path, mounts) is not False:
+                        raise RemovalError(f"unverified .direnv contains a mount point: {child_path}")
+                    child_fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=descriptor)
+                    try:
+                        opened_info = os.fstat(child_fd)
+                        if (opened_info.st_dev, opened_info.st_ino, opened_info.st_mode) != (
+                            child_info.st_dev, child_info.st_ino, child_info.st_mode,
+                        ):
+                            raise RemovalError(f"unverified .direnv directory changed during inspection: {child_path}")
+                        visit(child_fd, child_relative)
+                    finally:
+                        os.close(child_fd)
+                    continue
+                elif stat.S_ISREG(child_info.st_mode):
+                    kind = "file"
+                    link = ""
+                else:
+                    raise RemovalError(f"unverified .direnv contains a special file: {root / child_relative}")
+                entries.append((
+                    child_relative, kind, child_info.st_dev, child_info.st_ino, child_info.st_mode,
+                    child_info.st_size, child_info.st_mtime_ns, link,
+                ))
+
+        visit(root_fd, ".")
+        return tuple(entries)
+    finally:
+        if root_fd >= 0:
+            os.close(root_fd)
+        os.close(parent_fd)
 
 
 def generated_cache_candidates(
@@ -919,7 +1014,11 @@ def create_transaction(target: Target, head: str, plan: RemovalPlan) -> RemovalT
         },
         "generated_caches": generated_caches,
     }
-    transaction = RemovalTransaction(operation_dir, operation_dir / "manifest.json", manifest)
+    operation_info = operation_dir.lstat()
+    transaction = RemovalTransaction(
+        operation_dir, operation_dir / "manifest.json", manifest,
+        (operation_info.st_dev, operation_info.st_ino),
+    )
     try:
         write_manifest(transaction, "prepared", create=True)
     except BaseException:
@@ -1808,6 +1907,193 @@ def verify_purge_root_missing(
         raise RemovalError(f"quarantine root disappeared before its signed purge step: {label}")
 
 
+def verify_unverified_direnv_purge_progress(
+    root: Path, expected_device: int, signature: tuple[tuple[object, ...], ...],
+    record: dict[str, object],
+) -> None:
+    entries = signature_order(signature)
+    cursor = record.get("purge_cursor", 0)
+    pending = record.get("purge_pending")
+    if not isinstance(cursor, int) or isinstance(cursor, bool) or not 0 <= cursor <= len(entries):
+        raise RemovalError(f"invalid purge cursor in quarantine manifest: {root}")
+    if pending is not None and (cursor >= len(entries) or pending != entries[cursor][0]):
+        raise RemovalError(f"invalid pending purge entry in quarantine manifest: {root}")
+    observed = {entry[0]: entry for entry in unverified_direnv_tree_signature(root, expected_device)}
+    expected: dict[object, tuple[object, ...]] = {}
+    for index, entry in enumerate(entries):
+        relative = entry[0]
+        current = observed.get(relative)
+        if index < cursor:
+            if current is not None:
+                raise RemovalError(f"already-purged entry reappeared in quarantine: {root / str(relative)}")
+        elif index == cursor and pending == relative:
+            if current is not None and current != entry:
+                raise RemovalError(f"pending .direnv entry changed during purge: {root / str(relative)}")
+            if current is not None:
+                expected[relative] = entry
+        else:
+            if current != entry:
+                raise RemovalError(f".direnv changed during an interrupted purge: {root / str(relative)}")
+            expected[relative] = entry
+    if set(observed) != set(expected):
+        extras = sorted(str(path) for path in set(observed) - set(expected))
+        raise RemovalError(f"unrecognized entries appeared during .direnv purge: {', '.join(extras[:5])}")
+
+
+def signature_entry_matches_at(parent_fd: int, name: str, entry: tuple[object, ...]) -> bool:
+    try:
+        info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    except OSError:
+        return False
+    _relative, kind, device, inode, mode, size, mtime_ns, link_text = entry
+    if (info.st_dev, info.st_ino, info.st_mode) != (device, inode, mode):
+        return False
+    if stat.S_ISLNK(info.st_mode):
+        observed_kind = "symlink"
+        observed_link = os.readlink(name, dir_fd=parent_fd)
+    elif stat.S_ISDIR(info.st_mode):
+        observed_kind = "directory"
+        observed_link = ""
+    elif stat.S_ISREG(info.st_mode):
+        observed_kind = "file"
+        observed_link = ""
+        if link_text:
+            try:
+                descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=parent_fd)
+            except OSError:
+                return False
+            try:
+                opened = os.fstat(descriptor)
+                if (opened.st_dev, opened.st_ino, opened.st_mode) != (device, inode, mode):
+                    return False
+                digest = hashlib.sha256()
+                while chunk := os.read(descriptor, 1024 * 1024):
+                    digest.update(chunk)
+                observed_link = digest.hexdigest()
+            finally:
+                os.close(descriptor)
+    else:
+        return False
+    observed_size = 0 if observed_kind == "directory" else info.st_size
+    observed_mtime = 0 if observed_kind == "directory" else info.st_mtime_ns
+    return (observed_kind, observed_size, observed_mtime, observed_link) == (kind, size, mtime_ns, link_text)
+
+
+def open_signature_parent(
+    operation_fd: int, root_name: str, relative: str,
+    signatures: dict[str, tuple[object, ...]], expected_device: int,
+) -> tuple[int, str]:
+    if relative == ".":
+        return os.dup(operation_fd), root_name
+    root_entry = signatures.get(".")
+    if root_entry is None or root_entry[1] != "directory":
+        raise RemovalError("unverified .direnv signature has no directory root")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    descriptor = os.open(root_name, flags, dir_fd=operation_fd)
+    root_info = os.fstat(descriptor)
+    if (root_info.st_dev, root_info.st_ino, root_info.st_mode) != (
+        root_entry[2], root_entry[3], root_entry[4],
+    ):
+        os.close(descriptor)
+        raise RemovalError(".direnv root changed before purge")
+    components = relative.removeprefix("./").split("/")
+    try:
+        for depth, component in enumerate(components[:-1], start=1):
+            relative_parent = "./" + "/".join(components[:depth])
+            expected = signatures.get(relative_parent)
+            if expected is None or expected[1] != "directory" or expected[2] != expected_device:
+                raise RemovalError(f"invalid directory in unverified .direnv signature: {relative_parent}")
+            child_fd = os.open(component, flags, dir_fd=descriptor)
+            child_info = os.fstat(child_fd)
+            if (child_info.st_dev, child_info.st_ino, child_info.st_mode) != (
+                expected[2], expected[3], expected[4],
+            ):
+                os.close(child_fd)
+                raise RemovalError(f".direnv directory changed before purge: {relative_parent}")
+            os.close(descriptor)
+            descriptor = child_fd
+    except BaseException:
+        os.close(descriptor)
+        raise
+    return descriptor, components[-1]
+
+
+def purge_unverified_direnv_signature_tree(
+    root: Path, signature: tuple[tuple[object, ...], ...], record: dict[str, object],
+    transaction: RemovalTransaction,
+) -> str | None:
+    try:
+        entries = signature_order(signature)
+        expected_device = int(signature[0][2])
+        open_paths = tuple(
+            root if entry[0] == "." else root / str(entry[0])
+            for entry in entries if entry[1] != "symlink"
+        )
+        open_pids = lsof_open_paths(open_paths) if open_paths else set()
+        if open_pids is None:
+            return f"could not verify open handles to unverified .direnv: {root}"
+        if open_pids:
+            return f"processes still have unverified .direnv paths open (pids: {', '.join(sorted(open_pids))}): {root}"
+        verify_unverified_direnv_purge_progress(root, expected_device, signature, record)
+        operation_fd = open_directory_path_nofollow(transaction.operation_dir)
+        try:
+            if transaction.operation_identity is not None:
+                operation_info = os.fstat(operation_fd)
+                if (operation_info.st_dev, operation_info.st_ino) != transaction.operation_identity:
+                    return f"quarantine transaction changed before .direnv purge: {transaction.operation_dir}"
+            signatures = {str(entry[0]): entry for entry in signature}
+            cursor = record.get("purge_cursor", 0)
+            pending = record.get("purge_pending")
+            if not isinstance(cursor, int) or isinstance(cursor, bool) or not 0 <= cursor <= len(entries):
+                return f"invalid purge cursor for unverified .direnv: {root}"
+            if pending is not None and (cursor >= len(entries) or pending != entries[cursor][0]):
+                return f"invalid pending purge entry for unverified .direnv: {root}"
+            for index in range(cursor, len(entries)):
+                relative, kind = str(entries[index][0]), str(entries[index][1])
+                parent_fd, name = open_signature_parent(
+                    operation_fd, root.name, relative, signatures, expected_device,
+                )
+                try:
+                    try:
+                        os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+                        exists = True
+                    except FileNotFoundError:
+                        exists = False
+                    if index == cursor and pending == relative and not exists:
+                        record["purge_cursor"] = index + 1
+                        record.pop("purge_pending", None)
+                        write_manifest(transaction, "purging_preserved")
+                        continue
+                    if not signature_entry_matches_at(parent_fd, name, entries[index]):
+                        return f"unverified .direnv entry changed before purge: {root / relative}"
+                    record["purge_state"] = "purging"
+                    record["purge_cursor"] = index
+                    record["purge_pending"] = relative
+                    write_manifest(transaction, "purging_preserved")
+                    if kind == "directory":
+                        os.rmdir(name, dir_fd=parent_fd)
+                    elif kind in ("file", "symlink"):
+                        os.unlink(name, dir_fd=parent_fd)
+                    else:
+                        return f"unsupported unverified .direnv entry: {root / relative}"
+                    os.fsync(parent_fd)
+                    record["purge_cursor"] = index + 1
+                    record.pop("purge_pending", None)
+                    record.pop("purge_warning", None)
+                    write_manifest(transaction, "purging_preserved")
+                finally:
+                    os.close(parent_fd)
+            record["purge_state"] = "purged"
+            for key in ("purge_cursor", "purge_pending", "purge_warning"):
+                record.pop(key, None)
+            write_manifest(transaction, "purging_preserved")
+            return None
+        finally:
+            os.close(operation_fd)
+    except (OSError, RemovalError) as error:
+        return str(error)
+
+
 def purge_signature_tree(
     root: Path, signature: tuple[tuple[object, ...], ...], record: dict[str, object],
     transaction: RemovalTransaction,
@@ -1935,7 +2221,9 @@ def load_preserved_transaction(
         if branch.returncode == 0 and branch.stdout.strip() != head:
             raise RemovalError(f"original worktree branch moved after removal: {branch_ref}")
 
-    transaction = RemovalTransaction(operation, manifest_path, manifest)
+    transaction = RemovalTransaction(
+        operation, manifest_path, manifest, (operation_info.st_dev, operation_info.st_ino),
+    )
     records = manifest.get("generated_caches")
     if not isinstance(records, list):
         raise RemovalError("quarantine manifest has an invalid generated-cache list")
@@ -2000,6 +2288,8 @@ def load_preserved_transaction(
             if os.path.lexists(archive):
                 raise RemovalError(f"manifest marks .direnv purged but its quarantine path remains: {archive}")
         elif state == "purging" and not os.path.lexists(archive):
+            if direnv_record.get("unverified_layout") is True and not discard_unverified_direnv:
+                raise RemovalError("resuming an unverified .direnv purge requires --discard-unverified-direnv")
             identity = direnv_record.get("identity")
             signature = parse_quarantine_signature(direnv_record.get("signature"), str(archive))
             root_entry = next((entry for entry in signature if entry[0] == "."), None)
@@ -2027,11 +2317,24 @@ def load_preserved_transaction(
             raw_signature = direnv_record.get("signature")
             if state == "purging":
                 signature = parse_quarantine_signature(raw_signature, str(archive))
-                verify_purge_progress(archive, signature, direnv_record)
+                unverified_layout = direnv_record.get("unverified_layout") is True
+                if unverified_layout and not discard_unverified_direnv:
+                    raise RemovalError("resuming an unverified .direnv purge requires --discard-unverified-direnv")
+                if unverified_layout:
+                    verify_unverified_direnv_purge_progress(
+                        archive, int(identity[0]), signature, direnv_record,
+                    )
+                else:
+                    verify_purge_progress(archive, signature, direnv_record)
             else:
                 observed_signature = nix_direnv_cache_signature(archive)
                 if observed_signature is None:
-                    raise RemovalError(f".direnv no longer matches the verified Nix-direnv layout: {archive}")
+                    if not discard_unverified_direnv:
+                        raise RemovalError(f".direnv no longer matches the verified Nix-direnv layout: {archive}")
+                    observed_signature = unverified_direnv_tree_signature(archive, int(identity[0]))
+                    unverified_layout = True
+                else:
+                    unverified_layout = False
                 if raw_signature is None:
                     if not discard_unverified_direnv:
                         raise RemovalError(
@@ -2051,7 +2354,10 @@ def load_preserved_transaction(
             if open_pids is None or open_pids:
                 detail = "could not inspect open handles" if open_pids is None else f"open by pids {', '.join(sorted(open_pids))}"
                 raise RemovalError(f".direnv cannot be purged while {detail}: {archive}")
-            direnv = DirenvArtifact(archive, (int(identity[0]), int(identity[1])), signature, True, None)
+            direnv = DirenvArtifact(
+                archive, (int(identity[0]), int(identity[1])), signature, True, None,
+                unverified_layout=unverified_layout,
+            )
             expected_entries.add(DIR_ENV_NAME)
 
     unexpected = sorted(entry.name for entry in operation.iterdir() if entry.name not in expected_entries)
@@ -2091,8 +2397,15 @@ def purge_preserved_quarantine(
             assert isinstance(record, dict)
             record["purge_state"] = "purging"
             record.setdefault("signature", [list(entry) for entry in direnv.signature])
+            if direnv.unverified_layout:
+                record["unverified_layout"] = True
             write_manifest(transaction, "purging_preserved")
-            reason = purge_signature_tree(direnv.path, direnv.signature, record, transaction)
+            if direnv.unverified_layout:
+                reason = purge_unverified_direnv_signature_tree(
+                    direnv.path, direnv.signature, record, transaction,
+                )
+            else:
+                reason = purge_signature_tree(direnv.path, direnv.signature, record, transaction)
             if reason is not None:
                 record["purge_warning"] = reason
                 write_manifest(transaction, "purging_preserved")
@@ -2420,7 +2733,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--purge-preserved-quarantine", metavar="OPERATION_ID", help="purge one completed preserved transaction by its exact 32-hex ID")
     parser.add_argument(
         "--discard-unverified-direnv", action="store_true",
-        help="allow purging a legacy preserved .direnv cache without its original content signature",
+        help="allow purging a preserved .direnv cache without a saved signature or recognized layout",
     )
     parser.add_argument("--base", default="main", help="ref that must already contain HEAD (default: main)")
     parser.add_argument("--delete-branch", action="store_true", help="also delete the worktree's branch when it is fully contained in --base")
