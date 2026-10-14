@@ -1246,7 +1246,7 @@ def test_purges_legacy_quarantine_manifest_without_generated_cache_list(
     assert not transaction.exists()
 
 
-def test_legacy_direnv_override_still_rejects_unverified_layout(
+def test_legacy_direnv_override_purges_unverified_layout_without_following_symlinks(
     repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     add_direnv_ignore(repo)
@@ -1282,14 +1282,152 @@ def test_legacy_direnv_override_still_rejects_unverified_layout(
 
     with pytest.raises(HELPER.RemovalError, match="no longer matches the verified Nix-direnv layout"):
         HELPER.purge_preserved_quarantine(
-            str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
-            discard_unverified_direnv=True,
+            str(repo), manifest["operation_id"], dry_run=True, lock_name=LOCK,
         )
     assert HELPER.direnv_tree_signature(archive) == tree_before
     assert manifest_path.read_bytes() == manifest_before
     assert profile_rc.read_bytes() == profile_rc_before
     assert (external_target / "state").read_text() == "keep target"
     assert transaction.exists()
+
+    HELPER.purge_preserved_quarantine(
+        str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+        discard_unverified_direnv=True,
+    )
+    assert not transaction.exists()
+    assert (external_target / "state").read_text() == "keep target"
+
+
+def test_unverified_direnv_purge_refuses_directory_replacement(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-unverified-direnv-directory-race")
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    make_nix_direnv_cache(wt, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: set())
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-unverified-direnv-directory-race",
+        preserve_generated_artifacts=True,
+    )
+    archive = outcome.preserved_direnv
+    assert archive is not None
+    nested = archive / "nested"
+    nested.mkdir()
+    (nested / "sentinel").write_text("keep moved data")
+    external = tmp_path / "moved-cache"
+    transaction = archive.parent
+    manifest_path = transaction / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["direnv"].pop("signature")
+    manifest_path.write_text(json.dumps(manifest))
+    profile_link = next(path for path in archive.glob("flake-profile-*") if path.is_symlink())
+    profile_link.unlink()
+    profile_link.symlink_to(external, target_is_directory=True)
+    purge = HELPER.purge_unverified_direnv_signature_tree
+
+    def replace_directory(root, signature, record, transaction):
+        (root / "nested").rename(external)
+        (root / "nested").symlink_to(external, target_is_directory=True)
+        return purge(root, signature, record, transaction)
+
+    monkeypatch.setattr(HELPER, "purge_unverified_direnv_signature_tree", replace_directory)
+    with pytest.raises(HELPER.RemovalError, match=r"preserved \.direnv remains in quarantine"):
+        HELPER.purge_preserved_quarantine(
+            str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+            discard_unverified_direnv=True,
+        )
+    assert (external / "sentinel").read_text() == "keep moved data"
+    assert (archive / "nested").is_symlink()
+    assert transaction.exists()
+
+
+def test_unverified_direnv_signature_rejects_special_files_mounts_and_nested_git(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    special = tmp_path / "special"
+    special.mkdir()
+    os.mkfifo(special / "pipe")
+    with pytest.raises(HELPER.RemovalError, match="special file"):
+        HELPER.unverified_direnv_tree_signature(special, special.stat().st_dev)
+
+    mounted = tmp_path / "mounted"
+    mounted.mkdir()
+    nested = mounted / "nested"
+    nested.mkdir()
+    monkeypatch.setattr(HELPER, "mount_points", lambda: (nested.resolve(),))
+    with pytest.raises(HELPER.RemovalError, match="mount point"):
+        HELPER.unverified_direnv_tree_signature(mounted, mounted.stat().st_dev)
+
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    (mounted / ".git").mkdir()
+    with pytest.raises(HELPER.RemovalError, match="nested Git repository"):
+        HELPER.unverified_direnv_tree_signature(mounted, mounted.stat().st_dev)
+
+
+def test_unverified_direnv_purge_resumes_after_interruption(
+    repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    add_direnv_ignore(repo)
+    wt = make_worktree(repo, "wt-unverified-direnv-resume")
+    store = tmp_path / "nix-store"
+    store.mkdir()
+    make_nix_direnv_cache(wt, store)
+    monkeypatch.setattr(HELPER, "NIX_STORE_ROOT", store)
+    monkeypatch.setattr(HELPER, "mount_points", lambda: ())
+    monkeypatch.setattr(HELPER, "lsof_open_paths", lambda paths: set())
+    outcome = HELPER.remove(
+        str(wt), "main", delete_branch_too=False, lock_name=LOCK,
+        allow_unreferenced_reflog=False, expect_branch="task/wt-unverified-direnv-resume",
+        preserve_generated_artifacts=True,
+    )
+    archive = outcome.preserved_direnv
+    assert archive is not None
+    external = tmp_path / "external-profile"
+    external.mkdir()
+    (external / "sentinel").write_text("keep target")
+    profile_link = next(path for path in archive.glob("flake-profile-*") if path.is_symlink())
+    profile_link.unlink()
+    profile_link.symlink_to(external, target_is_directory=True)
+    transaction = archive.parent
+    manifest_path = transaction / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["direnv"].pop("signature")
+    manifest_path.write_text(json.dumps(manifest))
+
+    original_unlink = HELPER.os.unlink
+    unlink_count = 0
+
+    def interrupt_second_unlink(path, *args, **kwargs):
+        nonlocal unlink_count
+        if kwargs.get("dir_fd") is not None:
+            unlink_count += 1
+            if unlink_count == 2:
+                raise OSError("simulated interrupted purge")
+        return original_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(HELPER.os, "unlink", interrupt_second_unlink)
+    with pytest.raises(HELPER.RemovalError, match=r"preserved \.direnv remains in quarantine"):
+        HELPER.purge_preserved_quarantine(
+            str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+            discard_unverified_direnv=True,
+        )
+    partial = json.loads(manifest_path.read_text())["direnv"]
+    assert partial["purge_state"] == "purging"
+    assert partial["purge_cursor"] == 1
+
+    monkeypatch.setattr(HELPER.os, "unlink", original_unlink)
+    HELPER.purge_preserved_quarantine(
+        str(repo), manifest["operation_id"], dry_run=False, lock_name=LOCK,
+        discard_unverified_direnv=True,
+    )
+    assert not transaction.exists()
+    assert (external / "sentinel").read_text() == "keep target"
 
 
 def test_preserved_quarantine_rejects_malformed_generated_cache_list(repo: Path) -> None:

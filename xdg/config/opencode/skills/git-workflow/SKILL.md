@@ -281,8 +281,12 @@ description: Use before the first file edit or Git write in each repository for 
   `safe-worktree-remove.py --purge-preserved-quarantine <operation-id> --repo <repo>`;
   this verifies repository identity, saved signatures, open handles, and the
   current main ancestry under the repository lock. Legacy `.direnv` quarantines
-  without a saved signature require the additional `--discard-unverified-direnv`
-  opt-in. Unknown or changed entries remain preserved for inspection. The
+  without a saved signature or with an unrecognized layout require the additional
+  `--discard-unverified-direnv` opt-in. It captures a no-follow tree signature
+  when none was saved; a saved signature must still match. Special files, nested
+  Git repositories, mount points, and filesystem boundaries are refused, and
+  symlink targets are never followed. Changed or unknown entries remain preserved
+  for inspection. The
   discard option is never added by `worktree-audit.py`. The
   caller must exclude writers that can affect the target worktree or shared
   resources for the complete inspection-to-removal interval; the script lock
