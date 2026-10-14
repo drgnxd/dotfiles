@@ -159,6 +159,7 @@
     "tail_turns": 10
   },
   "experimental": {
+    "subagent_depth": 2,
     "policies": [
       {
         "effect": "deny",

@@ -217,8 +217,14 @@ def validate_config(errors: list[str]) -> None:
         "research-lead": "#5fd7c8",
         "researcher": "#9ccc65",
     }
-    if config.get("subagent_depth") != 2:
-        errors.append("subagent_depth must be 2 so research-lead can delegate")
+    if (
+        config.get("subagent_depth") != 2
+        or config.get("experimental", {}).get("subagent_depth") != 2
+    ):
+        errors.append(
+            "subagent_depth and experimental.subagent_depth must be 2 "
+            "so research-lead can delegate on v1 and v2"
+        )
     if agents.get("researcher", {}).get("permission") != {
         "*": "deny",
         "webfetch": "allow",
