@@ -122,6 +122,11 @@ in
             ];
           };
         }
+        {
+          key = "M";
+          mods = "Command|Shift";
+          action = "ToggleMaximized";
+        }
       ];
     };
   };
