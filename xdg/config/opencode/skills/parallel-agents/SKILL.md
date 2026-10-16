@@ -12,6 +12,9 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
 
 - The parent creates every detached worktree with unique names and owner
   metadata before delegating. Writing agents never run `git worktree add`.
+  Prefer `wtctl create` when it is on `PATH` (git-workflow): it records the parent agent process
+  as owner instead of a session-id variable, so stale inherited session
+  variables do not block it.
 - Each delegation prompt states the worktree path, worktree ID, allowed edit
   scope, and that the agent must not integrate. Subagents inherit the parent's
   cwd, so an unstated path means they write in the parent's worktree.
@@ -22,7 +25,8 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   require this, never `$TMPDIR`), and name and record them as `git-workflow`
   specifies; do not use the client's built-in worktree isolation, which places
   them inside the repository.
-- Only the integrator integrates into `main`, takes `main-integration.lock`,
+- Only the integrator integrates into `main`, takes `main-integration.lock`
+  (for `wtctl` tasks, `wtctl integrate` takes it together with its flock),
   checks every worktree before `git worktree prune`, and removes worktrees.
 - Pushing is governed by `git-workflow`; do not push unless the user asked, and
   then only the integrator pushes the refs the user named.
@@ -33,7 +37,8 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   absolute paths under it; the shell cwd may reset to the parent's between calls.
 - Before the first write and before each commit, compare `pwd -P`-style
   canonical paths of `git rev-parse --show-toplevel` and the assigned worktree
-  ID/owner metadata. Stop on a mismatch or if HEAD is not detached.
+  ID/owner metadata (`wtctl whoami` prints both for `wtctl` worktrees). Stop
+  on a mismatch or if HEAD is not detached.
 - Commit only in the assigned detached worktree. Do not create or update refs,
   integrate, take the integration lock, touch `main`, or remove worktrees.
 - Do not create, apply, pop, drop, or clear stash entries, and avoid
