@@ -7,5 +7,6 @@ _:
       ../../xdg/config/swiftbar/plugins/automation-status.30s.py;
     "swiftbar/plugins/update-status.5m.py".source =
       ../../xdg/config/swiftbar/plugins/update-status.5m.py;
+    "swiftbar/plugins/attention.1m.py".source = ../../xdg/config/swiftbar/plugins/attention.1m.py;
   };
 }
