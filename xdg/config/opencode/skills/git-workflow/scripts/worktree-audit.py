@@ -173,7 +173,11 @@ def audit(repo: Path, base: str, active_hours: float, env: dict[str, str], now: 
                 row.reason = "invalid detached worktree owner metadata"
                 continue
             if record is None:
-                row.reason = "detached HEAD without task owner metadata"
+                try:
+                    managed = meta.read_wtctl_marker(Path(path), common) is not None
+                except (OSError, ValueError):
+                    managed = False
+                row.reason = "managed by wtctl; see wtctl list" if managed else "detached HEAD without task owner metadata"
                 continue
             row.worktree_id, text, owner_record = record
             _task, row.client, row.session, base_oid = owner_record

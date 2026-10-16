@@ -93,6 +93,45 @@ forAllSystems (
       deadnix --fail .
       touch $out
     '';
+    worktree-guard-tests =
+      p.runCommand "check-worktree-guard"
+        {
+          nativeBuildInputs = [
+            (p.python3.withPackages (ps: [ ps.pytest ]))
+            p.git
+          ];
+        }
+        ''
+          cp -r ${../xdg/config/opencode/skills/git-workflow/scripts} scripts
+          chmod -R u+w scripts
+          export HOME="$TMPDIR/home"
+          mkdir -p "$HOME"
+          cd scripts
+          # The suite pins PATH to system directories for its git fixtures;
+          # point them at the sandbox git instead of editing the tests.
+          cat > conftest.py <<'PY'
+          import os
+          import shutil
+          import subprocess
+
+          import pytest
+
+          import test_worktree_guard as suite
+
+
+          @pytest.fixture(autouse=True)
+          def sandbox_git(monkeypatch):
+              git = shutil.which("git")
+
+              def sh(cwd, *args):
+                  env = {**suite.GIT_ENV, "PATH": os.environ["PATH"]}
+                  subprocess.run([git, *args], cwd=cwd, check=True, capture_output=True, env=env)
+
+              monkeypatch.setattr(suite, "sh", sh)
+          PY
+          python -m pytest -q -p no:cacheprovider test_worktree_guard.py
+          touch $out
+        '';
   }
   // lib.optionalAttrs (sys == "aarch64-darwin") {
     darwin-system = self.packages.aarch64-darwin.default;

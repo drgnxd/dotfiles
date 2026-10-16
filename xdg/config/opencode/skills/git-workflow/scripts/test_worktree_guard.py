@@ -306,6 +306,54 @@ def test_valid_detached_task_worktree_can_be_shared_with_writer_session(world: d
     assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
 
 
+def test_wtctl_task_worktree_is_allowed_only_with_matching_marker(world: dict[str, Path]) -> None:
+    sh(world["task"], "checkout", "-q", "--detach")
+    common = Path(guard.run_git(str(world["main"]), "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
+    marker = guard.meta.worktree_admin_dir(world["task"], common) / guard.meta.WTCTL_METADATA_FILE
+    data = {
+        "schema": 1, "tool": "wtctl", "task_id": "task-a-20260101-0123abcd",
+        "worktree": str(world["tmp"] / "elsewhere"), "owner": {"pid": 4242},
+    }
+    marker.write_text(json.dumps(data))
+    assert decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
+    data["worktree"] = str(world["task"])
+    for broken in ({"schema": 2}, {"owner": {}}):
+        marker.write_text(json.dumps({**data, **broken}))
+        assert decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
+    marker.write_text(json.dumps(data))
+    assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
+    decision, blocked = bash(f"git worktree remove {world['task']}", world["main"])
+    assert blocked and "wtctl remove" in decision.reason
+
+
+def test_audit_reports_wtctl_task_worktrees(world: dict[str, Path]) -> None:
+    import importlib.util
+    import time
+
+    spec = importlib.util.spec_from_file_location("worktree_audit_for_guard", HERE / "worktree-audit.py")
+    assert spec is not None and spec.loader is not None
+    audit = importlib.util.module_from_spec(spec)
+    # dataclasses resolve their module through sys.modules.
+    sys.modules[spec.name] = audit
+    spec.loader.exec_module(audit)
+
+    def reason() -> str:
+        rows = audit.audit(world["main"], "main", 2.0, dict(os.environ), time.time(), str(HERE))
+        row = next(r for r in rows if Path(r.path).resolve() == world["task"].resolve())
+        assert row.state == "UNKNOWN"
+        return row.reason
+
+    sh(world["task"], "checkout", "-q", "--detach")
+    assert reason() == "detached HEAD without task owner metadata"
+    common = Path(guard.run_git(str(world["main"]), "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
+    marker = guard.meta.worktree_admin_dir(world["task"], common) / guard.meta.WTCTL_METADATA_FILE
+    marker.write_text(json.dumps({
+        "schema": 1, "tool": "wtctl", "task_id": "task-a-20260101-0123abcd",
+        "worktree": str(world["task"]), "owner": {"pid": 4242},
+    }))
+    assert reason() == "managed by wtctl; see wtctl list"
+
+
 def test_non_guarded_tools_skip_git_entirely(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     def boom(*_: object) -> None:
         raise AssertionError("must not load repos")
