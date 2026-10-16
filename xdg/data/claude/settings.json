@@ -4,8 +4,10 @@
   "autoMemoryEnabled": false,
   "preferredNotifChannel": "notifications_disabled",
   "env": {
-    "CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION": "1000"
+    "CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION": "1000",
+    "DISABLE_AUTOUPDATER": "1"
   },
+  "autoUpdatesChannel": "stable",
   "attribution": {
     "commit": "",
     "pr": ""
