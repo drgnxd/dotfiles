@@ -335,14 +335,29 @@ def read_wtctl_marker(worktree: Path, common_dir: Path) -> dict | None:
         data = json.loads(marker.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    if not isinstance(data, dict) or data.get("tool") != "wtctl" or data.get("schema") != 1:
+    # Mirror wtctl's own Marker::parse so the guard never trusts a marker wtctl would reject.
+    def is_int(value: object) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool)
+
+    if not isinstance(data, dict) or data.get("tool") != "wtctl":
+        return None
+    if not is_int(data.get("schema")) or data.get("schema") != 1:
         return None
     owner = data.get("owner")
-    pid = owner.get("pid") if isinstance(owner, dict) else None
-    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 1:
+    if not isinstance(owner, dict):
+        return None
+    pid = owner.get("pid")
+    if not is_int(pid) or not 1 < pid <= 2**31 - 1:
+        return None
+    if not isinstance(owner.get("start"), str) or not isinstance(owner.get("client"), str):
+        return None
+    base = data.get("base")
+    if not isinstance(base, str) or not OID_RE.fullmatch(base):
         return None
     task_id, recorded = data.get("task_id"), data.get("worktree")
     if not isinstance(task_id, str) or not WTCTL_ID_RE.fullmatch(task_id) or not isinstance(recorded, str):
+        return None
+    if not Path(recorded).is_absolute():
         return None
     if Path(recorded).resolve() != worktree.resolve():
         return None
