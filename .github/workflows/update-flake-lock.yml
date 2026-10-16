@@ -22,7 +22,9 @@ jobs:
         # Changes to this workflow are therefore equivalent to token write access.
         with:
           token: ${{ secrets.FLAKE_UPDATE_TOKEN }}
-          inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl nixpkgs treefmt-nix"
+          # nixpkgs is excluded: it is advanced locally with `just update-settled` so that
+          # only revisions that have settled for a few days reach flake.lock.
+          inputs: "agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl treefmt-nix"
           pr-title: "chore(deps): update flake.lock"
           pr-labels: |
             dependencies

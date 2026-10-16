@@ -151,12 +151,12 @@ jobs:
 
           data = json.loads(sys.argv[1])
           nodes = data.get("locks", {}).get("nodes", {})
-          target_inputs = ["nixpkgs", "home-manager", "nix-darwin", "agenix"]
-          stale_days = 90
+          # Upstreams that commit rarely (nix-darwin, agenix) keep a looser bound so an up-to-date lock does not warn.
+          stale_days_by_input = {"nixpkgs": 30, "home-manager": 30, "nix-darwin": 90, "agenix": 90}
           now = dt.datetime.now(dt.timezone.utc)
           stale = []
 
-          for name in target_inputs:
+          for name, stale_days in stale_days_by_input.items():
               node = nodes.get(name)
               if not node:
                   continue
@@ -171,7 +171,7 @@ jobs:
                   stale.append((name, age_days, modified.date().isoformat()))
 
           if stale:
-              print("WARNING: stale flake inputs detected (>90 days):", file=sys.stderr)
+              print("WARNING: stale flake inputs detected:", file=sys.stderr)
               for name, age_days, modified_date in stale:
                   print(
                       f"- {name}: {age_days} days old (lastModified={modified_date})",

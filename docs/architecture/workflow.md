@@ -40,6 +40,25 @@ cp ~/.config/git/config.local.example ~/.config/git/config.local
 $EDITOR ~/.config/git/config.local
 ```
 
+## Updating nixpkgs
+
+nixpkgs is advanced locally, not by the weekly flake.lock pull request, so that only revisions that have settled in nixpkgs-unstable reach `flake.lock`.
+
+```bash
+# Pin nixpkgs to the newest nixpkgs-unstable channel head that is at least 7 days old
+just update-settled
+
+# Update every input; nixpkgs goes through update-settled
+just update
+```
+
+- Settling is measured on the channel branch's own push history (`nixos-channel-bot` fast-forwards `nixpkgs-unstable` only after Hydra passes), not on master commit dates. The default is 7 days. The recipe refuses to move nixpkgs backwards unless `allow_downgrade=true` is passed.
+- Do not run a bare `nix flake update`: it moves nixpkgs to the branch tip. Use `just update` or `just update-one <input>`.
+- Review the closure diff and build before applying; roll back with `darwin-rebuild switch --rollback` and revert `flake.lock`.
+- A security fix that is actively exploited, or that affects an installed package reachable from untrusted input, bypasses the settling time.
+- `check-flake-lock-age` in CI warns when nixpkgs or home-manager is older than 30 days (nix-darwin and agenix: 90, because those upstreams commit rarely), which is the upper bound for leaving the lock unreviewed. A pinned nixpkgs is already at least 7 days old, so about 23 days remain before the warning.
+- The weekly pull request still moves home-manager and nix-darwin to their branch tips; an evaluation error there can mean they expect a newer nixpkgs than the pinned one.
+
 ## Automated Garbage Collection
 Determinate Nix owns the Nix daemon in this flake, and `hosts/darwin/default.nix` keeps `nix.enable = false`. That makes nix-darwin `nix.gc` options inert, so garbage collection is scheduled as a user-level Home Manager service instead.
 

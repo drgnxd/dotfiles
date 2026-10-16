@@ -41,13 +41,47 @@ build-linux:
 switch-linux:
   home-manager switch --flake path:.
 
-# Update all flake inputs
+# Update all flake inputs; nixpkgs only to a settled revision (see update-settled)
 update:
-  nix flake update
+  nix flake update agenix git-hooks home-manager nix-darwin nix-hazkey nix-index-database nixgl treefmt-nix
+  just update-settled
 
-# Update a single input
+# Update a single input other than nixpkgs
 update-one input:
   nix flake update {{input}}
+
+# Pin nixpkgs to the newest nixpkgs-unstable channel head that is at least `days` old
+update-settled days="7" allow_downgrade="false":
+  #!/usr/bin/env bash
+  set -euo pipefail
+  days={{quote(days)}}
+  [[ "$days" =~ ^[0-9]+$ ]] || { echo "days must be a non-negative integer" >&2; exit 1; }
+  until="$(python3 -I -c 'import datetime, sys; print((datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=int(sys.argv[1]))).strftime("%Y-%m-%dT%H:%M:%SZ"))' "$days")"
+  # The channel branch is advanced by a bot only when Hydra's unstable job passes, so its push history
+  # (not master commit dates) is what "settled on the channel" means.
+  rev="$(gh api "repos/NixOS/nixpkgs/activity?ref=refs/heads/nixpkgs-unstable&per_page=100" --jq "[.[] | select(.timestamp <= \"${until}\")][0].after // empty")"
+  [[ "$rev" =~ ^[0-9a-f]{40}$ ]] || { echo "no nixpkgs-unstable head found at or before ${until} in the last 100 pushes" >&2; exit 1; }
+  echo "nixpkgs-unstable head at or before ${until}: ${rev}"
+  meta="$(nix flake prefetch --json "github:NixOS/nixpkgs/${rev}")"
+  # Edit only the locked node so `original` keeps tracking nixpkgs-unstable and Nix does not relock it.
+  python3 -I - "$meta" "$rev" {{quote(allow_downgrade)}} <<'PY'
+  import json, os, sys
+  meta, rev, allow_downgrade = json.loads(sys.argv[1]), sys.argv[2], sys.argv[3] == "true"
+  locked = {**meta["locked"], "narHash": meta["hash"]}
+  assert locked["rev"] == rev and locked["owner"] == "NixOS" and locked["repo"] == "nixpkgs", "unexpected prefetch result"
+  with open("flake.lock") as f:
+      lock = json.load(f)
+  node = lock["nodes"]["nixpkgs"]
+  if locked["lastModified"] < node["locked"]["lastModified"] and not allow_downgrade:
+      sys.exit("refusing to move nixpkgs backwards; pass allow_downgrade=true to override")
+  node["locked"] = {k: locked[k] for k in ("lastModified", "narHash", "owner", "repo", "rev", "type")}
+  with open("flake.lock.tmp", "w") as f:
+      json.dump(lock, f, indent=2)
+      f.write("\n")
+  os.replace("flake.lock.tmp", "flake.lock")
+  PY
+  nix flake metadata path:. > /dev/null
+  git --no-pager diff --stat flake.lock
 
 # Run shfmt on all shell scripts
 fmt-shell:
