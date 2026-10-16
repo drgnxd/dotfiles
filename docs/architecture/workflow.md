@@ -53,6 +53,7 @@ just update
 ```
 
 - Settling is measured on the channel branch's own push history (`nixos-channel-bot` fast-forwards `nixpkgs-unstable` only after Hydra passes), not on master commit dates. The default is 7 days. The recipe refuses to move nixpkgs backwards unless `allow_downgrade=true` is passed.
+- `just update-settled 0 false <rev>` pins one specific channel head; the update watcher recommends it so the applied head is exactly the one it judged settled.
 - Do not run a bare `nix flake update`: it moves nixpkgs to the branch tip. Use `just update` or `just update-one <input>`.
 - Review the closure diff and build before applying; roll back with `darwin-rebuild switch --rollback` and revert `flake.lock`.
 - A security fix that is actively exploited, or that affects an installed package reachable from untrusted input, bypasses the settling time.

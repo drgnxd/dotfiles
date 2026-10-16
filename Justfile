@@ -50,18 +50,25 @@ update:
 update-one input:
   nix flake update {{input}}
 
-# Pin nixpkgs to the newest nixpkgs-unstable channel head that is at least `days` old
-update-settled days="7" allow_downgrade="false":
+# Pin nixpkgs to the newest nixpkgs-unstable channel head that is at least `days` old, or to `rev`
+update-settled days="7" allow_downgrade="false" rev="":
   #!/usr/bin/env bash
   set -euo pipefail
   days={{quote(days)}}
   [[ "$days" =~ ^[0-9]+$ ]] || { echo "days must be a non-negative integer" >&2; exit 1; }
   until="$(python3 -I -c 'import datetime, sys; print((datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=int(sys.argv[1]))).strftime("%Y-%m-%dT%H:%M:%SZ"))' "$days")"
-  # The channel branch is advanced by a bot only when Hydra's unstable job passes, so its push history
-  # (not master commit dates) is what "settled on the channel" means.
-  rev="$(gh api "repos/NixOS/nixpkgs/activity?ref=refs/heads/nixpkgs-unstable&per_page=100" --jq "[.[] | select(.timestamp <= \"${until}\")][0].after // empty")"
-  [[ "$rev" =~ ^[0-9a-f]{40}$ ]] || { echo "no nixpkgs-unstable head found at or before ${until} in the last 100 pushes" >&2; exit 1; }
-  echo "nixpkgs-unstable head at or before ${until}: ${rev}"
+  rev={{quote(rev)}}
+  if [ -z "$rev" ]; then
+    # The channel branch is advanced by a bot only when Hydra's unstable job passes, so its push history
+    # (not master commit dates) is what "settled on the channel" means.
+    rev="$(gh api "repos/NixOS/nixpkgs/activity?ref=refs/heads/nixpkgs-unstable&per_page=100" --jq "[.[] | select(.timestamp <= \"${until}\")][0].after // empty")"
+    [[ "$rev" =~ ^[0-9a-f]{40}$ ]] || { echo "no nixpkgs-unstable head found at or before ${until} in the last 100 pushes" >&2; exit 1; }
+    echo "nixpkgs-unstable head at or before ${until}: ${rev}"
+  else
+    # An explicit revision is what the update watcher recommends after judging its own soak time.
+    [[ "$rev" =~ ^[0-9a-f]{40}$ ]] || { echo "rev must be a 40 character commit hash" >&2; exit 1; }
+    echo "pinning the requested revision: ${rev}"
+  fi
   meta="$(nix flake prefetch --json "github:NixOS/nixpkgs/${rev}")"
   # Edit only the locked node so `original` keeps tracking nixpkgs-unstable and Nix does not relock it.
   python3 -I - "$meta" "$rev" {{quote(allow_downgrade)}} <<'PY'

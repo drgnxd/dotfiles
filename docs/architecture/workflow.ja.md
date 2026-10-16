@@ -53,6 +53,7 @@ just update
 ```
 
 - 待機期間は、master のコミット日ではなく、チャンネルブランチ自体の push 履歴(Hydra 通過後にだけ `nixos-channel-bot` が `nixpkgs-unstable` を進める)で測ります。既定は 7 日です。レシピは、`allow_downgrade=true` を渡さない限り nixpkgs を後退させません。
+- `just update-settled 0 false <rev>` は特定のチャンネル head に固定します。更新監視が、自分が熟成したと判定した head をそのまま適用できるよう、このコマンドを案内します。
 - 引数なしの `nix flake update` は使わないでください。nixpkgs がブランチ先端まで進みます。`just update` または `just update-one <input>` を使います。
 - 適用前にクロージャ差分とビルドを確認し、問題があれば `darwin-rebuild switch --rollback` と `flake.lock` の revert で戻します。
 - 実際に悪用されている修正や、信頼できない入力から到達できる導入済みパッケージの修正は、待機期間を適用しません。

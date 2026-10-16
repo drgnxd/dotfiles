@@ -23,7 +23,9 @@ ACTIONABLE = ("urgent", "overdue", "due_soon", "ready")
 LABEL = {"urgent": "緊急", "overdue": "期限超過", "due_soon": "期限間近", "ready": "適用可",
          "waiting": "待機中", "held": "保留"}
 COLOR = {"urgent": "#d62728", "overdue": "#d62728", "due_soon": "#e08a00", "ready": "#2e7d32"}
-UNSAFE = re.compile(r"[\x00-\x1f\x7f|]")
+UNSAFE = re.compile("[\x00-\x1f\x7f-\x9f|\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]")
+HASH_RE = re.compile(r"^[0-9a-f]{40}$")
+PLAIN = " | emojize=false symbolize=false"
 ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+@/:-]{0,99}$")
 SAFE_PATH = re.compile(r"^/[A-Za-z0-9._+@/~-]+$")
 
@@ -31,6 +33,11 @@ SAFE_PATH = re.compile(r"^/[A-Za-z0-9._+@/~-]+$")
 def clean(text, limit=100):
     text = UNSAFE.sub(" ", str(text)).strip()
     return text.lstrip("-")[:limit]
+
+
+def short(value):
+    text = str(value)
+    return text[:12] if HASH_RE.fullmatch(text) else text
 
 
 def uv_path():
@@ -98,23 +105,23 @@ def render(state, now):
         for item in group:
             badge = " 🔧" if item.get("job_runtime") else ""
             stale_mark = " (古い)" if item.get("stale") else ""
-            target = clean(item.get("target") or ("〜" + short_date(item.get("ready_at"))), 24)
-            lines.append(f"{clean(item.get('title'), 40)} {clean(item.get('installed'), 24)} → {target}"
-                         f"  {clean(item.get('tier'), 3)} 期限 {short_date(item.get('deadline'))}{badge}{stale_mark}")
+            target = clean(short(item.get("target")) if item.get("target") else "〜" + short_date(item.get("ready_at")), 24)
+            lines.append(f"{clean(item.get('title'), 40)} {clean(short(item.get('installed')), 24)} → {target}"
+                         f"  {clean(item.get('tier'), 3)} 期限 {short_date(item.get('deadline'))}{badge}{stale_mark}" + PLAIN)
             apply = clean(item.get("apply", ""), 120)
             if apply and key in ACTIONABLE:
-                lines.append(f"--適用: {apply}")
+                lines.append(f"--適用: {apply}" + PLAIN)
             if badge and key in ACTIONABLE:
-                lines.append("--適用後に just relaunch-agents が必要")
+                lines.append("--適用後に just relaunch-agents が必要" + PLAIN)
             for detail in item.get("details", [])[:8]:
-                lines.append(f"--{clean(detail, 100)}")
+                lines.append(f"--{clean(detail, 100)}" + PLAIN)
             if key in ACTIONABLE and item.get("tier") != "S0":
                 for days in (1, 3, 7):
                     params = command_params(state, "snooze", item["id"], str(days), "menu-bar")
                     if params:
                         lines.append(f"--スヌーズ {days} 日 | " + " ".join(params))
     for note in report.get("info", [])[:6]:
-        lines.append(f"ℹ {clean(note, 110)} | color=#888888")
+        lines.append(f"ℹ {clean(note, 110)} | color=#888888 emojize=false symbolize=false")
     recheck = command_params(state, "check")
     if recheck:
         lines += ["---", "今すぐ再確認 | " + " ".join(recheck)]
