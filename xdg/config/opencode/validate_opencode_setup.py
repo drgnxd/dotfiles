@@ -166,6 +166,8 @@ def validate_config(errors: list[str]) -> None:
 
     if config.get("enabled_providers") != ["openai"]:
         errors.append("OpenCode must enable only the openai provider")
+    if config.get("permission", {}).get("fetch_pdf") != "deny":
+        errors.append("fetch_pdf must be denied by default")
 
     policies = config.get("experimental", {}).get("policies", [])
     if not any(
@@ -206,6 +208,7 @@ def validate_config(errors: list[str]) -> None:
         "review-main": ("openai/gpt-6.1-sol", "medium"),
         "research-lead": ("openai/gpt-6-sol", "medium"),
         "researcher": ("openai/gpt-6-luna", "medium"),
+        "pdf-reader": ("openai/gpt-6-luna", "medium"),
     }
     expected_agent_colors = {
         "build": "#f060a6",
@@ -229,8 +232,21 @@ def validate_config(errors: list[str]) -> None:
         "*": "deny",
         "webfetch": "allow",
         "websearch": "allow",
+        "fetch_pdf": "allow",
     }:
-        errors.append("researcher must allow only webfetch and websearch")
+        errors.append("researcher must allow web research and PDF source fetching")
+    if any(
+        agent.get("permission", {}).get("fetch_pdf") == "allow"
+        for name, agent in agents.items()
+        if name != "researcher"
+    ):
+        errors.append("only researcher may request fetch_pdf access")
+    if agents.get("pdf-reader", {}).get("permission") != {
+        "*": "deny",
+        "read": {"*": "deny", "*.pdf": "allow"},
+        "external_directory": "ask",
+    }:
+        errors.append("pdf-reader must read only PDF paths and ask for external directories")
     if agents.get("research-lead", {}).get("permission") != {
         "*": "deny",
         "todowrite": "allow",
@@ -248,6 +264,8 @@ def validate_config(errors: list[str]) -> None:
         task_rules = agents.get(planner, {}).get("permission", {}).get("task", {})
         if task_rules.get("*") != "deny" or "researcher" in task_rules:
             errors.append(f"{planner} must deny task by default and not call researcher")
+        if task_rules.get("pdf-reader") != "allow":
+            errors.append(f"{planner} must be able to delegate user-provided PDFs to pdf-reader")
     if set(agents) != set(expected_routes):
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
