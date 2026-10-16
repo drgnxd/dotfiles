@@ -192,6 +192,11 @@ def load_repo(root_text: str, default_branch: str) -> Repo | None:
             except (OSError, ValueError):
                 record = None
             registered_task = record is not None and meta.parse_owner_description(record[1]) is not None
+            if not registered_task:
+                try:
+                    registered_task = meta.read_wtctl_marker(Path(path).resolve(), common) is not None
+                except (OSError, ValueError):
+                    registered_task = False
             protected = not registered_task
         else:
             protected = fields.get("branch") == ref
@@ -252,7 +257,7 @@ def check_path(path: str, cwd: str, cfg: dict, repos: list[Repo]) -> Decision:
         return Decision(
             "deny", "main-checkout",
             f"{canon} is in a protected checkout of {repo.root}. Create a task worktree with "
-            "worktree-create.py (git-workflow skill) and edit there.",
+            "`wtctl create` or worktree-create.py (git-workflow skill) and edit there.",
             canon,
         )
     return Decision()
@@ -463,7 +468,10 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
     if shell_alias:
         return Decision("warn", "shell-alias", "A shell alias cannot be analysed.", target)
     if sub == "worktree" and args[:1] and args[0] in WORKTREE_ADMIN:
-        hint = "worktree-create.py" if args[0] == "add" else "safe-worktree-remove.py"
+        hint = (
+            "`wtctl create` or worktree-create.py" if args[0] == "add"
+            else "`wtctl remove`/`wtctl reap` for wtctl worktrees or safe-worktree-remove.py"
+        )
         return Decision(
             "deny", "worktree-admin",
             f"git worktree {args[0]} is not allowed directly; use {hint}, or ask the user if it cannot be used.",
@@ -477,7 +485,8 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
         return Decision(
             "deny", "main-checkout",
             f"git {sub} would write the protected checkout {target}. Use a detached task worktree "
-            "created by worktree-create.py; integrate with the skill's ff-only procedure.",
+            "created by `wtctl create` or worktree-create.py; integrate with `wtctl integrate` "
+            "or the skill's ff-only procedure.",
             target,
         )
     return Decision()
@@ -535,7 +544,7 @@ def evaluate(tool: str, tool_input: dict, cwd: str, cfg: dict) -> Decision:
     elif name == "bash":
         result = check_bash(command, cwd, repos)
     elif locate(canonical(cwd, "/"), repos) is not None:
-        result = Decision("deny", "builtin-worktree", "Create the worktree with worktree-create.py instead.", cwd)
+        result = Decision("deny", "builtin-worktree", "Create the worktree with `wtctl create` or worktree-create.py instead.", cwd)
     return result
 
 

@@ -13,14 +13,23 @@ description: Use before the first file edit or Git write in each repository for 
   style established in `git log --oneline -20`; fall back to Conventional
   Commits only when neither source establishes a convention.
 - Keep one logical change per commit.
+- Start new task worktrees with `wtctl` when it is on `PATH` (section "wtctl
+  task worktrees" below); otherwise use the Python scripts below, which also
+  remain for existing legacy worktrees during the migration. The naming rule
+  (`<NN>` suffix), the owner-file contents (client/session, agent PID
+  trailer), `(client, session)` ownership, and the script-specific steps below
+  apply only to worktrees those scripts create;
+  `wtctl` names worktrees `<slug>-<YYYYMMDD>-<8 hex>` and records the owning
+  agent process instead. The `main-integration.lock` protocol applies to both,
+  and `wtctl` takes it too.
 - Never make task edits with `main` checked out. For every user-requested task,
   regardless of size, record the live local `refs/heads/main` OID and create a
   fresh uniquely named detached task worktree at that exact commit before
   editing. Task and integration worktrees do not create branches. Verify the
   worktree ID, path, base OID, and owner metadata; if names/paths exist or
   metadata cannot be written and verified, choose new ones or stop.
-- Unless the target repository documents its own worktree naming, name each
-  worktree directory `<slug>-<YYYYMMDD>-<NN>`. `<slug>` is 2-4 lowercase ASCII
+- Legacy scripts and manual creation: unless the target repository documents
+  its own worktree naming, name each worktree directory `<slug>-<YYYYMMDD>-<NN>`. `<slug>` is 2-4 lowercase ASCII
   words of letters and digits joined by hyphens that say what the task does;
   the date is local. `<NN>` is a two-digit number greater than every number
   already seen for that slug and date in worktree directories,
@@ -314,3 +323,50 @@ description: Use before the first file edit or Git write in each repository for 
   does not require unrelated DB users to stop.
 - When reporting a commit to the user, quote its message verbatim, including its
   language, rather than paraphrasing or translating it into the reply language.
+
+## wtctl task worktrees
+
+`wtctl` is a separate tool; its README is the reference for its behavior. Use
+it when it is on `PATH`; otherwise use the legacy scripts above. Also use the
+legacy scripts in a repository that uses git-annex (`wtctl` is untested with
+annex) or whose own rules name `worktree-create.py` or
+`safe-worktree-remove.py`.
+
+- For a `wtctl` task, `wtctl integrate` replaces the integration-worktree
+  merge, preflight, and owner rechecks above, and `wtctl remove`/`wtctl reap`
+  replace the legacy removal procedure; the lock, hook, and data-preservation
+  rules still apply.
+
+- One worktree per task, never reused: `wtctl create --repo <repo> --slug
+  <slug> --task "<text>"` (prints `task_id` and `worktree`), edit and commit
+  there, `wtctl integrate --repo <repo> --id <id>`, then from outside the
+  worktree `wtctl remove --repo <repo> --id <id>`. A parent creates the
+  worktree before delegating and passes the path and id; `wtctl whoami`
+  maps a path back to its task and owner.
+- Ownership is the agent process (pid plus start time), not a session-id
+  variable, so stale inherited `*_SESSION_ID` values do not matter.
+- `integrate` only fast-forwards `main`. On exit 3 (`main` advanced), merge
+  `main` into the task worktree, commit, and retry; never rebase task commits.
+  Where a `commit-msg` hook enforces a message convention, pass a conforming
+  message with `git merge -m "<message>"`, because Git's default merge message
+  is rejected.
+- `remove` and `reap` delete only clean worktrees whose commits, reflog, and
+  per-worktree refs are all in `main` and that no process is using. Anything
+  else is kept and reported; treat that as a stop condition, not something to
+  force.
+- After a crash or resume, inspect `wtctl list --orphans`. `wtctl reap`
+  removes only safe, dead-owner worktrees after a grace period. Continue a
+  kept task only after an explicit `wtctl adopt --repo <repo> --id <id>`;
+  never adopt automatically.
+- `wtctl` takes `main-integration.lock` as well as its own `flock`, so it and
+  the legacy scripts exclude each other. Exit 5 means a lock is busy; do not
+  delete a lock directory without checking its `owner` pid.
+- Exit codes: 0 ok, 1 error, 2 usage, 3 `main` diverged, 4 refused by a
+  safety check, 5 lock busy.
+- `wtctl` worktrees are locked and carry `agent-task.json` instead of legacy
+  owner metadata, so the legacy removal tools refuse them; use `wtctl remove`
+  or `wtctl reap`. `worktree_guard.py` allows edits in a detached worktree
+  whose `agent-task.json` passes the same validation as `wtctl` (schema 1,
+  task id, absolute worktree path, base OID, owner pid, start, and client).
+  `worktree-audit.py` keeps such a worktree `UNKNOWN`, explains that it is
+  managed by `wtctl`, and never prints a removal command for it.

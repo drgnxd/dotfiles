@@ -225,7 +225,8 @@
         "nix-index-database": "nix-index-database",
         "nixgl": "nixgl",
         "nixpkgs": "nixpkgs",
-        "treefmt-nix": "treefmt-nix"
+        "treefmt-nix": "treefmt-nix",
+        "wtctl": "wtctl"
       }
     },
     "systems": {
@@ -260,6 +261,26 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "wtctl": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792130846,
+        "narHash": "sha256-cIskk36/1YJVbS5EtKDtE9eqKkicqnsY5+DElpNdNNU=",
+        "owner": "drgnxd",
+        "repo": "wtctl",
+        "rev": "aad3416a5252d1758790feb82502bb9a89b88042",
+        "type": "github"
+      },
+      "original": {
+        "owner": "drgnxd",
+        "repo": "wtctl",
         "type": "github"
       }
     }

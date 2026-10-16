@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   user,
@@ -153,7 +154,9 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
 
-  home.packages = packages.packages;
+  home.packages = packages.packages ++ [
+    inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
 
   warnings = lib.optional (packages.missing != [ ]) (
     "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)

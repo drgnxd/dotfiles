@@ -13,6 +13,7 @@ The task label is descriptive only and never authorizes removal.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import stat
@@ -37,6 +38,8 @@ PID_START_TOLERANCE = 5
 OID_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 PID_TOKEN_RE = re.compile(r"^(?:[2-9]|[1-9][0-9]+)@[0-9]+$")
 TASK_METADATA_FILE = "agent-task"
+WTCTL_METADATA_FILE = "agent-task.json"
+WTCTL_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+){1,3}-[0-9]{8}-[0-9a-f]{8}$")
 
 
 def git_env() -> dict[str, str]:
@@ -320,3 +323,42 @@ def read_worktree_owner(worktree: Path, common_dir: Path) -> tuple[str, str, tup
     if not OID_RE.fullmatch(base):
         raise ValueError(f"{owner_file} contains an invalid base OID")
     return admin.name, description, (task, client, session, base)
+
+
+def read_wtctl_marker(worktree: Path, common_dir: Path) -> dict | None:
+    """Return the `wtctl` task marker when it names this verified worktree, else None."""
+    admin = worktree_admin_dir(worktree, common_dir)
+    marker = admin / WTCTL_METADATA_FILE
+    try:
+        if not stat.S_ISREG(marker.lstat().st_mode):
+            return None
+        data = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    # Mirror wtctl's own Marker::parse so the guard never trusts a marker wtctl would reject.
+    def is_int(value: object) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool)
+
+    if not isinstance(data, dict) or data.get("tool") != "wtctl":
+        return None
+    if not is_int(data.get("schema")) or data.get("schema") != 1:
+        return None
+    owner = data.get("owner")
+    if not isinstance(owner, dict):
+        return None
+    pid = owner.get("pid")
+    if not is_int(pid) or not 1 < pid <= 2**31 - 1:
+        return None
+    if not isinstance(owner.get("start"), str) or not isinstance(owner.get("client"), str):
+        return None
+    base = data.get("base")
+    if not isinstance(base, str) or not OID_RE.fullmatch(base):
+        return None
+    task_id, recorded = data.get("task_id"), data.get("worktree")
+    if not isinstance(task_id, str) or not WTCTL_ID_RE.fullmatch(task_id) or not isinstance(recorded, str):
+        return None
+    if not Path(recorded).is_absolute():
+        return None
+    if Path(recorded).resolve() != worktree.resolve():
+        return None
+    return data
