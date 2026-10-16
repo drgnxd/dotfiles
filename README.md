@@ -29,7 +29,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker
 *   **Package Manager:** Nix (nix-darwin + home-manager)
-*   **Development Tools:** Git (with delta, git-lfs, git-annex, git-absorb, git-cliff), jujutsu (`jj`), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
+*   **Development Tools:** Git (with delta, git-lfs, git-annex, git-absorb, git-cliff), ast-grep, nix-diff, nixfmt, nix-tree, lazygit, gh, opencode (`oc`, `ocd` aliases)
 *   **Containers & Virtualization:** Lima (Linux virtual machines), Docker, Docker Compose
     *   Fully XDG-compliant (`~/.config/docker/`, `~/.local/share/lima/`)
 *   **Utilities:** atuin, bat, eza, fd, ripgrep, choose, sd, dust, duf, xh, jaq, grex, ncdu, tealdeer, tokei, typos, watchexec, hexyl, hyperfine, procs, smartmontools, age, direnv, shellcheck, mas, comma, nix-output-monitor (`nom`), glow, gping, doggo, viddy

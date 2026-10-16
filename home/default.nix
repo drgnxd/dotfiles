@@ -113,7 +113,6 @@ in
     ./modules/git.nix
     ./modules/glow.nix
     ./modules/helix.nix
-    ./modules/jujutsu.nix
     ./modules/nix_gc.nix
     ./modules/nix_index.nix
     ./modules/nushell.nix
