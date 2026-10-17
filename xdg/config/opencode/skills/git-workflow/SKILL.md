@@ -5,6 +5,25 @@ description: Use before the first file edit or Git write in each repository for 
 
 # Git Workflow
 
+## Shell Environment
+
+- Follow Lifecycle for the working directory of `wtctl` create, integration,
+  and removal; task-worktree setup must not depend on that worktree already
+  existing. After creation, run task commands from the task worktree so its
+  approved `.envrc` can activate the repository environment through direnv.
+- If direnv blocks a fresh worktree, inspect its `.envrc` and compare it with
+  the trusted repository version before allowing that exact file; never approve
+  an unseen environment file. When changing worktrees, let direnv apply the
+  environment for the new directory.
+- Use one persistent command shell for the task. Confirm that the expected
+  environment actually loaded using the repository's documented shell marker or
+  direnv status; executable availability alone does not prove that the intended
+  environment is active. Then run Git and `wtctl` directly in that shell; do
+  not start `nix develop -c git ...` for each command.
+- If the command runner does not apply direnv, use the repository's documented
+  devShell-loading method once in the persistent shell. Use a one-shot devShell
+  invocation only when the command runner cannot preserve an initialized shell.
+
 ## Lifecycle
 
 - Before any Git write, resolve the repository with `git rev-parse
