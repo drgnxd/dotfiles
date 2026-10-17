@@ -257,7 +257,7 @@ def check_path(path: str, cwd: str, cfg: dict, repos: list[Repo]) -> Decision:
         return Decision(
             "deny", "main-checkout",
             f"{canon} is in a protected checkout of {repo.root}. Create a task worktree with "
-            "`wtctl create` or worktree-create.py (git-workflow skill) and edit there.",
+            "`wtctl create` and edit there.",
             canon,
         )
     return Decision()
@@ -468,10 +468,7 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
     if shell_alias:
         return Decision("warn", "shell-alias", "A shell alias cannot be analysed.", target)
     if sub == "worktree" and args[:1] and args[0] in WORKTREE_ADMIN:
-        hint = (
-            "`wtctl create` or worktree-create.py" if args[0] == "add"
-            else "`wtctl remove`/`wtctl reap` for wtctl worktrees or safe-worktree-remove.py"
-        )
+        hint = "`wtctl create`" if args[0] == "add" else "`wtctl finish`/`wtctl remove`/`wtctl reap`"
         return Decision(
             "deny", "worktree-admin",
             f"git worktree {args[0]} is not allowed directly; use {hint}, or ask the user if it cannot be used.",
@@ -485,8 +482,7 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
         return Decision(
             "deny", "main-checkout",
             f"git {sub} would write the protected checkout {target}. Use a detached task worktree "
-            "created by `wtctl create` or worktree-create.py; integrate with `wtctl integrate` "
-            "or the skill's ff-only procedure.",
+            "created by `wtctl create`; integrate with `wtctl finish`.",
             target,
         )
     return Decision()
@@ -544,7 +540,7 @@ def evaluate(tool: str, tool_input: dict, cwd: str, cfg: dict) -> Decision:
     elif name == "bash":
         result = check_bash(command, cwd, repos)
     elif locate(canonical(cwd, "/"), repos) is not None:
-        result = Decision("deny", "builtin-worktree", "Create the worktree with `wtctl create` or worktree-create.py instead.", cwd)
+        result = Decision("deny", "builtin-worktree", "Create the worktree with `wtctl create`.", cwd)
     return result
 
 

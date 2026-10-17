@@ -17,7 +17,7 @@ This repository is a cross-platform Nix flake for dotfiles: nix-darwin on `aarch
 - For `.sh` changes, run `shfmt -d` on the changed shell files, or the repo-wide shell check when CI parity is needed.
 - For workflow changes, run `actionlint`.
 - For `xdg/config/opencode/**`, run `uv run --directory xdg/config/opencode python validate_opencode_setup.py`.
-- For a helper under `xdg/config/opencode/skills/*/scripts/`, also run its `just test-*` recipe (for `git-workflow`: `just test-worktree-remove`, `just test-worktree-tools`, and `just test-worktree-task`).
+- For a helper under `xdg/config/opencode/skills/*/scripts/`, also run its `just test-*` recipe (for `git-workflow`: `just test-worktree-guard`).
 - For Nushell files, run `nu --ide-check 1000 <file>` and treat any `"severity":"Error"` entry as a failure; newer Nushell releases dropped `nu --check`, which CI uses only when available.
 
 ## Refactor Discipline

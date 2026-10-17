@@ -12,8 +12,8 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
 
 - The parent creates every detached worktree with unique names and owner
   metadata before delegating. Writing agents never run `git worktree add`.
-  Prefer `wtctl create` when it is on `PATH` (git-workflow): it records the parent agent process
-  as owner instead of a session-id variable, so stale inherited session
+  Use schema-1 `wtctl create` (git-workflow): it records the parent agent
+  process as owner instead of a session-id variable, so stale inherited session
   variables do not block it.
 - Each delegation prompt states the worktree path, worktree ID, allowed edit
   scope, and that the agent must not integrate. Subagents inherit the parent's
@@ -25,9 +25,8 @@ never relaxes them. Where it conflicts with either, the stricter rule wins.
   require this, never `$TMPDIR`), and name and record them as `git-workflow`
   specifies; do not use the client's built-in worktree isolation, which places
   them inside the repository.
-- Only the integrator integrates into `main`, takes `main-integration.lock`
-  (for `wtctl` tasks, `wtctl integrate` takes it together with its flock),
-  checks every worktree before `git worktree prune`, and removes worktrees.
+- Only the integrator completes `wtctl finish` into `main`, which takes the
+  shared integration lock, checks worktrees, and removes the task worktree.
 - Pushing is governed by `git-workflow`; do not push unless the user asked, and
   then only the integrator pushes the refs the user named.
 

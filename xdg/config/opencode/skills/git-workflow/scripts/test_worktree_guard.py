@@ -142,7 +142,7 @@ def test_unbalanced_quote_is_reported_not_crashed(world: dict[str, Path]) -> Non
         ("echo done; git log --oneline", "main", False),
         ("cat <<'EOF'\ngit add everything\nEOF\ngit status", "main", False),
         ("cat <<EOF\nnote\nEOF\ngit add f", "main", True),
-        ("python3 safe-worktree-remove.py {task}", "main", False),
+        ("wtctl finish --repo {main} --id task", "main", False),
         ("echo git commit", "main", False),
         ("man git add", "main", False),
         ('WT={task}; git -C "$WT" commit -m x', "main", False),
@@ -289,9 +289,9 @@ def test_owned_detached_task_worktree_is_allowed(world: dict[str, Path], monkeyp
     admin = guard.meta.worktree_admin_dir(world["task"], common)
     (world["task"] / ".git").unlink()
     (world["task"] / ".git").symlink_to(os.path.relpath(admin, world["task"]))
-    base = guard.meta.git(world["main"], "rev-parse", "HEAD").stdout.strip()
-    description = guard.meta.format_description("detached task", "opencode", session, base, None, None)
-    guard.meta.write_worktree_owner(world["task"], common, description)
+    base = guard.run_git(str(world["main"]), "rev-parse", "HEAD").strip()
+    owner = admin / guard.meta.TASK_METADATA_FILE
+    owner.write_text(f"detached task client=opencode session={session} base={base}\n")
     assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
 
 
@@ -300,14 +300,15 @@ def test_valid_detached_task_worktree_can_be_shared_with_writer_session(world: d
     owner_session, current_session = "ses_" + "a" * 26, "ses_" + "b" * 26
     monkeypatch.setenv("OPENCODE_SESSION_ID", current_session)
     common = Path(guard.run_git(str(world["main"]), "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
-    base = guard.meta.git(world["main"], "rev-parse", "HEAD").stdout.strip()
-    description = guard.meta.format_description("detached task", "opencode", owner_session, base, None, None)
-    guard.meta.write_worktree_owner(world["task"], common, description)
+    base = guard.run_git(str(world["main"]), "rev-parse", "HEAD").strip()
+    admin = guard.meta.worktree_admin_dir(world["task"], common)
+    owner = admin / guard.meta.TASK_METADATA_FILE
+    owner.write_text(f"detached task client=opencode session={owner_session} base={base}\n")
     assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
 
 
 def wtctl_marker(world: dict[str, Path]) -> dict:
-    base = guard.meta.git(world["main"], "rev-parse", "HEAD").stdout.strip()
+    base = guard.run_git(str(world["main"]), "rev-parse", "HEAD").strip()
     return {
         "schema": 1, "tool": "wtctl", "task_id": "task-a-20260101-0123abcd",
         "worktree": str(world["task"]), "base": base,
@@ -388,29 +389,6 @@ def test_wtctl_task_worktree_is_allowed_only_with_matching_marker(world: dict[st
     assert blocked and "wtctl remove" in decision.reason
 
 
-def test_audit_reports_wtctl_task_worktrees(world: dict[str, Path]) -> None:
-    import importlib.util
-    import time
-
-    spec = importlib.util.spec_from_file_location("worktree_audit_for_guard", HERE / "worktree-audit.py")
-    assert spec is not None and spec.loader is not None
-    audit = importlib.util.module_from_spec(spec)
-    # dataclasses resolve their module through sys.modules.
-    sys.modules[spec.name] = audit
-    spec.loader.exec_module(audit)
-
-    def reason() -> str:
-        rows = audit.audit(world["main"], "main", 2.0, dict(os.environ), time.time(), str(HERE))
-        row = next(r for r in rows if Path(r.path).resolve() == world["task"].resolve())
-        assert row.state == "UNKNOWN"
-        return row.reason
-
-    sh(world["task"], "checkout", "-q", "--detach")
-    assert reason() == "detached HEAD without task owner metadata"
-    common = Path(guard.run_git(str(world["main"]), "rev-parse", "--path-format=absolute", "--git-common-dir").strip())
-    marker = guard.meta.worktree_admin_dir(world["task"], common) / guard.meta.WTCTL_METADATA_FILE
-    marker.write_text(json.dumps(wtctl_marker(world)))
-    assert reason() == "managed by wtctl; see wtctl list"
 
 
 def test_non_guarded_tools_skip_git_entirely(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:

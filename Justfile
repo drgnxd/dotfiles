@@ -122,16 +122,9 @@ test-external-agents:
 test-private-terms:
   bash scripts/security/test_private_terms.sh
 
-# Test the worktree removal helper bundled with the git-workflow skill
-test-worktree-remove:
-  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_safe_worktree_remove.py
-
-# Test the worktree create/audit helpers bundled with the git-workflow skill
-test-worktree-tools:
-  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_tools.py xdg/config/opencode/skills/git-workflow/scripts/test_worktree_guard.py
-
-test-worktree-task:
-  uv run --python 3.11 python -m unittest discover -s xdg/config/opencode/skills/git-workflow/scripts -p test_worktree_task.py
+# Test the worktree guard plugin helper
+test-worktree-guard:
+  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_guard.py
 
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
