@@ -198,7 +198,7 @@ def validate_config(errors: list[str]) -> None:
 
     expected_routes = {
         "build": ("openai/gpt-6-luna", "high"),
-        "plan": ("openai/gpt-6-sol", "medium"),
+        "plan": ("openai/gpt-6.1-sol", "medium"),
         "general": ("openai/gpt-6-luna", "medium"),
         "explore": ("openai/gpt-6-luna", "low"),
         "compaction": ("openai/gpt-6-luna", "low"),

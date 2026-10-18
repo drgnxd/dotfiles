@@ -36,7 +36,7 @@
       }
     },
     "plan": {
-      "model": "openai/gpt-6-sol",
+      "model": "openai/gpt-6.1-sol",
       "variant": "medium",
       "color": "#56b4e9",
       "permission": {
