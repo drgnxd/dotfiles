@@ -64,6 +64,23 @@ description: Use before the first file edit or Git write in each repository for 
   repository's configured signer. Executable repository hooks block by
   default; after inspecting them, `--allow-repository-hooks` permits them
   except `reference-transaction` hooks.
+- Before treating another worktree or agent as a blocker, identify the specific
+  shared resource touched by this operation and verify an active
+  scheduled/non-cooperating writer, a relevant lock, ambiguous ownership, or an
+  actual `wtctl` refusal; an active task-worktree label, live owner process, or
+  possible future content conflict alone is not sufficient. Keep the
+  operation-specific quiescence checks for shared resources, including
+  Git-annex state, databases, and lifecycle metadata. Establish and maintain
+  any required locks and external-writer quiescence for the specific shared
+  resources throughout the operation's required safety interval, including
+  inspection through completion where required; a successful preflight check
+  alone does not establish continued quiescence. If those checks pass, continue
+  in this task's own schema-1 `wtctl` worktree and use `wtctl finish` to
+  serialize integration and surface conflicts; do not imply that `wtctl`
+  automatically resolves content conflicts. Stop if ownership or a required
+  safety condition remains unverifiable, and do not treat a clean worktree or
+  absence of unintegrated commits alone as proof that shared-state writers are
+  quiescent.
 - `finish` discards recognized generated artifacts by default. Use
   `--preserve-generated-artifacts` to quarantine and retain recognized cache,
   build, and marked Nix-generated config paths. Unknown ignored/untracked data
