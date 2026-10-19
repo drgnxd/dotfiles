@@ -55,6 +55,17 @@ description: Use before the first file edit or Git write in each repository for 
   under the shared lock. It creates no task/integration branch refs. Pass
   `--integration-message` only when required by the repository's commit
   convention.
+- Before reporting task completion, rerun `wtctl list --all` and reconcile all
+  worktrees created for this task, plus any worktrees explicitly linked to it
+  by wtctl `parent` metadata or task/session records. Include siblings sharing
+  a recorded parent; do not infer linkage only from similar names or matching
+  HEADs, and do not clean unrelated worktrees. `finish` handles only its exact
+  ID; it does not clean duplicates or siblings. For each related worktree,
+  confirm ownership, integration, and tracked, untracked, and ignored state,
+  then finish resolved work with its exact ID. For an already-integrated
+  worktree with a dead owner, obtain explicit user authorization before
+  exact-ID `adopt` and `finish`; otherwise preserve it and report that cleanup
+  is incomplete.
 - `--external-writers-quiesced` is an assertion, not a lock. Before using it,
   inspect repository-specific scheduled jobs and coordinate non-cooperating
   writers through integration and cleanup. Git-annex `create` and mutating
