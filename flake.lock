@@ -271,11 +271,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792403536,
-        "narHash": "sha256-Tkw9xHcrPe5BXzwEsTa7iuIS5S3hAKZ0DgUXKobP3WI=",
+        "lastModified": 1792468167,
+        "narHash": "sha256-KOrW1fxRAzFo/ecOYGWnyeT2JJqWAVizysO1Dd6Qfx8=",
         "owner": "drgnxd",
         "repo": "wtctl",
-        "rev": "742180fec6be8884f61e5883117403cde6d997e0",
+        "rev": "ab6a838f3c0fd55ce9ab5de14093ef3830e344e3",
         "type": "github"
       },
       "original": {
