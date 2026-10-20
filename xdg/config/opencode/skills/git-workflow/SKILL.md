@@ -30,6 +30,24 @@ description: Use before the first file edit or Git write in each repository for 
   --show-toplevel`. Read its `AGENTS.md`/contribution instructions and documented
   commit convention (including commit bodies). Follow that contract and keep one
   logical change per commit.
+- For a user-requested new repository with no existing `main`, first verify the
+  intended destination is absent or an empty directory. If the path contains
+  data before this task's bootstrap begins, preserve it and stop unless its
+  ownership and inclusion are explicitly confirmed. For a bootstrap already
+  started in this task, continue only when repository metadata and any existing
+  `README.md` are attributable to this task and no other files are present; do
+  not overwrite the README. Check the required schema-1 `wtctl` capabilities
+  before creating the destination or repository metadata, so failure to
+  provide task worktrees does not leave a seed repository behind. The request
+  to create the repository authorizes only this narrow bootstrap: initialize
+  `main`, create a minimal `README.md` describing the purpose and ownership
+  boundary, and commit that seed. Do not add a remote or push unless explicitly
+  requested. Do not add task deliverables, dependencies, tests, or
+  implementation in the bootstrap checkout. Record the exact seed `main` OID,
+  then immediately create a detached task worktree from it and continue under
+  the normal lifecycle below. The seed commit is the only task-related commit
+  automatically allowed outside a `wtctl` worktree; any broader exception must
+  meet the separate explicit-exception rule.
 - Use only schema-1 `wtctl` for task worktree lifecycle. Before creating a
   worktree, run `wtctl capabilities --json` and verify it advertises `create`,
   `finish`, legacy lifecycle, Git-annex, artifact quarantine, and quarantine
