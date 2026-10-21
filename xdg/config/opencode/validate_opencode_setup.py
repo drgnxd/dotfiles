@@ -89,8 +89,6 @@ TRANSPARENT_THEME_BACKGROUNDS = {
     "backgroundPanel",
     "backgroundElement",
     "backgroundMenu",
-    "diffAddedBg",
-    "diffRemovedBg",
     "diffContextBg",
     "diffAddedLineNumberBg",
     "diffRemovedLineNumberBg",
