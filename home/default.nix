@@ -158,6 +158,11 @@ in
     inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
+  programs.bash = {
+    enable = true;
+    historyFile = "${config.xdg.stateHome}/bash/history";
+  };
+
   warnings = lib.optional (packages.missing != [ ]) (
     "Missing nix packages: " + (lib.concatStringsSep ", " packages.missing)
   );

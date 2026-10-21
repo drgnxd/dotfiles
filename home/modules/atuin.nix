@@ -4,6 +4,7 @@
   programs.atuin = {
     enable = true;
     # Init script built via nushell-integrations.nix (Plan B derivation)
+    enableBashIntegration = false;
     enableNushellIntegration = false;
     settings = {
       secrets_filter = true;

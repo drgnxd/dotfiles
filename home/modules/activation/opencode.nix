@@ -341,13 +341,28 @@ in
        [ "$(cat "$dependencies_digest_file")" != "$dependency_digest" ] || \
        [ "$installed_plugin_version" != "$expected_plugin_version" ]; then
       mkdir -p "$dependencies_state_dir"
+      legacy_npm_cache="$HOME/.npm"
+      legacy_npm_cache_before=false
+      if [ -e "$legacy_npm_cache" ] || [ -L "$legacy_npm_cache" ]; then
+        legacy_npm_cache_before=true
+      fi
       # A network failure must not abort the whole switch; the digest is only
       # recorded on success, so the install is retried on the next activation.
-      if (cd "$opencode_dir" && ${npm} ci --omit=dev --ignore-scripts); then
+      if (cd "$opencode_dir" && ${npm} ci --omit=dev --ignore-scripts \
+          --cache "${config.xdg.cacheHome}/npm" \
+          --userconfig "${config.xdg.configHome}/npm/npmrc"); then
         printf '%s\n' "$dependency_digest" > "$dependencies_digest_file.tmp"
         mv -f "$dependencies_digest_file.tmp" "$dependencies_digest_file"
       else
         echo "warning: npm ci for OpenCode dependencies failed; will retry on next activation" >&2
+      fi
+      if [ "$legacy_npm_cache_before" = false ] && \
+         { [ -e "$legacy_npm_cache" ] || [ -L "$legacy_npm_cache" ]; }; then
+        printf '%s\t%s\n' \
+          "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          "OpenCode activation npm ci interval: ~/.npm appeared; creator unverified; expected cache ${config.xdg.cacheHome}/npm" \
+          >> "$dependencies_state_dir/npm-xdg-events.log"
+        echo "warning: ~/.npm appeared during OpenCode dependency activation; recorded in $dependencies_state_dir/npm-xdg-events.log" >&2
       fi
     fi
 
