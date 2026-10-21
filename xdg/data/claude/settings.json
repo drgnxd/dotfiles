@@ -2,6 +2,7 @@
   "theme": "dark",
   "model": "sonnet",
   "autoMemoryEnabled": false,
+  "cleanupPeriodDays": 365,
   "preferredNotifChannel": "notifications_disabled",
   "env": {
     "CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION": "1000",
