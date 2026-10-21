@@ -89,8 +89,13 @@ description: Use before the first file edit or Git write in each repository for 
   writers through integration and cleanup. Git-annex `create` and mutating
   `integrate`, `remove`, `reap`, and quarantine-purge operations also require
   that assertion. Use `--allow-annex-filter` only for verified Git-annex
-  filters; use `--allow-commit-signing` only when the user authorized the
-  repository's configured signer. Executable repository hooks block by
+  filters. The user's standing authorization covers local commits and
+  integrations using each repository's already-configured signer; it also
+  covers re-signing replacement commits after the user separately authorizes a
+  local history rewrite. Pass `--allow-commit-signing` in those cases without
+  asking again. Ask only if signing requires new authentication or changing the
+  configured signer. This preference does not authorize history rewrites or
+  pushes. Executable repository hooks block by
   default; after inspecting them, `--allow-repository-hooks` permits them
   except `reference-transaction` hooks.
 - Before treating another worktree or agent as a blocker, identify the specific
