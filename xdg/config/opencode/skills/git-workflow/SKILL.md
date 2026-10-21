@@ -5,6 +5,9 @@ description: Use before the first file edit or Git write in each repository for 
 
 # Git Workflow
 
+A user waiver under the global rules applies to this Skill's procedural rules, except the
+items the global rules list as not waivable by conversation.
+
 ## Shell Environment
 
 - Follow Lifecycle for the working directory of `wtctl` create, integration,

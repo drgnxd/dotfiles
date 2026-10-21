@@ -6,7 +6,8 @@ description: Use when you launch writing subagents, work as a delegated writing 
 # Parallel Writing Agents
 
 Complements `git-workflow` and the global rules; it only fills gaps and
-never relaxes them. Where it conflicts with either, the stricter rule wins.
+never relaxes them. Where it conflicts with either, the stricter rule wins;
+a user waiver under the global rules is not a conflict and still applies.
 
 ## Parent / integrator
 
