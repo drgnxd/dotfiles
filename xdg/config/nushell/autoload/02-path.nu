@@ -3,9 +3,14 @@ def detect-nix-paths [] {
     # -i (ignore-errors) is deprecated, use -o (optional)
     let user = ($env | get --optional USER | default '')
     let per_user = if ($user | is-not-empty) { $'/etc/profiles/per-user/($user)/bin' } else { '' }
+    let user_profile = if (($nu.os-info.name | str lowercase) == 'macos') {
+        ($env.XDG_STATE_HOME | path join 'nix' 'profile' 'bin')
+    } else {
+        ($env.HOME | path join '.nix-profile' 'bin')
+    }
     
     let candidates = [
-        ($env.HOME | path join '.nix-profile' 'bin')
+        $user_profile
         '/nix/var/nix/profiles/default/bin'
         '/run/current-system/sw/bin'
         $per_user

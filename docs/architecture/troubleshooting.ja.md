@@ -65,7 +65,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```
 または応急処置として `PATH` を直接設定します（次のリブートは越えません）:
 ```bash
-launchctl setenv PATH "$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+launchctl setenv PATH "$HOME/.local/state/nix/profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ```
 
 ## Nushell 変更後のスケジュールエージェント再登録

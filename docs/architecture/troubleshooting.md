@@ -68,7 +68,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 Or set `PATH` directly as an immediate stopgap (does not survive the next
 reboot):
 ```bash
-launchctl setenv PATH "$HOME/.nix-profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+launchctl setenv PATH "$HOME/.local/state/nix/profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ```
 
 ## Re-registering scheduled agents after Nushell changes
