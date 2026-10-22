@@ -123,6 +123,10 @@
       "color": "#9ccc65",
       "steps": 20,
       "tools": {
+        "webfetch": true,
+        "websearch": true,
+        "fetch_pdf": true,
+        "skill": true,
         "playwright_browser_session_create": true,
         "playwright_browser_session_close": true,
         "playwright_browser_navigate": true,
