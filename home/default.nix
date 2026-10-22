@@ -139,6 +139,10 @@ in
 
   xdg.enable = true;
 
+  xdg.configFile = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+    "zsh/.zshrc".source = ../xdg/config/zsh/.zshrc;
+  };
+
   targets.darwin.linkApps.enable = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin true;
 
   home.sessionVariables = {

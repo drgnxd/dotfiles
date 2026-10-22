@@ -27,18 +27,18 @@ dir = "~/.local/state/atuin/logs"
 ```
 
 ## Zsh
-zshのdotfileはここでは管理していません(主シェルはNushell)が、macOSの
-`/etc/zshrc`はzshセッションのたびに`compinit`を実行し、ユーザーのrcファイルが
-読み込まれる前に補完キャッシュを`${ZDOTDIR:-$HOME}/.zcompdump`へ書き込んで
-しまいます。`environment.variables`で`ZDOTDIR`を設定し、全shellで読み込まれる
-`/etc/zshenv`経由でそれより先に反映させています:
+`ZDOTDIR`を`~/.config/zsh`にし、macOSの`/etc/zshrc`が`compinit`を実行する前に
+`/etc/zshenv`経由で反映します。そのため補完キャッシュはXDG config配下に残ります。
+管理する`xdg/config/zsh/.zshrc`で、システム既定の`~/.zsh_history`ではなく
+`$XDG_STATE_HOME/zsh/history`へ履歴を保存します:
 
 ```nix
 environment.variables.ZDOTDIR = "$HOME/.config/zsh";
 ```
 
 `compinit`自体はディレクトリを作成しないため、`ensureDirectories`で
-`~/.config/zsh`を事前に作成しています。
+`~/.config/zsh`を事前に作成します。Zsh履歴ディレクトリ/ファイルも`0700`/`0600`にします。
+Zshは`~/.profile`を自動読込せず、`ZDOTDIR`配下の専用ファイルを使います。
 
 ## macOS アプリケーション
 Homebrew の trust 操作には `XDG_CONFIG_HOME` を明示し、状態を
