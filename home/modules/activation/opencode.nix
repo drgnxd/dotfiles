@@ -26,6 +26,7 @@ let
   opencode_notifier_template = ../../../xdg/config/opencode/opencode-notifier.json;
   opencode_notifier_scheduled_template = ../../../xdg/config/opencode/opencode-notifier-scheduled.json;
   opencode_pdf_reader_prompt = ../../../xdg/config/opencode/prompts/pdf-reader.md;
+  opencode_researcher_prompt = ../../../xdg/config/opencode/prompts/researcher.md;
   opencode_package_template = ../../../xdg/config/opencode/package.json;
   opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
   opencode_tools_template = ../../../xdg/config/opencode/tools;
@@ -78,6 +79,7 @@ in
     "opencode/opencode-notifier.json".source = opencode_notifier_template;
     "opencode/opencode-notifier-scheduled.json".source = opencode_notifier_scheduled_template;
     "opencode/prompts/pdf-reader.md".source = opencode_pdf_reader_prompt;
+    "opencode/prompts/researcher.md".source = opencode_researcher_prompt;
   }
   // lib.mapAttrs' (
     name: src: lib.nameValuePair "opencode/skills/${name}" { source = src; }
