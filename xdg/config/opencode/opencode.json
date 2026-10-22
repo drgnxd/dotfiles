@@ -122,6 +122,16 @@
       "variant": "medium",
       "color": "#9ccc65",
       "steps": 20,
+      "tools": {
+        "playwright_browser_session_create": true,
+        "playwright_browser_session_close": true,
+        "playwright_browser_navigate": true,
+        "playwright_browser_navigate_back": true,
+        "playwright_browser_snapshot": true,
+        "playwright_browser_find": true,
+        "playwright_browser_wait_for": true,
+        "playwright_browser_take_screenshot": true
+      },
       "permission": {
         "*": "deny",
         "webfetch": "allow",
