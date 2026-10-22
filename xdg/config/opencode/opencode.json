@@ -142,14 +142,14 @@
         "websearch": "allow",
         "fetch_pdf": "allow",
         "skill": "allow",
-        "playwright_browser_session_create": "allow",
-        "playwright_browser_session_close": "allow",
-        "playwright_browser_navigate": "allow",
-        "playwright_browser_navigate_back": "allow",
-        "playwright_browser_snapshot": "allow",
-        "playwright_browser_find": "allow",
-        "playwright_browser_wait_for": "allow",
-        "playwright_browser_take_screenshot": "allow"
+        "playwright_browser_session_create*": "allow",
+        "playwright_browser_session_close*": "allow",
+        "playwright_browser_navigate*": "allow",
+        "playwright_browser_navigate_back*": "allow",
+        "playwright_browser_snapshot*": "allow",
+        "playwright_browser_find*": "allow",
+        "playwright_browser_wait_for*": "allow",
+        "playwright_browser_take_screenshot*": "allow"
       },
       "prompt": "{file:./prompts/researcher.md}"
     },

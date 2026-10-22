@@ -232,20 +232,36 @@ def validate_config(errors: list[str]) -> None:
         "websearch": "allow",
         "fetch_pdf": "allow",
         "skill": "allow",
-        "playwright_browser_session_create": "allow",
-        "playwright_browser_session_close": "allow",
-        "playwright_browser_navigate": "allow",
-        "playwright_browser_navigate_back": "allow",
-        "playwright_browser_snapshot": "allow",
-        "playwright_browser_find": "allow",
-        "playwright_browser_wait_for": "allow",
-        "playwright_browser_take_screenshot": "allow",
+        "playwright_browser_session_create*": "allow",
+        "playwright_browser_session_close*": "allow",
+        "playwright_browser_navigate*": "allow",
+        "playwright_browser_navigate_back*": "allow",
+        "playwright_browser_snapshot*": "allow",
+        "playwright_browser_find*": "allow",
+        "playwright_browser_wait_for*": "allow",
+        "playwright_browser_take_screenshot*": "allow",
     }
     researcher = agents.get("researcher", {})
     if researcher.get("permission") != expected_researcher_permissions:
         errors.append(
             "researcher must allow only public web/PDF and read-only Playwright research tools"
         )
+    expected_researcher_tools = {
+        "webfetch": True,
+        "websearch": True,
+        "fetch_pdf": True,
+        "skill": True,
+        "playwright_browser_session_create": True,
+        "playwright_browser_session_close": True,
+        "playwright_browser_navigate": True,
+        "playwright_browser_navigate_back": True,
+        "playwright_browser_snapshot": True,
+        "playwright_browser_find": True,
+        "playwright_browser_wait_for": True,
+        "playwright_browser_take_screenshot": True,
+    }
+    if researcher.get("tools") != expected_researcher_tools:
+        errors.append("researcher must expose only its explicitly permitted tools")
     if researcher.get("prompt") != "{file:./prompts/researcher.md}":
         errors.append("researcher must use the concise researcher prompt file")
     browser_prompt = BASE_DIR / "prompts" / "researcher.md"
