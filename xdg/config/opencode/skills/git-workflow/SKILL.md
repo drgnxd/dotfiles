@@ -76,6 +76,13 @@ items the global rules list as not waivable by conversation.
   under the shared lock. It creates no task/integration branch refs. Pass
   `--integration-message` only when required by the repository's commit
   convention.
+- Before every `finish`, inspect the repository's commit-message hook and
+  verify that the installed `wtctl` can pass a complete integration message
+  satisfying it if a merge becomes necessary. Do this even when the current
+  graph permits a fast-forward: a standalone comparison does not reserve
+  `main`, which may advance before `finish` acquires its lock. If the required
+  message cannot be supplied, update `wtctl` before running `finish`; do not
+  rely on the default merge message or a later abort.
 - Before reporting task completion, rerun `wtctl list --all` and reconcile all
   worktrees created for this task, plus any worktrees explicitly linked to it
   by wtctl `parent` metadata or task/session records. Include siblings sharing
@@ -134,6 +141,11 @@ items the global rules list as not waivable by conversation.
   inspect `wtctl list --orphans`; adopt a dead-owner task only with explicit
   user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`. Use
   `wtctl reap` only for safe dead-owner worktrees after its grace period.
+- If a hook rejects a merge commit and leaves `MERGE_HEAD`, check the installed
+  `wtctl` documentation for its safe failed-merge recovery option. Use only that
+  verified recovery path with an integration message accepted by the hook. If
+  the recovery check refuses, preserve the merge state and stop; do not manually
+  abort or commit the merge.
 - Use `wtctl list --all` and `wtctl whoami` for task ownership/status. Legacy
   session-owned worktrees are visible to wtctl and must be managed with the
   exact worktree ID or branch selector; do not use Python fallback tools.
