@@ -164,6 +164,8 @@ in
 
   programs.bash = {
     enable = true;
+    # The packaged Bash omits progcomp, so Home Manager's completion hook fails.
+    enableCompletion = false;
     historyFile = "${config.xdg.stateHome}/bash/history";
   };
 
