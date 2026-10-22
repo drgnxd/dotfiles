@@ -226,13 +226,42 @@ def validate_config(errors: list[str]) -> None:
             "subagent_depth and experimental.subagent_depth must be 2 "
             "so research-lead can delegate on v1 and v2"
         )
-    if agents.get("researcher", {}).get("permission") != {
+    expected_researcher_permissions = {
         "*": "deny",
         "webfetch": "allow",
         "websearch": "allow",
         "fetch_pdf": "allow",
-    }:
-        errors.append("researcher must allow web research and PDF source fetching")
+        "skill": "allow",
+        "playwright_browser_session_create": "allow",
+        "playwright_browser_session_close": "allow",
+        "playwright_browser_navigate": "allow",
+        "playwright_browser_navigate_back": "allow",
+        "playwright_browser_snapshot": "allow",
+        "playwright_browser_find": "allow",
+        "playwright_browser_wait_for": "allow",
+        "playwright_browser_take_screenshot": "allow",
+    }
+    researcher = agents.get("researcher", {})
+    if researcher.get("permission") != expected_researcher_permissions:
+        errors.append(
+            "researcher must allow only public web/PDF and read-only Playwright research tools"
+        )
+    if researcher.get("prompt") != "{file:./prompts/researcher.md}":
+        errors.append("researcher must use the concise researcher prompt file")
+    browser_prompt = BASE_DIR / "prompts" / "researcher.md"
+    if not browser_prompt.is_file():
+        errors.append(f"Missing researcher prompt: {browser_prompt}")
+    else:
+        prompt_text = browser_prompt.read_text(encoding="utf-8")
+        for required in (
+            "browser-automation",
+            "Playwright",
+            "read-only",
+            "do not return whole pages",
+            "batch",
+        ):
+            if required.casefold() not in prompt_text.casefold():
+                errors.append(f"researcher prompt must include `{required}`")
     if any(
         agent.get("permission", {}).get("fetch_pdf") == "allow"
         for name, agent in agents.items()
@@ -259,9 +288,12 @@ def validate_config(errors: list[str]) -> None:
     if agents.get("explore", {}).get("permission", {}).get("bash") != "deny":
         errors.append("explore must deny bash")
     for planner in ("build", "plan"):
-        task_rules = agents.get(planner, {}).get("permission", {}).get("task", {})
-        if task_rules.get("*") != "deny" or "researcher" in task_rules:
-            errors.append(f"{planner} must deny task by default and not call researcher")
+        permissions = agents.get(planner, {}).get("permission", {})
+        task_rules = permissions.get("task", {})
+        if task_rules.get("*") != "deny" or task_rules.get("researcher") != "allow":
+            errors.append(f"{planner} must delegate browser research to researcher")
+        if permissions.get("playwright_*") != "deny":
+            errors.append(f"{planner} must not call Playwright directly")
         if task_rules.get("pdf-reader") != "allow":
             errors.append(f"{planner} must be able to delegate user-provided PDFs to pdf-reader")
     if set(agents) != set(expected_routes):
