@@ -271,15 +271,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1792468167,
-        "narHash": "sha256-KOrW1fxRAzFo/ecOYGWnyeT2JJqWAVizysO1Dd6Qfx8=",
+        "lastModified": 1792667924,
+        "narHash": "sha256-PjskAw95yCk5zpcmcQkaCPuKClubOiCtOneh4t9MuCc=",
         "owner": "drgnxd",
         "repo": "wtctl",
-        "rev": "ab6a838f3c0fd55ce9ab5de14093ef3830e344e3",
+        "rev": "11bf345211617c9475c0b97e950e789cb6aa4de2",
         "type": "github"
       },
       "original": {
         "owner": "drgnxd",
+        "ref": "wtctl/one-off-artifact-path",
         "repo": "wtctl",
         "type": "github"
       }
