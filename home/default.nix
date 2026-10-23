@@ -26,6 +26,21 @@ let
       import claude_local_environment_path
     else
       [ ];
+  # Packages built from sources that live in private repositories, kept out of
+  # this public repo by name. Same local-override pattern: gitignored,
+  # optional, empty on a fresh clone. See local/private-tools.nix.example.
+  private_tools_path = ../local/private-tools.nix;
+  private_tools =
+    if builtins.pathExists private_tools_path then
+      let
+        tools = import private_tools_path { inherit pkgs lib; };
+      in
+      if builtins.isList tools then
+        tools
+      else
+        throw "local/private-tools.nix must return a list of derivations"
+    else
+      [ ];
   claude_settings_base = builtins.fromJSON (builtins.readFile ../xdg/data/claude/settings.json);
   claude_notify = pkgs.writeShellScript "claude-notify" ''
     # Scheduled jobs (launchd) set this variable to run quietly.
@@ -158,9 +173,12 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
 
-  home.packages = packages.packages ++ [
-    inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ];
+  home.packages =
+    packages.packages
+    ++ [
+      inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
+    ]
+    ++ private_tools;
 
   programs.bash = {
     enable = true;

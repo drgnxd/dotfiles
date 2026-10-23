@@ -1,0 +1,13 @@
+# Optional: packages built from private repositories, kept out of the public
+# repo. Copy to local/private-tools.nix (gitignored). The file is a function
+# returning a list of derivations; pin every source to a commit so the
+# evaluation stays pure and reproducible.
+{ pkgs, ... }:
+[
+  # (pkgs.callPackage "${
+  #   builtins.fetchGit {
+  #     url = "git@github.com:OWNER/REPO.git";
+  #     rev = "0000000000000000000000000000000000000000";
+  #   }
+  # }/package.nix" { })
+]
