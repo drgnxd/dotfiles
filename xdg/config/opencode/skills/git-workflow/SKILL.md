@@ -57,6 +57,13 @@ items the global rules list as not waivable by conversation.
   purge support. If these capabilities are unavailable, stop and request a
   package update; do not fall back to Python lifecycle scripts or manual
   `git worktree` operations.
+- Treat `wtctl finish --dry-run` as a preview only when
+  `wtctl capabilities --json` from the installed binary contains
+  `finish_dry_run: true`. Otherwise, do not pass `--dry-run`: it may execute
+  the real integration and cleanup rather than previewing them. If a preview
+  is required, stop and request a `wtctl` package that advertises
+  `finish_dry_run: true`. Do not infer support from another binary or source
+  revision.
 - Record the live local `refs/heads/main` OID. Create a fresh detached worktree
   at that exact OID with `wtctl create --repo <repo> --slug <slug> --task
   "<text>" --from <oid>`. For a revision, use a new slug/ID and record its
