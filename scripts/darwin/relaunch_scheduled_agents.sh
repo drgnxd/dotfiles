@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Re-register externally managed scheduled LaunchAgents after a Nix rebuild
-# rotates the nushell store path.
+# rotates the nushell or uv store path.
 #
 # launchd/BTM caches a per-job managed LightweightCodeRequirement pinned to a
-# binary's cdhash. When a rebuild swaps Nushell, affected jobs can be
+# binary's cdhash. When a rebuild swaps Nushell or uv, affected jobs can be
 # SIGKILLed at exec with OS_REASON_CODESIGNING before their failure reporters
 # run. `bootout` + `bootstrap` regenerates the requirement against the current
 # binary. Keep the private job manifest outside the public repository.
@@ -12,7 +12,7 @@
 # nix-darwin activation script): `launchctl bootstrap gui/$UID` of a service
 # being re-registered is not reliable from the activation context.
 #
-# Idempotent and sentinel-gated: does nothing unless the resolved nu path
+# Idempotent and sentinel-gated: does nothing unless a tracked runtime path
 # changed since the last successful run (override with --force).
 
 set -euo pipefail
@@ -100,14 +100,20 @@ UID_NUM="$(/usr/bin/id -u)"
 DOMAIN="gui/${UID_NUM}"
 LA="${HOME}/Library/LaunchAgents"
 STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/dotfiles"
-SENTINEL="${STATE_DIR}/scheduled-agents-nu"
+NU_SENTINEL="${STATE_DIR}/scheduled-agents-nu"
+UV_SENTINEL="${STATE_DIR}/scheduled-agents-uv"
 NU_PATH="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/nu"
+UV_PATH="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/uv"
 
 if [[ ! -e $NU_PATH ]]; then
   warn "nu not found at $NU_PATH; no jobs were re-registered"
   exit 1
 fi
 NU_REAL="$(/usr/bin/readlink -f "$NU_PATH")"
+UV_REAL=''
+if [[ -e $UV_PATH ]]; then
+  UV_REAL="$(/usr/bin/readlink -f "$UV_PATH")" || preflight_error "uv path cannot be resolved: $UV_PATH"
+fi
 
 if [[ -n $RECOVER_LABEL ]]; then
   [[ $RECOVER_LABEL =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && $RECOVER_LABEL != *.plist ]] || {
@@ -116,12 +122,12 @@ if [[ -n $RECOVER_LABEL ]]; then
   }
   if external_agents_contains "$RECOVER_LABEL" "${EXTERNAL_AGENT_LOCKED_LABELS[@]}"; then
     # shellcheck disable=SC2016
-    recovery_command='source "$1"; external_agents_recover_one "$2" "$3" "$4" "$5" || { printf "recovery failed: %s\n" "$EXTERNAL_AGENTS_ERROR" >&2; exit 1; }'
-    if ! /usr/bin/lockf -t 0 "$EXTERNAL_AGENT_LOCK_PATH" /bin/bash -c "$recovery_command" _ "${SCRIPT_DIR}/../security/external_agents.sh" "$MANIFEST" "$LA" "$DOMAIN" "$RECOVER_LABEL"; then
+    recovery_command='source "$1"; external_agents_recover_one "$2" "$3" "$4" "$5" "$6" || { printf "recovery failed: %s\n" "$EXTERNAL_AGENTS_ERROR" >&2; exit 1; }'
+    if ! /usr/bin/lockf -t 0 "$EXTERNAL_AGENT_LOCK_PATH" /bin/bash -c "$recovery_command" _ "${SCRIPT_DIR}/../security/external_agents.sh" "$MANIFEST" "$LA" "$DOMAIN" "$RECOVER_LABEL" "$UV_PATH"; then
       preflight_error "recovery failed or shared lock is held for $RECOVER_LABEL; run the full relaunch after resolving the cause"
     fi
   else
-    external_agents_recover_one "$MANIFEST" "$LA" "$DOMAIN" "$RECOVER_LABEL" || preflight_error "$EXTERNAL_AGENTS_ERROR"
+    external_agents_recover_one "$MANIFEST" "$LA" "$DOMAIN" "$RECOVER_LABEL" "$UV_PATH" || preflight_error "$EXTERNAL_AGENTS_ERROR"
   fi
   log "recovery complete for $RECOVER_LABEL; run 'just relaunch-agents --force' to converge all eligible jobs"
   exit 0
@@ -156,36 +162,76 @@ for deployed_file in "$LA"/"$EXTERNAL_AGENT_PREFIX"*.plist "$LA"/"$EXTERNAL_AGEN
 done
 shopt -u nullglob
 
-ACTIVE_LABELS=()
+NU_LABELS=()
+UV_LABELS=()
 for index in "${!EXTERNAL_AGENT_LABELS[@]}"; do
-  if [[ ${EXTERNAL_AGENT_STATES[index]} == enabled && ${EXTERNAL_AGENT_RELAUNCH[index]} == true ]]; then
-    ACTIVE_LABELS+=("${EXTERNAL_AGENT_LABELS[index]}")
+  [[ ${EXTERNAL_AGENT_STATES[index]} == enabled ]] || continue
+  if [[ ${EXTERNAL_AGENT_RELAUNCH[index]} == true ]]; then
+    NU_LABELS+=("${EXTERNAL_AGENT_LABELS[index]}")
+  fi
+  if external_agents_program_is_uv_launcher "${EXTERNAL_AGENT_PROGRAMS[index]}" "$UV_PATH"; then
+    UV_LABELS+=("${EXTERNAL_AGENT_LABELS[index]}")
+  else
+    runtime_status=$?
+    [[ $runtime_status -eq 1 ]] || preflight_error "cannot determine runtime for ${EXTERNAL_AGENT_LABELS[index]}: $EXTERNAL_AGENTS_ERROR"
   fi
 done
+
+PREV_NU_REAL="$(/bin/cat "$NU_SENTINEL" 2>/dev/null || true)"
+PREV_UV_REAL="$(/bin/cat "$UV_SENTINEL" 2>/dev/null || true)"
+if [[ -z $UV_REAL && -n $PREV_UV_REAL ]]; then
+  preflight_error "previously tracked uv runtime is missing at $UV_PATH"
+fi
+NU_CHANGED=1
+if [[ -n $PREV_NU_REAL && $NU_REAL == "$PREV_NU_REAL" ]]; then
+  NU_CHANGED=0
+fi
+UV_CHANGED=0
+if [[ -n $UV_REAL && (-z $PREV_UV_REAL || $UV_REAL != "$PREV_UV_REAL") ]]; then
+  UV_CHANGED=1
+fi
+
+ACTIVE_LABELS=()
+append_unique_label() {
+  local label=$1
+  external_agents_contains "$label" "${ACTIVE_LABELS[@]}" || ACTIVE_LABELS+=("$label")
+}
 
 if [[ -n $TARGET_LABEL ]]; then
   [[ $TARGET_LABEL =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ && $TARGET_LABEL != *.plist ]] || {
     usage
     exit 2
   }
+  for label in "${NU_LABELS[@]}" "${UV_LABELS[@]}"; do
+    [[ -n $label ]] && append_unique_label "$label"
+  done
   if ! external_agents_contains "$TARGET_LABEL" "${ACTIVE_LABELS[@]}"; then
     preflight_error "target '$TARGET_LABEL' is not an enabled relaunch target"
   fi
   ACTIVE_LABELS=("$TARGET_LABEL")
+  log "targeted dry-run for $TARGET_LABEL"
+elif [[ $FORCE -eq 1 ]]; then
+  for label in "${NU_LABELS[@]}" "${UV_LABELS[@]}"; do
+    [[ -n $label ]] && append_unique_label "$label"
+  done
+  log 'forced re-registration for all tracked runtimes'
+else
+  if [[ $NU_CHANGED -eq 1 ]]; then
+    log "nu changed: ${PREV_NU_REAL:-<none>} -> ${NU_REAL}"
+    for label in "${NU_LABELS[@]}"; do append_unique_label "$label"; done
+  fi
+  if [[ $UV_CHANGED -eq 1 ]]; then
+    log "uv changed: ${PREV_UV_REAL:-<none>} -> ${UV_REAL}"
+    for label in "${UV_LABELS[@]}"; do append_unique_label "$label"; done
+  fi
+  if [[ $NU_CHANGED -eq 0 && $UV_CHANGED -eq 0 ]]; then
+    exit 0
+  fi
 fi
 
 if ((${#ACTIVE_LABELS[@]} == 0)); then
-  log 'no enabled relaunch targets; nothing to do'
+  log 'no enabled relaunch targets for changed runtimes; nothing to do'
   exit 0
-fi
-
-PREV_REAL="$(/bin/cat "$SENTINEL" 2>/dev/null || true)"
-if [[ -n $TARGET_LABEL ]]; then
-  log "targeted dry-run for $TARGET_LABEL"
-elif [[ $FORCE -eq 0 && $NU_REAL == "$PREV_REAL" && -n $PREV_REAL ]]; then
-  exit 0
-else
-  log "nu changed: ${PREV_REAL:-<none>} -> ${NU_REAL}"
 fi
 
 FAILED=()
@@ -357,8 +403,11 @@ fi
 
 if ((${#DEFERRED[@]} == 0)); then
   /bin/mkdir -p "$STATE_DIR"
-  /usr/bin/printf '%s\n' "$NU_REAL" >"$SENTINEL"
-  log 'done; sentinel updated'
+  /usr/bin/printf '%s\n' "$NU_REAL" >"$NU_SENTINEL"
+  if [[ -n $UV_REAL ]]; then
+    /usr/bin/printf '%s\n' "$UV_REAL" >"$UV_SENTINEL"
+  fi
+  log 'done; runtime sentinels updated'
 else
-  log 'done; sentinel NOT updated (deferrals outstanding)'
+  log 'done; runtime sentinels NOT updated (deferrals outstanding)'
 fi

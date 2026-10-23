@@ -68,28 +68,35 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 launchctl setenv PATH "$HOME/.local/state/nix/profile/bin:/etc/profiles/per-user/$USER/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ```
 
-## Nushell 変更後のスケジュールエージェント再登録
+## Nix runtime 変更後のスケジュールエージェント再登録
 
-Nix の rebuild で Nushell のストアパスが変わった後は、対話的な Aqua
-セッションからスケジュールエージェントの再登録を事前確認します。
+Nix の rebuild で Nushell のストアパスが変わると、ローカル manifest で
+明示的に許可された job を再登録します。Nix profile の `uv` target が変わった
+場合は、`ProgramArguments[0]` がその UV target に解決される有効な登録済み
+launcher も再登録します。`just switch-darwin` は activation 後に対話的な
+Aqua session からこの処理を実行します。`darwin-rebuild switch` を直接実行した
+場合は、まず dry-run で確認します。
 
 ```bash
 cd ~/.config/dotfiles
 just relaunch-agents --dry-run
 ```
 
-dry-run は、ローカル設定の allow-list、plist のラベル、実行中ジョブ、
-設定された lock を確認しますが、state directory の作成、エージェントの bootout /
-bootstrap、sentinel の更新は行いません。問題がなければ再登録を実行します。
+dry-run はローカル manifest、plist の出所、runtime path、実行中 job、設定された
+lock を確認しますが、state directory の作成、agent の bootout / bootstrap、
+どちらの runtime sentinel の更新も行いません。UV sentinel が未作成の場合は、
+直接 UV launcher を初回照合して再登録します。問題がなければ再登録を実行します。
 
 ```bash
 just relaunch-agents
 ```
 
-Nushell パスの sentinel を無視する必要がある場合に限り `--force` を使います。
-実行中または設定された lock を保持中のジョブは defer されるため、アイドル状態に
-なってから再実行します。検証に失敗した場合は、修正して再試行できるよう sentinel
-は更新されません。
+両方の runtime sentinel を無視する必要がある場合に限り `--force` を使います。
+実行中または設定された lock を保持中の job は defer されるため、idle 状態に
+なってから再実行します。古い Nix store の UV launcher や解決できない executable は
+fail closed となり、sentinel は更新されません。launcher を現在の Nix profile の
+UV path に向けてから再実行してください。検証失敗や defer がある場合も sentinel は
+更新されません。
 
 ## Git hook が `/nix/store` のパス欠落で失敗する
 

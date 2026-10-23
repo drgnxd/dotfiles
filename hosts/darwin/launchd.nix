@@ -278,33 +278,39 @@ in
         /bin/rm -f "$HOME/Library/LaunchAgents/setenv.SCIHOME.plist"
       '';
 
-      # Detection only. Externally managed scheduled agents may run Nushell via
-      # /etc/profiles/per-user/${user}/bin/nu. When a rebuild rotates that
-      # store path, launchd's cached per-job LWCR stops matching and the kernel
-      # SIGKILLs a job at exec with OS_REASON_CODESIGNING, before its own
-      # failure notifier can fire. Re-registering them needs
+      # Detection only. Externally managed scheduled agents may launch Nushell
+      # or uv through /etc/profiles/per-user/${user}/bin. When a rebuild rotates
+      # one of those store paths, launchd's cached per-job LWCR stops matching
+      # and the kernel SIGKILLs a job at exec with OS_REASON_CODESIGNING, before
+      # its own failure notifier can fire. Re-registering them needs
       # `launchctl bootstrap gui/$UID` from the interactive session, which is
       # unreliable from an activation script, so the fix lives in
-      # `just relaunch-agents`. This step only nudges: if the resolved nu path
-      # differs from the sentinel that script maintains, print a banner and
-      # post a notification. `just switch-darwin` runs that script anyway.
+      # `just relaunch-agents`. This step only nudges when either runtime path
+      # differs from the corresponding sentinel that script maintains.
+      # `just switch-darwin` runs that script anyway.
       # No `exit` here: home-manager concatenates every home.activation.*
       # snippet into one script, so a bare `exit` would skip the steps after
       # this one. Guard with a conditional instead.
-      home.activation.checkScheduledAgentsNu = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.checkScheduledAgentRuntimes = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         _sa_state_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
-        _sa_nu_path="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/nu"
-        if [ -e "$_sa_nu_path" ]; then
-          _sa_cur="$(/usr/bin/readlink -f "$_sa_nu_path")"
-          _sa_prev="$(cat "$_sa_state_dir/scheduled-agents-nu" 2>/dev/null || true)"
-          if [ -n "$_sa_prev" ] && [ "$_sa_cur" != "$_sa_prev" ]; then
-            echo "" >&2
-            echo "  !! nushell store path changed since external scheduled agents" >&2
-            echo "  !! were last registered -- they will be codesigning-killed at next run." >&2
-            echo "  !! Fix:  cd ~/.config/dotfiles && just relaunch-agents" >&2
-            echo "" >&2
-            /usr/bin/osascript -e 'display notification "Run: just relaunch-agents" with title "Scheduled agents need re-registration"' >/dev/null 2>&1 || true
+        _sa_runtime_changed=0
+        for _sa_runtime in nu uv; do
+          _sa_path="/etc/profiles/per-user/$(/usr/bin/id -un)/bin/$_sa_runtime"
+          _sa_prev="$(cat "$_sa_state_dir/scheduled-agents-$_sa_runtime" 2>/dev/null || true)"
+          if [ -e "$_sa_path" ]; then
+            _sa_cur="$(/usr/bin/readlink -f "$_sa_path")"
+            if [ -n "$_sa_prev" ] && [ "$_sa_cur" != "$_sa_prev" ]; then
+              _sa_runtime_changed=1
+            fi
           fi
+        done
+        if [ "$_sa_runtime_changed" -eq 1 ]; then
+          echo "" >&2
+          echo "  !! Nushell or uv store path changed since external scheduled agents" >&2
+          echo "  !! were last registered -- they may be codesigning-killed at next run." >&2
+          echo "  !! Fix:  cd ~/.config/dotfiles && just relaunch-agents" >&2
+          echo "" >&2
+          /usr/bin/osascript -e 'display notification "Run: just relaunch-agents" with title "Scheduled agents need re-registration"' >/dev/null 2>&1 || true
         fi
       '';
     };

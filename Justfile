@@ -28,7 +28,7 @@ switch-darwin:
   sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
   bash scripts/darwin/relaunch_scheduled_agents.sh
 
-# Re-register eligible external scheduled LaunchAgents after a Nushell
+# Re-register eligible external scheduled LaunchAgents after a Nushell or uv
 # store-path change; targeted dry-run and explicit one-Label recovery are available.
 relaunch-agents *args:
   bash scripts/darwin/relaunch_scheduled_agents.sh {{args}}

@@ -20,6 +20,39 @@ external_agents_contains() {
   return 1
 }
 
+external_agents_program_is_uv_launcher() {
+  local program0=$1 uv_profile=$2 store_root=${3:-/nix/store}
+  local program_real='' uv_real=''
+  EXTERNAL_AGENTS_ERROR=''
+
+  [[ -e $program0 ]] || {
+    EXTERNAL_AGENTS_ERROR="launcher does not resolve to a file: $program0"
+    return 2
+  }
+  program_real=$(/usr/bin/readlink -f "$program0") || {
+    EXTERNAL_AGENTS_ERROR="launcher cannot be resolved: $program0"
+    return 2
+  }
+  if [[ -e $uv_profile ]]; then
+    uv_real=$(/usr/bin/readlink -f "$uv_profile") || {
+      EXTERNAL_AGENTS_ERROR="uv profile path cannot be resolved: $uv_profile"
+      return 2
+    }
+    if [[ $program_real == "$uv_real" ]]; then
+      return 0
+    fi
+  fi
+
+  case "$program_real" in
+  "$store_root"/*-uv-*/bin/uv)
+    EXTERNAL_AGENTS_ERROR="launcher resolves to a stale uv store path: $program_real"
+    return 2
+    ;;
+  esac
+
+  return 1
+}
+
 external_agents_error() {
   printf 'invalid external-agent manifest: %s\n' "$1" >&2
   return 1
@@ -395,7 +428,7 @@ external_agents_get_disabled_state() {
 }
 
 external_agents_recover_one() {
-  local manifest=$1 launch_agents_dir=$2 domain=$3 label=$4
+  local manifest=$1 launch_agents_dir=$2 domain=$3 label=$4 uv_profile=$5
   local index=-1 candidate loaded_output line path disabled_output source deployed program attempt result deployed_file deployed_label loaded_label
   local -a loaded_labels=()
 
@@ -437,13 +470,19 @@ external_agents_recover_one() {
     EXTERNAL_AGENTS_ERROR="Label is not registered: $label"
     return 1
   }
-  [[ ${EXTERNAL_AGENT_STATES[index]} == enabled && ${EXTERNAL_AGENT_RELAUNCH[index]} == true ]] || {
-    EXTERNAL_AGENTS_ERROR="$label is not an enabled relaunch target"
-    return 1
-  }
   source=${EXTERNAL_AGENT_SOURCES[index]}
   deployed=${EXTERNAL_AGENT_DEPLOYED[index]}
   program=${EXTERNAL_AGENT_PROGRAMS[index]}
+  if [[ ${EXTERNAL_AGENT_STATES[index]} != enabled ]]; then
+    EXTERNAL_AGENTS_ERROR="$label is not enabled"
+    return 1
+  fi
+  if [[ ${EXTERNAL_AGENT_RELAUNCH[index]} != true ]]; then
+    external_agents_program_is_uv_launcher "$program" "$uv_profile" || {
+      EXTERNAL_AGENTS_ERROR="${EXTERNAL_AGENTS_ERROR:-$label is not an enabled relaunch target}"
+      return 1
+    }
+  fi
 
   disabled_output=$(/bin/launchctl print-disabled "$domain" 2>/dev/null) || {
     EXTERNAL_AGENTS_ERROR="cannot query disabled state for $label"

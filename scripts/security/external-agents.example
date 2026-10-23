@@ -15,11 +15,12 @@
 # in values.
 #
 # A row is the local inventory for one externally owned job, independent of
-# whether it is eligible for a Nushell-path relaunch. Use `false` for shell or
-# other jobs that do not need that re-registration. Disabled rows cannot be
-# relaunch-enabled. Unknown on-disk or loaded jobs under the configured prefix
-# remain WARN, make `just security-audit --strict` fail, and block relaunch
-# before any job is changed.
+# whether it is eligible for a Nushell-path relaunch. The final boolean controls
+# only Nushell-path relaunch. Enabled rows whose ProgramArguments[0] resolves to
+# the current Nix-profile `uv` are also re-registered when that runtime changes.
+# Disabled rows cannot be Nushell-relaunch-enabled. Unknown on-disk or loaded
+# jobs under the configured prefix remain WARN, make `just security-audit
+# --strict` fail, and block relaunch before any job is changed.
 #
 # Optional relaunch directives are comments with the following exact forms:
 # relaunch-prefix=com.example.
