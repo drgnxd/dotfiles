@@ -167,11 +167,15 @@ items the global rules list as not waivable by conversation.
   exact path and deletion impact and obtain explicit user authorization for it;
   if ownership, purpose, or retention is unclear, preserve it and stop. Also
   verify that all task commits are integrated, no process is using the worktree,
-  no relevant lock or external writer is active, and any annex writer
-  quiescence required by repository policy. Then remove only that exact
-  worktree with `git worktree remove <path>` and no force option; do not edit Git
-  administration data or quarantine contents. If any check fails or Git refuses,
-  stop and preserve the remaining state. After a crash,
+  no relevant lock other than this adopted task worktree's exact expected lock
+  is active, no external writer is active, and any annex writer quiescence
+  required by repository policy. Inspect the Git worktree lock reason; if it is exactly
+  `agent-task <worktree-id>` for this adopted task, unlock only that task lock
+  with `git worktree unlock <path>`, verify it is gone, then remove only that
+  exact worktree with `git worktree remove <path>` and no force option. If the
+  lock reason differs, is unreadable, or either Git command refuses, stop and
+  preserve the remaining state. Do not directly edit Git administration data or
+  quarantine contents. After a crash,
   inspect `wtctl list --orphans`; adopt a dead-owner task only with explicit
   user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`. Use
   `wtctl reap` only for safe dead-owner worktrees after its grace period.
