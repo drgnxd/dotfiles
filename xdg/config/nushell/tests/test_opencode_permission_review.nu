@@ -1,4 +1,4 @@
-use ../autoload/09-opencode-permission-review.nu review-rows
+use ../autoload/09-opencode-permission-review.nu [normalize-review-rows review-rows]
 use std/assert
 
 let rows = [
@@ -20,8 +20,9 @@ let rows = [
 ]
 
 let now = ('2026-01-04T00:00:00Z' | into datetime)
-let all = (review-rows $rows 0 $now)
-let bounded = (review-rows $rows 3 $now)
+let mixed = (normalize-review-rows ($rows | append [42 'unexpected' [a b] null]))
+let all = (review-rows $mixed 0 $now)
+let bounded = (review-rows $mixed 3 $now)
 assert ($all.asked_window_start_jst | str contains '+09:00')
 assert (($all.groups | where permission == edit | first).asks == 2)
 assert (($all.groups | where permission == edit | first).always == 1)
@@ -34,9 +35,10 @@ assert ($all.counts.duplicate_asks == 1)
 assert ($all.counts.duplicate_replies == 1)
 assert ($all.counts.conflicting_replies == 1)
 assert ($all.counts.orphan_replies == 1)
-assert ($all.counts.malformed_or_incomplete == 2)
+assert ($all.counts.malformed_or_incomplete == 6)
 assert ($all.counts.candidates_redacted == 4)
-assert (($bounded.groups | get candidates | any {|candidate| $candidate == old }) == false)
+assert (($all.groups | where candidates == [old] | length) == 1)
+assert (($bounded.groups | where candidates == [old] | length) == 0)
 assert (($bounded.groups | where permission == edit | first).always == 1)
 assert ($all.asked_window_end_jst | str contains '+09:00')
 assert ($all.report_time_jst | str contains '+09:00')

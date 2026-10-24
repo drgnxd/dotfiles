@@ -28,6 +28,10 @@ export def review-rows [rows: list<record>, days: int, now: datetime] {
   { asked_window_start_jst: $windowStart, asked_window_end_jst: ($now | date to-timezone Asia/Tokyo | format date '%Y-%m-%d %H:%M:%S %Z'), observed_through_jst: (if ($valid | is-empty) { null } else { $valid | get timestamp | each {|value| $value | into datetime } | sort | last | date to-timezone Asia/Tokyo | format date '%Y-%m-%d %H:%M:%S %Z' }), report_time_jst: ($now | date to-timezone Asia/Tokyo | format date '%Y-%m-%d %H:%M:%S %Z'), counts: { duplicate_asks: $duplicateAsks, duplicate_replies: $duplicateReplies, conflicting_replies: ($replyGroups | values | where {|group| ($group | get reply | uniq | length) > 1 } | length), orphan_replies: $orphanReplies, malformed_or_incomplete: $malformed, asks: ($askedWindow | length), candidates_redacted: (if ($requests | is-empty) { 0 } else { $requests | get redacted | math sum }) }, groups: $grouped }
 }
 
+export def normalize-review-rows [rows] {
+  $rows | each {|row| if ($row | describe | str starts-with 'record') { $row } else { { malformed: true } } }
+}
+
 # Review the local permission log without passing it to OpenCode model context.
 # Credential filtering is best-effort; same-user code can still read the file.
 # Data is retained indefinitely until the user manually removes the log.
@@ -37,6 +41,6 @@ export def oc-permission-review [days: int = 30] {
   let path = ($stateHome | path join 'opencode/permission-review/events.jsonl')
   if not ($path | path exists) { print 'No permission review log found.'; return }
   let parsed = (open --raw $path | lines | each {|line| try { $line | from json } catch { null } })
-  let report = (review-rows ($parsed | each {|row| if $row == null { { malformed: true } } else { $row } }) $days (date now))
+  let report = (review-rows (normalize-review-rows $parsed) $days (date now))
   $report
 }
