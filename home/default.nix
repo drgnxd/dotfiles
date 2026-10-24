@@ -142,6 +142,7 @@ in
     ./modules/zoxide.nix
   ]
   ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+    ./modules/activation/spotlight_apps.nix
     ./modules/activation/macos_defaults.nix
     ./modules/markql.nix
     ./modules/swiftbar.nix

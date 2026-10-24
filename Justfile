@@ -122,6 +122,10 @@ test-external-agents:
 test-private-terms:
   bash scripts/security/test_private_terms.sh
 
+# Test generation and collision handling for Spotlight launchers
+test-spotlight-app-launchers:
+  bash home/modules/activation/test_spotlight_app_launchers.sh
+
 # Test the worktree guard plugin helper
 test-worktree-guard:
   uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_guard.py
