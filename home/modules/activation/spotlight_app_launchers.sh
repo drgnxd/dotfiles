@@ -34,7 +34,7 @@ for app in "$source_apps"/*.app; do
   destination="$applications_dir/$app_name.app"
   marker="$destination/Contents/Resources/home-manager-spotlight-target"
   desired_marker="$temporary_dir/target"
-  printf '%s\n%s\n%s\n%s\n' "$(/usr/bin/readlink "$app")" "$bundle_id" "$display_name" 2 >"$desired_marker"
+  printf '%s\n%s\n%s\n%s\n' "$(/usr/bin/readlink "$app")" "$bundle_id" "$display_name" 3 >"$desired_marker"
 
   if [ -e "$destination" ] || [ -L "$destination" ]; then
     if [ -L "$destination" ] || [ ! -f "$marker" ]; then
@@ -72,6 +72,9 @@ for app in "$source_apps"/*.app; do
     if [ -f "$source_icon" ]; then
       /bin/cp "$source_icon" "$launcher/Contents/Resources/$icon_file"
       /usr/bin/defaults write "$launcher/Contents/Info" CFBundleIconFile "$icon_file"
+      if /usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$launcher/Contents/Info.plist" >/dev/null 2>&1; then
+        /usr/libexec/PlistBuddy -c 'Delete :CFBundleIconName' "$launcher/Contents/Info.plist"
+      fi
     fi
   fi
   /bin/cp "$desired_marker" "$launcher/Contents/Resources/home-manager-spotlight-target"

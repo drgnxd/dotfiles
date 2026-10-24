@@ -35,8 +35,11 @@ test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$launcher/Conten
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$launcher/Contents/Info.plist")" = 'Test Alias'
 test "$(/usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$launcher/Contents/Info.plist")" = true
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$launcher/Contents/Info.plist")" = icon.icns
-test "$(/bin/cat "$launcher/Contents/Resources/home-manager-spotlight-target")" = "$(printf '%s\n%s\n%s\n%s' "$first_target" org.example.testapp 'Test Alias' 2)"
+test "$(/bin/cat "$launcher/Contents/Resources/home-manager-spotlight-target")" = "$(printf '%s\n%s\n%s\n%s' "$first_target" org.example.testapp 'Test Alias' 3)"
 /usr/bin/cmp -s "$first_target/Contents/Resources/icon.icns" "$launcher/Contents/Resources/icon.icns"
+if /usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$launcher/Contents/Info.plist" >/dev/null 2>&1; then
+  exit 1
+fi
 /usr/bin/codesign --verify --deep --strict "$launcher"
 
 mkdir -p "$applications_dir/Collision.app/Contents/Resources"
@@ -47,5 +50,5 @@ test "$(/bin/cat "$applications_dir/Collision.app/Contents/Resources/user-file")
 
 ln -sfn "$second_target" "$source_apps/TestAlias.app"
 bash "$script_dir/spotlight_app_launchers.sh" "$source_apps" "$applications_dir"
-test "$(/bin/cat "$launcher/Contents/Resources/home-manager-spotlight-target")" = "$(printf '%s\n%s\n%s\n%s' "$second_target" org.example.testapp 'Test Alias' 2)"
+test "$(/bin/cat "$launcher/Contents/Resources/home-manager-spotlight-target")" = "$(printf '%s\n%s\n%s\n%s' "$second_target" org.example.testapp 'Test Alias' 3)"
 /usr/bin/cmp -s "$second_target/Contents/Resources/icon.icns" "$launcher/Contents/Resources/icon.icns"
