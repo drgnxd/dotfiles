@@ -30,6 +30,7 @@
           "general": "allow",
           "research-lead": "allow",
           "researcher": "allow",
+          "browser-operator": "allow",
           "pdf-reader": "allow",
           "review-main": "allow",
           "review-deep": "ask"
@@ -152,6 +153,36 @@
         "playwright_browser_take_screenshot*": "allow"
       },
       "prompt": "{file:./prompts/researcher.md}"
+    },
+    "browser-operator": {
+      "description": "Removes one exact, user-authorized list entry after the parent confirms it is represented in the destination; never purchases or edits account settings.",
+      "mode": "subagent",
+      "hidden": true,
+      "model": "openai/gpt-6-luna",
+      "variant": "medium",
+      "steps": 16,
+      "tools": {
+        "playwright_browser_session_create": true,
+        "playwright_browser_session_close": true,
+        "playwright_browser_navigate": true,
+        "playwright_browser_navigate_back": true,
+        "playwright_browser_snapshot": true,
+        "playwright_browser_find": true,
+        "playwright_browser_wait_for": true,
+        "playwright_browser_click": true
+      },
+      "permission": {
+        "*": "deny",
+        "playwright_browser_session_create*": "allow",
+        "playwright_browser_session_close*": "allow",
+        "playwright_browser_navigate*": "allow",
+        "playwright_browser_navigate_back*": "allow",
+        "playwright_browser_snapshot*": "allow",
+        "playwright_browser_find*": "allow",
+        "playwright_browser_wait_for*": "allow",
+        "playwright_browser_click*": "allow"
+      },
+      "prompt": "{file:./prompts/browser-operator.md}"
     },
     "pdf-reader": {
       "description": "Reads and analyzes the PDF supplied for a research task. Read-only, PDF paths only, no web or command access.",

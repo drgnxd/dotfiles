@@ -206,6 +206,7 @@ def validate_config(errors: list[str]) -> None:
         "review-main": ("openai/gpt-6.1-sol", "medium"),
         "research-lead": ("openai/gpt-6-sol", "medium"),
         "researcher": ("openai/gpt-6-luna", "medium"),
+        "browser-operator": ("openai/gpt-6-luna", "medium"),
         "pdf-reader": ("openai/gpt-6-luna", "medium"),
     }
     expected_agent_colors = {
@@ -273,11 +274,70 @@ def validate_config(errors: list[str]) -> None:
             "browser-automation",
             "Playwright",
             "read-only",
+            "browser-operator",
             "do not return whole pages",
             "batch",
         ):
             if required.casefold() not in prompt_text.casefold():
                 errors.append(f"researcher prompt must include `{required}`")
+    operator = agents.get("browser-operator", {})
+    expected_operator_permissions = {
+        "*": "deny",
+        "playwright_browser_session_create*": "allow",
+        "playwright_browser_session_close*": "allow",
+        "playwright_browser_navigate*": "allow",
+        "playwright_browser_navigate_back*": "allow",
+        "playwright_browser_snapshot*": "allow",
+        "playwright_browser_find*": "allow",
+        "playwright_browser_wait_for*": "allow",
+        "playwright_browser_click*": "allow",
+    }
+    expected_operator_tools = {
+        "playwright_browser_session_create": True,
+        "playwright_browser_session_close": True,
+        "playwright_browser_navigate": True,
+        "playwright_browser_navigate_back": True,
+        "playwright_browser_snapshot": True,
+        "playwright_browser_find": True,
+        "playwright_browser_wait_for": True,
+        "playwright_browser_click": True,
+    }
+    if operator.get("mode") != "subagent":
+        errors.append("browser-operator must be a subagent")
+    if operator.get("permission") != expected_operator_permissions:
+        errors.append("browser-operator must allow only read/verify tools and the click tool")
+    if operator.get("tools") != expected_operator_tools:
+        errors.append("browser-operator must expose only its explicit browser tool allowlist")
+    if operator.get("prompt") != "{file:./prompts/browser-operator.md}":
+        errors.append("browser-operator must use the dedicated prompt file")
+    operator_prompt = BASE_DIR / "prompts" / "browser-operator.md"
+    if not operator_prompt.is_file():
+        errors.append(f"Missing browser-operator prompt: {operator_prompt}")
+    else:
+        operator_text = operator_prompt.read_text(encoding="utf-8").casefold()
+        for required in (
+            "verbatim quote",
+            "explicit authorization",
+            "account/profile",
+            "target-list url",
+            "stable identifier",
+            "membership label",
+            "click exactly once",
+            "do not purchase",
+            "never blindly repeat a click",
+            "report it as unknown",
+        ):
+            if required.casefold() not in operator_text:
+                errors.append(f"browser-operator prompt must include `{required}`")
+    if any(
+        name != "browser-operator"
+        and (
+            agent.get("tools", {}).get("playwright_browser_click") is True
+            or agent.get("permission", {}).get("playwright_browser_click*") == "allow"
+        )
+        for name, agent in agents.items()
+    ):
+        errors.append("only browser-operator may expose or allow the Playwright click tool")
     if any(
         agent.get("permission", {}).get("fetch_pdf") == "allow"
         for name, agent in agents.items()
@@ -312,6 +372,10 @@ def validate_config(errors: list[str]) -> None:
             errors.append(f"{planner} must not call Playwright directly")
         if task_rules.get("pdf-reader") != "allow":
             errors.append(f"{planner} must be able to delegate user-provided PDFs to pdf-reader")
+        if planner == "build" and task_rules.get("browser-operator") != "allow":
+            errors.append("build must be able to delegate explicit list changes to browser-operator")
+        if planner == "plan" and task_rules.get("browser-operator") == "allow":
+            errors.append("plan must not delegate state-changing browser actions")
     if set(agents) != set(expected_routes):
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
