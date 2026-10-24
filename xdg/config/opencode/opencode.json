@@ -24,6 +24,7 @@
       "model": "openai/gpt-6-luna",
       "variant": "high",
       "color": "#f060a6",
+      "mode": "primary",
       "permission": {
         "task": {
           "*": "deny",
@@ -44,7 +45,7 @@
     "general": { "disable": true },
     "plan": { "disable": true },
     "implementer": {
-      "description": "Implementation worker for one self-contained, fully specified unit of work (code change, refactor, build or test run) in the task worktree it is given; follows git-workflow and parallel-agents, can edit and run commands, is routed away from web and browser tools (not a network sandbox: shell commands remain available). Use it to run independent units in parallel or to keep long edit/test output out of the caller's context; do small single-file changes inline instead.",
+      "description": "Implementation worker for a self-contained, fully specified unit in its assigned task worktree. It follows git-workflow and parallel-agents, edits and tests only within its assigned scope, and does not use web or browser tools.",
       "model": "openai/gpt-6-luna",
       "variant": "medium",
       "color": "#00b386",

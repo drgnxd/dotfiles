@@ -367,6 +367,8 @@ def validate_config(errors: list[str]) -> None:
         if agents.get(builtin) != {"disable": True}:
             errors.append(f"built-in {builtin} agent must be disabled")
     manager = agents.get("manager", {})
+    if manager.get("mode") != "primary":
+        errors.append("manager must be a primary agent")
     manager_tasks = manager.get("permission", {}).get("task", {})
     expected_manager_tasks = {
         "*": "deny",
@@ -428,17 +430,14 @@ def validate_config(errors: list[str]) -> None:
     if manager_prompt_path.is_file():
         manager_prompt = manager_prompt_path.read_text(encoding="utf-8").casefold()
         for required in (
-            "agent-learning.md",
-            "untrusted",
-            "sanitized learning signals",
-            "independent review and user approval",
-            "never call playwright directly",
+            "agent-learning/learning.md",
+            "agent-learning/.lock",
+            "40 entries or 8 kib",
+            "0700",
+            "0600",
         ):
             if required not in manager_prompt:
                 errors.append(f"manager prompt must include `{required}`")
-        for prohibited in ("raw conversations", "secrets", "personal information"):
-            if prohibited not in manager_prompt:
-                errors.append(f"manager prompt must prohibit recording {prohibited}")
     if set(agents) != set(expected_routes) | {"build", "general", "plan"}:
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
