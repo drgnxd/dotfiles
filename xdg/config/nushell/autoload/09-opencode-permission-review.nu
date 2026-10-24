@@ -43,8 +43,8 @@ export def parse-review-jsonl [] {
 # Data is retained indefinitely until the user manually removes the log.
 export def oc-permission-review [days: int = 30] {
   if $days < 0 { error make {msg: 'days must be zero or greater'} }
-  let stateHome = ($env.XDG_STATE_HOME? | default ($nu.home-path | path join '.local/state'))
-  let path = ($stateHome | path join 'opencode/permission-review/events.jsonl')
+  let stateHome = if ($env.XDG_STATE_HOME? | default '' | is-empty) { $env.HOME | path join '.local' 'state' } else { $env.XDG_STATE_HOME }
+  let path = ($stateHome | path join 'opencode' 'permission-review' 'events.jsonl')
   if not ($path | path exists) { print 'No permission review log found.'; return }
   let rows = (open --raw $path | lines | parse-review-jsonl)
   let report = (review-rows $rows $days (date now))

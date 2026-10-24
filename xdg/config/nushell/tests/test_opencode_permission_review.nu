@@ -1,4 +1,4 @@
-use ../autoload/09-opencode-permission-review.nu [normalize-review-rows parse-review-jsonl review-rows]
+use ../autoload/09-opencode-permission-review.nu [normalize-review-rows oc-permission-review parse-review-jsonl review-rows]
 use std/assert
 
 let rows = [
@@ -59,3 +59,16 @@ let jsonlRows = ([
 let jsonlReport = (review-rows $jsonlRows 0 $now)
 assert ($jsonlReport.counts.asks == 1)
 assert ($jsonlReport.counts.malformed_or_incomplete == 5)
+
+let stateHome = ($env.PWD | path join (".tmp-permission-review-" + (random uuid)))
+let logDirectory = ($stateHome | path join 'opencode' 'permission-review')
+mkdir $logDirectory
+let eventLines = [
+  '{"timestamp":"2026-01-01T00:00:00Z","generation":"v1","kind":"asked","request_id":"smoke","permission":"edit","action":"ask","candidates":["safe"],"candidates_redacted":0}'
+  '{"timestamp":"2026-01-01T00:01:00Z","generation":"v1","kind":"replied","request_id":"smoke","reply":"always"}'
+]
+$eventLines | str join (char newline) | save ($logDirectory | path join 'events.jsonl')
+let smoke = (with-env { XDG_STATE_HOME: $stateHome } { oc-permission-review 0 })
+assert ($smoke.counts.asks == 1)
+assert (($smoke.groups | first).always == 1)
+ ^rm -r $stateHome
