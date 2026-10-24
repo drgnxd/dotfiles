@@ -11,6 +11,10 @@ type EventRecord = AskedRecord | RepliedRecord
 type V2Event = { type: string; data?: Record<string, unknown> }
 type V2Context = { event: { subscribe(options: { signal: AbortSignal }): AsyncIterable<V2Event> } }
 
+export function shouldReportEventStreamFailure(signal: AbortSignal): boolean {
+  return !signal.aborted
+}
+
 const sensitive = /(?:https?:\/\/[^\s/:@]+:[^\s/@]+@|(?:authorization|bearer|password|passwd|token|secret|api[_-]?key)\s*[:=]\s*\S|\b(?:sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}))/i
 const containsCredential = (candidate: string) => sensitive.test(candidate)
 
@@ -106,7 +110,11 @@ export default {
           console.error("OpenCode permission review event ignored")
         }
       }
-    })().catch(() => console.error("OpenCode permission review event stream stopped"))
+    })().catch(() => {
+      if (shouldReportEventStreamFailure(controller.signal)) {
+        console.error("OpenCode permission review event stream stopped unexpectedly")
+      }
+    })
     return () => controller.abort()
   },
 }

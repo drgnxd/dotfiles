@@ -2,7 +2,14 @@ import { expect, test } from "bun:test"
 import { chmod, lstat, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { appendRecord, normalizeRecord } from "../plugins/permission-review-log"
+import { appendRecord, normalizeRecord, shouldReportEventStreamFailure } from "../plugins/permission-review-log"
+
+test("does not report a normal event stream abort during plugin teardown", () => {
+  const controller = new AbortController()
+  expect(shouldReportEventStreamFailure(controller.signal)).toBe(true)
+  controller.abort()
+  expect(shouldReportEventStreamFailure(controller.signal)).toBe(false)
+})
 
 test("normalizes the V1 asked schema and retains only safe persistent suggestions", () => {
   const record = normalizeRecord("v1", "asked", {
