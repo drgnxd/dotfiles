@@ -6,7 +6,8 @@ export def review-rows [rows: list<record>, days: int, now: datetime] {
   let requestKeys = ($asks | each {|row| [$row.generation $row.request_id] | to nuon } | uniq)
   let duplicateAsks = ($asks | length) - ($requestKeys | length)
   let replyGroups = ($replies | group-by {|row| [$row.generation $row.request_id] | to nuon })
-  let duplicateReplies = ($replyGroups | values | each {|group| ($group | length) - ($group | get reply | uniq | length) } | math sum | default 0)
+  let duplicateReplyCounts = ($replyGroups | values | each {|group| ($group | length) - ($group | get reply | uniq | length) })
+  let duplicateReplies = if ($duplicateReplyCounts | is-empty) { 0 } else { $duplicateReplyCounts | math sum }
   let orphanReplies = ($replies | where {|row| not ($requestKeys | any {|key| $key == ([$row.generation $row.request_id] | to nuon) }) } | length)
   let cutoff = if $days == 0 { null } else { $now - ($days * 24hr) }
   let firstAsks = ($asks | group-by {|row| [$row.generation $row.request_id] | to nuon } | values | each {|group| $group | first })
@@ -32,6 +33,11 @@ export def normalize-review-rows [rows] {
   $rows | each {|row| if ($row | describe | str starts-with 'record') { $row } else { { malformed: true } } }
 }
 
+export def parse-review-jsonl [] {
+  let parsed = ($in | each --keep-empty {|line| try { $line | from json } catch { null } })
+  normalize-review-rows $parsed
+}
+
 # Review the local permission log without passing it to OpenCode model context.
 # Credential filtering is best-effort; same-user code can still read the file.
 # Data is retained indefinitely until the user manually removes the log.
@@ -40,7 +46,7 @@ export def oc-permission-review [days: int = 30] {
   let stateHome = ($env.XDG_STATE_HOME? | default ($nu.home-path | path join '.local/state'))
   let path = ($stateHome | path join 'opencode/permission-review/events.jsonl')
   if not ($path | path exists) { print 'No permission review log found.'; return }
-  let parsed = (open --raw $path | lines | each {|line| try { $line | from json } catch { null } })
-  let report = (review-rows (normalize-review-rows $parsed) $days (date now))
+  let rows = (open --raw $path | lines | parse-review-jsonl)
+  let report = (review-rows $rows $days (date now))
   $report
 }

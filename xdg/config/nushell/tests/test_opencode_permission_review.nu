@@ -1,4 +1,4 @@
-use ../autoload/09-opencode-permission-review.nu [normalize-review-rows review-rows]
+use ../autoload/09-opencode-permission-review.nu [normalize-review-rows parse-review-jsonl review-rows]
 use std/assert
 
 let rows = [
@@ -44,3 +44,18 @@ assert ($all.asked_window_end_jst | str contains '+09:00')
 assert ($all.report_time_jst | str contains '+09:00')
 assert ($all.observed_through_jst != null)
 assert ($all.report_time_jst != null)
+
+let onlyAsk = (review-rows [{ timestamp: '2026-01-01T00:00:00Z', generation: v1, kind: asked, request_id: no-reply, permission: write, action: ask, candidates: [], candidates_redacted: 0 }] 0 $now)
+assert (($onlyAsk.groups | first).reply_not_observed == 1)
+
+let jsonlRows = ([
+  '{"timestamp":"2026-01-01T00:00:00Z","generation":"v1","kind":"asked","request_id":"jsonl","permission":"edit","action":"ask","candidates":[],"candidates_redacted":0}'
+  '42'
+  '"unexpected"'
+  '[1]'
+  'null'
+  'invalid JSON'
+] | parse-review-jsonl)
+let jsonlReport = (review-rows $jsonlRows 0 $now)
+assert ($jsonlReport.counts.asks == 1)
+assert ($jsonlReport.counts.malformed_or_incomplete == 5)
