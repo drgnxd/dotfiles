@@ -34,7 +34,7 @@ for app in "$source_apps"/*.app; do
   destination="$applications_dir/$app_name.app"
   marker="$destination/Contents/Resources/home-manager-spotlight-target"
   desired_marker="$temporary_dir/target"
-  printf '%s\n%s\n%s\n' "$(/usr/bin/readlink "$app")" "$bundle_id" "$display_name" >"$desired_marker"
+  printf '%s\n%s\n%s\n%s\n' "$(/usr/bin/readlink "$app")" "$bundle_id" "$display_name" 2 >"$desired_marker"
 
   if [ -e "$destination" ] || [ -L "$destination" ]; then
     if [ -L "$destination" ] || [ ! -f "$marker" ]; then
@@ -61,6 +61,19 @@ for app in "$source_apps"/*.app; do
   /usr/bin/defaults write "$launcher/Contents/Info" CFBundleDisplayName "$display_name"
   /usr/bin/defaults write "$launcher/Contents/Info" LSUIElement -bool true
   /bin/mkdir -p "$launcher/Contents/Resources"
+  icon_file=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$info_plist" 2>/dev/null || true)
+  if [ -n "$icon_file" ]; then
+    icon_file=${icon_file##*/}
+    case "$icon_file" in
+    *.icns) ;;
+    *) icon_file="$icon_file.icns" ;;
+    esac
+    source_icon="$app/Contents/Resources/$icon_file"
+    if [ -f "$source_icon" ]; then
+      /bin/cp "$source_icon" "$launcher/Contents/Resources/$icon_file"
+      /usr/bin/defaults write "$launcher/Contents/Info" CFBundleIconFile "$icon_file"
+    fi
+  fi
   /bin/cp "$desired_marker" "$launcher/Contents/Resources/home-manager-spotlight-target"
   /usr/bin/codesign --force --deep --sign - "$launcher"
 
