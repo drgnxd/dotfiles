@@ -74,16 +74,21 @@ export async function appendRecord(record: EventRecord): Promise<void> {
   }
 }
 
-function safeLog(record: EventRecord | undefined): void {
-  if (record) void appendRecord(record).catch(() => console.error("OpenCode permission review log write failed"))
+async function safeLog(record: EventRecord | undefined): Promise<void> {
+  if (!record) return
+  try {
+    await appendRecord(record)
+  } catch {
+    console.error("OpenCode permission review log write failed")
+  }
 }
 
 const server: Plugin = async () => ({
   event: async ({ event }) => {
     if (!event || typeof event !== "object") return
     const value = event as { type?: string; properties?: Record<string, unknown> }
-    if (value.type === "permission.asked") safeLog(normalizeRecord("v1", "asked", value.properties ?? {}))
-    if (value.type === "permission.replied") safeLog(normalizeRecord("v1", "replied", value.properties ?? {}))
+    if (value.type === "permission.asked") await safeLog(normalizeRecord("v1", "asked", value.properties ?? {}))
+    if (value.type === "permission.replied") await safeLog(normalizeRecord("v1", "replied", value.properties ?? {}))
   },
 })
 
@@ -96,7 +101,7 @@ export default {
       for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
         try {
           const kind = event.type === "permission.v2.asked" ? "asked" : event.type === "permission.v2.replied" ? "replied" : undefined
-          if (kind) safeLog(normalizeRecord("v2", kind, event.data ?? {}))
+          if (kind) await safeLog(normalizeRecord("v2", kind, event.data ?? {}))
         } catch {
           console.error("OpenCode permission review event ignored")
         }
