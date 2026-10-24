@@ -51,12 +51,14 @@ items the global rules list as not waivable by conversation.
   the normal lifecycle below. The seed commit is the only task-related commit
   automatically allowed outside a `wtctl` worktree; any broader exception must
   meet the separate explicit-exception rule.
-- Use only schema-1 `wtctl` for task worktree lifecycle. Before creating a
+- Use schema-1 `wtctl` for task worktree lifecycle. Before creating a
   worktree, run `wtctl capabilities --json` and verify it advertises `create`,
   `finish`, legacy lifecycle, Git-annex, artifact quarantine, and quarantine
   purge support. If these capabilities are unavailable, stop and request a
-  package update; do not fall back to Python lifecycle scripts or manual
-  `git worktree` operations.
+  package update; do not fall back to Python lifecycle scripts. The only
+  lifecycle fallback allowed here is the exact non-forced Git worktree removal
+  defined below; direct filesystem deletion of worktree or quarantine contents
+  is not authorized.
 - Treat `wtctl finish --dry-run` as a preview only when
   `wtctl capabilities --json` from the installed binary contains
   `finish_dry_run: true`. Otherwise, do not pass `--dry-run`: it may execute
@@ -155,8 +157,21 @@ items the global rules list as not waivable by conversation.
   disposable Python caches. Unknown ignored or untracked data continues to
   block `reap`.
 - If any lifecycle command refuses, preserve the worktree and data, inspect the
-  reported state, and report cleanup as incomplete. Never use `--force`, bypass
-  a safety refusal, or manually delete worktree/quarantine data. After a crash,
+  reported state, and report cleanup as incomplete unless the refusal is solely
+  caused by an unsupported ignored-artifact shape and the user explicitly
+  authorizes cleanup of the exact task worktree. For that narrow fallback,
+  verify the exact registered path and both `.git` identity directions, current
+  owner/adoption state, a clean tracked and non-ignored untracked status, every
+  ignored path, and confirm each is a task-generated disposable artifact or has
+  a retained copy verified byte-identical. For any other ignored path, show the
+  exact path and deletion impact and obtain explicit user authorization for it;
+  if ownership, purpose, or retention is unclear, preserve it and stop. Also
+  verify that all task commits are integrated, no process is using the worktree,
+  no relevant lock or external writer is active, and any annex writer
+  quiescence required by repository policy. Then remove only that exact
+  worktree with `git worktree remove <path>` and no force option; do not edit Git
+  administration data or quarantine contents. If any check fails or Git refuses,
+  stop and preserve the remaining state. After a crash,
   inspect `wtctl list --orphans`; adopt a dead-owner task only with explicit
   user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`. Use
   `wtctl reap` only for safe dead-owner worktrees after its grace period.
