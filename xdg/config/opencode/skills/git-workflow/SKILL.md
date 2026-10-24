@@ -134,14 +134,26 @@ items the global rules list as not waivable by conversation.
   safety condition remains unverifiable, and do not treat a clean worktree or
   absence of unintegrated commits alone as proof that shared-state writers are
   quiescent.
-- `finish` discards recognized generated artifacts by default. Use
-  `--preserve-generated-artifacts` to quarantine and retain recognized cache,
-  build, and marked Nix-generated config paths. Unknown ignored/untracked data
-  blocks cleanup. Recover a retained quarantine only with
+- Without an explicit artifact selector, `finish` and `remove` follow Git's
+  default worktree-removal boundary: tracked changes and non-ignored untracked
+  files block removal, while ignored files are deleted with the worktree. This
+  path does not classify artifacts, create quarantine, or require `.wtctl.json`.
+- `finish --keep-worktree` retains ignored files because it does not remove the
+  worktree. Artifact selectors remain opt-in and add artifact classification,
+  signature, and quarantine handling. Use them only when the task explicitly
+  requires that handling. Do not use direct `remove` to select or discard task
+  data unless the user explicitly approved those selectors.
+- `--preserve-generated-artifacts` retains recognized cache, build, and marked
+  Nix-generated config paths in quarantine. Broad discard selectors discard
+  selected artifacts after successful worktree removal. Unknown ignored or
+  untracked paths remain subject to the explicit artifact policy and may block
+  cleanup. Recover a retained quarantine only with
   `wtctl remove --repo <repo> --purge-preserved-quarantine <operation-id>
   --external-writers-quiesced`; unverified `.direnv` additionally requires
-  `--discard-unverified-direnv`. Do not use direct `remove` to select or discard
-  task data unless the user explicitly approved those selectors.
+  `--discard-unverified-direnv`.
+- `reap` remains conservative and only cleans its existing narrowly recognized
+  disposable Python caches. Unknown ignored or untracked data continues to
+  block `reap`.
 - If any lifecycle command refuses, preserve the worktree and data, inspect the
   reported state, and report cleanup as incomplete. Never use `--force`, bypass
   a safety refusal, or manually delete worktree/quarantine data. After a crash,
