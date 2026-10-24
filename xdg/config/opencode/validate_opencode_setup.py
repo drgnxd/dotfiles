@@ -433,6 +433,9 @@ def validate_config(errors: list[str]) -> None:
             "agent-learning/learning.md",
             "agent-learning/.lock",
             "40 entries or 8 kib",
+            "mkdir -m 700",
+            "r+` mode",
+            "do not replace or rename it",
             "0700",
             "0600",
         ):
