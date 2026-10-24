@@ -2,7 +2,7 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "openai/gpt-6-luna",
   "small_model": "openai/gpt-6-luna",
-  "default_agent": "build",
+  "default_agent": "manager",
   "enabled_providers": [
     "openai"
   ],
@@ -19,7 +19,8 @@
     }
   },
   "agent": {
-    "build": {
+    "manager": {
+      "description": "Primary agent that triages, plans, delegates eligible implementation, and owns final integration and verification.",
       "model": "openai/gpt-6-luna",
       "variant": "high",
       "color": "#f060a6",
@@ -27,7 +28,7 @@
         "task": {
           "*": "deny",
           "explore": "allow",
-          "general": "allow",
+          "implementer": "allow",
           "research-lead": "allow",
           "researcher": "allow",
           "browser-operator": "allow",
@@ -36,30 +37,19 @@
           "review-deep": "ask"
         },
         "playwright_*": "deny"
-      }
+      },
+      "prompt": "{file:./prompts/manager.md}"
     },
-    "plan": {
-      "model": "openai/gpt-6.1-sol",
-      "variant": "medium",
-      "color": "#56b4e9",
-      "permission": {
-        "task": {
-          "*": "deny",
-          "explore": "allow",
-          "research-lead": "allow",
-          "researcher": "allow",
-          "pdf-reader": "allow",
-          "review-main": "allow",
-          "review-deep": "ask"
-        },
-        "playwright_*": "deny"
-      }
-    },
-    "general": {
+    "build": { "disable": true },
+    "general": { "disable": true },
+    "plan": { "disable": true },
+    "implementer": {
       "description": "Implementation worker for one self-contained, fully specified unit of work (code change, refactor, build or test run) in the task worktree it is given; follows git-workflow and parallel-agents, can edit and run commands, is routed away from web and browser tools (not a network sandbox: shell commands remain available). Use it to run independent units in parallel or to keep long edit/test output out of the caller's context; do small single-file changes inline instead.",
       "model": "openai/gpt-6-luna",
       "variant": "medium",
       "color": "#00b386",
+      "mode": "subagent",
+      "prompt": "{file:./prompts/implementer.md}",
       "permission": {
         "task": {
           "*": "deny",

@@ -195,9 +195,8 @@ def validate_config(errors: list[str]) -> None:
         errors.append("review-deep must keep the approved read-only prompt")
 
     expected_routes = {
-        "build": ("openai/gpt-6-luna", "high"),
-        "plan": ("openai/gpt-6.1-sol", "medium"),
-        "general": ("openai/gpt-6-luna", "medium"),
+        "manager": ("openai/gpt-6-luna", "high"),
+        "implementer": ("openai/gpt-6-luna", "medium"),
         "explore": ("openai/gpt-6-luna", "low"),
         "compaction": ("openai/gpt-6-luna", "low"),
         "title": ("openai/gpt-6-luna", "low"),
@@ -210,9 +209,8 @@ def validate_config(errors: list[str]) -> None:
         "pdf-reader": ("openai/gpt-6-luna", "medium"),
     }
     expected_agent_colors = {
-        "build": "#f060a6",
-        "plan": "#56b4e9",
-        "general": "#00b386",
+        "manager": "#f060a6",
+        "implementer": "#00b386",
         "explore": "#aba4ff",
         "review-deep": "#ff8657",
         "review-main": "#f2ce55",
@@ -356,27 +354,92 @@ def validate_config(errors: list[str]) -> None:
         "task": {"*": "deny", "researcher": "allow"},
     }:
         errors.append("research-lead must delegate only to researcher")
-    for worker in ("general", "explore"):
+    for worker in ("implementer", "explore"):
         worker_permission = agents.get(worker, {}).get("permission", {})
         for tool in ("webfetch", "websearch", "codesearch"):
             if worker_permission.get(tool) != "deny":
                 errors.append(f"{worker} must deny {tool}")
     if agents.get("explore", {}).get("permission", {}).get("bash") != "deny":
         errors.append("explore must deny bash")
-    for planner in ("build", "plan"):
-        permissions = agents.get(planner, {}).get("permission", {})
-        task_rules = permissions.get("task", {})
-        if task_rules.get("*") != "deny" or task_rules.get("researcher") != "allow":
-            errors.append(f"{planner} must delegate browser research to researcher")
-        if permissions.get("playwright_*") != "deny":
-            errors.append(f"{planner} must not call Playwright directly")
-        if task_rules.get("pdf-reader") != "allow":
-            errors.append(f"{planner} must be able to delegate user-provided PDFs to pdf-reader")
-        if planner == "build" and task_rules.get("browser-operator") != "allow":
-            errors.append("build must be able to delegate explicit list changes to browser-operator")
-        if planner == "plan" and task_rules.get("browser-operator") == "allow":
-            errors.append("plan must not delegate state-changing browser actions")
-    if set(agents) != set(expected_routes):
+    if config.get("default_agent") != "manager":
+        errors.append("default_agent must be manager")
+    for builtin in ("build", "general", "plan"):
+        if agents.get(builtin) != {"disable": True}:
+            errors.append(f"built-in {builtin} agent must be disabled")
+    manager = agents.get("manager", {})
+    manager_tasks = manager.get("permission", {}).get("task", {})
+    expected_manager_tasks = {
+        "*": "deny",
+        "explore": "allow",
+        "implementer": "allow",
+        "research-lead": "allow",
+        "researcher": "allow",
+        "browser-operator": "allow",
+        "pdf-reader": "allow",
+        "review-main": "allow",
+        "review-deep": "ask",
+    }
+    if manager_tasks != expected_manager_tasks:
+        errors.append("manager must retain its approved task delegation allowlist")
+    if manager.get("model") != "openai/gpt-6-luna" or manager.get("variant") != "high":
+        errors.append("manager must retain openai/gpt-6-luna high")
+    if manager_tasks.get("*") != "deny" or manager_tasks.get("implementer") != "allow":
+        errors.append("manager must allow implementer delegation and deny other agents by default")
+    for role in ("research-lead", "researcher", "pdf-reader", "review-main", "review-deep", "browser-operator", "explore"):
+        if manager_tasks.get(role) not in {"allow", "ask"}:
+            errors.append(f"manager must retain its task route to {role}")
+    if manager_tasks.get("review-deep") != "ask":
+        errors.append("manager must require confirmation before review-deep")
+    if manager.get("permission", {}).get("playwright_*") != "deny":
+        errors.append("manager must deny direct Playwright access")
+    if manager.get("prompt") != "{file:./prompts/manager.md}":
+        errors.append("manager must use the dedicated prompt file")
+    implementer = agents.get("implementer", {})
+    if implementer.get("mode") != "subagent":
+        errors.append("implementer must be a subagent")
+    if implementer.get("permission", {}).get("task") != {"*": "deny", "explore": "allow"}:
+        errors.append("implementer must retain its limited task delegation")
+    implementer_permissions = implementer.get("permission", {})
+    if any(
+        implementer_permissions.get(tool) != "deny"
+        for tool in (
+            "webfetch",
+            "websearch",
+            "codesearch",
+            "playwright_*",
+            "playwright-auth_*",
+        )
+    ):
+        errors.append("implementer must deny web and browser access")
+    if implementer.get("prompt") != "{file:./prompts/implementer.md}":
+        errors.append("implementer must use the dedicated prompt file")
+    for prompt_name in ("manager", "implementer"):
+        prompt_path = BASE_DIR / "prompts" / f"{prompt_name}.md"
+        if not prompt_path.is_file():
+            errors.append(f"Missing {prompt_name} prompt: {prompt_path}")
+    activation_path = BASE_DIR.parents[2] / "home" / "modules" / "activation" / "opencode.nix"
+    if activation_path.is_file():
+        activation = activation_path.read_text(encoding="utf-8")
+        for prompt_name in ("manager", "implementer"):
+            source = f'"opencode/prompts/{prompt_name}.md".source = opencode_{prompt_name}_prompt;'
+            if source not in activation or f"opencode_{prompt_name}_prompt = ../../../xdg/config/opencode/prompts/{prompt_name}.md;" not in activation:
+                errors.append(f"activation must deploy the {prompt_name} prompt as a managed prompt file")
+    manager_prompt_path = BASE_DIR / "prompts" / "manager.md"
+    if manager_prompt_path.is_file():
+        manager_prompt = manager_prompt_path.read_text(encoding="utf-8").casefold()
+        for required in (
+            "agent-learning.md",
+            "untrusted",
+            "sanitized learning signals",
+            "independent review and user approval",
+            "never call playwright directly",
+        ):
+            if required not in manager_prompt:
+                errors.append(f"manager prompt must include `{required}`")
+        for prohibited in ("raw conversations", "secrets", "personal information"):
+            if prohibited not in manager_prompt:
+                errors.append(f"manager prompt must prohibit recording {prohibited}")
+    if set(agents) != set(expected_routes) | {"build", "general", "plan"}:
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
         agent = agents.get(agent_name, {})
