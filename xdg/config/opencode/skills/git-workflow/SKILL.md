@@ -156,42 +156,46 @@ items the global rules list as not waivable by conversation.
 - `reap` remains conservative and only cleans its existing narrowly recognized
   disposable Python caches. Unknown ignored or untracked data continues to
   block `reap`.
-- If any lifecycle command refuses, preserve the worktree and data, inspect the
-  reported state, and report cleanup as incomplete unless the refusal is solely
-  caused by an unsupported ignored-artifact shape and the user explicitly
-  authorizes cleanup of the exact task worktree. For that narrow fallback,
-  verify the exact registered path and both `.git` identity directions, current
-  owner/adoption state, a clean tracked and non-ignored untracked status, every
-  ignored path, and confirm each is a task-generated disposable artifact or has
-  a retained copy verified byte-identical. For any other ignored path, show the
-  exact path and deletion impact and obtain explicit user authorization for it;
-  if ownership, purpose, or retention is unclear, preserve it and stop. Also
-  verify that all task commits are integrated, no process is using the worktree,
-  no relevant lock other than this adopted task worktree's exact expected lock
-  is active, no external writer is active, and any annex writer quiescence
-  required by repository policy. Inspect the Git worktree lock reason; if it is exactly
-  `agent-task <worktree-id>` for this adopted task, unlock only that task lock
-  with `git worktree unlock <path>`, verify it is gone, then remove only that
-  exact worktree with `git worktree remove <path>` and no force option. If the
-  lock reason differs, is unreadable, or either Git command refuses, stop and
-  preserve the remaining state. Do not directly edit Git administration data or
-  quarantine contents. After a crash,
-  inspect `wtctl list --orphans`; adopt a dead-owner task only with explicit
-  user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`. Use
-  `wtctl reap` only for safe dead-owner worktrees after its grace period.
-- If a hook rejects a merge commit and leaves `MERGE_HEAD`, check the installed
-  `wtctl` documentation for its safe failed-merge recovery option. Use only that
-  verified recovery path with an integration message accepted by the hook. If
-  the recovery check refuses, preserve the merge state and stop; do not manually
-  abort or commit the merge.
+- If any lifecycle command refuses, preserve the worktree and data, inspect the reported state, and report cleanup as incomplete unless one of the two narrowly scoped manual recovery procedures below applies.
+- The existing ignored-artifact fallback applies only when the refusal is solely caused by an unsupported ignored-artifact shape and the user explicitly authorizes cleanup of the exact task worktree.
+  For that narrow fallback, verify the exact registered path and both `.git` identity directions, current owner/adoption state, a clean tracked and non-ignored untracked status, every ignored path, and confirm each is a task-generated disposable artifact or has a retained copy verified byte-identical.
+  For any other ignored path, show the exact path and deletion impact and obtain explicit user authorization for it; if ownership, purpose, or retention is unclear, preserve it and stop.
+  Also verify that all task commits are integrated, no process is using the worktree, no relevant lock other than this adopted task worktree's exact expected lock is active, no external writer is active, and any annex writer quiescence required by repository policy.
+  Inspect the Git worktree lock reason; if it is exactly `agent-task <worktree-id>` for this adopted task, unlock only that task lock with `git worktree unlock <path>`, verify it is gone, then remove only that exact worktree with `git worktree remove <path>` and no force option.
+  If the lock reason differs, is unreadable, or either Git command refuses, stop and preserve the remaining state.
+  Do not directly edit Git administration data or quarantine contents.
+  After a crash, inspect `wtctl list --orphans`; adopt a dead-owner task only with explicit user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`.
+- For a failed merge, first use the installed `wtctl` documented recovery path with an integration message accepted by the hook.
+  The manual failed-merge exception applies only when `wtctl finish --recover-failed-merge` refuses solely because the recorded task/main/merge relationship does not match; every other refusal remains a stop condition.
+  Verify the task ID, registered path, owner/adoption state, exact `agent-task <task-id>` lock reason, and both directions of the `.git`/Git-admin-directory identity.
+  Verify `ORIG_HEAD` equals the recorded pre-merge `HEAD`, `MERGE_HEAD` equals the authorized merge-source OID, and both match the contemporaneous record; also verify the recorded task base and tip identify the exact task and the record shows the worktree was clean before that merge began.
+  Confirm there is no `MERGE_AUTOSTASH`, rebase, cherry-pick, revert, sequencer, unresolved index entry, or staged/unstaged change of unclear origin.
+  Pin the exact current `main` OID and inventory every tracked, staged, unstaged, untracked, and ignored path affected by abort or subsequent removal.
+  Verify every task-specific change to be discarded is present in that pinned `main` tree or in a retained copy outside both the target worktree and the cleanup scope.
+  Compare file bytes and modes, symlink targets, gitlinks, submodule working-tree and untracked state, and Git-annex keys and required content; a matching pointer or commit ID alone does not prove annex content is retained.
+  Confirm each ignored path is task-generated and disposable or has a byte-identical retained copy; otherwise preserve it and stop.
+  Confirm no process has the worktree open, no non-cooperating writer or unrelated relevant lock is active, and external-writer and annex quiescence can be maintained from inspection through abort, post-check, and exact-ID `wtctl remove`; the already-verified exact task lock is the only allowed worktree lock.
+  Keep exclusive access to the target worktree and make no shared-ref changes during manual abort; verify the pinned `main` OID is an ancestor of the current `refs/heads/main` immediately before abort and again immediately before WTCTL removal, and stop if either check fails.
+  Do not unlock another writer's lock or change the task lock manually.
+  After every pre-abort check passes, present the exact task ID/path, what `git merge --abort` will restore, what exact-ID `wtctl remove` will delete, and the pinned `main` OID or retained copies preserving each task-specific change; obtain the user's explicit authorization for both non-forced `git merge --abort` and exact-ID `wtctl remove`.
+  Run only the explicitly authorized, non-forced `git merge --abort`; do not use `git commit`, `reset`, `clean`, `stash`, manual `git worktree remove`, or Git-administration edits as recovery.
+  After abort, verify `HEAD` equals the recorded pre-merge task tip, merge pseudo-refs are gone, and the index, working tree, untracked paths, and ignored paths match the verified pre-merge state.
+  If abort fails or any postcondition differs, preserve the resulting state and stop without further cleanup.
+  After the abort post-check passes, use only exact-ID `wtctl remove` with the required external-writer and annex checks.
+  If WTCTL refuses removal, preserve the worktree; this exception never authorizes manual worktree deletion.
+- After a crash, use `wtctl list --orphans`; adopt a dead-owner task only with explicit user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`.
+- Use `wtctl reap` only for safe dead-owner worktrees after its grace period.
 - Use `wtctl list --all` and `wtctl whoami` for task ownership/status. Legacy
   session-owned worktrees are visible to wtctl and must be managed with the
   exact worktree ID or branch selector; do not use Python fallback tools.
 - The `worktree_guard.py` hook protects main checkouts and Git internals. Do not
   bypass it with Bash, shell redirection, direct Git administration commands,
-  `--no-verify`, or edits in Git directories. Resolve conflicts only in the
-  task/integration worktree and retry `wtctl finish` after a safety refusal is
-  addressed.
+  `--no-verify`, or edits in Git directories. The only exceptions are the exact
+  artifact fallback and manual failed-merge abort procedures above, each limited
+  to its named commands and checks. The failed-merge exception does not permit
+  manual `git worktree remove`, force, hook suppression, or Git-administration
+  edits. Resolve conflicts only in the task/integration worktree and retry
+  `wtctl finish` after a safety refusal is addressed.
 
 ## Parallel Work
 
