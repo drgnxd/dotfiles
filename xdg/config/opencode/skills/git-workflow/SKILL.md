@@ -131,9 +131,16 @@ items the global rules list as not waivable by conversation.
   inspection through completion where required; a successful preflight check
   alone does not establish continued quiescence. If those checks pass, continue
   in this task's own schema-1 `wtctl` worktree and use `wtctl finish` to
-  serialize integration and surface conflicts; do not imply that `wtctl`
-  automatically resolves content conflicts. Stop if ownership or a required
-  safety condition remains unverifiable, and do not treat a clean worktree or
+  serialize integration and surface conflicts. Do not defer `finish` or ask the
+  user to clear another isolated task worktree solely because paths overlap or
+  a conflict may occur. The actor running `wtctl finish` is the later integrator
+  and owns any conflict surfaced by that attempt; resolve it only in the
+  task/integration worktree under the documented WTCTL lifecycle, then retry
+  `wtctl finish`. Do not mutate another task worktree or `main` directly to
+  resolve a conflict. This rule does not relax any external-writer, shared-lock,
+  ownership, annex, repository-hook, or WTCTL refusal check. Stop whenever a
+  required safety condition is unmet or cannot be verified, and handle WTCTL
+  refusals only through the documented lifecycle. Do not treat a clean worktree or
   absence of unintegrated commits alone as proof that shared-state writers are
   quiescent.
 - Without an explicit artifact selector, `finish` and `remove` follow Git's
