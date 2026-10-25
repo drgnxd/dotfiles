@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { chmod, lstat, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import permissionReviewPlugin from "../plugins/permission-review-log"
 import { appendRecord, normalizeRecord, shouldReportEventStreamFailure } from "../plugins/permission-review-log"
 
 test("does not report a normal event stream abort during plugin teardown", () => {
@@ -9,6 +10,51 @@ test("does not report a normal event stream abort during plugin teardown", () =>
   expect(shouldReportEventStreamFailure(controller.signal)).toBe(true)
   controller.abort()
   expect(shouldReportEventStreamFailure(controller.signal)).toBe(false)
+})
+
+test("skips V2 stream setup when the runtime context has no event API", () => {
+  expect(permissionReviewPlugin.setup({})).toBeUndefined()
+})
+
+test("consumes V2 permission events when the runtime exposes the event API", async () => {
+  const stateHome = await mkdtemp(join(tmpdir(), "permission-review-v2-test-"))
+  const previousStateHome = process.env.XDG_STATE_HOME
+  process.env.XDG_STATE_HOME = stateHome
+  const file = join(stateHome, "opencode", "permission-review", "events.jsonl")
+  const events = [
+    { type: "permission.v2.asked", data: { id: "v2-ask", action: "bash", resources: ["not-recorded"], save: ["safe"] } },
+    { type: "permission.v2.replied", data: { requestID: "v2-ask", reply: "once" } },
+  ]
+  try {
+    const stop = permissionReviewPlugin.setup({
+      event: {
+        subscribe() {
+          return {
+            async *[Symbol.asyncIterator]() {
+              yield* events
+            },
+          }
+        },
+      },
+    })
+    let content = ""
+    for (let attempt = 0; attempt < 100; attempt++) {
+      try {
+        content = await readFile(file, "utf8")
+        if (content.trim().split("\n").length >= 2) break
+      } catch {}
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
+    expect(content).toContain('"kind":"asked"')
+    expect(content).toContain('"kind":"replied"')
+    expect(content).toContain('"candidates":["safe"]')
+    expect(content).not.toContain("not-recorded")
+    stop?.()
+  } finally {
+    if (previousStateHome === undefined) delete process.env.XDG_STATE_HOME
+    else process.env.XDG_STATE_HOME = previousStateHome
+    await rm(stateHome, { recursive: true, force: true })
+  }
 })
 
 test("normalizes the V1 asked schema and retains only safe persistent suggestions", () => {

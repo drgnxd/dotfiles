@@ -9,7 +9,7 @@ type AskedRecord = { timestamp: string; generation: Generation; kind: "asked"; r
 type RepliedRecord = { timestamp: string; generation: Generation; kind: "replied"; request_id: string; reply: string }
 type EventRecord = AskedRecord | RepliedRecord
 type V2Event = { type: string; data?: Record<string, unknown> }
-type V2Context = { event: { subscribe(options: { signal: AbortSignal }): AsyncIterable<V2Event> } }
+type V2Context = { event?: { subscribe?: (options?: { signal?: AbortSignal }) => AsyncIterable<V2Event> } }
 
 export function shouldReportEventStreamFailure(signal: AbortSignal): boolean {
   return !signal.aborted
@@ -100,9 +100,11 @@ export default {
   id: "permission-review-log",
   server,
   setup(ctx: V2Context) {
+    const events = ctx.event
+    if (!events?.subscribe) return
     const controller = new AbortController()
     void (async () => {
-      for await (const event of ctx.event.subscribe({ signal: controller.signal })) {
+      for await (const event of events.subscribe({ signal: controller.signal })) {
         try {
           const kind = event.type === "permission.v2.asked" ? "asked" : event.type === "permission.v2.replied" ? "replied" : undefined
           if (kind) await safeLog(normalizeRecord("v2", kind, event.data ?? {}))
