@@ -48,6 +48,7 @@ $env.MPLCONFIGDIR = ($env.XDG_CONFIG_HOME | path join "matplotlib")
 $env.NPM_CONFIG_PREFIX = ($env.XDG_DATA_HOME | path join "npm")
 $env.NPM_CONFIG_CACHE = ($env.XDG_CACHE_HOME | path join "npm")
 $env.NPM_CONFIG_USERCONFIG = ($env.XDG_CONFIG_HOME | path join "npm" "npmrc")
+$env.OPENCODE_ENABLE_EXA = "1"
 
 $env.BUN_INSTALL_CACHE_DIR = ($env.XDG_CACHE_HOME | path join "bun" "install" "cache")
 $env.BUN_RUNTIME_TRANSPILER_CACHE_PATH = ($env.XDG_CACHE_HOME | path join "bun" "runtime-transpiler")
