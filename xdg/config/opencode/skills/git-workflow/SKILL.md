@@ -145,6 +145,11 @@ items the global rules list as not waivable by conversation.
   signature, and quarantine handling. Use them only when the task explicitly
   requires that handling. Do not use direct `remove` to select or discard task
   data unless the user explicitly approved those selectors.
+- Do not retain a task worktree or ask the user solely to keep a verified task-generated, regenerable cache such as `.direnv`; inspect ignored paths and WTCTL's manifest to confirm the cache's origin and discardability.
+  Use normal `finish`/`remove`.
+  Before purging a quarantine, verify the exact operation contains only task-generated, regenerable caches.
+  Purge it without asking only when every artifact meets that condition.
+  If it contains any other or unverified data, preserve it and follow existing approval safeguards.
 - `--preserve-generated-artifacts` retains recognized cache, build, and marked
   Nix-generated config paths in quarantine. Broad discard selectors discard
   selected artifacts after successful worktree removal. Unknown ignored or
