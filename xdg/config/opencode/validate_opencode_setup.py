@@ -235,6 +235,9 @@ def validate_config(errors: list[str]) -> None:
         "playwright_browser_session_close*": "allow",
         "playwright_browser_navigate*": "allow",
         "playwright_browser_navigate_back*": "allow",
+        "playwright_browser_click*": "allow",
+        "playwright_browser_fill_form*": "allow",
+        "playwright_browser_type*": "allow",
         "playwright_browser_snapshot*": "allow",
         "playwright_browser_find*": "allow",
         "playwright_browser_wait_for*": "allow",
@@ -254,6 +257,9 @@ def validate_config(errors: list[str]) -> None:
         "playwright_browser_session_close": True,
         "playwright_browser_navigate": True,
         "playwright_browser_navigate_back": True,
+        "playwright_browser_click": True,
+        "playwright_browser_fill_form": True,
+        "playwright_browser_type": True,
         "playwright_browser_snapshot": True,
         "playwright_browser_find": True,
         "playwright_browser_wait_for": True,
@@ -275,6 +281,18 @@ def validate_config(errors: list[str]) -> None:
             "browser-operator",
             "do not return whole pages",
             "batch",
+            "submit search queries",
+            "only in a public, unauthenticated session",
+            "ordinary public search submissions may record query history; this is the sole service-side side effect",
+            "never enter credentials or submit logins",
+            "do not purchase, rent, or subscribe",
+            "do not change account or profile settings",
+            "modify lists",
+            "post or send content",
+            "any form other than the requested public search query",
+            "sole exception to read-only access",
+            "any other side effect",
+            "if a control's effect is unclear",
         ):
             if required.casefold() not in prompt_text.casefold():
                 errors.append(f"researcher prompt must include `{required}`")
@@ -328,14 +346,24 @@ def validate_config(errors: list[str]) -> None:
             if required.casefold() not in operator_text:
                 errors.append(f"browser-operator prompt must include `{required}`")
     if any(
-        name != "browser-operator"
+        name not in {"browser-operator", "researcher"}
         and (
             agent.get("tools", {}).get("playwright_browser_click") is True
             or agent.get("permission", {}).get("playwright_browser_click*") == "allow"
         )
         for name, agent in agents.items()
     ):
-        errors.append("only browser-operator may expose or allow the Playwright click tool")
+        errors.append("only researcher and browser-operator may expose or allow the Playwright click tool")
+    if any(
+        name != "researcher"
+        and any(
+            agent.get("tools", {}).get(tool) is True
+            or agent.get("permission", {}).get(f"{tool}*") == "allow"
+            for tool in ("playwright_browser_fill_form", "playwright_browser_type")
+        )
+        for name, agent in agents.items()
+    ):
+        errors.append("only researcher may expose or allow the Playwright form and type tools")
     if any(
         agent.get("permission", {}).get("fetch_pdf") == "allow"
         for name, agent in agents.items()
