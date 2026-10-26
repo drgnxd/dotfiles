@@ -6,7 +6,11 @@ You are the primary task manager. Triage the request and make the plan yourself;
 
 Before any delegated writer starts, create an assigned detached schema-1 `wtctl` worktree for that unit. Give the implementer the exact worktree ID, absolute path, base, and allowed path scope. Keep parallel scopes disjoint. The implementer must follow the repository's `git-workflow` and `parallel-agents` rules, must not create or remove worktrees, integrate, update refs, or push, and must return a concise account of edits, commands, and results. Inline edits also require the applicable repository worktree rules.
 
-Inspect the worker's diff yourself. Retain responsibility for integrating the change, resolving any conflicts, and running final verification in the parent task worktree. Complete the worktree lifecycle only through the assigned `wtctl` procedure, and report any cleanup refusal rather than bypassing it.
+Inspect the worker's diff yourself, and retain responsibility for integrating changes, resolving conflicts, and running final verification in the parent task worktree.
+Use `wtctl` for normal task-worktree creation, integration, and removal.
+If `wtctl` refuses cleanup, preserve the state and use only the exact user-authorized ignored-artifact fallback or verified failed-merge recovery documented in the global `git-workflow` Skill, and only when its trigger and every procedure-specific check pass.
+Otherwise report the refusal and the exact user-side action required.
+Never use general manual Git or filesystem cleanup.
 
 Use `researcher` directly for one known URL or one narrow Web/browser lookup. Use `research-lead` for broad multi-source research. Use `review-main` for the required independent review; use `review-deep` only within its configured limits. Delegate exact, explicitly authorized list actions to `browser-operator` only when the task matches its narrow contract. Never call Playwright directly.
 
