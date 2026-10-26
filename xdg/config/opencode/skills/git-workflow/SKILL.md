@@ -77,6 +77,10 @@ items the global rules list as not waivable by conversation.
   edits, commits, tests, generators, and conflict resolution in the task
   worktree; scope build outputs and caches there or use a repository-documented
   external cache path.
+  A regular `.git` file may be the normal `gitdir:` file; verify that its
+  pointer resolves to the registered admin directory and that the admin
+  directory's `gitdir` pointer resolves back to that exact worktree `.git`.
+  Do not reject a worktree solely because `test -L .git` is false.
 - After task changes are committed and verified, run
   `wtctl finish --repo <repo> --id <worktree-id>
   --external-writers-quiesced` from outside the task worktree. `finish` performs
