@@ -1,5 +1,0 @@
-version = 4
-
-[[package]]
-name = "agent-inbox"
-version = "0.1.0"

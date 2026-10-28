@@ -1,9 +1,14 @@
 """Safely merge only the user-scope agent-inbox MCP server setting."""
 
+from __future__ import annotations
+
 import hashlib
 import json
 import os
+import shutil
 import stat
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -113,7 +118,43 @@ def update(target: Path, link: Path, command: str) -> None:
         _release_lock(lock, lock_fd, lock_identity)
 
 
-if __name__ == "__main__":
-    import sys
+def is_claude_running() -> bool:
+    pgrep = shutil.which("pgrep")
+    if pgrep is None:
+        return True
+    for process_name in ("Claude", "claude", "claude-code"):
+        try:
+            result = subprocess.run(
+                [pgrep, "-x", process_name],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                env={"PATH": os.environ.get("PATH", "/usr/bin:/bin")},
+                check=False,
+            )
+        except OSError:
+            return True
+        if result.returncode == 0:
+            return True
+        if result.returncode != 1:
+            return True
+    return False
 
-    update(Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3])
+
+def main(arguments: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("target", type=Path)
+    parser.add_argument("link", type=Path)
+    parser.add_argument("command")
+    parsed = parser.parse_args(arguments)
+    if is_claude_running():
+        print("Claude Code is running; MCP config merge deferred.", file=sys.stderr)
+        return 0
+    update(parsed.target, parsed.link, parsed.command)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

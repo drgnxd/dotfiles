@@ -44,6 +44,19 @@ export function pendingKey(sessionID: string, permissionID: string): string {
   return `${sessionID}\u0000${permissionID}`
 }
 
+export function forgetFailedWaiter<T extends { sessionID: string; permissionID: string }>(pending: Map<string, T>, entry: T): void {
+  const key = pendingKey(entry.sessionID, entry.permissionID)
+  if (pending.get(key) === entry) pending.delete(key)
+}
+
+export function deletedSessionID(properties: unknown): string | undefined {
+  if (typeof properties !== "object" || properties === null) return
+  const info = (properties as { info?: unknown }).info
+  if (typeof info !== "object" || info === null) return
+  const id = (info as { id?: unknown }).id
+  return typeof id === "string" ? id : undefined
+}
+
 export function safeAsked(value: PermissionAsked): { sessionID: string; permissionID: string; toolName: string } | undefined {
   if (typeof value.sessionID !== "string" || !value.sessionID || typeof value.id !== "string" || !ID.test(value.id)) return
   if (typeof value.permission !== "string" || !/^[A-Za-z0-9_.:-]{1,128}$/.test(value.permission)) return
@@ -52,10 +65,7 @@ export function safeAsked(value: PermissionAsked): { sessionID: string; permissi
 
 const plugin: Plugin = async ({ client }) => {
   const pending = new Map<string, Pending>()
-  const clear = (entry: Pending) => {
-    if (pending.get(pendingKey(entry.sessionID, entry.permissionID)) !== entry) return
-    pending.delete(pendingKey(entry.sessionID, entry.permissionID))
-  }
+  const clear = (entry: Pending) => forgetFailedWaiter(pending, entry)
   const cancel = (entry: Pending) => {
     entry.child.kill("SIGTERM")
     clear(entry)
@@ -85,6 +95,7 @@ const plugin: Plugin = async ({ client }) => {
         const entry = { sessionID: safe.sessionID, permissionID: safe.permissionID, child }
         pending.set(key, entry)
         child.once("error", () => clear(entry))
+        child.stdin?.once("error", () => cancel(entry))
         child.once("exit", (code) => {
           if (code !== 0) clear(entry)
         })
@@ -109,8 +120,8 @@ const plugin: Plugin = async ({ client }) => {
           if (item) cancel(item)
         }
       } else if (value.type === "session.deleted") {
-        const sessionID = properties.sessionID ?? properties.id
-        if (typeof sessionID !== "string") return
+        const sessionID = deletedSessionID(properties)
+        if (!sessionID) return
         for (const entry of pending.values()) {
           if (entry.sessionID === sessionID) cancel(entry)
         }

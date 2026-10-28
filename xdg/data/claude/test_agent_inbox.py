@@ -4,7 +4,7 @@ import json
 import os
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
@@ -114,6 +114,18 @@ class ClaudeInboxTests(unittest.TestCase):
                 CONFIG.update(target, link, "agent-inbox")
             self.assertEqual(json.loads(target.read_text()), {"keep": True})
             self.assertEqual(lock.read_text(), "other writer")
+
+    @patch.object(CONFIG, "update")
+    @patch.object(CONFIG, "is_claude_running", return_value=True)
+    def test_config_cli_defers_without_reading_or_writing_when_claude_is_active(self, active, update):
+        output = StringIO()
+        error_output = StringIO()
+        with redirect_stdout(output), redirect_stderr(error_output):
+            self.assertEqual(CONFIG.main(["missing-target", "missing-link", "agent-inbox"]), 0)
+        self.assertEqual(output.getvalue(), "")
+        self.assertEqual(error_output.getvalue(), "Claude Code is running; MCP config merge deferred.\n")
+        update.assert_not_called()
+        active.assert_called_once_with()
 
     def test_config_update_fails_if_contents_change_during_merge(self):
         with tempfile.TemporaryDirectory() as directory:

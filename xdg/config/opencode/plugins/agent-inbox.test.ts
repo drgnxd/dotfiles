@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { helperEnv, pendingKey, respondToPermission, responseForDecision, safeAsked } from "./agent-inbox"
+import { deletedSessionID, forgetFailedWaiter, helperEnv, pendingKey, respondToPermission, responseForDecision, safeAsked } from "./agent-inbox"
 
 test("maps allow and deny only to once and reject", () => {
   assert.equal(responseForDecision("allow"), "once")
@@ -27,6 +27,22 @@ test("contains synchronous and asynchronous SDK errors", async () => {
 test("keys cancellation by exact session and permission identity", () => {
   assert.notEqual(pendingKey("session-a", "req"), pendingKey("session-b", "req"))
   assert.notEqual(pendingKey("session", "req-a"), pendingKey("session", "req-b"))
+})
+
+test("spawn failure cleanup removes only the exact pending waiter", () => {
+  const pending = new Map<string, { sessionID: string; permissionID: string }>()
+  const failed = { sessionID: "session-a", permissionID: "request-a" }
+  const replacement = { sessionID: "session-a", permissionID: "request-a" }
+  pending.set(pendingKey(failed.sessionID, failed.permissionID), replacement)
+  forgetFailedWaiter(pending, failed)
+  assert.equal(pending.get(pendingKey(replacement.sessionID, replacement.permissionID)), replacement)
+  forgetFailedWaiter(pending, replacement)
+  assert.equal(pending.size, 0)
+})
+
+test("reads the nested session deletion identity", () => {
+  assert.equal(deletedSessionID({ info: { id: "session-a" } }), "session-a")
+  assert.equal(deletedSessionID({ id: "wrong-level" }), undefined)
 })
 
 test("permission event parser retains only safe fields", () => {

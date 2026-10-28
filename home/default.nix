@@ -26,10 +26,9 @@ let
       import claude_local_environment_path
     else
       [ ];
-  agent_inbox_source = "${config.home.homeDirectory}/repos/agent-inbox";
   agent_inbox_package = import ./lib/agent-inbox-package.nix {
-    inherit lib pkgs;
-    source = agent_inbox_source;
+    inherit pkgs;
+    cacheHome = config.xdg.cacheHome;
   };
   # Packages built from sources that live in private repositories, kept out of
   # this public repo by name. Same local-override pattern: gitignored,
