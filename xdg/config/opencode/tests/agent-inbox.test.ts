@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { mkdtemp, mkdir, symlink, rm } from "node:fs/promises"
+import { mkdtemp, mkdir, symlink, rm, copyFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -12,17 +12,33 @@ import {
   respondToPermission,
   responseForDecision,
   safeAsked,
-  default as plugin,
-} from "../plugins/agent-inbox"
+} from "../lib/agent-inbox"
+import plugin from "../plugins/agent-inbox"
 
 test("plugin loads from a symlinked plugin directory", async () => {
   const temp = await mkdtemp(join(tmpdir(), "opencode-plugin-"))
   try {
-    const linkedPlugins = join(temp, "plugins")
-    await mkdir(linkedPlugins)
-    await symlink(resolve("plugins/agent-inbox.ts"), join(linkedPlugins, "agent-inbox.ts"))
-    const loaded = await import(pathToFileURL(join(linkedPlugins, "agent-inbox.ts")).href)
-    assert.equal(loaded.default, plugin)
+    const externalPlugins = join(temp, "external-plugins")
+    const configHome = join(temp, "config")
+    const configuredPlugins = join(configHome, "opencode/plugins")
+    const helperDir = join(configHome, "opencode/lib")
+    await mkdir(externalPlugins, { recursive: true })
+    await mkdir(helperDir, { recursive: true })
+    await copyFile(resolve("plugins/agent-inbox.ts"), join(externalPlugins, "agent-inbox.ts"))
+    await copyFile(resolve("lib/agent-inbox.ts"), join(helperDir, "agent-inbox.ts"))
+    await mkdir(join(configHome, "opencode"), { recursive: true })
+    await symlink(externalPlugins, configuredPlugins)
+    const oldConfigHome = process.env.XDG_CONFIG_HOME
+    process.env.XDG_CONFIG_HOME = configHome
+    try {
+      const loaded = await import(pathToFileURL(join(configuredPlugins, "agent-inbox.ts")).href + `?test=${Date.now()}`)
+      assert.deepEqual(Object.keys(loaded), ["default"])
+      const initialized = await loaded.default({ client: {} as never } as never)
+      assert.equal(typeof initialized.event, "function")
+    } finally {
+      if (oldConfigHome === undefined) delete process.env.XDG_CONFIG_HOME
+      else process.env.XDG_CONFIG_HOME = oldConfigHome
+    }
   } finally {
     await rm(temp, { recursive: true, force: true })
   }
