@@ -28,7 +28,7 @@
     nix-hazkey.url = "github:aster-void/nix-hazkey";
     nix-hazkey.inputs.nixpkgs.follows = "nixpkgs";
 
-    wtctl.url = "github:drgnxd/wtctl?ref=wtctl/one-off-artifact-path";
+    wtctl.url = "github:drgnxd/wtctl";
     wtctl.inputs.nixpkgs.follows = "nixpkgs";
   };
 
