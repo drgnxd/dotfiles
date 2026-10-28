@@ -236,6 +236,7 @@ def validate_config(errors: list[str]) -> None:
         "playwright_browser_navigate*": "allow",
         "playwright_browser_navigate_back*": "allow",
         "playwright_browser_click*": "allow",
+        "playwright_browser_press_key*": "allow",
         "playwright_browser_fill_form*": "allow",
         "playwright_browser_type*": "allow",
         "playwright_browser_snapshot*": "allow",
@@ -258,6 +259,7 @@ def validate_config(errors: list[str]) -> None:
         "playwright_browser_navigate": True,
         "playwright_browser_navigate_back": True,
         "playwright_browser_click": True,
+        "playwright_browser_press_key": True,
         "playwright_browser_fill_form": True,
         "playwright_browser_type": True,
         "playwright_browser_snapshot": True,
@@ -364,6 +366,15 @@ def validate_config(errors: list[str]) -> None:
         for name, agent in agents.items()
     ):
         errors.append("only researcher may expose or allow the Playwright form and type tools")
+    if any(
+        name != "researcher"
+        and (
+            agent.get("tools", {}).get("playwright_browser_press_key") is True
+            or agent.get("permission", {}).get("playwright_browser_press_key*") == "allow"
+        )
+        for name, agent in agents.items()
+    ):
+        errors.append("only researcher may expose or allow the Playwright press-key tool")
     if any(
         agent.get("permission", {}).get("fetch_pdf") == "allow"
         for name, agent in agents.items()
