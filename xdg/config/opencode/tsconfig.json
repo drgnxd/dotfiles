@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["lib/agent-inbox.ts", "plugins/agent-inbox.ts", "tests/agent-inbox.test.ts"]
+}
