@@ -225,12 +225,13 @@ def validate_config(errors: list[str]) -> None:
             "subagent_depth and experimental.subagent_depth must be 2 "
             "so research-lead can delegate on v1 and v2"
         )
+    # Suffix patterns keep these allows after the runtime's wildcard deny.
     expected_researcher_permissions = {
         "*": "deny",
-        "webfetch": "allow",
-        "websearch": "allow",
-        "fetch_pdf": "allow",
-        "skill": "allow",
+        "webfetch*": "allow",
+        "websearch*": "allow",
+        "fetch_pdf*": "allow",
+        "skill*": "allow",
         "playwright_browser_session_create*": "allow",
         "playwright_browser_session_close*": "allow",
         "playwright_browser_navigate*": "allow",
@@ -379,7 +380,10 @@ def validate_config(errors: list[str]) -> None:
     ):
         errors.append("only researcher may expose or allow the Playwright press-key tool")
     if any(
-        agent.get("permission", {}).get("fetch_pdf") == "allow"
+        any(
+            agent.get("permission", {}).get(pattern) == "allow"
+            for pattern in ("fetch_pdf", "fetch_pdf*")
+        )
         for name, agent in agents.items()
         if name != "researcher"
     ):
