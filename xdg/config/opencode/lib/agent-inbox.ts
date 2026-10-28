@@ -1,6 +1,5 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
-type PermissionAsked = { id?: unknown; sessionID?: unknown; permission?: unknown }
 const ID = /^[A-Za-z0-9_-]{8,128}$/
 const ENV_KEYS = ["PATH", "HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID"] as const
 type PluginClient = Parameters<Plugin>[0]["client"]
@@ -53,8 +52,10 @@ export function deletedSessionID(properties: unknown): string | undefined {
   return typeof id === "string" ? id : undefined
 }
 
-export function safeAsked(value: PermissionAsked): { sessionID: string; permissionID: string; toolName: string } | undefined {
-  if (typeof value.sessionID !== "string" || !value.sessionID || typeof value.id !== "string" || !ID.test(value.id)) return
-  if (typeof value.permission !== "string" || !/^[A-Za-z0-9_.:-]{1,128}$/.test(value.permission)) return
-  return { sessionID: value.sessionID, permissionID: value.id, toolName: value.permission }
+export function safeAsked(value: unknown): { sessionID: string; permissionID: string; toolName: string } | undefined {
+  if (typeof value !== "object" || value === null) return
+  const event = value as { id?: unknown; sessionID?: unknown; permission?: unknown }
+  if (typeof event.sessionID !== "string" || !event.sessionID || typeof event.id !== "string" || !ID.test(event.id)) return
+  if (typeof event.permission !== "string" || !/^[A-Za-z0-9_.:-]{1,128}$/.test(event.permission)) return
+  return { sessionID: event.sessionID, permissionID: event.id, toolName: event.permission }
 }

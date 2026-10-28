@@ -18,9 +18,13 @@ test("maps allow and deny only to once and reject", () => {
 
 test("calls the typed SDK endpoint with one-shot mappings", async () => {
   const calls: unknown[] = []
-  await respondToPermission(async (input) => { calls.push(input) }, "session-a", "request-a", "allow")
-  await respondToPermission(async (input) => { calls.push(input) }, "session-b", "request-b", "deny")
-  await respondToPermission(async (input) => { calls.push(input) }, "session-c", "request-c", "always")
+  const postPermission = async (input: Parameters<Parameters<typeof respondToPermission>[0]>[0]) => {
+    calls.push(input)
+    return undefined as never
+  }
+  await respondToPermission(postPermission, "session-a", "request-a", "allow")
+  await respondToPermission(postPermission, "session-b", "request-b", "deny")
+  await respondToPermission(postPermission, "session-c", "request-c", "always")
   assert.deepEqual(calls, [
     { path: { id: "session-a", permissionID: "request-a" }, body: { response: "once" } },
     { path: { id: "session-b", permissionID: "request-b" }, body: { response: "reject" } },

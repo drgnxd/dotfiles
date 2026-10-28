@@ -274,13 +274,6 @@ in
       $DRY_RUN_CMD chmod u+w "$dest_file"
     done
 
-    for dest_file in "$plugins_dest"/*; do
-      [ -e "$dest_file" ] || continue
-      base="$(basename "$dest_file")"
-      if [ ! -f "$plugins_src/$base" ]; then
-        $DRY_RUN_CMD rm -f "$dest_file"
-      fi
-    done
   '';
 
   home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''

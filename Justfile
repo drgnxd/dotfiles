@@ -103,6 +103,12 @@ lint:
 dead:
   nix run nixpkgs#deadnix -- --fail .
 
+# Type-check and test the Agent Inbox against the pinned OpenCode SDK declarations
+check-agent-inbox:
+  nix develop -c npm ci --prefix xdg/config/opencode --ignore-scripts
+  nix develop -c npm --prefix xdg/config/opencode run typecheck:agent-inbox
+  nix develop -c npm --prefix xdg/config/opencode run test:agent-inbox
+
 # Rekey agenix secrets
 rekey:
   cd secrets && nix run github:ryantm/agenix -- -r
@@ -125,6 +131,10 @@ test-private-terms:
 # Test generation and collision handling for Spotlight launchers
 test-spotlight-app-launchers:
   bash home/modules/activation/test_spotlight_app_launchers.sh
+
+# Test OpenCode plugin activation preserves unmanaged user plugins
+test-opencode-plugin-sync:
+  bash home/tests/opencode-plugin-sync.sh
 
 # Test the worktree guard plugin helper
 test-worktree-guard:
