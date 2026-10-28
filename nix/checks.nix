@@ -93,6 +93,7 @@ forAllSystems (
       deadnix --fail .
       touch $out
     '';
+    agent-inbox-wrapper-tests = import ../home/tests/agent-inbox-wrapper.nix { pkgs = p; };
     worktree-guard-tests =
       p.runCommand "check-worktree-guard"
         {

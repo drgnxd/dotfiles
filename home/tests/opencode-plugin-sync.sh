@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck source=home/modules/activation/sync_opencode_plugins.sh
+# shellcheck disable=SC1091
 set -euo pipefail
 
 source "$(dirname "$0")/../modules/activation/sync_opencode_plugins.sh"
@@ -10,7 +10,7 @@ mkdir -p "$tmp/template" "$tmp/plugins" "$tmp/symlink-target"
 printf 'managed update\n' >"$tmp/template/managed.ts"
 printf 'old managed\n' >"$tmp/plugins/managed.ts"
 printf 'user plugin\n' >"$tmp/plugins/custom.ts"
-DRY_RUN_CMD=
+export DRY_RUN_CMD=
 sync_opencode_plugins "$tmp/template" "$tmp/plugins"
 [[ "$(<"$tmp/plugins/managed.ts")" == 'managed update' ]]
 [[ "$(<"$tmp/plugins/custom.ts")" == 'user plugin' ]]
