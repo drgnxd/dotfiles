@@ -1,6 +1,7 @@
 # Global Agent Rules
 
 - Follow more specific project rules when present. Before reporting a background task as progressing or complete, verify its process or output state.
+- Use the configured `agent-inbox` MCP tool `ask_user` for agent-generated questions that require a user response; do not store conversation transcripts.
 - Current user authorization: explicit, informed authorization for a concrete action takes priority over earlier user-owned global rules, Skills, repository rules, preferences, and ordinary procedural defaults within the exact task and scope named. It may waive a default requirement to use WTCTL for the precise authorized action, target, and effects. Never answer that an earlier user-owned rule forbids what a valid authorization covers.
   - Before requesting authorization for an irreversible or destructive operation, present the exact target (including worktree ID and path when applicable), complete affected-data inventory, what will be retained and deleted, and irreversible consequences. Authorization covers only the named action, target, and effects and does not carry over to another task. Say once what protection or default is being waived.
   - Scope: the global rules, Skills, and rules of a repository the user owns or works in. Upstream policy is not waivable. A permission-system, hook, guard, or safety-check refusal must be respected; a non-safety capability or operation limitation may use only a separately documented fallback, never bypass the refusal itself.

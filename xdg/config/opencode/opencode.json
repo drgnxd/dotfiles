@@ -10,6 +10,14 @@
   "permission": {
     "fetch_pdf": "deny"
   },
+  "mcp": {
+    "agent-inbox": {
+      "type": "local",
+      "command": ["agent-inbox", "mcp"],
+      "enabled": true,
+      "timeout": 660000
+    }
+  },
   "subagent_depth": 2,
   "provider": {
     "openai": {

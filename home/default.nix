@@ -26,6 +26,54 @@ let
       import claude_local_environment_path
     else
       [ ];
+  agent_inbox_source = "${config.home.homeDirectory}/repos/agent-inbox";
+  agent_inbox_source_path = builtins.path {
+    name = "agent-inbox-source";
+    path = agent_inbox_source;
+    filter =
+      path: type:
+      let
+        relative = lib.removePrefix "${agent_inbox_source}/" path;
+        parts = lib.splitString "/" relative;
+        base = lib.last parts;
+      in
+      !(lib.any (
+        part:
+        builtins.elem part [
+          ".git"
+          "target"
+          ".direnv"
+          ".idea"
+          ".vscode"
+          "node_modules"
+        ]
+      ) parts)
+      && (
+        relative == ""
+        || base == "Cargo.toml"
+        || base == "Cargo.lock"
+        || base == "build.rs"
+        || lib.hasPrefix "src/" relative
+        || relative == "src"
+      )
+      && type != "symlink";
+  };
+  agent_inbox_package =
+    if builtins.pathExists "${agent_inbox_source}/Cargo.toml" then
+      pkgs.writeShellScriptBin "agent-inbox" ''
+        source=${lib.escapeShellArg (toString agent_inbox_source_path)}
+        if [ ! -f "$source/Cargo.toml" ]; then
+          printf '%s\n' 'agent-inbox source is unavailable' >&2
+          exit 127
+        fi
+        export CARGO_TARGET_DIR="${config.xdg.cacheHome}/agent-inbox/target"
+        exec ${pkgs.cargo}/bin/cargo run --quiet --manifest-path "$source/Cargo.toml" -- "$@"
+      ''
+    else
+      pkgs.writeShellScriptBin "agent-inbox" ''
+        printf '%s\n' 'agent-inbox is unavailable; clone the optional helper repository under ~/repos/agent-inbox' >&2
+        exit 127
+      '';
   # Packages built from sources that live in private repositories, kept out of
   # this public repo by name. Same local-override pattern: gitignored,
   # optional, empty on a fresh clone. See local/private-tools.nix.example.
@@ -65,6 +113,18 @@ let
       environment = claude_settings_base.autoMode.environment ++ claude_local_environment;
     };
     hooks = {
+      PermissionRequest = [
+        {
+          matcher = "*";
+          hooks = [
+            {
+              type = "command";
+              command = "AGENT_INBOX_CLIENT=claude ${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py}";
+              timeout = 610;
+            }
+          ];
+        }
+      ];
       PreToolUse = [
         {
           matcher = "Edit|Write|MultiEdit|NotebookEdit|Bash|EnterWorktree";
@@ -82,6 +142,10 @@ let
       Stop = [
         {
           hooks = [
+            {
+              type = "command";
+              command = "AGENT_INBOX_CLIENT=claude agent-inbox complete 2>/dev/null || true";
+            }
             {
               type = "command";
               command = "${claude_notify} complete 2>/dev/null || true";
@@ -179,7 +243,15 @@ in
     ++ [
       inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
     ]
+    ++ [ agent_inbox_package ]
     ++ private_tools;
+
+  home.activation.mergeClaudeAgentInboxMcp = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    ${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_config.py} \
+      "${config.xdg.dataHome}/claude/.claude.json" \
+      "${config.home.homeDirectory}/.claude.json" \
+      "${agent_inbox_package}/bin/agent-inbox"
+  '';
 
   programs.bash = {
     enable = true;
@@ -208,6 +280,8 @@ in
   };
 
   xdg.dataFile."claude/CLAUDE.md".source = ../xdg/data/claude/CLAUDE.md;
+  xdg.dataFile."claude/agent_inbox_hook.py".source = ../xdg/data/claude/agent_inbox_hook.py;
+  xdg.dataFile."claude/agent_inbox_config.py".source = ../xdg/data/claude/agent_inbox_config.py;
   xdg.dataFile."claude/settings.json".source = claude_settings_json;
   xdg.dataFile."claude/agents/Explore.md".source = ../xdg/data/claude/agents/Explore.md;
   xdg.dataFile."claude/agents/Plan.md".source = ../xdg/data/claude/agents/Plan.md;
