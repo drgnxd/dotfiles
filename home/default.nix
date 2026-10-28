@@ -35,7 +35,6 @@ let
       let
         relative = lib.removePrefix "${agent_inbox_source}/" path;
         parts = lib.splitString "/" relative;
-        base = lib.last parts;
       in
       !(lib.any (
         part:
@@ -50,25 +49,30 @@ let
       ) parts)
       && (
         relative == ""
-        || base == "Cargo.toml"
-        || base == "Cargo.lock"
-        || base == "build.rs"
-        || lib.hasPrefix "src/" relative
+        || relative == "Cargo.toml"
+        || relative == "Cargo.lock"
+        || relative == "build.rs"
+        || (lib.hasPrefix "src/" relative && (type == "directory" || lib.hasSuffix ".rs" relative))
         || relative == "src"
       )
       && type != "symlink";
   };
+  agent_inbox_source_available =
+    builtins.pathExists "${agent_inbox_source}/Cargo.toml"
+    && builtins.pathExists "${agent_inbox_source}/Cargo.lock";
   agent_inbox_package =
-    if builtins.pathExists "${agent_inbox_source}/Cargo.toml" then
-      pkgs.writeShellScriptBin "agent-inbox" ''
-        source=${lib.escapeShellArg (toString agent_inbox_source_path)}
-        if [ ! -f "$source/Cargo.toml" ]; then
-          printf '%s\n' 'agent-inbox source is unavailable' >&2
-          exit 127
-        fi
-        export CARGO_TARGET_DIR="${config.xdg.cacheHome}/agent-inbox/target"
-        exec ${pkgs.cargo}/bin/cargo run --quiet --manifest-path "$source/Cargo.toml" -- "$@"
-      ''
+    if agent_inbox_source_available then
+      let
+        manifest = builtins.fromTOML (builtins.readFile "${agent_inbox_source}/Cargo.toml");
+      in
+      pkgs.rustPlatform.buildRustPackage {
+        pname = "agent-inbox";
+        version =
+          if manifest ? package && manifest.package ? version then manifest.package.version else "0.1.0";
+        src = agent_inbox_source_path;
+        cargoLock.lockFile = "${agent_inbox_source_path}/Cargo.lock";
+        doCheck = false;
+      }
     else
       pkgs.writeShellScriptBin "agent-inbox" ''
         printf '%s\n' 'agent-inbox is unavailable; clone the optional helper repository under ~/repos/agent-inbox' >&2
@@ -119,7 +123,7 @@ let
           hooks = [
             {
               type = "command";
-              command = "AGENT_INBOX_CLIENT=claude ${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py}";
+              command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py}";
               timeout = 610;
             }
           ];
@@ -144,7 +148,7 @@ let
           hooks = [
             {
               type = "command";
-              command = "AGENT_INBOX_CLIENT=claude agent-inbox complete 2>/dev/null || true";
+              command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py} complete 2>/dev/null || true";
             }
             {
               type = "command";

@@ -1,18 +1,22 @@
-import { spawn, spawnSync, type ChildProcess } from "node:child_process"
+import { spawn, type ChildProcess } from "node:child_process"
 import type { Plugin } from "@opencode-ai/plugin"
 
 type PermissionAsked = { id?: unknown; sessionID?: unknown; permission?: unknown }
 type PermissionReplied = { requestID?: unknown; sessionID?: unknown }
 type Event = { type?: string; properties?: Record<string, unknown> }
 type Pending = { sessionID: string; permissionID: string; child: ChildProcess }
-type Client = {
-  postSessionIdPermissionsPermissionId(input: {
-    path: { id: string; permissionID: string }
-    body: { response: "once" | "reject" }
-  }): Promise<unknown>
-}
-
 const ID = /^[A-Za-z0-9_-]{8,128}$/
+const ENV_KEYS = ["PATH", "HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID"] as const
+
+export function helperEnv(clientName: string, sessionID?: string): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {}
+  for (const key of ENV_KEYS) {
+    if (process.env[key] !== undefined) env[key] = process.env[key]
+  }
+  env.AGENT_INBOX_CLIENT = clientName
+  if (sessionID) env.OPENCODE_SESSION_ID = sessionID
+  return env
+}
 
 export function responseForDecision(decision: string): "once" | "reject" | undefined {
   return decision === "allow" ? "once" : decision === "deny" ? "reject" : undefined
@@ -29,25 +33,18 @@ export function safeAsked(value: PermissionAsked): { sessionID: string; permissi
 }
 
 const plugin: Plugin = async ({ client }) => {
-  const api = client as unknown as Client
   const pending = new Map<string, Pending>()
+  const clear = (entry: Pending) => {
+    if (pending.get(pendingKey(entry.sessionID, entry.permissionID)) !== entry) return
+    pending.delete(pendingKey(entry.sessionID, entry.permissionID))
+  }
   const cancel = (entry: Pending) => {
     entry.child.kill("SIGTERM")
-    pending.delete(pendingKey(entry.sessionID, entry.permissionID))
-    const cleanup = spawn("agent-inbox", ["permission-cancel", entry.permissionID], {
-      stdio: "ignore",
-      env: { ...process.env, AGENT_INBOX_CLIENT: "opencode", OPENCODE_SESSION_ID: entry.sessionID },
-    })
-    cleanup.unref()
+    clear(entry)
   }
   const onExit = () => {
     for (const entry of pending.values()) {
       entry.child.kill("SIGTERM")
-      spawnSync("agent-inbox", ["permission-cancel", entry.permissionID], {
-        stdio: "ignore",
-        timeout: 2500,
-        env: { ...process.env, AGENT_INBOX_CLIENT: "opencode", OPENCODE_SESSION_ID: entry.sessionID },
-      })
     }
     pending.clear()
   }
@@ -65,22 +62,30 @@ const plugin: Plugin = async ({ client }) => {
         if (existing) cancel(existing)
         const child = spawn("agent-inbox", ["permission-request"], {
           stdio: ["pipe", "pipe", "ignore"],
-          env: { ...process.env, AGENT_INBOX_CLIENT: "opencode", OPENCODE_SESSION_ID: safe.sessionID },
+          env: helperEnv("opencode", safe.sessionID),
         })
         const entry = { sessionID: safe.sessionID, permissionID: safe.permissionID, child }
         pending.set(key, entry)
+        child.once("error", () => clear(entry))
+        child.once("exit", (code) => {
+          if (code !== 0) clear(entry)
+        })
         child.stdin.end(JSON.stringify({ tool_name: safe.toolName, external_request_id: safe.permissionID }))
         let output = ""
         child.stdout.setEncoding("utf8").on("data", (chunk: string) => { output = (output + chunk).slice(0, 16) })
-        child.once("close", () => {
+        child.once("close", async () => {
           if (pending.get(key) !== entry) return
-          pending.delete(key)
+          clear(entry)
           const response = responseForDecision(output.trim())
           if (!response) return
-          void api.postSessionIdPermissionsPermissionId({
-            path: { id: safe.sessionID, permissionID: safe.permissionID },
-            body: { response },
-          }).catch(() => undefined)
+          try {
+            await client.postSessionIdPermissionsPermissionId({
+              path: { id: safe.sessionID, permissionID: safe.permissionID },
+              body: { response },
+            })
+          } catch {
+            return
+          }
         })
       } else if (value.type === "permission.replied") {
         const eventID = properties.requestID
@@ -100,8 +105,9 @@ const plugin: Plugin = async ({ client }) => {
         if (typeof sessionID !== "string" || !sessionID) return
         const child = spawn("agent-inbox", ["complete"], {
           stdio: "ignore",
-          env: { ...process.env, AGENT_INBOX_CLIENT: "opencode", OPENCODE_SESSION_ID: sessionID },
+          env: helperEnv("opencode", sessionID),
         })
+        child.once("error", () => undefined)
         child.unref()
       }
     },

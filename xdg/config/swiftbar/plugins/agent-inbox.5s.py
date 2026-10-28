@@ -3,6 +3,7 @@
 
 import html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -11,6 +12,11 @@ import unicodedata
 ID = re.compile(r"^[A-Za-z0-9_-]{8,128}$")
 PLUGIN = __file__
 ACTION_NAMES = {"answer-ui", "permission-reply", "focus", "ack"}
+ENV_KEYS = ("PATH", "HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID")
+
+
+def helper_env():
+    return {**{key: os.environ[key] for key in ENV_KEYS if key in os.environ}, "AGENT_INBOX_CLIENT": "swiftbar"}
 
 
 def safe_text(value: object) -> str:
@@ -43,7 +49,7 @@ def render(entries: object) -> str:
             kind = action.get("action")
             if kind not in ACTION_NAMES:
                 continue
-            decision = action.get("decision", action.get("response", action.get("value")))
+            decision = action.get("answer", action.get("decision", action.get("response", action.get("value"))))
             if kind == "permission-reply" and decision not in {"allow", "deny"}:
                 continue
             title = {
@@ -74,20 +80,21 @@ def run_action(arguments: list[str]) -> int:
     if not ID.fullmatch(parsed.id):
         return 2
     command = ["agent-inbox"]
+    env = helper_env()
     if parsed.action == "answer-ui":
         command.extend(["answer-ui", parsed.id])
     elif parsed.action == "permission-reply" and parsed.decision:
         command.extend(["permission-reply", parsed.id, parsed.decision])
     elif parsed.action == "focus":
         command.extend(["focus", parsed.id])
-        subprocess.run(command, check=False)
-        subprocess.run(["/usr/bin/open", "-a", "Alacritty"], check=False)
+        subprocess.run(command, check=False, env=env)
+        subprocess.run(["/usr/bin/open", "-a", "Alacritty"], check=False, env=env)
         return 0
     elif parsed.action == "ack":
         command.extend(["ack", parsed.id])
     else:
         return 2
-    subprocess.run(command, check=False)
+    subprocess.run(command, check=False, env=env)
     return 0
 
 
@@ -95,7 +102,7 @@ def main() -> int:
     if len(sys.argv) > 1:
         return run_action(sys.argv[1:])
     try:
-        result = subprocess.run(["agent-inbox", "swiftbar"], check=True, capture_output=True, text=True, timeout=3)
+        result = subprocess.run(["agent-inbox", "swiftbar"], check=True, capture_output=True, text=True, timeout=3, env=helper_env())
         print(render_json(result.stdout))
         return 0
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
