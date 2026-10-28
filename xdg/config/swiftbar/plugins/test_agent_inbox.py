@@ -43,6 +43,13 @@ class SwiftBarTests(unittest.TestCase):
         self.assertIn("--Allow once", result)
         self.assertIn("--Deny", result)
 
+    def test_dynamic_text_and_plugin_path_are_escaped(self):
+        entries = [{"text": "  quote\t\"word\"\u202e | next  ", "id": "abcdefgh1234", "actions": [{"action": "focus", "id": "abcdefgh1234"}]}]
+        with patch.object(MODULE, "PLUGIN", 'workspace with space/plug"in.py'):
+            result = MODULE.render(entries)
+        self.assertIn("quote&quot;word&quot; &#124; next", result)
+        self.assertIn('param2="workspace with space/plug\\"in.py"', result)
+
     @patch.object(MODULE.subprocess, "run")
     def test_focus_runs_fixed_helper_and_optional_app(self, mock_run):
         with patch.dict(os.environ, {"API_TOKEN": "private"}, clear=False):

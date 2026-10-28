@@ -7,6 +7,8 @@ type Event = { type?: string; properties?: Record<string, unknown> }
 type Pending = { sessionID: string; permissionID: string; child: ChildProcess }
 const ID = /^[A-Za-z0-9_-]{8,128}$/
 const ENV_KEYS = ["PATH", "HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID"] as const
+type PluginClient = Parameters<Plugin>[0]["client"]
+type PermissionPost = PluginClient["postSessionIdPermissionsPermissionId"]
 
 export function helperEnv(clientName: string, sessionID?: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {}
@@ -14,12 +16,28 @@ export function helperEnv(clientName: string, sessionID?: string): NodeJS.Proces
     if (process.env[key] !== undefined) env[key] = process.env[key]
   }
   env.AGENT_INBOX_CLIENT = clientName
+  // The helper stores permission and idle events against this exact OpenCode session.
   if (sessionID) env.OPENCODE_SESSION_ID = sessionID
   return env
 }
 
 export function responseForDecision(decision: string): "once" | "reject" | undefined {
   return decision === "allow" ? "once" : decision === "deny" ? "reject" : undefined
+}
+
+export async function respondToPermission(
+  postPermission: PermissionPost,
+  sessionID: string,
+  permissionID: string,
+  decision: string,
+): Promise<void> {
+  const response = responseForDecision(decision)
+  if (!response) return
+  try {
+    await postPermission({ path: { id: sessionID, permissionID }, body: { response } })
+  } catch {
+    return
+  }
 }
 
 export function pendingKey(sessionID: string, permissionID: string): string {
@@ -70,22 +88,18 @@ const plugin: Plugin = async ({ client }) => {
         child.once("exit", (code) => {
           if (code !== 0) clear(entry)
         })
-        child.stdin.end(JSON.stringify({ tool_name: safe.toolName, external_request_id: safe.permissionID }))
+        child.stdin?.end(JSON.stringify({ tool_name: safe.toolName, external_request_id: safe.permissionID }))
         let output = ""
-        child.stdout.setEncoding("utf8").on("data", (chunk: string) => { output = (output + chunk).slice(0, 16) })
+        child.stdout?.setEncoding("utf8").on("data", (chunk: string) => { output = (output + chunk).slice(0, 16) })
         child.once("close", async () => {
           if (pending.get(key) !== entry) return
           clear(entry)
-          const response = responseForDecision(output.trim())
-          if (!response) return
-          try {
-            await client.postSessionIdPermissionsPermissionId({
-              path: { id: safe.sessionID, permissionID: safe.permissionID },
-              body: { response },
-            })
-          } catch {
-            return
-          }
+          await respondToPermission(
+            (input) => client.postSessionIdPermissionsPermissionId(input),
+            safe.sessionID,
+            safe.permissionID,
+            output.trim(),
+          )
         })
       } else if (value.type === "permission.replied") {
         const eventID = properties.requestID

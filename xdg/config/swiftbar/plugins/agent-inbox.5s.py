@@ -26,6 +26,11 @@ def safe_text(value: object) -> str:
     return html.escape(" ".join(cleaned.split()), quote=True).replace("|", "&#124;")
 
 
+def swiftbar_arg(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "").replace("\r", "")
+    return f'"{escaped}"'
+
+
 def render(entries: object) -> str:
     lines = ["Agent inbox"]
     if not isinstance(entries, list):
@@ -61,7 +66,7 @@ def render(entries: object) -> str:
             args = ["python3", PLUGIN, "--action", kind, "--id", event_id]
             if decision in {"allow", "deny"}:
                 args.extend(["--decision", decision])
-            lines.append(f"--{title} | bash=/usr/bin/env " + " ".join(f"param{i + 1}={html.escape(arg, quote=True)}" for i, arg in enumerate(args)))
+            lines.append(f"--{title} | bash=/usr/bin/env " + " ".join(f"param{i + 1}={swiftbar_arg(arg)}" for i, arg in enumerate(args)))
     return "\n".join(lines)
 
 

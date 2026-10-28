@@ -27,57 +27,10 @@ let
     else
       [ ];
   agent_inbox_source = "${config.home.homeDirectory}/repos/agent-inbox";
-  agent_inbox_source_path = builtins.path {
-    name = "agent-inbox-source";
-    path = agent_inbox_source;
-    filter =
-      path: type:
-      let
-        relative = lib.removePrefix "${agent_inbox_source}/" path;
-        parts = lib.splitString "/" relative;
-      in
-      !(lib.any (
-        part:
-        builtins.elem part [
-          ".git"
-          "target"
-          ".direnv"
-          ".idea"
-          ".vscode"
-          "node_modules"
-        ]
-      ) parts)
-      && (
-        relative == ""
-        || relative == "Cargo.toml"
-        || relative == "Cargo.lock"
-        || relative == "build.rs"
-        || (lib.hasPrefix "src/" relative && (type == "directory" || lib.hasSuffix ".rs" relative))
-        || relative == "src"
-      )
-      && type != "symlink";
+  agent_inbox_package = import ./lib/agent-inbox-package.nix {
+    inherit lib pkgs;
+    source = agent_inbox_source;
   };
-  agent_inbox_source_available =
-    builtins.pathExists "${agent_inbox_source}/Cargo.toml"
-    && builtins.pathExists "${agent_inbox_source}/Cargo.lock";
-  agent_inbox_package =
-    if agent_inbox_source_available then
-      let
-        manifest = builtins.fromTOML (builtins.readFile "${agent_inbox_source}/Cargo.toml");
-      in
-      pkgs.rustPlatform.buildRustPackage {
-        pname = "agent-inbox";
-        version =
-          if manifest ? package && manifest.package ? version then manifest.package.version else "0.1.0";
-        src = agent_inbox_source_path;
-        cargoLock.lockFile = "${agent_inbox_source_path}/Cargo.lock";
-        doCheck = false;
-      }
-    else
-      pkgs.writeShellScriptBin "agent-inbox" ''
-        printf '%s\n' 'agent-inbox is unavailable; clone the optional helper repository under ~/repos/agent-inbox' >&2
-        exit 127
-      '';
   # Packages built from sources that live in private repositories, kept out of
   # this public repo by name. Same local-override pattern: gitignored,
   # optional, empty on a fresh clone. See local/private-tools.nix.example.
@@ -249,13 +202,6 @@ in
     ]
     ++ [ agent_inbox_package ]
     ++ private_tools;
-
-  home.activation.mergeClaudeAgentInboxMcp = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    ${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_config.py} \
-      "${config.xdg.dataHome}/claude/.claude.json" \
-      "${config.home.homeDirectory}/.claude.json" \
-      "${agent_inbox_package}/bin/agent-inbox"
-  '';
 
   programs.bash = {
     enable = true;

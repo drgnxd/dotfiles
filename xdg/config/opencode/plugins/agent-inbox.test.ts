@@ -1,11 +1,27 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { helperEnv, pendingKey, responseForDecision, safeAsked } from "./agent-inbox"
+import { helperEnv, pendingKey, respondToPermission, responseForDecision, safeAsked } from "./agent-inbox"
 
 test("maps allow and deny only to once and reject", () => {
   assert.equal(responseForDecision("allow"), "once")
   assert.equal(responseForDecision("deny"), "reject")
   assert.equal(responseForDecision("always"), undefined)
+})
+
+test("calls the typed SDK endpoint with one-shot mappings", async () => {
+  const calls: unknown[] = []
+  await respondToPermission(async (input) => { calls.push(input) }, "session-a", "request-a", "allow")
+  await respondToPermission(async (input) => { calls.push(input) }, "session-b", "request-b", "deny")
+  await respondToPermission(async (input) => { calls.push(input) }, "session-c", "request-c", "always")
+  assert.deepEqual(calls, [
+    { path: { id: "session-a", permissionID: "request-a" }, body: { response: "once" } },
+    { path: { id: "session-b", permissionID: "request-b" }, body: { response: "reject" } },
+  ])
+})
+
+test("contains synchronous and asynchronous SDK errors", async () => {
+  await assert.doesNotReject(respondToPermission(() => { throw new Error("sync") }, "s", "p", "allow"))
+  await assert.doesNotReject(respondToPermission(async () => { throw new Error("async") }, "s", "p", "deny"))
 })
 
 test("keys cancellation by exact session and permission identity", () => {

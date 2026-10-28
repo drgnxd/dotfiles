@@ -73,6 +73,7 @@ def _release_lock(lock: Path, fd: int, identity: tuple[int, int]) -> None:
 
 
 def update(target: Path, link: Path, command: str) -> None:
+    """Update while Claude writers are stopped; the lock coordinates only this setup tool."""
     target = target.absolute()
     link = link.absolute()
     _validate_directory(target.parent)
