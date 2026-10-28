@@ -253,27 +253,8 @@ in
   '';
 
   home.activation.syncOpencodePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    plugins_src="${opencode_plugins_template}"
-    plugins_dest="${config.xdg.configHome}/opencode/plugins"
-
-    # Plugins import dependencies from the writable OpenCode config directory.
-    # Keep them as real files instead of Nix-store symlinks for Bun resolution.
-    if [ -L "$plugins_dest" ]; then
-      $DRY_RUN_CMD rm -f "$plugins_dest"
-    fi
-    $DRY_RUN_CMD mkdir -p "$plugins_dest"
-
-    for src_file in "$plugins_src"/*; do
-      [ -f "$src_file" ] || continue
-      base="$(basename "$src_file")"
-      dest_file="$plugins_dest/$base"
-      if [ -f "$dest_file" ] && diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
-        continue
-      fi
-      $DRY_RUN_CMD cp -fL "$src_file" "$dest_file"
-      $DRY_RUN_CMD chmod u+w "$dest_file"
-    done
-
+    source "${./sync_opencode_plugins.sh}"
+    sync_opencode_plugins "${opencode_plugins_template}" "${config.xdg.configHome}/opencode/plugins"
   '';
 
   home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''
