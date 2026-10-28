@@ -23,6 +23,17 @@ sync_opencode_plugins "$tmp/template" "$tmp/plugins-link"
 [[ "$(<"$tmp/symlink-target/custom.ts")" == 'user plugin in linked directory' ]]
 [[ "$(<"$tmp/symlink-target/another.ts")" == 'another managed plugin' ]]
 
+printf 'external target bytes\n' >"$tmp/external-target"
+rm "$tmp/symlink-target/managed.ts"
+ln -s "$tmp/external-target" "$tmp/symlink-target/managed.ts"
+before="$(shasum -a 256 "$tmp/external-target")"
+if sync_opencode_plugins "$tmp/template" "$tmp/plugins-link"; then
+  exit 1
+fi
+[[ -L "$tmp/symlink-target/managed.ts" ]]
+[[ "$(shasum -a 256 "$tmp/external-target")" == "$before" ]]
+[[ "$(<"$tmp/external-target")" == 'external target bytes' ]]
+
 printf 'not a directory\n' >"$tmp/not-a-directory"
 ln -s "$tmp/not-a-directory" "$tmp/plugins-file-link"
 if sync_opencode_plugins "$tmp/template" "$tmp/plugins-file-link"; then

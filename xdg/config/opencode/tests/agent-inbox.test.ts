@@ -1,5 +1,9 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
+import { mkdtemp, mkdir, symlink, rm } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join, resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import {
   deletedSessionID,
   forgetFailedWaiter,
@@ -8,7 +12,21 @@ import {
   respondToPermission,
   responseForDecision,
   safeAsked,
-} from "../lib/agent-inbox"
+  default as plugin,
+} from "../plugins/agent-inbox"
+
+test("plugin loads from a symlinked plugin directory", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "opencode-plugin-"))
+  try {
+    const linkedPlugins = join(temp, "plugins")
+    await mkdir(linkedPlugins)
+    await symlink(resolve("plugins/agent-inbox.ts"), join(linkedPlugins, "agent-inbox.ts"))
+    const loaded = await import(pathToFileURL(join(linkedPlugins, "agent-inbox.ts")).href)
+    assert.equal(loaded.default, plugin)
+  } finally {
+    await rm(temp, { recursive: true, force: true })
+  }
+})
 
 test("maps allow and deny only to once and reject", () => {
   assert.equal(responseForDecision("allow"), "once")

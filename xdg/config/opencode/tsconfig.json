@@ -7,5 +7,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["lib/agent-inbox.ts", "plugins/agent-inbox.ts", "tests/agent-inbox.test.ts"]
+  "include": ["plugins/agent-inbox.ts", "tests/agent-inbox.test.ts"]
 }

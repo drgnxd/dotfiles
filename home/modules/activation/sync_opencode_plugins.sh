@@ -16,6 +16,10 @@ sync_opencode_plugins() {
     local base
     base="$(basename "$src_file")"
     local dest_file="$plugins_dest/$base"
+    if [[ -L $dest_file ]]; then
+      printf 'OpenCode plugin destination is a symlink: %s\n' "$dest_file" >&2
+      return 1
+    fi
     if [[ -f $dest_file ]] && diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
       continue
     fi
