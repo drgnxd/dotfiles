@@ -23,6 +23,14 @@ CONFIG = load("agent_inbox_config")
 
 
 class ClaudeInboxTests(unittest.TestCase):
+    def test_existing_os_notification_hooks_remain_enabled(self):
+        root = Path(__file__).parents[3]
+        source = (root / "home" / "default.nix").read_text(encoding="utf-8")
+        self.assertIn("display notification", source)
+        self.assertIn('command = "${claude_notify} complete 2>/dev/null || true";', source)
+        self.assertIn("Notification = [", source)
+        self.assertIn('command = "${claude_notify} permission 2>/dev/null || true";', source)
+
     def test_hook_whitelists_only_safe_values(self):
         value = HOOK.safe_request({"tool_name": "Read", "permission_request_id": "r-1", "tool_input": {"command": "private"}})
         self.assertEqual(value, {"tool_name": "Read", "external_request_id": "r-1"})
@@ -37,7 +45,7 @@ class ClaudeInboxTests(unittest.TestCase):
     def test_hook_outputs_only_one_shot_decision(self, mock_run):
         mock_run.return_value.stdout = "allow\n"
         output = io.StringIO()
-        with patch("sys.stdin", io.StringIO(json.dumps({"tool_name": "Bash", "tool_input": {"command": "secret"}}))), patch("sys.stdout", output):
+        with patch.dict(os.environ, {"XDG_CACHE_HOME": "inbox-cache-test"}, clear=False), patch("sys.stdin", io.StringIO(json.dumps({"tool_name": "Bash", "tool_input": {"command": "secret"}}))), patch("sys.stdout", output):
             self.assertEqual(HOOK.main(), 0)
         self.assertEqual(json.loads(output.getvalue()), {
             "hookSpecificOutput": {
@@ -50,14 +58,16 @@ class ClaudeInboxTests(unittest.TestCase):
         self.assertEqual(len(request["external_request_id"]), 32)
         self.assertNotIn("secret", output.getvalue())
         self.assertEqual(mock_run.call_args.kwargs["env"]["AGENT_INBOX_CLIENT"], "claude")
+        self.assertEqual(mock_run.call_args.kwargs["env"]["XDG_CACHE_HOME"], "inbox-cache-test")
         self.assertNotIn("API_TOKEN", mock_run.call_args.kwargs["env"])
 
     @patch.object(HOOK.subprocess, "run")
     def test_completion_uses_minimal_environment(self, mock_run):
-        with patch.dict(os.environ, {"API_TOKEN": "private"}, clear=False):
+        with patch.dict(os.environ, {"API_TOKEN": "private", "XDG_CACHE_HOME": "inbox-cache-test"}, clear=False):
             self.assertEqual(HOOK.main(["complete"]), 0)
         self.assertEqual(mock_run.call_args.args[0], ["agent-inbox", "complete"])
         self.assertNotIn("API_TOKEN", mock_run.call_args.kwargs["env"])
+        self.assertEqual(mock_run.call_args.kwargs["env"]["XDG_CACHE_HOME"], "inbox-cache-test")
 
     def test_config_merge_preserves_unrelated_credentials_and_unknown_fields(self):
         opaque_value = "opaque-user-value"

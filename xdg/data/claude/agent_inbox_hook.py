@@ -9,7 +9,7 @@ import secrets
 import subprocess
 import sys
 
-ENV_KEYS = ("PATH", "HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID")
+ENV_KEYS = ("PATH", "HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID")
 
 
 def helper_env() -> dict[str, str]:

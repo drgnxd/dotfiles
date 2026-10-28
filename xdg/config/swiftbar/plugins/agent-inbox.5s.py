@@ -12,7 +12,7 @@ import unicodedata
 ID = re.compile(r"^[A-Za-z0-9_-]{8,128}$")
 PLUGIN = __file__
 ACTION_NAMES = {"answer-ui", "permission-reply", "focus", "ack"}
-ENV_KEYS = ("PATH", "HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID")
+ENV_KEYS = ("PATH", "HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID")
 
 
 def helper_env():

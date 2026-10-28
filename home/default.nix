@@ -175,7 +175,10 @@ in
 
   xdg.enable = true;
 
-  xdg.configFile = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+  xdg.configFile = {
+    "opencode/lib/agent-inbox.ts".source = ../xdg/config/opencode/lib/agent-inbox.ts;
+  }
+  // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     "zsh/.zshrc".source = ../xdg/config/zsh/.zshrc;
   };
 

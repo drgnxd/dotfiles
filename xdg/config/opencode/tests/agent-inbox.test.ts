@@ -1,6 +1,14 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { deletedSessionID, forgetFailedWaiter, helperEnv, pendingKey, respondToPermission, responseForDecision, safeAsked } from "./agent-inbox"
+import {
+  deletedSessionID,
+  forgetFailedWaiter,
+  helperEnv,
+  pendingKey,
+  respondToPermission,
+  responseForDecision,
+  safeAsked,
+} from "../lib/agent-inbox"
 
 test("maps allow and deny only to once and reject", () => {
   assert.equal(responseForDecision("allow"), "once")
@@ -55,22 +63,27 @@ test("permission event parser retains only safe fields", () => {
   assert.equal(safeAsked({ sessionID: "session-a", id: "bad id", permission: "Bash" }), undefined)
 })
 
-test("helper environment excludes inherited credentials and transcript variables", () => {
+test("helper environment excludes inherited credentials and includes cache location", () => {
   const oldToken = process.env.API_TOKEN
   const oldTranscript = process.env.CLAUDE_TRANSCRIPT
+  const oldCacheHome = process.env.XDG_CACHE_HOME
   process.env.API_TOKEN = "private"
   process.env.CLAUDE_TRANSCRIPT = "private"
+  process.env.XDG_CACHE_HOME = "inbox-cache-test"
   try {
     const env = helperEnv("opencode", "session-a")
     assert.equal(env.AGENT_INBOX_CLIENT, "opencode")
     assert.equal(env.OPENCODE_SESSION_ID, "session-a")
+    assert.equal(env.XDG_CACHE_HOME, "inbox-cache-test")
     assert.equal(env.API_TOKEN, undefined)
     assert.equal(env.CLAUDE_TRANSCRIPT, undefined)
-    assert.ok(Object.keys(env).every((key) => ["PATH", "HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID", "AGENT_INBOX_CLIENT", "OPENCODE_SESSION_ID"].includes(key)))
+    assert.ok(Object.keys(env).every((key) => ["PATH", "HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "ZELLIJ_SESSION_NAME", "ZELLIJ_PANE_ID", "AGENT_INBOX_CLIENT", "OPENCODE_SESSION_ID"].includes(key)))
   } finally {
     if (oldToken === undefined) delete process.env.API_TOKEN
     else process.env.API_TOKEN = oldToken
     if (oldTranscript === undefined) delete process.env.CLAUDE_TRANSCRIPT
     else process.env.CLAUDE_TRANSCRIPT = oldTranscript
+    if (oldCacheHome === undefined) delete process.env.XDG_CACHE_HOME
+    else process.env.XDG_CACHE_HOME = oldCacheHome
   }
 })
