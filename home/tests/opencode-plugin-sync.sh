@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(dirname "$0")/../modules/activation/sync_opencode_plugins.sh"
 
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+trap 'rm -rf "${tmp:?}"' EXIT
 mkdir -p "$tmp/template" "$tmp/plugins" "$tmp/symlink-target"
 printf 'managed update\n' >"$tmp/template/managed.ts"
 printf 'old managed\n' >"$tmp/plugins/managed.ts"

@@ -5,7 +5,7 @@ repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
 # shellcheck disable=SC1091
 source "$repo_root/home/modules/activation/sync_opencode_tools.sh"
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+trap 'rm -rf "${tmp:?}"' EXIT
 
 fail() {
   printf 'FAIL: %s\n' "$1" >&2
