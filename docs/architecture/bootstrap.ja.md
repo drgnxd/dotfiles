@@ -78,7 +78,7 @@ nix run path:.#bootstrap-linux
    fcitx5 + mozc（デフォルト）の場合、グラフィカルログイン時に fcitx5 が自動起動します。IM 変数は `home.sessionVariables` ではなく `~/.config/environment.d/fcitx5.conf` で配信されます。
    Debian `im-config` を使う Ubuntu GNOME / X11 ホストでは、activation 前に `local/preferences.nix` へ `imConfigXinputrc = true;` を設定し、activation 後にフル logout/login を実行してください。`XMODIFIERS` は X セッション開始時に固定されるため、fcitx5 の再起動やアプリの開き直しだけでは不十分です。全角/半角キーのない US 配列では、fcitx5 のデフォルト切り替えは `Ctrl+Space` です。
 4. **Floorp** — Linux では `floorp-bin` (nixpkgs)、macOS では Homebrew cask で利用可能です。
-5. **Helix の nixd** — 生成される `~/.config/helix/languages.toml` が実際のホスト設定名を指すようになりました（Phase 7 参照）。手動編集なしでオプション補完が動作します。
+5. **Neovim の nixd** — 生成される `~/.config/nvim/lua/lsp.lua` が実際のホスト設定名を指すようになりました（Phase 7 参照）。手動編集なしでオプション補完が動作します。
 
 ### 手順 6: 開発環境のセットアップ（このリポジトリを編集する場合）
 
@@ -100,6 +100,6 @@ true`）でフックを入れ直してください。いずれにせよ `just ch
 
 ### 既知の注意事項
 
-* **ホストごとの nixd 設定** — Helix に配信される `languages.toml` は、プレースホルダーの設定名（`darwinConfigurations.<hostname>`、`homeConfigurations."<user>@<linuxHostname>"`）を、 `local/identity.nix` の実際の `hostname` と `user@linuxHostname` に自動で置換します。手動操作は不要です。
+* **ホストごとの nixd 設定** — Neovim に配信される `lsp.lua` は、プレースホルダーの設定名（`darwinConfigurations.<hostname>`、`homeConfigurations."<user>@<linuxHostname>"`）を、 `local/identity.nix` の実際の `hostname` と `user@linuxHostname` に自動で置換します。手動操作は不要です。
 * **Linux の Vulkan** — standalone home-manager 環境では GPU ドライバ解決の不安定さを避けるため、hazkey 用の Vulkan はデフォルトで無効です。NixOS で適切な graphics モジュールを構成している場合にのみ有効化を検討してください。
 * **シークレット** — agenix を使う場合、`secrets/secrets.nix` に SSH 公開鍵を追加し、`nix run .#rekey-secrets` を実行してください。

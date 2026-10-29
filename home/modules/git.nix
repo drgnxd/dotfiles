@@ -47,7 +47,7 @@
       };
       pager.difftool = true;
       core = {
-        editor = "hx";
+        editor = "nvim";
         ignorecase = false;
         quotepath = false;
         precomposeunicode = true;

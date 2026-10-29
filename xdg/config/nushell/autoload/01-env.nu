@@ -93,7 +93,7 @@ if (($nu.os-info.name | str lowercase) == "linux") {
     $env.SDL_VIDEODRIVER = "wayland"
 }
 
-$env.EDITOR = "hx"
+$env.EDITOR = "nvim"
 $env.VISUAL = $env.EDITOR
 
 let nu_path = (which nu | get path.0?)

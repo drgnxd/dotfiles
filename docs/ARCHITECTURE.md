@@ -47,7 +47,7 @@
 |     |- fzf.nix                     # fzf integration
 |     |- gh.nix                      # GitHub CLI config
 |     |- git.nix                     # git/delta + local template
-|     |- helix.nix                   # Helix config + theme
+|     |- neovim.nix                  # Neovim config + plugins
 |     |- nushell.nix                 # Nushell files (autoload)
 |     |- nushell-integrations.nix    # Build generated Nushell init scripts
 |     |- shellcheck.nix              # shellcheckrc
@@ -60,9 +60,9 @@
 |- xdg/config/                       # Config sources (XDG)
 |  |- alacritty/
 |  |- git/
-|  |- helix/
 |  |- npm/
 |  |- nushell/
+|  |- nvim/
 |  |- opencode/
 |  |- starship/
 |  |- stats/

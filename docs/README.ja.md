@@ -22,7 +22,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **レガシーシェル:** Zsh設定はgit履歴にアーカイブ済み
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
 *   **ブラウザ:** Floorp（Firefox系プライバシー重視ブラウザ、Homebrew cask で管理）
-*   **ターミナルマルチプレクサ:** Zellij
+*   **ターミナルマルチプレクサ:** Zellij（AI コーディングエージェントの監視用に herdr も併用）
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
 *   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
@@ -94,7 +94,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 ```sh
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 # ファイルを編集して名前とメールアドレスを設定
-hx ~/.config/git/config.local
+nvim ~/.config/git/config.local
 ```
 
 ### Agenix 受信者設定（シークレット利用に必要）
@@ -189,7 +189,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `alacritty/`: GPU高速化ターミナルエミュレータの設定
     *   `gh/`: GitHub CLIの設定
     *   `git/`: Git設定（delta統合）
-    *   `helix/`: ポストモダンなモーダルテキストエディタの設定
+    *   `nvim/`: Neovim の設定 (Lua)
     *   `npm/`: Node.jsパッケージマネージャの設定
     *   `opencode/`: OpenCode (AIコーディングエージェント) の設定
     *   `starship/`: クロスシェルプロンプトの設定
@@ -224,9 +224,9 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **ローカル上書き**: マシン固有の設定用に未管理ファイル `~/.config/nushell/local.nu` をサポート（activation時に空ファイルを自動作成）
 *   **ドキュメント**: 詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
 
-### Helix の Language Server (LSP) サポート
+### Neovim の Language Server (LSP) サポート
 
-この設定では一般的な Nix/エディタ支援だけをグローバルに残し、言語別の Helix Language Server は `PATH` から解決します。対応するツールは各プロジェクトの `devShell` が提供します。このリポジトリの `devShell` には、Python、Lua、shell、Markdown、TOML、Nushell、OpenCode の package ファイルに必要な Language Server と CLI ツールを含めています。
+この設定では一般的な Nix/エディタ支援だけをグローバルに残し、言語別の Neovim Language Server は `PATH` から解決します。対応するツールは各プロジェクトの `devShell` が提供します。このリポジトリの `devShell` には、Python、Lua、shell、Markdown、TOML、Nushell、OpenCode の package ファイルに必要な Language Server と CLI ツールを含めています。
 
 ## ソフトウェアポリシー
 

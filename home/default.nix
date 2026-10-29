@@ -148,7 +148,7 @@ in
     ./modules/gh.nix
     ./modules/git.nix
     ./modules/glow.nix
-    ./modules/helix.nix
+    ./modules/neovim.nix
     ./modules/nix_gc.nix
     ./modules/nix_index.nix
     ./modules/nushell.nix

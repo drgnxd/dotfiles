@@ -47,7 +47,7 @@
 |     |- fzf.nix                     # fzf 連携
 |     |- gh.nix                      # GitHub CLI 設定
 |     |- git.nix                     # git/delta + local テンプレート
-|     |- helix.nix                   # Helix 設定 + テーマ
+|     |- neovim.nix                  # Neovim 設定 + プラグイン
 |     |- nushell.nix                 # Nushell ファイル（autoload）
 |     |- nushell-integrations.nix    # 生成済み Nushell init スクリプト作成
 |     |- shellcheck.nix              # shellcheckrc
@@ -60,9 +60,9 @@
 |- xdg/config/                       # 設定ソース（XDG）
 |  |- alacritty/
 |  |- git/
-|  |- helix/
 |  |- npm/
 |  |- nushell/
+|  |- nvim/
 |  |- opencode/
 |  |- starship/
 |  |- stats/

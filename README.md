@@ -24,8 +24,8 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Legacy Shell:** Zsh configuration is archived in git history
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser, managed via Homebrew cask)
-*   **Terminal Multiplexer:** Zellij
-*   **Editor:** Helix with Readline-style insert-mode keybindings (Solarized Dark)
+*   **Terminal Multiplexer:** Zellij (plus herdr for supervising AI coding agents)
+*   **Editor:** Neovim with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker
 *   **Package Manager:** Nix (nix-darwin + home-manager)
@@ -96,7 +96,7 @@ After installation, create a local git configuration file to set your user detai
 ```sh
 cp ~/.config/git/config.local.example ~/.config/git/config.local
 # Edit the file with your name and email
-hx ~/.config/git/config.local
+nvim ~/.config/git/config.local
 ```
 
 ### Agenix Recipients (Required for Secrets)
@@ -194,7 +194,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
     *   `alacritty/`: GPU-accelerated terminal emulator configuration
     *   `gh/`: GitHub CLI configuration
     *   `git/`: Git configuration with delta integration
-    *   `helix/`: Post-modern modal text editor configuration
+    *   `nvim/`: Neovim configuration (Lua)
     *   `npm/`: Node.js package manager configuration
     *   `opencode/`: Configuration for OpenCode (AI coding agent)
     *   `starship/`: Cross-shell prompt configuration
@@ -229,9 +229,9 @@ Modern shell with structured data and modular configuration:
 *   **Local Overrides**: Support for unmanaged `~/.config/nushell/local.nu` for machine-specific settings (auto-created as an empty file during activation)
 *   **Documentation**: See [docs/architecture/nushell.md](docs/architecture/nushell.md) for full details
 
-### Helix language-server (LSP) support
+### Neovim language-server (LSP) support
 
-This configuration keeps only general Nix/editor assistance global and resolves language-specific Helix language servers from `PATH`. Project `devShell`s provide the matching tools. This repository's `devShell` includes the language servers and CLI tools needed for its own Python, Lua, shell, Markdown, TOML, Nushell, and OpenCode package files.
+This configuration keeps only general Nix/editor assistance global and resolves language-specific Neovim language servers from `PATH`. Project `devShell`s provide the matching tools. This repository's `devShell` includes the language servers and CLI tools needed for its own Python, Lua, shell, Markdown, TOML, Nushell, and OpenCode package files.
 
 ## License
 

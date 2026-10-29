@@ -71,10 +71,6 @@ let
 
   gui_apps = if pkgs.stdenv.hostPlatform.isDarwin then gui_apps_darwin else gui_apps_linux;
 
-  editors = [
-    "helix"
-  ];
-
   lsp_servers = [
     "nixd"
     "copilot-language-server"
@@ -91,6 +87,7 @@ let
 
   dev_tools = [
     "ast-grep"
+    "herdr"
     "nh"
     "nix-diff"
     "nixfmt"
@@ -159,7 +156,6 @@ let
     cli_tools
     ++ shell_tools
     ++ gui_apps
-    ++ editors
     ++ lsp_servers
     ++ git_tools
     ++ dev_tools
