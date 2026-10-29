@@ -279,7 +279,19 @@ def validate_config(errors: list[str]) -> None:
         errors.append(f"Missing researcher prompt: {browser_prompt}")
     else:
         prompt_text = browser_prompt.read_text(encoding="utf-8")
-        for required in ("browser-research", "Playwright", "read-only", "browser-operator"):
+        for required in (
+            "browser-research",
+            "Playwright",
+            "read-only",
+            "browser-operator",
+            "before the first Playwright call",
+            "if the Skill cannot be loaded",
+            "do not use browser tools",
+            "Regardless of the Skill",
+            "only in a public, unauthenticated session",
+            "never enter credentials",
+            "if a control's effect is unclear, do not use it",
+        ):
             if required.casefold() not in prompt_text.casefold():
                 errors.append(f"researcher prompt must include `{required}`")
     browser_skill = BASE_DIR / "skills" / "browser-research" / "SKILL.md"
