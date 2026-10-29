@@ -34,6 +34,7 @@ let
   opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
   opencode_tools_template = ../../../xdg/config/opencode/tools;
   opencode_tools_sync = ./sync_opencode_tools.sh;
+  opencode_tools_sync_helper = "${config.home.homeDirectory}/repos/opencode-tools-sync/opencode_tools_sync.py";
   opencode_plugins_template = ../../../xdg/config/opencode/plugins;
   jaq = "${pkgs.jaq}/bin/jaq";
   node = "${pkgs.nodejs_22}/bin/node";
@@ -224,7 +225,15 @@ in
 
   home.activation.syncOpencodeTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     source "${opencode_tools_sync}"
-    sync_opencode_tools "${opencode_tools_template}" "${config.xdg.configHome}/opencode/tools" "$DRY_RUN_CMD"
+    # The helper cannot lock non-cooperating writers, so mutation needs a one-run quiescence attestation.
+    sync_opencode_tools \
+      "${pkgs.python3}/bin/python3" \
+      "${opencode_tools_sync_helper}" \
+      "dotfiles-opencode-tools" \
+      "${opencode_tools_template}" \
+      "${config.xdg.configHome}/opencode/tools" \
+      "${config.xdg.stateHome}/opencode-tools-sync" \
+      "$DRY_RUN_CMD"
   '';
 
   home.activation.syncOpencodePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

@@ -136,7 +136,7 @@ test-spotlight-app-launchers:
 test-opencode-plugin-sync:
   bash home/tests/opencode-plugin-sync.sh
 
-# Test OpenCode tool activation preserves user files and rejects symlinks
+# Test OpenCode tool activation wrapper argument and safety-flag forwarding
 test-opencode-tool-sync:
   bash home/tests/opencode-tool-sync.sh
 
