@@ -277,11 +277,18 @@ def validate_config(errors: list[str]) -> None:
         errors.append(f"Missing researcher prompt: {browser_prompt}")
     else:
         prompt_text = browser_prompt.read_text(encoding="utf-8")
+        for required in ("browser-research", "Playwright", "read-only", "browser-operator"):
+            if required.casefold() not in prompt_text.casefold():
+                errors.append(f"researcher prompt must include `{required}`")
+    browser_skill = BASE_DIR / "skills" / "browser-research" / "SKILL.md"
+    if not browser_skill.is_file():
+        errors.append("Missing browser-research skill")
+    else:
+        skill_text = browser_skill.read_text(encoding="utf-8")
         for required in (
             "browser-automation",
             "Playwright",
             "read-only",
-            "browser-operator",
             "browser_press_key",
             "PageDown",
             "do not use `Enter`, `Space`, `Tab`, `Escape`",
@@ -300,8 +307,8 @@ def validate_config(errors: list[str]) -> None:
             "any other side effect",
             "if a control's effect is unclear",
         ):
-            if required.casefold() not in prompt_text.casefold():
-                errors.append(f"researcher prompt must include `{required}`")
+            if required.casefold() not in skill_text.casefold():
+                errors.append(f"browser-research skill must include `{required}`")
     operator = agents.get("browser-operator", {})
     expected_operator_permissions = {
         "*": "deny",
