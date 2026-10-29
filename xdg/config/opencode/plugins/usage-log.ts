@@ -11,6 +11,8 @@ type CompletedAssistantMessage = {
   modelID: string
   providerID: string
   mode: string
+  sessionID?: string
+  variant?: string
   cost: number
   tokens: {
     input: number
@@ -26,6 +28,8 @@ type UsageRecord = {
   provider: string
   model: string
   agent: string
+  sessionId: string | undefined
+  variant: string | undefined
   finish: string | undefined
   cost: number
   tokens: CompletedAssistantMessage["tokens"]
@@ -33,7 +37,12 @@ type UsageRecord = {
 
 type V2StepStarted = {
   type: "session.step.started"
-  data: { assistantMessageID: string; agent: string; model: { id: string; providerID: string } }
+  data: {
+    assistantMessageID: string
+    sessionID?: string
+    agent: string
+    model: { id: string; providerID: string; variant?: string }
+  }
 }
 
 type V2StepEnded = {
@@ -73,6 +82,8 @@ async function writeRecord(usage: UsageRecord): Promise<void> {
     provider: usage.provider,
     model: usage.model,
     agent: usage.agent,
+    session_id: usage.sessionId ?? null,
+    variant: usage.variant ?? null,
     finish_reason: usage.finish ?? null,
     input_tokens: usage.tokens.input,
     output_tokens: usage.tokens.output,
@@ -105,6 +116,8 @@ const server: Plugin = async () => {
         provider: message.providerID,
         model: message.modelID,
         agent: message.mode,
+        sessionId: message.sessionID,
+        variant: message.variant,
         finish: message.finish,
         cost: message.cost,
         tokens: message.tokens,
@@ -119,7 +132,10 @@ export default {
   server,
   setup(ctx: V2Context) {
     // 2.x splits a step into started (model, agent) and ended (cost, tokens) events.
-    const steps = new Map<string, { provider: string; model: string; agent: string }>()
+    const steps = new Map<
+      string,
+      { provider: string; model: string; agent: string; sessionId?: string; variant?: string }
+    >()
     const controller = new AbortController()
 
     void (async () => {
@@ -131,6 +147,8 @@ export default {
               provider: data.model.providerID,
               model: data.model.id,
               agent: data.agent,
+              sessionId: data.sessionID,
+              variant: data.model.variant,
             })
             if (steps.size > STEP_LIMIT) steps.delete(steps.keys().next().value as string)
           } else if (event.type === "session.step.failed") {
@@ -145,6 +163,8 @@ export default {
               provider: step.provider,
               model: step.model,
               agent: step.agent,
+              sessionId: step.sessionId,
+              variant: step.variant,
               finish: data.finish,
               cost: data.cost,
               tokens: data.tokens,
