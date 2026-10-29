@@ -171,7 +171,22 @@ items the global rules list as not waivable by conversation.
 - `reap` remains conservative and only cleans its existing narrowly recognized
   disposable Python caches. Unknown ignored or untracked data continues to
   block `reap`.
-- If any lifecycle command refuses, preserve the worktree and data and inspect the reported state. Only a non-safety capability or operation refusal may trigger the bounded manual cleanup below; any permission-system, hook, guard, authorization, or safety-check refusal requires stopping and reporting cleanup as incomplete.
+- To discard unintegrated or uncommitted work that is no longer wanted, use `wtctl remove --abandon` instead of any manual deletion.
+  `wtctl stale --repo <repo> [--older-than-days <n>]` lists dead-owner tasks with commits that are not on `main`; it is read-only.
+  `wtctl show --repo <repo> --id <id>` prints the owning `session` and `resume_command`.
+  A dead owner pid does not mean the session is dead: a resumed session gets a new pid.
+  Before abandoning a worktree that another session created, confirm that session is idle (its transcript or database shows no recent update, and no `claude --resume <id>` or `opencode -s <id>` process is running), and inspect the commits and changes.
+  Run `wtctl remove --repo <repo> --id <id> --abandon [--include-uncommitted] [--dead-owner] [--discard-ignored-files] --dry-run --external-writers-quiesced` first.
+  `--abandon` keeps the worktree HEAD under `refs/wtctl/abandoned/<id>`; `--include-uncommitted` also snapshots tracked, staged, and untracked changes into that ref.
+  `--dead-owner` allows a dead-owner task without `adopt` and requires the newest change to be at least ten minutes old.
+  Ignored files are not kept; the dry-run lists them, and `--discard-ignored-files` accepts their loss for a dead-owner task.
+  Use it only for regenerable caches, or for a symlink whose target is verified to remain, unless the user approves the exact paths.
+  `wtctl restore --repo <repo> --id <id> --slug <slug>` recreates an abandoned task in a new worktree, and `wtctl prune --repo <repo> --older-than-days <n> --refs` removes old abandoned refs.
+  Abandoning your own task needs no extra approval.
+  For another session's work, present the ID, path, unique commits, uncommitted and ignored inventory, and what the snapshot keeps, then obtain the user's authorization for that exact target.
+  The command refuses submodules, nested repositories, unreviewed filters, and annex-stored content; treat a refusal as a stop condition.
+  It does not check open file handles and does not snapshot FIFOs or sockets.
+- If any lifecycle command refuses, preserve the worktree and data and inspect the reported state. Try `wtctl remove --abandon` before anything manual; only a non-safety capability or operation refusal that `--abandon` cannot resolve may trigger the bounded manual cleanup below; any permission-system, hook, guard, authorization, or safety-check refusal requires stopping and reporting cleanup as incomplete.
 - The existing ignored-artifact fallback applies only when the refusal is solely caused by an unsupported ignored-artifact shape and the user explicitly authorizes cleanup of the exact task worktree.
   For that narrow fallback, verify the exact registered path and both `.git` identity directions, current owner/adoption state, a clean tracked and non-ignored untracked status, every ignored path, and confirm each is a task-generated disposable artifact or has a retained copy verified byte-identical.
   For any other ignored path, show the exact path and deletion impact and obtain explicit user authorization for it; if ownership, purpose, or retention is unclear, preserve it and stop.
