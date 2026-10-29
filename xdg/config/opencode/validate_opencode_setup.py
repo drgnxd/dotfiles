@@ -181,8 +181,8 @@ def validate_config(errors: list[str]) -> None:
 
     agents = config.get("agent", {})
     review_main = agents.get("review-main", {})
-    if review_main.get("model") != "openai/gpt-6.1-sol":
-        errors.append("review-main must use openai/gpt-6.1-sol")
+    if review_main.get("model") != "openai/gpt-6.1-terra":
+        errors.append("review-main must use openai/gpt-6.1-terra")
     if review_main.get("mode") != "subagent":
         errors.append("review-main must be a subagent")
     validate_read_only_reviewer("review-main", review_main, errors)
@@ -195,18 +195,18 @@ def validate_config(errors: list[str]) -> None:
         errors.append("review-deep must keep the approved read-only prompt")
 
     expected_routes = {
-        "manager": ("openai/gpt-6-luna", "high"),
-        "implementer": ("openai/gpt-6-luna", "medium"),
+        "manager": ("openai/gpt-6.1-terra", "low"),
+        "implementer": ("openai/gpt-6.1-terra", "low"),
         "explore": ("openai/gpt-6-luna", "low"),
         "compaction": ("openai/gpt-6-luna", "low"),
         "title": ("openai/gpt-6-luna", "low"),
         "summary": ("openai/gpt-6-luna", "low"),
         "review-deep": ("openai/gpt-6.1-sol", "xhigh"),
-        "review-main": ("openai/gpt-6.1-sol", "medium"),
-        "research-lead": ("openai/gpt-6.1-sol", "medium"),
-        "researcher": ("openai/gpt-6-luna", "medium"),
+        "review-main": ("openai/gpt-6.1-terra", "medium"),
+        "research-lead": ("openai/gpt-6.1-terra", "medium"),
+        "researcher": ("openai/gpt-6.1-terra", "medium"),
         "browser-operator": ("openai/gpt-6-luna", "medium"),
-        "pdf-reader": ("openai/gpt-6-luna", "medium"),
+        "pdf-reader": ("openai/gpt-6.1-terra", "medium"),
     }
     expected_agent_colors = {
         "manager": "#f060a6",
@@ -429,8 +429,8 @@ def validate_config(errors: list[str]) -> None:
     }
     if manager_tasks != expected_manager_tasks:
         errors.append("manager must retain its approved task delegation allowlist")
-    if manager.get("model") != "openai/gpt-6-luna" or manager.get("variant") != "high":
-        errors.append("manager must retain openai/gpt-6-luna high")
+    if manager.get("model") != "openai/gpt-6.1-terra" or manager.get("variant") != "low":
+        errors.append("manager must retain openai/gpt-6.1-terra low")
     if manager_tasks.get("*") != "deny" or manager_tasks.get("implementer") != "allow":
         errors.append("manager must allow implementer delegation and deny other agents by default")
     for role in ("research-lead", "researcher", "pdf-reader", "review-main", "review-deep", "browser-operator", "explore"):

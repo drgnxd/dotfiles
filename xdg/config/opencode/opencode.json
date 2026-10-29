@@ -29,8 +29,8 @@
   "agent": {
     "manager": {
       "description": "Primary agent that triages, plans, delegates eligible implementation, and owns final integration and verification.",
-      "model": "openai/gpt-6-luna",
-      "variant": "high",
+      "model": "openai/gpt-6.1-terra",
+      "variant": "low",
       "color": "#f060a6",
       "mode": "primary",
       "permission": {
@@ -54,8 +54,8 @@
     "plan": { "disable": true },
     "implementer": {
       "description": "Implementation worker for a self-contained, fully specified unit in its assigned task worktree. It follows git-workflow and parallel-agents, edits and tests only within its assigned scope, and does not use web or browser tools.",
-      "model": "openai/gpt-6-luna",
-      "variant": "medium",
+      "model": "openai/gpt-6.1-terra",
+      "variant": "low",
       "color": "#00b386",
       "mode": "subagent",
       "prompt": "{file:./prompts/implementer.md}",
@@ -100,7 +100,7 @@
     "research-lead": {
       "description": "Plans and runs multi-source web research on a theme or question (market, technology, company, library or standard landscape, investment-style theme screening) by fanning out up to 6 researcher subagents, then returns a dated, source-cited synthesis with conflicts and open questions. Pass a self-contained brief with scope, as-of date, and only non-sensitive context it needs; it cannot read local files. Not for a single known URL or a one-fact lookup.",
       "mode": "subagent",
-      "model": "openai/gpt-6.1-sol",
+      "model": "openai/gpt-6.1-terra",
       "variant": "medium",
       "color": "#5fd7c8",
       "steps": 12,
@@ -118,7 +118,7 @@
       "description": "Answers one narrow question from public web sources or delegated read-only Playwright browser research. No local files, commands, edits, or delegation. Dispatch directly for browser tasks and via research-lead for broader research.",
       "mode": "subagent",
       "hidden": true,
-      "model": "openai/gpt-6-luna",
+      "model": "openai/gpt-6.1-terra",
       "variant": "medium",
       "color": "#9ccc65",
       "steps": 20,
@@ -195,7 +195,7 @@
       "description": "Reads and analyzes the PDF supplied for a research task. Read-only, PDF paths only, no web or command access.",
       "mode": "subagent",
       "hidden": true,
-      "model": "openai/gpt-6-luna",
+      "model": "openai/gpt-6.1-terra",
       "variant": "medium",
       "steps": 12,
       "permission": {
@@ -225,7 +225,7 @@
     "review-main": {
       "description": "Independent review of a concrete diff or plan before approval is requested for non-trivial design, real-data, credential, irreversible, or cross-repository changes; reads only the supplied artifact and never edits.",
       "mode": "subagent",
-      "model": "openai/gpt-6.1-sol",
+      "model": "openai/gpt-6.1-terra",
       "variant": "medium",
       "color": "#f2ce55",
       "permission": {
