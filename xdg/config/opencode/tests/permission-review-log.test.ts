@@ -24,6 +24,8 @@ test("consumes V2 permission events when the runtime exposes the event API", asy
   const events = [
     { type: "permission.v2.asked", data: { id: "v2-ask", action: "bash", resources: ["not-recorded"], save: ["safe"] } },
     { type: "permission.v2.replied", data: { requestID: "v2-ask", reply: "once" } },
+    { type: "permission.asked", data: { id: "v2-plain", action: "shell", resources: ["not-recorded"] } },
+    { type: "permission.replied", data: { requestID: "v2-plain", reply: "reject" } },
   ]
   try {
     const stop = permissionReviewPlugin.setup({
@@ -41,13 +43,14 @@ test("consumes V2 permission events when the runtime exposes the event API", asy
     for (let attempt = 0; attempt < 100; attempt++) {
       try {
         content = await readFile(file, "utf8")
-        if (content.trim().split("\n").length >= 2) break
+        if (content.trim().split("\n").length >= 4) break
       } catch {}
       await new Promise((resolve) => setTimeout(resolve, 10))
     }
     expect(content).toContain('"kind":"asked"')
     expect(content).toContain('"kind":"replied"')
     expect(content).toContain('"candidates":["safe"]')
+    expect(content).toContain('"request_id":"v2-plain"')
     expect(content).not.toContain("not-recorded")
     stop?.()
   } finally {

@@ -33,7 +33,8 @@ test("plugin loads from a symlinked plugin directory", async () => {
     try {
       const loaded = await import(pathToFileURL(join(configuredPlugins, "agent-inbox.ts")).href + `?test=${Date.now()}`)
       assert.deepEqual(Object.keys(loaded), ["default"])
-      const initialized = await loaded.default({ client: {} as never } as never)
+      assert.equal(loaded.default.id, "agent-inbox")
+      const initialized = await loaded.default.server({ client: {} as never } as never)
       assert.equal(typeof initialized.event, "function")
     } finally {
       if (oldConfigHome === undefined) delete process.env.XDG_CONFIG_HOME

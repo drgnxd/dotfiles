@@ -106,7 +106,7 @@ export default {
     void (async () => {
       for await (const event of events.subscribe({ signal: controller.signal })) {
         try {
-          const kind = event.type === "permission.v2.asked" ? "asked" : event.type === "permission.v2.replied" ? "replied" : undefined
+          const kind = event.type === "permission.asked" || event.type === "permission.v2.asked" ? "asked" : event.type === "permission.replied" || event.type === "permission.v2.replied" ? "replied" : undefined
           if (kind) await safeLog(normalizeRecord("v2", kind, event.data ?? {}))
         } catch {
           console.error("OpenCode permission review event ignored")
