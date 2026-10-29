@@ -100,7 +100,7 @@
     "research-lead": {
       "description": "Plans and runs multi-source web research on a theme or question (market, technology, company, library or standard landscape, investment-style theme screening) by fanning out up to 6 researcher subagents, then returns a dated, source-cited synthesis with conflicts and open questions. Pass a self-contained brief with scope, as-of date, and only non-sensitive context it needs; it cannot read local files. Not for a single known URL or a one-fact lookup.",
       "mode": "subagent",
-      "model": "openai/gpt-6-sol",
+      "model": "openai/gpt-6.1-sol",
       "variant": "medium",
       "color": "#5fd7c8",
       "steps": 12,

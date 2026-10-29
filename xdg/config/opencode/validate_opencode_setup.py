@@ -203,7 +203,7 @@ def validate_config(errors: list[str]) -> None:
         "summary": ("openai/gpt-6-luna", "low"),
         "review-deep": ("openai/gpt-6.1-sol", "xhigh"),
         "review-main": ("openai/gpt-6.1-sol", "medium"),
-        "research-lead": ("openai/gpt-6-sol", "medium"),
+        "research-lead": ("openai/gpt-6.1-sol", "medium"),
         "researcher": ("openai/gpt-6-luna", "medium"),
         "browser-operator": ("openai/gpt-6-luna", "medium"),
         "pdf-reader": ("openai/gpt-6-luna", "medium"),
