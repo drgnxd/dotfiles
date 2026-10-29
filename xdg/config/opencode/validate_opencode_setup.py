@@ -475,6 +475,12 @@ def validate_config(errors: list[str]) -> None:
     manager_prompt_path = BASE_DIR / "prompts" / "manager.md"
     if manager_prompt_path.is_file():
         manager_prompt = manager_prompt_path.read_text(encoding="utf-8").casefold()
+        for required in ("agent-learning", "git-workflow"):
+            if required not in manager_prompt:
+                errors.append(f"manager prompt must reference the `{required}` Skill")
+    learning_skill_path = BASE_DIR / "skills" / "agent-learning" / "SKILL.md"
+    if learning_skill_path.is_file():
+        learning_skill = learning_skill_path.read_text(encoding="utf-8").casefold()
         for required in (
             "agent-learning/learning.md",
             "agent-learning/.lock",
@@ -485,8 +491,10 @@ def validate_config(errors: list[str]) -> None:
             "0700",
             "0600",
         ):
-            if required not in manager_prompt:
-                errors.append(f"manager prompt must include `{required}`")
+            if required not in learning_skill:
+                errors.append(f"agent-learning skill must include `{required}`")
+    else:
+        errors.append("Missing agent-learning skill")
     if set(agents) != set(expected_routes) | {"build", "general", "plan"}:
         errors.append("OpenCode agent names must match the approved route set")
     for agent_name, (expected_model, expected_variant) in expected_routes.items():
