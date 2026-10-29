@@ -94,6 +94,18 @@ forAllSystems (
       touch $out
     '';
     agent-inbox-wrapper-tests = import ../home/tests/agent-inbox-wrapper.nix { pkgs = p; };
+    opencode-tool-sync-tests =
+      p.runCommand "check-opencode-tool-sync" { nativeBuildInputs = [ p.bash ]; }
+        ''
+          cp ${../home/modules/activation/sync_opencode_tools.sh} sync_opencode_tools.sh
+          cp ${../home/tests/opencode-tool-sync.sh} test-opencode-tool-sync.sh
+          chmod u+w sync_opencode_tools.sh test-opencode-tool-sync.sh
+          mkdir -p home/modules/activation home/tests
+          cp sync_opencode_tools.sh home/modules/activation/sync_opencode_tools.sh
+          cp test-opencode-tool-sync.sh home/tests/opencode-tool-sync.sh
+          bash home/tests/opencode-tool-sync.sh
+          touch $out
+        '';
     worktree-guard-tests =
       p.runCommand "check-worktree-guard"
         {

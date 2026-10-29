@@ -33,6 +33,7 @@ let
   opencode_package_template = ../../../xdg/config/opencode/package.json;
   opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
   opencode_tools_template = ../../../xdg/config/opencode/tools;
+  opencode_tools_sync = ./sync_opencode_tools.sh;
   opencode_plugins_template = ../../../xdg/config/opencode/plugins;
   jaq = "${pkgs.jaq}/bin/jaq";
   node = "${pkgs.nodejs_22}/bin/node";
@@ -222,34 +223,8 @@ in
   '';
 
   home.activation.syncOpencodeTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    tools_src="${opencode_tools_template}"
-    tools_dest="${config.xdg.configHome}/opencode/tools"
-
-    # Bun resolves imports from a file's realpath; a Nix-store symlink makes
-    # ~/.config/opencode/node_modules unreachable from custom tools. Sync real files.
-    if [ -L "$tools_dest" ]; then
-      $DRY_RUN_CMD rm -f "$tools_dest"
-    fi
-    $DRY_RUN_CMD mkdir -p "$tools_dest"
-
-    for src_file in "$tools_src"/*; do
-      [ -e "$src_file" ] || continue
-      base="$(basename "$src_file")"
-      dest_file="$tools_dest/$base"
-      if [ -f "$dest_file" ] && diff -q "$src_file" "$dest_file" >/dev/null 2>&1; then
-        continue
-      fi
-      $DRY_RUN_CMD cp -fL "$src_file" "$dest_file"
-      $DRY_RUN_CMD chmod u+w "$dest_file"
-    done
-
-    for dest_file in "$tools_dest"/*; do
-      [ -e "$dest_file" ] || continue
-      base="$(basename "$dest_file")"
-      if [ ! -e "$tools_src/$base" ]; then
-        $DRY_RUN_CMD rm -f "$dest_file"
-      fi
-    done
+    source "${opencode_tools_sync}"
+    sync_opencode_tools "${opencode_tools_template}" "${config.xdg.configHome}/opencode/tools" "$DRY_RUN_CMD"
   '';
 
   home.activation.syncOpencodePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

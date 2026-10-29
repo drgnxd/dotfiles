@@ -136,6 +136,10 @@ test-spotlight-app-launchers:
 test-opencode-plugin-sync:
   bash home/tests/opencode-plugin-sync.sh
 
+# Test OpenCode tool activation preserves user files and rejects symlinks
+test-opencode-tool-sync:
+  bash home/tests/opencode-tool-sync.sh
+
 # Test the worktree guard plugin helper
 test-worktree-guard:
   uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_guard.py
