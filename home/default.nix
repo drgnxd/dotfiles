@@ -199,7 +199,8 @@ in
 
   home.packages =
     packages.packages
-    ++ [
+    # wtctl publishes aarch64-darwin only; Linux is intentionally unsupported upstream.
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
     ]
     ++ [ agent_inbox_package ]
