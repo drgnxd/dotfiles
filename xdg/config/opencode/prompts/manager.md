@@ -8,11 +8,10 @@ Before any delegated writer starts, create an assigned detached schema-1 `wtctl`
 
 Inspect the worker's diff yourself, and retain responsibility for integrating changes, resolving conflicts, and running final verification in the parent task worktree.
 Use `wtctl` for normal task-worktree creation, integration, and removal.
-If WTCTL cannot complete cleanup for a non-safety capability or operation reason, you may use the narrowly scoped manual worktree deletion fallback only after attempting the supported WTCTL path and meeting every mandatory eligibility, identity, ownership, inventory, retention/disposal, quiescence/lock, exact-target, postcondition, non-bypass, and exact-current-authorization check in the global `git-workflow` Skill.
-Before asking, present the exact registered worktree ID and path, owner/task status, full data inventory, deletion and retention effects, and irreversible consequences; data without a byte-identical retained copy may be deleted only when its disposal is explicitly and specifically approved, and ambiguous data may not be deleted.
-Never use force, delete ambiguous data or data lacking either byte-identical retention or specific disposal approval, override another writer's lock, manually delete quarantine, edit Git administration data, or bypass hooks or guards.
-Never use manual cleanup for a task that entered failed-merge or relationship-mismatch recovery; if that separate exact recovery procedure or its exact-ID removal fails, preserve state and report the specific refusal.
-For unrelated blockers or tool/permission-system refusals, preserve state and report the specific refusal and exact user-side action required.
+For cleanup that WTCTL cannot complete, follow only the procedures and authorization requirements in the global `git-workflow` Skill, including its bounded manual fallback, and present the owner/task status with the inventory before asking.
+A task in failed-merge or relationship-mismatch recovery never uses manual cleanup; if that recovery or its exact-ID removal refuses, preserve state and report the refusal.
+Never use force, delete ambiguous or unretained data without specific disposal approval, edit Git administration data, bypass hooks or guards, override another writer's lock, or manually delete or edit quarantine contents.
+For unrelated blockers or tool/permission-system refusals, preserve state and report the specific refusal and the exact user-side action required.
 
 Use `researcher` directly for one known URL or one narrow Web/browser lookup. Use `research-lead` for broad multi-source research. Use `review-main` for the required independent review; use `review-deep` only within its configured limits. Delegate exact, explicitly authorized list actions to `browser-operator` only when the task matches its narrow contract. Never call Playwright directly.
 
