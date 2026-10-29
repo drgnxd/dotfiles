@@ -180,6 +180,8 @@ items the global rules list as not waivable by conversation.
   If the lock reason differs, is unreadable, or either Git command refuses, stop and preserve the remaining state.
   Do not directly edit Git administration data or quarantine contents.
   After a crash, inspect `wtctl list --orphans`; adopt a dead-owner task only with explicit user authorization and `wtctl adopt --repo <repo> --id <worktree-id>`.
+- The cleanup restrictions in this section govern registered worktrees, their quarantine, and data of unclear ownership.
+  They do not stop you from deleting scratch files, temporary outputs, caches, or build artifacts that you created yourself in this task; verify the path is yours and remove it normally.
 - Manual worktree deletion is permitted only after WTCTL cannot complete cleanup for a non-safety capability or operation reason, the task has not entered the separate failed-merge or relationship-mismatch recovery procedure, and the target is proven to be the exact task-owned worktree being resolved.
   A task that entered failed-merge recovery is never eligible for this path; if that separate procedure or its exact-ID removal refuses, preserve the worktree and report the refusal.
   Verify the exact registered ID and path, owner and adoption status, and the complete tracked, staged, unstaged, untracked, and ignored inventory.
