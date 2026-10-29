@@ -490,6 +490,10 @@ def validate_config(errors: list[str]) -> None:
             "do not replace or rename it",
             "0700",
             "0600",
+            "untrusted, non-authoritative observations",
+            "remove it only when that owner record matches yours",
+            "do not wait, overwrite, or remove it",
+            "do not automatically change permissions",
         ):
             if required not in learning_skill:
                 errors.append(f"agent-learning skill must include `{required}`")
