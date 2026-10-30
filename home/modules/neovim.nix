@@ -21,13 +21,13 @@ in
     withPython3 = false;
     withNodeJs = false;
     plugins = with pkgs.vimPlugins; [
-      solarized-nvim
       (nvim-treesitter.withPlugins (_: nvim-treesitter.allGrammars))
     ];
     initLua = builtins.readFile ../../xdg/config/nvim/init.lua;
   };
 
   xdg.configFile = {
+    "nvim/colors/solarized-dark.lua".source = ../../xdg/config/nvim/colors/solarized-dark.lua;
     "nvim/lua/lsp.lua".text = lsp_lua_substituted;
     "nvim/lua/keymaps.lua".source = ../../xdg/config/nvim/lua/keymaps.lua;
   };
