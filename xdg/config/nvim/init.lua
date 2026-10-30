@@ -15,7 +15,6 @@ o.tabstop = 2
 o.shiftwidth = 2
 o.virtualedit = "onemore"
 
--- The plugin uses several light-theme colors even when 'background' is dark.
 local highlights = {
   Normal = { fg = "#839496", bg = "NONE" },
   NormalNC = { link = "Normal" },
@@ -23,6 +22,24 @@ local highlights = {
   EndOfBuffer = { fg = "#586e75", bg = "NONE" },
   Identifier = { fg = "#839496" },
   Statement = { fg = "#859900" },
+  Comment = { fg = "#657b83" },
+  Constant = { fg = "#2aa198" },
+  String = { fg = "#2aa198" },
+  Character = { fg = "#2aa198" },
+  Number = { fg = "#d33682" },
+  Boolean = { fg = "#d33682" },
+  Float = { fg = "#d33682" },
+  Function = { fg = "#268bd2" },
+  Conditional = { fg = "#859900" },
+  Repeat = { fg = "#859900" },
+  Keyword = { fg = "#859900" },
+  Operator = { fg = "#859496" },
+  PreProc = { fg = "#cb4b16" },
+  Type = { fg = "#b58900" },
+  Special = { fg = "#cb4b16" },
+  Underlined = { fg = "#268bd2", underline = true },
+  Error = { fg = "#dc322f", bold = true },
+  Todo = { fg = "#b58900", bold = true },
   Define = { fg = "#cb4b16" },
   SpecialChar = { fg = "#cb4b16" },
   SpecialComment = { fg = "#93a1a1" },
@@ -43,6 +60,14 @@ local highlights = {
   IncSearch = { fg = "#002b36", bg = "#cb4b16" },
   ColorColumn = { bg = "#073642" },
   CursorColumn = { bg = "#073642" },
+  CursorLine = { bg = "#073642" },
+  LineNr = { fg = "#586e75" },
+  StatusLine = { fg = "#839496", bg = "#073642" },
+  StatusLineNC = { fg = "#657b83", bg = "#073642" },
+  Directory = { fg = "#268bd2" },
+  Title = { fg = "#859900", bold = true },
+  ErrorMsg = { fg = "#dc322f" },
+  WarningMsg = { fg = "#cb4b16" },
   VertSplit = { fg = "#586e75" },
   TabLineSel = { fg = "#002b36", bg = "#839496", bold = true },
   NormalMode = { fg = "#002b36", bg = "#839496" },
@@ -69,35 +94,17 @@ local highlights = {
   ["@operator"] = { fg = "#839496" },
   ["@punctuation"] = { fg = "#839496" },
 }
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "solarized",
-  callback = function()
-    for group, highlight in pairs(highlights) do
-      vim.api.nvim_set_hl(0, group, highlight)
-    end
-    -- The plugin applies its remaining groups asynchronously after ColorScheme.
-    local util = require("solarized.util")
-    local apply = util.highlight_table_members
-    local remaining = 3
-    util.highlight_table_members = function(groups)
-      remaining = remaining - 1
-      if remaining == 0 then
-        util.highlight_table_members = apply
-      end
-      if vim.g.colors_name ~= "solarized" then
-        return
-      end
-      local filtered = {}
-      for group, highlight in pairs(groups) do
-        if not highlights[group] then
-          filtered[group] = highlight
-        end
-      end
-      apply(filtered)
-    end
-  end,
-})
-vim.cmd.colorscheme("solarized")
+local function solarized_dark()
+  vim.o.background = "dark"
+  vim.cmd.colorscheme("default")
+  for group, highlight in pairs(highlights) do
+    vim.api.nvim_set_hl(0, group, highlight)
+  end
+  vim.g.colors_name = "solarized-dark"
+  vim.api.nvim_exec_autocmds("ColorScheme", { pattern = "solarized-dark" })
+end
+vim.api.nvim_create_user_command("SolarizedDark", solarized_dark, {})
+solarized_dark()
 
 vim.diagnostic.config({ virtual_text = { current_line = true }, severity_sort = true })
 

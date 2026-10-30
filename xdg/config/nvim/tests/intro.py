@@ -66,18 +66,18 @@ try:
             output.extend(os.read(master, 65536))
         cells = screen_cells(output)
         if any(
-            all(cells.get((row, column + i)) == (char, (133, 153, 0)) for i, char in enumerate("NVIM v"))
+            all(cells.get((row, column + i)) == (char, (42, 161, 152)) for i, char in enumerate("NVIM v"))
             for row, column in cells
         ):
             break
     assert any(
-        all(cells.get((row, column + i)) == (char, (133, 153, 0)) for i, char in enumerate("NVIM v"))
+        all(cells.get((row, column + i)) == (char, (42, 161, 152)) for i, char in enumerate("NVIM v"))
         for row, column in cells
     ), (
-        "intro version text was not rendered in Solarized green"
+        "intro version text was not rendered in Solarized cyan"
     )
-    assert any(char == "╲" and fg == (133, 153, 0) for char, fg in cells.values()), (
-        "intro logo was not rendered in Solarized green"
+    assert any(char == "╲" and fg == (42, 161, 152) for char, fg in cells.values()), (
+        "intro logo was not rendered in Solarized cyan"
     )
     print("Solarized intro terminal regression passed")
 finally:
