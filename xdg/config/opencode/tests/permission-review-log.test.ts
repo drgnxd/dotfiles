@@ -14,6 +14,7 @@ test("does not report a normal event stream abort during plugin teardown", () =>
 
 test("skips V2 stream setup when the runtime context has no event API", () => {
   expect(permissionReviewPlugin.setup({})).toBeUndefined()
+  expect(permissionReviewPlugin.setup({ event: {} })).toBeUndefined()
 })
 
 test("consumes V2 permission events when the runtime exposes the event API", async () => {
@@ -28,17 +29,17 @@ test("consumes V2 permission events when the runtime exposes the event API", asy
     { type: "permission.replied", data: { requestID: "v2-plain", reply: "reject" } },
   ]
   try {
-    const stop = permissionReviewPlugin.setup({
-      event: {
-        subscribe() {
-          return {
-            async *[Symbol.asyncIterator]() {
-              yield* events
-            },
-          }
-        },
+    const eventApi = {
+      subscribe(this: unknown) {
+        expect(this).toBe(eventApi)
+        return {
+          async *[Symbol.asyncIterator]() {
+            yield* events
+          },
+        }
       },
-    })
+    }
+    const stop = permissionReviewPlugin.setup({ event: eventApi })
     let content = ""
     for (let attempt = 0; attempt < 100; attempt++) {
       try {
