@@ -103,12 +103,6 @@ lint:
 dead:
   nix run nixpkgs#deadnix -- --fail .
 
-# Type-check and test the Agent Inbox against the pinned OpenCode SDK declarations
-check-agent-inbox:
-  nix develop -c npm ci --prefix xdg/config/opencode --ignore-scripts
-  nix develop -c npm --prefix xdg/config/opencode run typecheck:agent-inbox
-  nix develop -c npm --prefix xdg/config/opencode run test:agent-inbox
-
 # Rekey agenix secrets
 rekey:
   cd secrets && nix run github:ryantm/agenix -- -r
