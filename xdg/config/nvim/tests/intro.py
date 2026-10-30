@@ -2,6 +2,7 @@ import fcntl
 import os
 from pathlib import Path
 import pty
+import re
 import select
 import struct
 import subprocess
@@ -20,17 +21,64 @@ process = subprocess.Popen(
 )
 os.close(slave)
 output = bytearray()
+
+
+def screen_cells(data):
+    foreground = None
+    cells = {}
+    row = column = 0
+    for token in re.findall(rb"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\([^\x00-\x1f]|[^\x1b]+|\x1b.", data):
+        if token.startswith(b"\x1b[") and token.endswith(b"m") and b"?" not in token:
+            params = [int(value.split(b":")[0]) if value else 0 for value in token[2:-1].split(b";")]
+            index = 0
+            while index < len(params):
+                if params[index] in (0, 39):
+                    foreground = None
+                elif params[index : index + 2] == [38, 2] and index + 4 < len(params):
+                    foreground = tuple(params[index + 2 : index + 5])
+                    index += 4
+                index += 1
+        elif token.startswith(b"\x1b[") and token.endswith((b"H", b"f")):
+            params = token[2:-1].split(b";")
+            row = int(params[0] or b"1") - 1
+            column = int(params[1] or b"1") - 1 if len(params) > 1 else 0
+        elif token.startswith(b"\x1b[") and token.endswith(b"X"):
+            count = int(token[2:-1] or b"1")
+            for offset in range(count):
+                cells.pop((row, column + offset), None)
+        elif not token.startswith(b"\x1b"):
+            for char in token.decode("utf-8", errors="replace"):
+                if char == "\r":
+                    column = 0
+                elif char == "\n":
+                    row += 1
+                elif char >= " ":
+                    cells[row, column] = (char, foreground)
+                    column += 1
+    return cells
+
+
 try:
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
         ready, _, _ = select.select([master], [], [], 0.2)
         if ready:
             output.extend(os.read(master, 65536))
-        if b"NVIM v" in output and b"\x1b[38;2;133;153;0m" in output:
+        cells = screen_cells(output)
+        if any(
+            all(cells.get((row, column + i)) == (char, (133, 153, 0)) for i, char in enumerate("NVIM v"))
+            for row, column in cells
+        ):
             break
-    assert b"NVIM v" in output, "intro screen was not rendered"
-    assert b"\x1b[38;2;133;153;0m" in output, "intro Statement is not Solarized green"
-    assert b"\x1b[38;2;7;54;66m" not in output, "dark-on-dark foreground appeared in intro"
+    assert any(
+        all(cells.get((row, column + i)) == (char, (133, 153, 0)) for i, char in enumerate("NVIM v"))
+        for row, column in cells
+    ), (
+        "intro version text was not rendered in Solarized green"
+    )
+    assert any(char == "╲" and fg == (133, 153, 0) for char, fg in cells.values()), (
+        "intro logo was not rendered in Solarized green"
+    )
     print("Solarized intro terminal regression passed")
 finally:
     process.kill()

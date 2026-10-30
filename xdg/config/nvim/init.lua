@@ -78,7 +78,15 @@ vim.api.nvim_create_autocmd("ColorScheme", {
     -- The plugin applies its remaining groups asynchronously after ColorScheme.
     local util = require("solarized.util")
     local apply = util.highlight_table_members
+    local remaining = 3
     util.highlight_table_members = function(groups)
+      remaining = remaining - 1
+      if remaining == 0 then
+        util.highlight_table_members = apply
+      end
+      if vim.g.colors_name ~= "solarized" then
+        return
+      end
       local filtered = {}
       for group, highlight in pairs(groups) do
         if not highlights[group] then

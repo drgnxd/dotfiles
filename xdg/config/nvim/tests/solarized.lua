@@ -25,7 +25,10 @@ local function check()
 end
 
 check()
+local util = require("solarized.util")
+local pending = util.highlight_table_members
 vim.wait(200)
+assert(util.highlight_table_members ~= pending, "async wrapper was not restored")
 check()
 vim.cmd.new()
 vim.bo.filetype = "lua"
@@ -33,6 +36,18 @@ vim.api.nvim_buf_set_lines(0, 0, -1, false, { "local answer = 42", "print(answer
 vim.api.nvim_buf_set_text(0, 0, 6, 0, 12, { "result" })
 check()
 vim.cmd.colorscheme("solarized")
+util = require("solarized.util")
+pending = util.highlight_table_members
 vim.wait(200)
+assert(util.highlight_table_members ~= pending, "reload wrapper was not restored")
 check()
+vim.cmd.colorscheme("solarized")
+util = require("solarized.util")
+pending = util.highlight_table_members
+vim.cmd.colorscheme("default")
+local default_keyword = vim.api.nvim_get_hl(0, { name = "TSOperator", link = false })
+vim.wait(200)
+assert(util.highlight_table_members ~= pending, "inactive wrapper was not restored")
+assert(vim.deep_equal(default_keyword, vim.api.nvim_get_hl(0, { name = "TSOperator", link = false })),
+  "pending Solarized highlights changed the new theme")
 print("Solarized dark highlight regression passed")
