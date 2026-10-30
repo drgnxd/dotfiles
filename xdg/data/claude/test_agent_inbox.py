@@ -23,13 +23,16 @@ CONFIG = load("agent_inbox_config")
 
 
 class ClaudeInboxTests(unittest.TestCase):
-    def test_existing_os_notification_hooks_remain_enabled(self):
+    def test_hooks_remain_quiet_and_preserve_inbox_integration(self):
         root = Path(__file__).parents[3]
         source = (root / "home" / "default.nix").read_text(encoding="utf-8")
-        self.assertIn("display notification", source)
-        self.assertIn('command = "${claude_notify} complete 2>/dev/null || true";', source)
-        self.assertIn("Notification = [", source)
-        self.assertIn('command = "${claude_notify} permission 2>/dev/null || true";', source)
+        self.assertNotIn("display notification", source)
+        self.assertNotIn("claude_notify", source)
+        self.assertNotIn("Notification = [", source)
+        self.assertIn("PermissionRequest = [", source)
+        self.assertIn('command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py}";', source)
+        self.assertIn("Stop = [", source)
+        self.assertIn('command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py} complete 2>/dev/null || true";', source)
 
     def test_hook_whitelists_only_safe_values(self):
         value = HOOK.safe_request({"tool_name": "Read", "permission_request_id": "r-1", "tool_input": {"command": "private"}})
