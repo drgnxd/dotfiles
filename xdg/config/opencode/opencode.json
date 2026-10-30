@@ -242,6 +242,7 @@
     "max_lines": 300,
     "max_bytes": 12288
   },
+  "plugins": ["-opencode.provider.openai-context-caps"],
   "compaction": {
     "auto": true,
     "buffer": 20000
