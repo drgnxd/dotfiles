@@ -58,6 +58,14 @@ def screen_cells(data):
     return cells
 
 
+def matches(cells, pieces):
+    expected = [(char, color) for text, color in pieces for char in text]
+    return any(
+        all(cells.get((row, column + offset)) == cell for offset, cell in enumerate(expected))
+        for row, column in cells
+    )
+
+
 try:
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
@@ -65,10 +73,7 @@ try:
         if ready:
             output.extend(os.read(master, 65536))
         cells = screen_cells(output)
-        if any(
-            all(cells.get((row, column + i)) == (char, (42, 161, 152)) for i, char in enumerate("NVIM v"))
-            for row, column in cells
-        ):
+        if b"for help" in output:
             break
     assert any(
         all(cells.get((row, column + i)) == (char, (42, 161, 152)) for i, char in enumerate("NVIM v"))
@@ -79,6 +84,22 @@ try:
     assert any(char == "╲" and fg == (42, 161, 152) for char, fg in cells.values()), (
         "intro logo was not rendered in Solarized cyan"
     )
+    normal = (131, 148, 150)
+    special = (203, 75, 22)
+    for command, description in (
+        ("help nvim", "if you are new!"),
+        ("checkhealth", "to optimize Nvim"),
+        ("q", "to exit"),
+        ("help", "for help"),
+    ):
+        padding = " " * (28 - len("type  :" + command + "<Enter>"))
+        assert matches(cells, [
+            ("type  ", normal),
+            (":", special),
+            (command, normal),
+            ("<Enter>", special),
+            (padding + description, normal),
+        ]), f"intro prompt :{command} has incorrect text or foreground colors"
     print("Solarized intro terminal regression passed")
 finally:
     process.kill()
