@@ -1,6 +1,7 @@
 {
-  "sound": true,
-  "notification": true,
+  "sound": false,
+  "notification": false,
+  "bell": false,
   "timeout": 5,
   "showProjectName": true,
   "showSessionTitle": true,
@@ -21,10 +22,10 @@
   },
   "events": {
     "permission": { "sound": false, "notification": false },
-    "complete": { "sound": true, "notification": true },
+    "complete": { "sound": false, "notification": false },
     "subagent_complete": { "sound": false, "notification": false },
-    "error": { "sound": true, "notification": true },
-    "question": { "sound": true, "notification": true },
+    "error": { "sound": false, "notification": false },
+    "question": { "sound": false, "notification": false },
     "user_cancelled": { "sound": false, "notification": false }
   },
   "messages": {

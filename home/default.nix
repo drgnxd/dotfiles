@@ -46,24 +46,6 @@ let
     else
       [ ];
   claude_settings_base = builtins.fromJSON (builtins.readFile ../xdg/data/claude/settings.json);
-  claude_notify = pkgs.writeShellScript "claude-notify" ''
-    # Scheduled jobs (launchd) set this variable to run quietly.
-    [ -n "$OPENCODE_NOTIFIER_CONFIG_PATH" ] && exit 0
-    input=$(cat)
-    cwd=$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.cwd // empty')
-    case "$1" in
-      complete) body="Session has finished" ;;
-      *) body=$(printf '%s' "$input" | ${pkgs.jq}/bin/jq -r '.message // "Session needs attention"') ;;
-    esac
-    title="Claude Code"
-    if [ -n "$cwd" ]; then
-      title="Claude Code ($(basename "$cwd"))"
-    fi
-    /usr/bin/osascript \
-      -e 'on run argv' \
-      -e 'display notification (item 1 of argv) with title (item 2 of argv)' \
-      -e 'end run' -- "$body" "$title"
-  '';
   claude_settings = claude_settings_base // {
     autoMode = claude_settings_base.autoMode // {
       environment = claude_settings_base.autoMode.environment ++ claude_local_environment;
@@ -101,20 +83,6 @@ let
             {
               type = "command";
               command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py} complete 2>/dev/null || true";
-            }
-            {
-              type = "command";
-              command = "${claude_notify} complete 2>/dev/null || true";
-            }
-          ];
-        }
-      ];
-      Notification = [
-        {
-          hooks = [
-            {
-              type = "command";
-              command = "${claude_notify} permission 2>/dev/null || true";
             }
           ];
         }
