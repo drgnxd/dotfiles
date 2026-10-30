@@ -244,7 +244,7 @@
   },
   "compaction": {
     "auto": true,
-    "tail_turns": 10
+    "buffer": 20000
   },
   "experimental": {
     "subagent_depth": 2,
