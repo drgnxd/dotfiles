@@ -22,6 +22,11 @@ local highlights = {
   SignColumn = { link = "Normal" },
   EndOfBuffer = { fg = "#586e75", bg = "NONE" },
   Identifier = { fg = "#839496" },
+  Statement = { fg = "#859900" },
+  Define = { fg = "#cb4b16" },
+  SpecialChar = { fg = "#cb4b16" },
+  SpecialComment = { fg = "#93a1a1" },
+  Ignore = { fg = "#586e75" },
   NonText = { fg = "#586e75" },
   Whitespace = { fg = "#586e75" },
   Conceal = { fg = "#93a1a1" },
@@ -38,6 +43,27 @@ local highlights = {
   IncSearch = { fg = "#002b36", bg = "#cb4b16" },
   ColorColumn = { bg = "#073642" },
   CursorColumn = { bg = "#073642" },
+  VertSplit = { fg = "#586e75" },
+  TabLineSel = { fg = "#002b36", bg = "#839496", bold = true },
+  NormalMode = { fg = "#002b36", bg = "#839496" },
+  CommandMode = { fg = "#002b36", bg = "#2aa198" },
+  DashboardHeader = { fg = "#268bd2" },
+  DashboardShortCut = { fg = "#2aa198" },
+  DashboardCenter = { fg = "#839496" },
+  TSField = { fg = "#839496" },
+  TSOperator = { fg = "#839496" },
+  TSPunctDelimiter = { fg = "#839496" },
+  TSPunctBracket = { fg = "#839496" },
+  TSPunctSpecial = { fg = "#839496" },
+  TSStringEscape = { fg = "#cb4b16" },
+  NvimTreeEmptyFolderName = { fg = "#93a1a1" },
+  NvimTreeFolderIcon = { fg = "#268bd2" },
+  NvimTreeIndentMarker = { fg = "#586e75" },
+  WhichKey = { fg = "#2aa198", bold = true },
+  LspSagaSignatureHelpBorder = { fg = "#2aa198" },
+  BufferLineIndicatorSelected = { fg = "#2aa198" },
+  Sneak = { fg = "#002b36", bg = "#b58900" },
+  IndentBlanklineContextChar = { fg = "#586e75" },
   ["@variable"] = { fg = "#839496" },
   ["@variable.member"] = { fg = "#839496" },
   ["@operator"] = { fg = "#839496" },
@@ -48,6 +74,18 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
     for group, highlight in pairs(highlights) do
       vim.api.nvim_set_hl(0, group, highlight)
+    end
+    -- The plugin applies its remaining groups asynchronously after ColorScheme.
+    local util = require("solarized.util")
+    local apply = util.highlight_table_members
+    util.highlight_table_members = function(groups)
+      local filtered = {}
+      for group, highlight in pairs(groups) do
+        if not highlights[group] then
+          filtered[group] = highlight
+        end
+      end
+      apply(filtered)
     end
   end,
 })
