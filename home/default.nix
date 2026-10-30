@@ -26,10 +26,6 @@ let
       import claude_local_environment_path
     else
       [ ];
-  agent_inbox_package = import ./lib/agent-inbox-package.nix {
-    inherit pkgs;
-    cacheHome = config.xdg.cacheHome;
-  };
   # Packages built from sources that live in private repositories, kept out of
   # this public repo by name. Same local-override pattern: gitignored,
   # optional, empty on a fresh clone. See local/private-tools.nix.example.
@@ -51,18 +47,6 @@ let
       environment = claude_settings_base.autoMode.environment ++ claude_local_environment;
     };
     hooks = {
-      PermissionRequest = [
-        {
-          matcher = "*";
-          hooks = [
-            {
-              type = "command";
-              command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py}";
-              timeout = 610;
-            }
-          ];
-        }
-      ];
       PreToolUse = [
         {
           matcher = "Edit|Write|MultiEdit|NotebookEdit|Bash|EnterWorktree";
@@ -73,16 +57,6 @@ let
               # python's own exit 2, which would block every tool call.
               command = ''f=${config.xdg.configHome}/opencode/skills/git-workflow/scripts/worktree_guard.py; [ -f "$f" ] || exit 0; WORKTREE_GUARD_GIT=${pkgs.git}/bin/git exec ${pkgs.python3}/bin/python3 -I "$f" --client claude'';
               timeout = 10;
-            }
-          ];
-        }
-      ];
-      Stop = [
-        {
-          hooks = [
-            {
-              type = "command";
-              command = "${pkgs.python3}/bin/python3 -I ${../xdg/data/claude/agent_inbox_hook.py} complete 2>/dev/null || true";
             }
           ];
         }
@@ -143,10 +117,7 @@ in
 
   xdg.enable = true;
 
-  xdg.configFile = {
-    "opencode/lib/agent-inbox.ts".source = ../xdg/config/opencode/lib/agent-inbox.ts;
-  }
-  // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+  xdg.configFile = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     "zsh/.zshrc".source = ../xdg/config/zsh/.zshrc;
   };
 
@@ -171,7 +142,6 @@ in
     ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
     ]
-    ++ [ agent_inbox_package ]
     ++ private_tools;
 
   programs.bash = {
@@ -201,8 +171,6 @@ in
   };
 
   xdg.dataFile."claude/CLAUDE.md".source = ../xdg/data/claude/CLAUDE.md;
-  xdg.dataFile."claude/agent_inbox_hook.py".source = ../xdg/data/claude/agent_inbox_hook.py;
-  xdg.dataFile."claude/agent_inbox_config.py".source = ../xdg/data/claude/agent_inbox_config.py;
   xdg.dataFile."claude/settings.json".source = claude_settings_json;
   xdg.dataFile."claude/agents/Explore.md".source = ../xdg/data/claude/agents/Explore.md;
   xdg.dataFile."claude/agents/Plan.md".source = ../xdg/data/claude/agents/Plan.md;

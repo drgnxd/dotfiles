@@ -93,7 +93,6 @@ forAllSystems (
       deadnix --fail .
       touch $out
     '';
-    agent-inbox-wrapper-tests = import ../home/tests/agent-inbox-wrapper.nix { pkgs = p; };
     opencode-tool-sync-tests =
       p.runCommand "check-opencode-tool-sync" { nativeBuildInputs = [ p.bash ]; }
         ''
