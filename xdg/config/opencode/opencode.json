@@ -103,7 +103,6 @@
       "model": "openai/gpt-6.1-terra",
       "variant": "medium",
       "color": "#5fd7c8",
-      "steps": 12,
       "permission": {
         "*": "deny",
         "todowrite": "allow",
@@ -117,11 +116,9 @@
     "researcher": {
       "description": "Answers one narrow question from public web sources or delegated read-only Playwright browser research. No local files, commands, edits, or delegation. Dispatch directly for browser tasks and via research-lead for broader research.",
       "mode": "subagent",
-      "hidden": true,
       "model": "openai/gpt-6.1-terra",
       "variant": "medium",
       "color": "#9ccc65",
-      "steps": 20,
       "tools": {
         "webfetch": true,
         "websearch": true,
@@ -164,10 +161,8 @@
     "browser-operator": {
       "description": "Removes one exact, user-authorized list entry after the parent confirms it is represented in the destination; never purchases or edits account settings.",
       "mode": "subagent",
-      "hidden": true,
       "model": "openai/gpt-6-luna",
       "variant": "medium",
-      "steps": 16,
       "tools": {
         "playwright_browser_session_create": true,
         "playwright_browser_session_close": true,
@@ -194,10 +189,8 @@
     "pdf-reader": {
       "description": "Reads and analyzes the PDF supplied for a research task. Read-only, PDF paths only, no web or command access.",
       "mode": "subagent",
-      "hidden": true,
       "model": "openai/gpt-6.1-terra",
       "variant": "medium",
-      "steps": 12,
       "permission": {
         "*": "deny",
         "read": {

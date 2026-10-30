@@ -219,6 +219,12 @@ def validate_config(errors: list[str]) -> None:
         "research-lead": "#5fd7c8",
         "researcher": "#9ccc65",
     }
+    for role in ("research-lead", "researcher", "browser-operator", "pdf-reader"):
+        if "steps" in agents.get(role, {}):
+            errors.append(f"{role} must not impose a step limit")
+    for role in ("researcher", "browser-operator", "pdf-reader"):
+        if agents.get(role, {}).get("hidden", False):
+            errors.append(f"{role} must remain visible in the agent catalog")
     if (
         config.get("subagent_depth") != 2
         or config.get("experimental", {}).get("subagent_depth") != 2
