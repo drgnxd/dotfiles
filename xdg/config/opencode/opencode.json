@@ -14,7 +14,7 @@
     "agent-inbox": {
       "type": "local",
       "command": ["agent-inbox", "mcp"],
-      "enabled": true,
+      "enabled": false,
       "timeout": 660000
     }
   },
