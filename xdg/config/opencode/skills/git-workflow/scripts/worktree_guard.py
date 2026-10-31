@@ -10,8 +10,9 @@ plugin. It protects only the repositories listed in the machine-local config
      "default_branch": "main",
      "allow_paths": ["/abs/path/glob/in/main/checkout"]}
 
-`warn` only logs what `deny` would block. The guard never blocks on its own
-failure: any internal error, timeout, or unparsable input allows the call.
+`warn` only logs what `deny` would block when the guard completes. Internal
+errors and unparsable input allow the call; the OpenCode plugin blocks a timed-out
+outer guard call even in warn mode or if the guard configuration is unavailable.
 Bash analysis is best effort (git commands only); `sed -i` or redirects into
 the main checkout are not caught, and a command it cannot parse is allowed.
 """
