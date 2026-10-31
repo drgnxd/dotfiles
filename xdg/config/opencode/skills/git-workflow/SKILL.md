@@ -23,6 +23,22 @@ description: Use before the first file edit or Git write in each repository for 
 - A new repository with unborn `main` may receive only the minimal seed README and initial commit before creating a task worktree; do not use this exception for implementation or unrelated changes.
 - If there are staged, unstaged, untracked, or ignored changes of unclear ownership, do not mutate the worktree and coordinate instead.
 
+## Existing worktrees and legacy state
+
+- Before recording an existing registered worktree, verify its exact canonical root and two-way Git metadata, then query its current provenance with `wtctl query --path <worktree> --json`.
+  If it is unrecorded, independently verify the original creator session from contemporaneous creation records and use `wtctl record --path <worktree> --session <id>` only when that evidence establishes the creator.
+  Otherwise use `wtctl record --path <worktree> --unknown`; do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker.
+  The record is insert-only: do not guess, overwrite, delete, or re-record an existing or conflicting provenance entry; preserve it and resolve discrepancies through a supported documented procedure or stop.
+  Recording `--unknown` does not establish ownership or authorize edits, recovery, or deletion.
+- Preserve existing legacy markers, Git administration state, worktree locks, snapshots, refs, and quarantines; the current provenance-only `wtctl` neither interprets nor migrates them.
+  Do not remove or alter legacy markers, locks, quarantines, or their contents manually, and do not use native Git removal as a substitute for a refused legacy recovery.
+  A legacy worktree lock or unresolved quarantine is a stop condition for ordinary cleanup until its supported recovery has completed.
+- Keep the previous `wtctl` binary and its matching documentation available for legacy recovery and artifact-quarantine procedures.
+  Before invoking it, identify its exact executable path, version or build identity, and documented capabilities, and verify that its documentation supports the specific legacy state and operation; do not assume the current `wtctl` implements old lifecycle commands.
+  Follow that version's documented supported recovery and required checks, exact-target authorization, locks, and external-writer and Git-annex quiescence; inspect the affected data and preserve anything unclear.
+  Never bypass a guard, hook, permission, lock, or safety refusal, and never use unsupported deletion or manual quarantine cleanup as a fallback.
+  If the previous binary, matching documentation, identity, or applicable safe procedure cannot be established, preserve all state and report the blocker rather than guessing.
+
 ## Integration and cleanup
 
 - Only the integrator may integrate or remove worktrees.
