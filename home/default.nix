@@ -177,6 +177,7 @@ in
   xdg.dataFile."claude/agents/Review.md".source = ../xdg/data/claude/agents/Review.md;
   xdg.dataFile."copilot/copilot-instructions.md".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/AGENTS.md";
+  xdg.dataFile."copilot/settings.json".source = ../xdg/data/copilot/settings.json;
   xdg.dataFile."copilot/skills".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/skills";
 
