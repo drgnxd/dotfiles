@@ -136,6 +136,8 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
 
+  home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
+
   home.packages =
     packages.packages
     # wtctl publishes aarch64-darwin only; Linux is intentionally unsupported upstream.
@@ -156,6 +158,10 @@ in
   );
 
   home.file = {
+    ".local/bin/copilot" = {
+      source = ../scripts/copilot;
+      executable = true;
+    };
     # CodexBar still creates temporary files at the legacy path despite CODEX_HOME.
     ".codex".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/codex";
     ".claude.json".source =
@@ -177,7 +183,6 @@ in
   xdg.dataFile."claude/agents/Review.md".source = ../xdg/data/claude/agents/Review.md;
   xdg.dataFile."copilot/copilot-instructions.md".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/AGENTS.md";
-  xdg.dataFile."copilot/settings.json".source = ../xdg/data/copilot/settings.json;
   xdg.dataFile."copilot/skills".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/skills";
 
