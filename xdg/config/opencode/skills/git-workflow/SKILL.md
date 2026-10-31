@@ -13,10 +13,11 @@ description: Use before the first file edit or Git write in each repository for 
   Record the exact local `main` OID and use `git worktree add --detach <path> <oid>` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, never under a temporary directory.
 - Immediately record the creating session with `wtctl record --path <worktree> --session <id>`, or `--unknown` if the session is unavailable.
   Use `wtctl query --path <worktree> --json` to inspect provenance.
+  Keep lifecycle operations on that worktree quiescent throughout each record or query; use the same absolute `XDG_STATE_HOME` for both commands and the guard, or consistently leave it unset.
   A record, including `unknown`, is self-reported provenance, not proof of ownership or authorization.
   Independently establish ownership and authority from the current creation or delegation records; missing, conflicting, or unverifiable ownership fails closed even when provenance is known.
   `unknown` provenance is usable only when that independent ownership evidence is sufficient; otherwise preserve the worktree and stop.
-  If recording fails, preserve the worktree and stop rather than edit or remove it.
+  If recording fails, preserve the worktree and stop rather than edit or remove it; the record may already have committed, so query it before any further action and never blindly retry.
   Verify the exact path, detached HEAD, base OID, registration, and two-way `.git`/Git-admin pointers before editing.
 - Check repository-specific scheduled and non-cooperating writers and maintain the required locks and quiescence over the complete operation, including Git-annex shared state where applicable.
   Unrelated isolated worktrees are not by themselves blockers.

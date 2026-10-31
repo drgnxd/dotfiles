@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -427,6 +428,44 @@ def test_query_requires_known_matching_provenance(monkeypatch: pytest.MonkeyPatc
     assert not guard.recorded_worktree(path)
     result.returncode = 1
     assert not guard.recorded_worktree(path)
+
+
+def test_real_wtctl_provenance_and_git_guard(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    binary = os.environ.get("WTCTL_TEST_BINARY")
+    if not binary:
+        pytest.skip("set WTCTL_TEST_BINARY to the provenance-only wtctl binary")
+    binary_path = Path(binary).resolve(strict=True)
+    bin_dir = world["tmp"] / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "wtctl").symlink_to(binary_path)
+    monkeypatch.setenv("PATH", str(bin_dir) + os.pathsep + os.environ["PATH"])
+
+    def wtctl(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run([str(binary_path), *args], capture_output=True, text=True, check=False)
+
+    for name, record_args, status, session in [
+        ("known space", ["--session", "session-example"], "known", "session-example"),
+        ("unknown", ["--unknown"], "unknown", None),
+    ]:
+        path = world["tmp"] / "wt" / name
+        command = f"git worktree add --detach {shlex.quote(str(path))} HEAD"
+        assert not bash(command, world["main"])[1]
+        sh(world["main"], "worktree", "add", "--detach", str(path), "HEAD")
+        query = wtctl("query", "--path", str(path), "--json")
+        assert query.returncode == 0
+        assert json.loads(query.stdout) == {"path": str(path), "status": "unrecorded", "session": None}
+        assert decide("Write", {"file_path": str(path / "x")}, world["main"])[1]
+        record = wtctl("record", "--path", str(path), *record_args)
+        assert record.returncode == 0, record.stderr
+        query = wtctl("query", "--path", str(path), "--json")
+        assert query.returncode == 0
+        assert json.loads(query.stdout) == {"path": str(path), "status": status, "session": session}
+        assert wtctl("record", "--path", str(path), *record_args).returncode != 0
+        assert not decide("Write", {"file_path": str(path / "x")}, world["main"])[1]
+        assert not bash(f"git worktree remove {shlex.quote(str(path))}", world["main"])[1]
+        assert bash(f"git worktree remove --force {shlex.quote(str(path))}", world["main"])[1]
+        sh(world["main"], "worktree", "remove", str(path))
+        assert not path.exists()
 
 
 
