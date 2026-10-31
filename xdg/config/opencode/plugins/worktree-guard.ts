@@ -5,8 +5,8 @@ import { join } from "node:path"
 
 import type { Plugin } from "@opencode-ai/plugin"
 
-const GUARD_TIMEOUT_MS = 8000
-const TIMEOUT_REASON = "guard timed out after 8 seconds; operation blocked. Inspect guard and provenance-query latency before retrying; do not bypass the guard."
+const GUARD_TIMEOUT_MS = 15000
+const TIMEOUT_REASON = "guard timed out after 15 seconds; operation blocked. Inspect guard and provenance-query latency before retrying; do not bypass the guard."
 const GUARDED_TOOLS = new Set(["edit", "write", "multiedit", "patch", "apply_patch", "bash", "shell", "notebookedit"])
 
 type V2Context = {

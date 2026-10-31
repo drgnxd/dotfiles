@@ -4,8 +4,10 @@ import io
 import json
 import os
 import shlex
+import sqlite3
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -439,7 +441,12 @@ def test_many_detached_worktrees_query_only_the_target(world: dict[str, Path], m
     assert guard.locate(str(paths[0] / "x"), [repo])[1] == "protected"
     assert calls == [str(paths[0])]
     calls.clear()
+    repo.provenance.clear()
     assert guard.check_git(["git", "worktree", "remove", str(paths[-1])], str(world["main"]), [repo]).action == "allow"
+    assert calls == [str(paths[-1])]
+    calls.clear()
+    repo.provenance.clear()
+    assert guard.check_git(["git", "worktree", "remove", str(paths[-1])], str(paths[-1]), [repo]).action == "allow"
     assert calls == [str(paths[-1])]
 
 
@@ -453,6 +460,7 @@ def test_query_requires_known_matching_provenance(monkeypatch: pytest.MonkeyPatc
 
     def query(argv: list[str], **kwargs: object) -> Result:
         assert argv == ["wtctl", "query", "--path", path, "--json"]
+        assert kwargs["timeout"] == 8
         return result
 
     monkeypatch.setattr(guard.subprocess, "run", query)
@@ -464,6 +472,11 @@ def test_query_requires_known_matching_provenance(monkeypatch: pytest.MonkeyPatc
     result.stdout = json.dumps({"path": path, "status": "unknown"})
     assert not guard.recorded_worktree(path)
     result.returncode = 1
+    assert not guard.recorded_worktree(path)
+    def timed_out(*_args: object, **_kwargs: object) -> Result:
+        raise subprocess.TimeoutExpired("wtctl", 8)
+
+    monkeypatch.setattr(guard.subprocess, "run", timed_out)
     assert not guard.recorded_worktree(path)
 
 
@@ -503,6 +516,31 @@ def test_real_wtctl_provenance_and_git_guard(world: dict[str, Path], monkeypatch
         assert bash(f"git worktree remove --force {shlex.quote(str(path))}", world["main"])[1]
         sh(world["main"], "worktree", "remove", str(path))
         assert not path.exists()
+
+
+def test_real_wtctl_tolerates_database_contention(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    binary = os.environ.get("WTCTL_TEST_BINARY")
+    if not binary:
+        pytest.skip("set WTCTL_TEST_BINARY to the provenance-only wtctl binary")
+    binary_path = Path(binary).resolve(strict=True)
+    bin_dir = world["tmp"] / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "wtctl").symlink_to(binary_path)
+    monkeypatch.setenv("PATH", str(bin_dir) + os.pathsep + os.environ["PATH"])
+    sh(world["task"], "checkout", "-q", "--detach")
+    subprocess.run([str(binary_path), "record", "--path", str(world["task"]), "--session", "session-example"], check=True, capture_output=True)
+    db = world["state"] / "wtctl-provenance" / "session-provenance.sqlite3"
+    connection = sqlite3.connect(db, check_same_thread=False)
+    connection.execute("BEGIN EXCLUSIVE")
+    timer = threading.Timer(4.0, connection.commit)
+    try:
+        timer.start()
+        start = time.monotonic()
+        assert guard.recorded_worktree(str(world["task"]))
+        assert time.monotonic() - start >= 3.0
+    finally:
+        timer.join()
+        connection.close()
 
 
 

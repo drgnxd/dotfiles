@@ -36,6 +36,7 @@ sys.path.insert(0, str(HERE))
 import worktree_meta as meta
 
 GIT_TIMEOUT = 3
+PROVENANCE_TIMEOUT = 8
 EDIT_TOOLS = {"edit", "write", "multiedit", "notebookedit", "patch", "apply_patch"}
 GUARDED_TOOLS = EDIT_TOOLS | {"bash", "enterworktree"}
 PATH_KEYS = ("file_path", "filePath", "path", "notebook_path")
@@ -112,6 +113,7 @@ class Repo:
     root: str
     gitdir: str
     worktrees: list[Worktree] = field(default_factory=list)
+    provenance: dict[str, bool] = field(default_factory=dict)
 
 
 def config_dir(env: dict[str, str] | None = None) -> Path:
@@ -178,7 +180,7 @@ def recorded_worktree(path: str) -> bool:
     try:
         proc = subprocess.run(
             ["wtctl", "query", "--path", path, "--json"],
-            capture_output=True, text=True, timeout=GIT_TIMEOUT, check=False,
+            capture_output=True, text=True, timeout=PROVENANCE_TIMEOUT, check=False,
         )
         data = json.loads(proc.stdout) if proc.returncode == 0 else None
         return (
@@ -211,6 +213,12 @@ def load_repo(root_text: str, default_branch: str) -> Repo | None:
     return repo
 
 
+def worktree_recorded(repo: Repo, path: str) -> bool:
+    if path not in repo.provenance:
+        repo.provenance[path] = recorded_worktree(path)
+    return repo.provenance[path]
+
+
 def worktree_protected(repo: Repo, wt: Worktree) -> bool:
     if not wt.detached:
         return wt.protected
@@ -225,7 +233,7 @@ def worktree_protected(repo: Repo, wt: Worktree) -> bool:
             return False
     except (OSError, ValueError):
         pass
-    return not recorded_worktree(wt.path)
+    return not worktree_recorded(repo, wt.path)
 
 
 def load_repos(cfg: dict) -> list[Repo]:
@@ -500,7 +508,7 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
             return Decision()
         if args[0] == "remove" and len(args) == 2 and not args[1].startswith("-"):
             path = canonical(args[1], target)
-            if any(key(w.path) == key(path) and (w.detached or not w.protected) for w in found[0].worktrees) and recorded_worktree(path):
+            if any(key(w.path) == key(path) and (w.detached or not w.protected) for w in found[0].worktrees) and worktree_recorded(found[0], path):
                 return Decision()
         return Decision(
             "deny", "worktree-admin",

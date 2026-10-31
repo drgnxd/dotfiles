@@ -11,7 +11,7 @@ test("guard timeout blocks while normal verdicts and other failures retain their
   let calls = 0
   const run = (_command: string, _args: string[], options: { timeout?: number }) => {
     calls++
-    expect(options.timeout).toBe(8000)
+    expect(options.timeout).toBe(15000)
     return result(null, "", timeout)
   }
   expect(guardReason("Read", {}, "/", run)).toBeUndefined()
@@ -34,11 +34,11 @@ test("V2 hook blocks a real timed-out guard subprocess", async () => {
     process.env.PATH = dir
     await plugin.setup({ location: { directory: dir }, tool: { hook: (_name, callback) => { hook = callback } } })
     expect(() => hook({ tool: "Read", input: {} })).not.toThrow()
-    expect(() => hook({ tool: "shell", input: { command: "git status" } })).toThrow("guard timed out after 8 seconds")
+    expect(() => hook({ tool: "shell", input: { command: "git status" } })).toThrow("guard timed out after 15 seconds")
   } finally {
     if (previousPath === undefined) delete process.env.PATH
     else process.env.PATH = previousPath
     expect((await lstat(dir)).isDirectory()).toBe(true)
     await rm(dir, { recursive: true })
   }
-}, 15000)
+}, 25000)
