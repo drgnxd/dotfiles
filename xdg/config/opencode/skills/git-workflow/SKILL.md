@@ -13,7 +13,9 @@ description: Use before the first file edit or Git write in each repository for 
   Record the exact local `main` OID and use `git worktree add --detach <path> <oid>` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, never under a temporary directory.
 - Immediately record the creating session with `wtctl record --path <worktree> --session <id>`, or `--unknown` if the session is unavailable.
   Use `wtctl query --path <worktree> --json` to inspect provenance.
-  A record is self-reported provenance, not proof of ownership or authorization; missing, unknown, conflicting, or unverifiable ownership fails closed.
+  A record, including `unknown`, is self-reported provenance, not proof of ownership or authorization.
+  Independently establish ownership and authority from the current creation or delegation records; missing, conflicting, or unverifiable ownership fails closed even when provenance is known.
+  `unknown` provenance is usable only when that independent ownership evidence is sufficient; otherwise preserve the worktree and stop.
   If recording fails, preserve the worktree and stop rather than edit or remove it.
   Verify the exact path, detached HEAD, base OID, registration, and two-way `.git`/Git-admin pointers before editing.
 - Check repository-specific scheduled and non-cooperating writers and maintain the required locks and quiescence over the complete operation, including Git-annex shared state where applicable.
@@ -30,15 +32,30 @@ description: Use before the first file edit or Git write in each repository for 
   Verify the exact integration checkout and target, clean tracked and untracked state, hooks, external writers, and current `main` OID before mutating it.
 - When `main` is an ancestor of the verified task tip, integrate using `git merge --ff-only --no-overwrite-ignore <task-oid>` in the integration checkout, then verify the expected OID and checkout state.
   Do not use force, bypass hooks or guards, or mutate the task checkout to repair `main`.
-- **Integration contract needed:** when `main` has advanced divergently, or an integration/cleanup fails partway, preserve all worktrees and stop.
-  Native Git alone does not define the prior atomic integration-and-cleanup, conflict-resolution, or recovery protocol; establish and review an explicit contract before proceeding instead of guessing commands or bypassing a refusal.
+- For divergent `main`, while maintaining the same lock and quiescence, pin the current `main` and task OIDs and create a fresh detached integration worktree at that exact `main` OID using the creation and provenance procedure above.
+  Before merging, persist a task-owned integration record outside the worktrees containing their exact paths, the pinned OIDs, the intended target ref, integration worktree identity, pre-merge cleanliness and ignored-file inventory, and current phase; retain it until reconciliation is complete.
+  In that integration worktree run `git merge --no-ff --no-commit <task-oid>`, allowing repository hooks and signing policy to operate normally.
+  Resolve conflicts only there, inspect the staged result, run the repository's relevant verification, and commit with the required message and hooks.
+  A merge conflict is not permission to bypass a hook, guard, or safety refusal.
+  Verify the resulting commit has the pinned `main` and task OIDs as parents, the integration worktree is clean, and tests pass; record the merge OID and phase before proceeding.
+  Recheck under the lock that the integration checkout is clean and still has exactly the pinned `main` OID, that the target ref has not moved, and that external-writer quiescence persists; then fast-forward it using `git merge --ff-only --no-overwrite-ignore <merge-oid>`.
+  Verify the target ref, checkout, task ancestry, and merge ancestry after the fast-forward, update the record, and only then consider cleanup under the rules below.
+  If the task tip is already an ancestor of `main`, verify that fact and skip the merge rather than create a redundant merge commit.
+- For interruption or a failed integration, preserve the record, worktrees, refs, index, merge state, and data; never reset, clean, stash, abort, manually edit Git metadata, or remove a worktree as automatic recovery.
+  Reacquire the same lock without taking another writer's lock, establish quiescence, independently verify identity and ownership, and compare the record with `main`, both pinned OIDs, all worktree statuses including ignored paths, and Git's merge state.
+  If the target already equals the recorded verified merge OID, repeat the integration post-checks and then follow the normal cleanup checks.
+  If `main` remains pinned and the integration worktree has the recorded pending merge with `HEAD` and `ORIG_HEAD` equal to pinned `main` and `MERGE_HEAD` equal to the task OID, inspect all changes and continue conflict resolution and verification as above only when their ownership and origin are clear.
+  If interrupted after the merge commit but before recording its OID, accept the integration worktree's current commit only after verifying its exact two parents are the pinned OIDs, no merge state remains, the checkout is clean, all changes belong to the integration, and required verification passes again; then record that OID before proceeding.
+  If a recorded verified merge commit exists and `main` remains pinned, repeat its parent, cleanliness, verification, and pre-fast-forward checks before retrying the fast-forward.
+  If the record proves merge has not started, `main` is still pinned, and the integration worktree and merge state exactly match the recorded clean pre-merge state, restart the merge.
+  For any missing record, changed target, mismatched merge state, ambiguous data, safety refusal, or other unverified partial state, stop and report it without deletion or bypass; obtain a separately reviewed recovery plan before further mutation.
 - Before removal inspect exact path and two-way Git metadata, creator provenance and independently established ownership, process activity, locks, integration status, and all tracked, untracked, and ignored data.
   `git worktree remove` can delete ignored files: preserve unclear or user-owned data and obtain explicit authorization for any non-regenerable data deletion.
   Do not remove another session's worktree without explicit authorization, including when its owner is dead; a provenance record alone does not authorize removal.
   For an integrated clean worktree with only verified disposable ignored files and all checks satisfied, use `git worktree remove <exact-path>` without `--force` and verify removal with `git worktree list --porcelain`.
   Do not prune, delete Git metadata manually, or discard dirty or unintegrated work without a separately specified, authorized preservation and recovery procedure.
   The worktree guard is best-effort and does not verify ownership, quiescence, ignored-file inventory, or integration: an allowed command is not authorization to remove a worktree.
-  If provenance is unknown or the installed guard cannot recognize a legacy worktree, preserve it and stop rather than bypassing the guard.
+  If ownership is unknown or the installed guard cannot recognize a legacy worktree, preserve it and stop rather than bypassing the guard.
 - Reconcile all worktrees created for the task, including delegated worktrees and revisions, from task records and Git's worktree list; report retained entries and reasons.
   Do not infer task linkage from names alone.
 - Do not push unless explicitly requested; never force-push or rewrite history without explicit authorization.

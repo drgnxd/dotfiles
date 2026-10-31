@@ -126,6 +126,8 @@ def test_unbalanced_quote_is_reported_not_crashed(world: dict[str, Path]) -> Non
         ("git branch --list", "main", False),
         ("git stash list", "main", False),
         ("git merge --ff-only --no-overwrite-ignore abc", "main", False),
+        ("git merge --no-ff --no-commit abc", "task", False),
+        ("git -c core.hooksPath=/dev/null merge --no-ff --no-commit abc", "task", True),
         ("git merge task/a", "main", True),
         ("git -C {task} commit -m x", "main", False),
         ("cd {main} && git commit -m x", "task", True),
@@ -393,7 +395,7 @@ def test_wtctl_task_worktree_is_allowed_only_with_matching_marker(world: dict[st
     assert blocked and decision.rule == "worktree-admin"
 
 
-def test_native_recorded_worktree_and_unknown_fail_closed(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+def test_native_recorded_worktree_and_unrecorded_fail_closed(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     sh(world["task"], "checkout", "-q", "--detach")
     monkeypatch.setattr(guard, "recorded_worktree", lambda path: path == str(world["task"]))
     assert not decide("Write", {"file_path": str(world["task"] / "x")}, world["main"])[1]
@@ -409,12 +411,21 @@ def test_query_requires_known_matching_provenance(monkeypatch: pytest.MonkeyPatc
         stdout = ""
 
     result = Result()
-    monkeypatch.setattr(guard.subprocess, "run", lambda *args, **kwargs: result)
     path = str(tmp_path.resolve())
-    for status, session, expected in [("known", "session", True), ("unknown", None, False), ("unrecorded", None, False)]:
+
+    def query(argv: list[str], **kwargs: object) -> Result:
+        assert argv == ["wtctl", "query", "--path", path, "--json"]
+        return result
+
+    monkeypatch.setattr(guard.subprocess, "run", query)
+    for status, session, expected in [("known", "session", True), ("unknown", None, True), ("unrecorded", None, False), ("known", None, False), ("known", " ", False), ("unknown", "session", False)]:
         result.stdout = json.dumps({"path": path, "status": status, "session": session})
         assert guard.recorded_worktree(path) is expected
     result.stdout = json.dumps({"path": path + "-other", "status": "known", "session": "session"})
+    assert not guard.recorded_worktree(path)
+    result.stdout = json.dumps({"path": path, "status": "unknown"})
+    assert not guard.recorded_worktree(path)
+    result.returncode = 1
     assert not guard.recorded_worktree(path)
 
 

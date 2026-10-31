@@ -180,8 +180,9 @@ def recorded_worktree(path: str) -> bool:
         )
         data = json.loads(proc.stdout) if proc.returncode == 0 else None
         return (
-            isinstance(data, dict) and data.get("status") == "known"
-            and isinstance(data.get("session"), str) and bool(data["session"])
+            isinstance(data, dict)
+            and ((data.get("status") == "known" and isinstance(data.get("session"), str) and bool(data["session"].strip()))
+                 or (data.get("status") == "unknown" and "session" in data and data["session"] is None))
             and isinstance(data.get("path"), str)
             and key(canonical(data["path"], "/")) == key(canonical(path, "/"))
         )
