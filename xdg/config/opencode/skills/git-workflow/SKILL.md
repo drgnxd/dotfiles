@@ -29,6 +29,11 @@ items the global rules list as not waivable by conversation.
 
 ## Lifecycle
 
+- Native Git lifecycle migration is blocked pending a documented, implemented integration contract with the session-ownership recorder and the worktree guard.
+  The contract must define how a newly created detached Git worktree is registered to the creating session, how identity and ownership are verified for every later operation, and how partial registration or interrupted creation is recovered without deleting unverified data.
+  It must also specify serialization, integration preflight and post-checks, conflict handling, exact-target cleanup, ignored and untracked data disposition, external-writer quiescence, and Git-annex handling without bypassing hooks, guards, or safety refusals.
+  No registration command is specified here until an implemented interface has been verified; retain the existing lifecycle and guard until the contract and its tests are available.
+
 - Before any Git write, resolve the repository with `git rev-parse
   --show-toplevel`. Read its `AGENTS.md`/contribution instructions and documented
   commit convention (including commit bodies). Follow that contract and keep one

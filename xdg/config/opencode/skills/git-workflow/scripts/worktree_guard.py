@@ -471,7 +471,7 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
         hint = "`wtctl create`" if args[0] == "add" else "`wtctl finish`/`wtctl remove`/`wtctl reap`"
         return Decision(
             "deny", "worktree-admin",
-            f"git worktree {args[0]} is not allowed directly; use {hint}, or ask the user if it cannot be used.",
+            f"git worktree {args[0]} is not allowed directly until the native lifecycle ownership and guard contract is implemented; use {hint}, or ask the user if it cannot be used.",
             target,
         )
     if bypasses_hooks(sub, args, options):
