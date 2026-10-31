@@ -73,7 +73,7 @@ CONFIG_WRITE_FLAGS = {
     "--edit", "-e",
 }
 CONFIG_READ_WORDS = {"get", "list"}
-HOOK_BYPASS_SUBCOMMANDS = {"commit", "merge", "am", "rebase", "push", "cherry-pick", "revert"}
+HOOK_BYPASS_SUBCOMMANDS = {"commit", "merge", "am", "rebase", "push", "cherry-pick", "revert", "worktree"}
 WORKTREE_ADMIN = {"add", "remove", "prune", "move", "lock", "unlock", "repair"}
 ANNEX_WRITE = {
     "add", "sync", "unlock", "lock", "fix", "drop", "move", "import", "rekey", "get", "pull",
@@ -172,6 +172,23 @@ def run_git(cwd: str, *args: str) -> str:
     return proc.stdout
 
 
+def recorded_worktree(path: str) -> bool:
+    try:
+        proc = subprocess.run(
+            ["wtctl", "query", "--path", path, "--json"],
+            capture_output=True, text=True, timeout=GIT_TIMEOUT, check=False,
+        )
+        data = json.loads(proc.stdout) if proc.returncode == 0 else None
+        return (
+            isinstance(data, dict) and data.get("status") == "known"
+            and isinstance(data.get("session"), str) and bool(data["session"])
+            and isinstance(data.get("path"), str)
+            and key(canonical(data["path"], "/")) == key(canonical(path, "/"))
+        )
+    except (OSError, subprocess.TimeoutExpired, ValueError):
+        return False
+
+
 def load_repo(root_text: str, default_branch: str) -> Repo | None:
     root = canonical(root_text, "/")
     if not os.path.isdir(root):
@@ -192,6 +209,8 @@ def load_repo(root_text: str, default_branch: str) -> Repo | None:
             except (OSError, ValueError):
                 record = None
             registered_task = record is not None and meta.parse_owner_description(record[1]) is not None
+            if not registered_task:
+                registered_task = recorded_worktree(path)
             if not registered_task:
                 try:
                     registered_task = meta.read_wtctl_marker(Path(path).resolve(), common) is not None
@@ -257,7 +276,7 @@ def check_path(path: str, cwd: str, cfg: dict, repos: list[Repo]) -> Decision:
         return Decision(
             "deny", "main-checkout",
             f"{canon} is in a protected checkout of {repo.root}. Create a task worktree with "
-            "`wtctl create` and edit there.",
+            "`git worktree add --detach` and record its creation with `wtctl record`.",
             canon,
         )
     return Decision()
@@ -467,22 +486,29 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
     sub, args, shell_alias = resolve_alias(sub, args, options, target)
     if shell_alias:
         return Decision("warn", "shell-alias", "A shell alias cannot be analysed.", target)
-    if sub == "worktree" and args[:1] and args[0] in WORKTREE_ADMIN:
-        hint = "`wtctl create`" if args[0] == "add" else "`wtctl finish`/`wtctl remove`/`wtctl reap`"
-        return Decision(
-            "deny", "worktree-admin",
-            f"git worktree {args[0]} is not allowed directly until the native lifecycle ownership and guard contract is implemented; use {hint}, or ask the user if it cannot be used.",
-            target,
-        )
     if bypasses_hooks(sub, args, options):
         return Decision("deny", "no-verify", "Do not bypass commit hooks (--no-verify, core.hooksPath).", target)
+    if sub == "worktree" and args[:1] and args[0] in WORKTREE_ADMIN:
+        if args[0] == "add" and len(args) == 4 and args[1] == "--detach" and not any(
+            arg.startswith("-") for arg in args[2:]
+        ):
+            return Decision()
+        if args[0] == "remove" and len(args) == 2 and not args[1].startswith("-"):
+            path = canonical(args[1], target)
+            if any(key(w.path) == key(path) and not w.protected for w in found[0].worktrees) and recorded_worktree(path):
+                return Decision()
+        return Decision(
+            "deny", "worktree-admin",
+            f"git worktree {args[0]} requires a supported exact-target, non-force operation and the git-workflow safety checks.",
+            target,
+        )
     if sub == "annex" and args[:1] and args[0] in ANNEX_WRITE and protected:
         return Decision("deny", "main-checkout", f"git annex {args[0]} writes the protected checkout; use a task worktree.", target)
     if protected and is_git_write(sub, args):
         return Decision(
             "deny", "main-checkout",
             f"git {sub} would write the protected checkout {target}. Use a detached task worktree "
-            "created by `wtctl create`; integrate with `wtctl finish`.",
+            "created and recorded as specified by git-workflow.",
             target,
         )
     return Decision()
@@ -540,7 +566,7 @@ def evaluate(tool: str, tool_input: dict, cwd: str, cfg: dict) -> Decision:
     elif name == "bash":
         result = check_bash(command, cwd, repos)
     elif locate(canonical(cwd, "/"), repos) is not None:
-        result = Decision("deny", "builtin-worktree", "Create the worktree with `wtctl create`.", cwd)
+        result = Decision("deny", "builtin-worktree", "Create and record the worktree as specified by git-workflow.", cwd)
     return result
 
 

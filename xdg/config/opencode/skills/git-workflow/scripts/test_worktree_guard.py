@@ -134,7 +134,11 @@ def test_unbalanced_quote_is_reported_not_crashed(world: dict[str, Path]) -> Non
         ("direnv exec . git add f", "main", True),
         ("git worktree add ../x -b y", "task", True),
         ("git worktree list", "main", False),
+        ("git worktree add --detach ../x abc123", "task", False),
+        ("git -c core.hooksPath=/dev/null worktree add --detach ../x abc123", "task", True),
         ("git worktree remove {task}", "task", True),
+        ("git worktree remove --force {task}", "task", True),
+        ("git worktree prune", "main", True),
         ("git commit --no-verify -m x", "task", True),
         ("git commit -n -m x", "task", True),
         ("git commit -m x", "task", False),
@@ -386,7 +390,32 @@ def test_wtctl_task_worktree_is_allowed_only_with_matching_marker(world: dict[st
     marker.write_text(json.dumps(data))
     assert not decide("Write", {"file_path": str(world["task"] / "x.txt")}, world["main"])[1]
     decision, blocked = bash(f"git worktree remove {world['task']}", world["main"])
-    assert blocked and "wtctl remove" in decision.reason
+    assert blocked and decision.rule == "worktree-admin"
+
+
+def test_native_recorded_worktree_and_unknown_fail_closed(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    sh(world["task"], "checkout", "-q", "--detach")
+    monkeypatch.setattr(guard, "recorded_worktree", lambda path: path == str(world["task"]))
+    assert not decide("Write", {"file_path": str(world["task"] / "x")}, world["main"])[1]
+    assert not bash(f"git worktree remove {world['task']}", world["main"])[1]
+    monkeypatch.setattr(guard, "recorded_worktree", lambda path: False)
+    assert decide("Write", {"file_path": str(world["task"] / "x")}, world["main"])[1]
+    assert bash(f"git worktree remove {world['task']}", world["main"])[1]
+
+
+def test_query_requires_known_matching_provenance(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    class Result:
+        returncode = 0
+        stdout = ""
+
+    result = Result()
+    monkeypatch.setattr(guard.subprocess, "run", lambda *args, **kwargs: result)
+    path = str(tmp_path.resolve())
+    for status, session, expected in [("known", "session", True), ("unknown", None, False), ("unrecorded", None, False)]:
+        result.stdout = json.dumps({"path": path, "status": status, "session": session})
+        assert guard.recorded_worktree(path) is expected
+    result.stdout = json.dumps({"path": path + "-other", "status": "known", "session": "session"})
+    assert not guard.recorded_worktree(path)
 
 
 
