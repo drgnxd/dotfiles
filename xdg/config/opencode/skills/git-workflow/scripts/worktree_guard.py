@@ -104,6 +104,7 @@ class Decision:
 class Worktree:
     path: str
     protected: bool
+    detached: bool = False
 
 
 @dataclass
@@ -205,24 +206,26 @@ def load_repo(root_text: str, default_branch: str) -> Repo | None:
         path = fields.get("worktree")
         if not path or key(canonical(path, "/")) == key(root) or "bare" in fields:
             continue
-        if "detached" in fields:
-            try:
-                record = meta.read_worktree_owner(Path(path).resolve(), common)
-            except (OSError, ValueError):
-                record = None
-            registered_task = record is not None and meta.parse_owner_description(record[1]) is not None
-            if not registered_task:
-                registered_task = recorded_worktree(path)
-            if not registered_task:
-                try:
-                    registered_task = meta.read_wtctl_marker(Path(path).resolve(), common) is not None
-                except (OSError, ValueError):
-                    registered_task = False
-            protected = not registered_task
-        else:
-            protected = fields.get("branch") == ref
-        repo.worktrees.append(Worktree(canonical(path, "/"), protected))
+        detached = "detached" in fields
+        repo.worktrees.append(Worktree(canonical(path, "/"), detached or fields.get("branch") == ref, detached))
     return repo
+
+
+def worktree_protected(repo: Repo, wt: Worktree) -> bool:
+    if not wt.detached:
+        return wt.protected
+    try:
+        record = meta.read_worktree_owner(Path(wt.path), Path(repo.gitdir))
+    except (OSError, ValueError):
+        record = None
+    if record is not None and meta.parse_owner_description(record[1]) is not None:
+        return False
+    try:
+        if meta.read_wtctl_marker(Path(wt.path), Path(repo.gitdir)) is not None:
+            return False
+    except (OSError, ValueError):
+        pass
+    return not recorded_worktree(wt.path)
 
 
 def load_repos(cfg: dict) -> list[Repo]:
@@ -246,7 +249,7 @@ def locate(path: str, repos: list[Repo]) -> tuple[Repo, str] | None:
             return repo, "gitdir"
         for wt in sorted(repo.worktrees, key=lambda w: -len(w.path)):
             if within(k, key(wt.path)):
-                return repo, "protected" if wt.protected else "task"
+                return repo, "protected" if worktree_protected(repo, wt) else "task"
         if within(k, key(repo.root)):
             return repo, "protected"
     return None
@@ -497,7 +500,7 @@ def check_git(tokens: list[str], cwd: str | None, repos: list[Repo]) -> Decision
             return Decision()
         if args[0] == "remove" and len(args) == 2 and not args[1].startswith("-"):
             path = canonical(args[1], target)
-            if any(key(w.path) == key(path) and not w.protected for w in found[0].worktrees) and recorded_worktree(path):
+            if any(key(w.path) == key(path) and (w.detached or not w.protected) for w in found[0].worktrees) and recorded_worktree(path):
                 return Decision()
         return Decision(
             "deny", "worktree-admin",

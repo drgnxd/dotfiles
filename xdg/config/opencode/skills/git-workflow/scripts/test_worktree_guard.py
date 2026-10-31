@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -252,9 +253,17 @@ def test_opencode_workdir_selects_the_repository(world: dict[str, Path]) -> None
     assert call(world["task"], world["main"])
 
 
-def test_one_broken_repo_does_not_disable_the_others(world: dict[str, Path]) -> None:
+def test_one_broken_repo_does_not_disable_the_others(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
     broken = world["tmp"] / "not-a-repo"
     broken.mkdir()
+    run_git = guard.run_git
+
+    def fail_one(cwd: str, *args: str) -> str:
+        if cwd == str(broken):
+            raise guard.GuardError("unavailable repository")
+        return run_git(cwd, *args)
+
+    monkeypatch.setattr(guard, "run_git", fail_one)
     write_config(world["config"], mode="deny", repos=[str(broken), str(world["main"])])
     assert decide("Write", {"file_path": str(world["main"] / "x.txt")}, world["task"])[1]
     assert "load_repo" in (world["state"] / "worktree-guard" / "log.jsonl").read_text()
@@ -404,6 +413,34 @@ def test_native_recorded_worktree_and_unrecorded_fail_closed(world: dict[str, Pa
     monkeypatch.setattr(guard, "recorded_worktree", lambda path: False)
     assert decide("Write", {"file_path": str(world["task"] / "x")}, world["main"])[1]
     assert bash(f"git worktree remove {world['task']}", world["main"])[1]
+
+
+def test_many_detached_worktrees_query_only_the_target(world: dict[str, Path], monkeypatch: pytest.MonkeyPatch) -> None:
+    paths = [world["tmp"] / "many" / str(i) for i in range(200)]
+    listing = "\n\n".join(f"worktree {path}\nHEAD {'a' * 40}\ndetached" for path in paths)
+    monkeypatch.setattr(guard, "run_git", lambda _cwd, *args: str(world["main"] / ".git") if args[0] == "rev-parse" else listing)
+    monkeypatch.setattr(guard.meta, "read_worktree_owner", lambda *_args: None)
+    monkeypatch.setattr(guard.meta, "read_wtctl_marker", lambda *_args: None)
+    calls: list[str] = []
+
+    def slow_query(path: str) -> bool:
+        time.sleep(0.02)
+        calls.append(path)
+        return path == str(paths[-1])
+
+    monkeypatch.setattr(guard, "recorded_worktree", slow_query)
+    repo = guard.load_repo(str(world["main"]), "main")
+    assert repo is not None and calls == []
+    assert guard.locate(str(world["main"] / "x"), [repo])[1] == "protected"
+    assert calls == []
+    assert guard.locate(str(paths[-1] / "x"), [repo])[1] == "task"
+    assert calls == [str(paths[-1])]
+    calls.clear()
+    assert guard.locate(str(paths[0] / "x"), [repo])[1] == "protected"
+    assert calls == [str(paths[0])]
+    calls.clear()
+    assert guard.check_git(["git", "worktree", "remove", str(paths[-1])], str(world["main"]), [repo]).action == "allow"
+    assert calls == [str(paths[-1])]
 
 
 def test_query_requires_known_matching_provenance(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

@@ -14,10 +14,12 @@ description: Use before the first file edit or Git write in each repository for 
 - Immediately record the creating session with `wtctl record --path <worktree> --session <id>`, or `--unknown` if the session is unavailable.
   Use `wtctl query --path <worktree> --json` to inspect provenance.
   Keep lifecycle operations on that worktree quiescent throughout each record or query; use the same absolute `XDG_STATE_HOME` for both commands and the guard, or consistently leave it unset.
+  The current recorder creates a generation marker in the Git administration directory; do not manually create, copy, modify, or remove that marker.
   A record, including `unknown`, is self-reported provenance, not proof of ownership or authorization.
   Independently establish ownership and authority from the current creation or delegation records; missing, conflicting, or unverifiable ownership fails closed even when provenance is known.
   `unknown` provenance is usable only when that independent ownership evidence is sufficient; otherwise preserve the worktree and stop.
   If recording fails, preserve the worktree and stop rather than edit or remove it; the record may already have committed, so query it before any further action and never blindly retry.
+  If post-commit verification failed, stop lifecycle and provenance writers, retain the database and SQLite journals, and follow the installed recorder's documented read-only investigation procedure; a query of the current identity may not reveal the retained row.
   Verify the exact path, detached HEAD, base OID, registration, and two-way `.git`/Git-admin pointers before editing.
 - Check repository-specific scheduled and non-cooperating writers and maintain the required locks and quiescence over the complete operation, including Git-annex shared state where applicable.
   Unrelated isolated worktrees are not by themselves blockers.
@@ -30,6 +32,7 @@ description: Use before the first file edit or Git write in each repository for 
   If it is unrecorded, independently verify the original creator session from contemporaneous creation records and use `wtctl record --path <worktree> --session <id>` only when that evidence establishes the creator.
   Otherwise use `wtctl record --path <worktree> --unknown`; do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker.
   The record is insert-only: do not guess, overwrite, delete, or re-record an existing or conflicting provenance entry; preserve it and resolve discrepancies through a supported documented procedure or stop.
+  The current recorder does not attribute older inode-only provenance rows; preserve them and independently verify the creator before recording a new entry or `--unknown`.
   Recording `--unknown` does not establish ownership or authorize edits, recovery, or deletion.
 - Preserve existing legacy markers, Git administration state, worktree locks, snapshots, refs, and quarantines; the current provenance-only `wtctl` neither interprets nor migrates them.
   Do not remove or alter legacy markers, locks, quarantines, or their contents manually, and do not use native Git removal as a substitute for a refused legacy recovery.

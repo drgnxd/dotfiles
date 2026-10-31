@@ -53,6 +53,9 @@ a user waiver under the global rules is not a conflict and still applies.
   `~/.local/state/<repo>/locks/<resource>.lock` containing an `owner` file (as
   `main-integration.lock` does). Fail instead of waiting if it exists, and
   release it only if the owner file is yours. Do not install `flock`.
+  Before a package-manager operation, verify its effective cache and log paths;
+  inherited configuration can override environment variables, so use an
+  explicit task-local cache option and confirm it takes effect.
 
 ## Finishing
 
