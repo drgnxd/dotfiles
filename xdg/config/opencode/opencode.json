@@ -112,6 +112,7 @@
       "variant": "medium",
       "color": "#9ccc65",
       "tools": {
+        "execute": true,
         "webfetch": true,
         "websearch": true,
         "fetch_pdf": true,
@@ -131,6 +132,7 @@
       },
       "permission": {
         "*": "deny",
+        "execute*": "allow",
         "webfetch*": "allow",
         "websearch*": "allow",
         "fetch_pdf*": "allow",

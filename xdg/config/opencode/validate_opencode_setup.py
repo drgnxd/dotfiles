@@ -236,6 +236,7 @@ def validate_config(errors: list[str]) -> None:
     # Suffix patterns keep these allows after the runtime's wildcard deny.
     expected_researcher_permissions = {
         "*": "deny",
+        "execute*": "allow",
         "webfetch*": "allow",
         "websearch*": "allow",
         "fetch_pdf*": "allow",
@@ -256,9 +257,10 @@ def validate_config(errors: list[str]) -> None:
     researcher = agents.get("researcher", {})
     if researcher.get("permission") != expected_researcher_permissions:
         errors.append(
-            "researcher must allow only public web/PDF and read-only Playwright research tools"
+            "researcher must preserve Code Mode and its explicit research tool permissions"
         )
     expected_researcher_tools = {
+        "execute": True,
         "webfetch": True,
         "websearch": True,
         "fetch_pdf": True,
