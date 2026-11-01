@@ -138,6 +138,8 @@ in
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
 
+  home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
+
   home.packages =
     packages.packages
     # wtctl publishes aarch64-darwin only; Linux is intentionally unsupported upstream.
@@ -160,6 +162,10 @@ in
   );
 
   home.file = {
+    ".local/bin/copilot" = {
+      source = ../scripts/copilot;
+      executable = true;
+    };
     # CodexBar still creates temporary files at the legacy path despite CODEX_HOME.
     ".codex".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/codex";
     # Ollama hardcodes ~/.ollama for its key and has no environment override.

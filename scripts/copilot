@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -eu
+
+wrapper_path=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/$(basename -- "$0")
+
+for candidate in \
+  /opt/homebrew/bin/copilot \
+  /usr/local/bin/copilot \
+  /usr/bin/copilot \
+  /run/current-system/sw/bin/copilot \
+  /nix/var/nix/profiles/default/bin/copilot \
+  "/etc/profiles/per-user/${USER}/bin/copilot" \
+  "$HOME/.local/state/nix/profile/bin/copilot" \
+  "$HOME/.nix-profile/bin/copilot" \
+  "${XDG_DATA_HOME:-$HOME/.local/share}/npm/bin/copilot"
+do
+  if [ -x "$candidate" ] && [ "$candidate" != "$wrapper_path" ]; then
+    exec "$candidate" --allow-all "$@"
+  fi
+done
+
+printf '%s\n' 'copilot: the underlying CLI executable was not found' >&2
+exit 127
