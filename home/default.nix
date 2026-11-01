@@ -132,6 +132,7 @@ in
     NPM_CONFIG_CACHE = "${config.xdg.cacheHome}/npm";
     NPM_CONFIG_PREFIX = "${config.xdg.dataHome}/npm";
     NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
+    KERAS_HOME = "${config.xdg.dataHome}/keras";
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/dotfiles";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.hostPlatform.isDarwin then hostname else linuxHostname;
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
