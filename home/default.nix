@@ -80,6 +80,7 @@ in
     ./modules/activation/nushell_ensure.nix
     ./modules/activation/opencode.nix
     ./modules/activation/claude_skills.nix
+    ./modules/activation/copilot.nix
     ./modules/alacritty.nix
     ./modules/atuin.nix
     ./modules/bat.nix
