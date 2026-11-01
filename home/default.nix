@@ -147,7 +147,9 @@ in
     ++ private_tools;
 
   programs.bash = {
-    enable = true;
+    # Login and terminal shells are Nushell on Darwin, so the generated
+    # ~/.bashrc, ~/.bash_profile and ~/.profile would only add home symlinks.
+    enable = !pkgs.stdenv.hostPlatform.isDarwin;
     # The packaged Bash omits progcomp, so Home Manager's completion hook fails.
     enableCompletion = false;
     historyFile = "${config.xdg.stateHome}/bash/history";
@@ -160,13 +162,9 @@ in
   home.file = {
     # CodexBar still creates temporary files at the legacy path despite CODEX_HOME.
     ".codex".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/codex";
-    # Launches without COPILOT_HOME would otherwise recreate ~/.copilot and split state.
-    # Launches without CLAUDE_CONFIG_DIR would otherwise recreate ~/.claude and split state.
-    ".claude".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude";
-    ".copilot".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/copilot";
-    ".claude.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude/.claude.json";
+    # Ollama hardcodes ~/.ollama for its key and has no environment override.
     ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";
+    # Scilab 2027 ignores SCIHOME and always uses ~/.Scilab.
     ".Scilab".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/scilab";
   }
   // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
