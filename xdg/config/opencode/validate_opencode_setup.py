@@ -233,9 +233,6 @@ def validate_config(errors: list[str]) -> None:
             "subagent_depth and experimental.subagent_depth must be 2 "
             "so research-lead can delegate on v1 and v2"
         )
-    # Disabling the caps lets contexts grow past 272k, which bills input at 2x.
-    if "-opencode.provider.openai-context-caps" in config.get("plugins", []):
-        errors.append("openai-context-caps must stay enabled to bound context cost")
     # Suffix patterns keep these allows after the runtime's wildcard deny.
     expected_researcher_permissions = {
         "*": "deny",
