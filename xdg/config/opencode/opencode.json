@@ -21,8 +21,8 @@
   "agent": {
     "manager": {
       "description": "Primary agent that triages, plans, delegates eligible implementation, and owns final integration and verification.",
-      "model": "openai/gpt-6.1-terra",
-      "variant": "low",
+      "model": "openai/gpt-6-luna",
+      "variant": "high",
       "color": "#f060a6",
       "mode": "primary",
       "permission": {
@@ -229,7 +229,6 @@
     "max_lines": 300,
     "max_bytes": 12288
   },
-  "plugins": ["-opencode.provider.openai-context-caps"],
   "compaction": {
     "auto": true,
     "buffer": 20000
