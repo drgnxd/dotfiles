@@ -38,6 +38,7 @@ $env.XDG_DATA_HOME = $XDG_DIRS.data
 $env.XDG_STATE_HOME = $XDG_DIRS.state
 $env.CODEX_HOME = ($env.XDG_DATA_HOME | path join "codex")
 $env.COPILOT_HOME = ($env.XDG_DATA_HOME | path join "copilot")
+$env.CLAUDE_CONFIG_DIR = ($env.XDG_DATA_HOME | path join "claude")
 
 $env.GNUPGHOME = ($env.XDG_CONFIG_HOME | path join "gnupg")
 

@@ -160,6 +160,8 @@ in
     # CodexBar still creates temporary files at the legacy path despite CODEX_HOME.
     ".codex".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/codex";
     # Launches without COPILOT_HOME would otherwise recreate ~/.copilot and split state.
+    # Launches without CLAUDE_CONFIG_DIR would otherwise recreate ~/.claude and split state.
+    ".claude".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude";
     ".copilot".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/copilot";
     ".claude.json".source =
       config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude/.claude.json";
