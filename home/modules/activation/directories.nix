@@ -9,6 +9,8 @@
   home.activation.ensureDirectories = lib.hm.dag.entryAfter [ "writeBoundary" ] (
     ''
       mkdir -p "$HOME/.local/bin"
+      # A dangling ~/.ollama link makes `ollama serve` fail to create its key directory.
+      mkdir -p "${config.xdg.dataHome}/ollama"
       ensure_private_history() {
         local history_dir="$1"
         local history_file="$history_dir/history"

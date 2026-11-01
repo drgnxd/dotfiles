@@ -37,6 +37,8 @@ $env.XDG_CACHE_HOME = $XDG_DIRS.cache
 $env.XDG_DATA_HOME = $XDG_DIRS.data
 $env.XDG_STATE_HOME = $XDG_DIRS.state
 $env.CODEX_HOME = ($env.XDG_DATA_HOME | path join "codex")
+$env.COPILOT_HOME = ($env.XDG_DATA_HOME | path join "copilot")
+$env.CLAUDE_CONFIG_DIR = ($env.XDG_DATA_HOME | path join "claude")
 
 $env.GNUPGHOME = ($env.XDG_CONFIG_HOME | path join "gnupg")
 
@@ -48,6 +50,8 @@ $env.MPLCONFIGDIR = ($env.XDG_CONFIG_HOME | path join "matplotlib")
 $env.NPM_CONFIG_PREFIX = ($env.XDG_DATA_HOME | path join "npm")
 $env.NPM_CONFIG_CACHE = ($env.XDG_CACHE_HOME | path join "npm")
 $env.NPM_CONFIG_USERCONFIG = ($env.XDG_CONFIG_HOME | path join "npm" "npmrc")
+
+$env.KERAS_HOME = ($env.XDG_DATA_HOME | path join "keras")
 $env.OPENCODE_ENABLE_EXA = "1"
 
 $env.BUN_INSTALL_CACHE_DIR = ($env.XDG_CACHE_HOME | path join "bun" "install" "cache")

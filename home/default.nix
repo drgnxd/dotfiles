@@ -80,6 +80,7 @@ in
     ./modules/activation/nushell_ensure.nix
     ./modules/activation/opencode.nix
     ./modules/activation/claude_skills.nix
+    ./modules/activation/copilot.nix
     ./modules/alacritty.nix
     ./modules/atuin.nix
     ./modules/bat.nix
@@ -131,10 +132,13 @@ in
     NPM_CONFIG_CACHE = "${config.xdg.cacheHome}/npm";
     NPM_CONFIG_PREFIX = "${config.xdg.dataHome}/npm";
     NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
+    KERAS_HOME = "${config.xdg.dataHome}/keras";
     DOTFILES_DIR = "${config.home.homeDirectory}/.config/dotfiles";
     DOTFILES_FLAKE_TARGET = if pkgs.stdenv.hostPlatform.isDarwin then hostname else linuxHostname;
     NH_FLAKE = "${config.home.homeDirectory}/.config/dotfiles";
   };
+
+  home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
 
   home.packages =
     packages.packages
@@ -145,7 +149,9 @@ in
     ++ private_tools;
 
   programs.bash = {
-    enable = true;
+    # Login and terminal shells are Nushell on Darwin, so the generated
+    # ~/.bashrc, ~/.bash_profile and ~/.profile would only add home symlinks.
+    enable = !pkgs.stdenv.hostPlatform.isDarwin;
     # The packaged Bash omits progcomp, so Home Manager's completion hook fails.
     enableCompletion = false;
     historyFile = "${config.xdg.stateHome}/bash/history";
@@ -156,11 +162,15 @@ in
   );
 
   home.file = {
+    ".local/bin/copilot" = {
+      source = ../scripts/copilot;
+      executable = true;
+    };
     # CodexBar still creates temporary files at the legacy path despite CODEX_HOME.
     ".codex".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/codex";
-    ".claude.json".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/claude/.claude.json";
+    # Ollama hardcodes ~/.ollama for its key and has no environment override.
     ".ollama".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.dataHome}/ollama";
+    # Scilab 2027 ignores SCIHOME and always uses ~/.Scilab.
     ".Scilab".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/scilab";
   }
   // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {

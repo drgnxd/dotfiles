@@ -197,7 +197,7 @@ def validate_config(errors: list[str]) -> None:
         errors.append("review-deep must keep the approved read-only prompt")
 
     expected_routes = {
-        "manager": ("openai/gpt-6.1-terra", "low"),
+        "manager": ("openai/gpt-6-luna", "high"),
         "implementer": ("openai/gpt-6.1-terra", "low"),
         "explore": ("openai/gpt-6-luna", "low"),
         "compaction": ("openai/gpt-6-luna", "low"),
@@ -233,6 +233,9 @@ def validate_config(errors: list[str]) -> None:
             "subagent_depth and experimental.subagent_depth must be 2 "
             "so research-lead can delegate on v1 and v2"
         )
+    # Disabling the caps lets contexts grow past 272k, which bills input at 2x.
+    if "-opencode.provider.openai-context-caps" in config.get("plugins", []):
+        errors.append("openai-context-caps must stay enabled to bound context cost")
     # Suffix patterns keep these allows after the runtime's wildcard deny.
     expected_researcher_permissions = {
         "*": "deny",
@@ -458,8 +461,8 @@ def validate_config(errors: list[str]) -> None:
     }
     if manager_tasks != expected_manager_tasks:
         errors.append("manager must retain its approved task delegation allowlist")
-    if manager.get("model") != "openai/gpt-6.1-terra" or manager.get("variant") != "low":
-        errors.append("manager must retain openai/gpt-6.1-terra low")
+    if manager.get("model") != "openai/gpt-6-luna" or manager.get("variant") != "high":
+        errors.append("manager must retain openai/gpt-6-luna high")
     if manager_tasks.get("*") != "deny" or manager_tasks.get("implementer") != "allow":
         errors.append("manager must allow implementer delegation and deny other agents by default")
     for role in ("research-lead", "researcher", "pdf-reader", "review-main", "review-deep", "browser-operator", "explore"):
