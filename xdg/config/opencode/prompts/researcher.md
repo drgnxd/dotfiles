@@ -8,6 +8,7 @@ Regardless of the Skill: use click, type, and fill_form only in a public, unauth
 
 ## General research
 
+- Use an optional machine-local search tool only when the parent explicitly requests it and its exact tool permission allows it; never send a nonpublic or restricted query or research objective to it.
 - Prefer ordinary `webfetch` for a supplied URL, public static pages, and straightforward metadata when it provides the needed evidence; do not open a browser just because a URL was supplied.
 - Use the browser only when the evidence genuinely depends on JavaScript-rendered content, browser-only UI state, or interaction; if `webfetch` is unavailable or insufficient, ask the parent for a documented non-browser route before defaulting to browser use.
 - If a fetch or browser route hits authentication, a challenge, or other access control, report the exact limitation and do not switch methods to bypass it.

@@ -8,7 +8,8 @@
   ],
   "share": "disabled",
   "permission": {
-    "fetch_pdf": "deny"
+    "fetch_pdf": "deny",
+    "research_search_*": "deny"
   },
   "subagent_depth": 2,
   "provider": {

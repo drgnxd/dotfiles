@@ -168,6 +168,12 @@ def validate_config(errors: list[str]) -> None:
         errors.append("OpenCode must enable only the openai provider")
     if config.get("permission", {}).get("fetch_pdf") != "deny":
         errors.append("fetch_pdf must be denied by default")
+    if config.get("permission", {}).get("research_search_*") != "deny":
+        errors.append("research_search_* must be denied by default")
+
+    mcp = config.get("mcp", {})
+    if "research_search" in mcp or "research_search" in mcp.get("servers", {}):
+        errors.append("research_search must not be configured in shared MCP servers")
 
     policies = config.get("experimental", {}).get("policies", [])
     if not any(
