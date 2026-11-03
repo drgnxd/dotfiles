@@ -87,7 +87,6 @@ let
 
   dev_tools = [
     "ast-grep"
-    "herdr"
     "nh"
     "nix-diff"
     "nixfmt"

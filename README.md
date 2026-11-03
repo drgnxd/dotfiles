@@ -24,7 +24,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 *   **Legacy Shell:** Zsh configuration is archived in git history
 *   **Terminal:** Alacritty with Solarized Dark theme
 *   **Browser:** Floorp (Privacy-focused Firefox-based browser, managed via Homebrew cask)
-*   **Terminal Multiplexer:** Zellij (plus herdr for supervising AI coding agents)
+*   **Terminal Multiplexer:** Zellij
 *   **Editor:** Neovim with Readline-style insert-mode keybindings (Solarized Dark)
 *   **File Manager:** Yazi with Solarized Dark flavor
 *   **Linux Desktop (Phase 2):** Hyprland, Waybar, Wofi, fcitx5 + mozc, cliphist + wl-clipboard, hypridle + hyprlock, mako, grim + slurp, SwayOSD, Hyprpicker

@@ -22,7 +22,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **レガシーシェル:** Zsh設定はgit履歴にアーカイブ済み
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
 *   **ブラウザ:** Floorp（Firefox系プライバシー重視ブラウザ、Homebrew cask で管理）
-*   **ターミナルマルチプレクサ:** Zellij（AI コーディングエージェントの監視用に herdr も併用）
+*   **ターミナルマルチプレクサ:** Zellij
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
 *   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
