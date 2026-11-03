@@ -134,10 +134,6 @@ test-opencode-plugin-sync:
 test-opencode-tool-sync:
   bash home/tests/opencode-tool-sync.sh
 
-# Test the worktree guard plugin helper
-test-worktree-guard:
-  uv run --python 3.11 --with pytest pytest -q xdg/config/opencode/skills/git-workflow/scripts/test_worktree_guard.py
-
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
   scripts/check-public-boundary.sh

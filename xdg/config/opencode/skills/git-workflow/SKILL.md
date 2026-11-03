@@ -74,8 +74,7 @@ description: Use before the first file edit or Git write in each repository for 
   Do not remove another session's worktree without explicit authorization, including when its owner is dead; a provenance record alone does not authorize removal.
   For an integrated clean worktree with only verified disposable ignored files and all checks satisfied, use `git worktree remove <exact-path>` without `--force` and verify removal with `git worktree list --porcelain`.
   Do not prune, delete Git metadata manually, or discard dirty or unintegrated work without a separately specified, authorized preservation and recovery procedure.
-  The worktree guard is best-effort and does not verify ownership, quiescence, ignored-file inventory, or integration: an allowed command is not authorization to remove a worktree.
-  If ownership is unknown or the installed guard cannot recognize a legacy worktree, preserve it and stop rather than bypassing the guard.
+  If ownership is unknown, preserve the worktree and stop.
 - Reconcile all worktrees created for the task, including delegated worktrees and revisions, from task records and Git's worktree list; report retained entries and reasons.
   Do not infer task linkage from names alone.
 - Do not push unless explicitly requested; never force-push or rewrite history without explicit authorization.
