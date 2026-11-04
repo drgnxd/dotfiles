@@ -11,16 +11,10 @@ description: Use before the first file edit or Git write in each repository for 
 - Use the repository's documented shell environment, verify it loaded, and inspect an untrusted `.envrc` against the trusted version before allowing it.
 - Use a fresh detached worktree for each task or revision, never a task branch or a shared worktree.
   Record the exact local `main` OID and use `git worktree add --detach <path> <oid>` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, never under a temporary directory.
-- Immediately record the creating session with `wtctl record --path <worktree> --session <id>`, or `--unknown` if the session is unavailable.
-  Use `wtctl query --path <worktree> --json` to inspect provenance.
-  Keep lifecycle operations on that worktree quiescent throughout each record or query; use the same absolute `XDG_STATE_HOME` for both commands and the guard, or consistently leave it unset.
-  The current recorder creates a generation marker in the Git administration directory; do not manually create, copy, modify, or remove that marker.
-  A record, including `unknown`, is self-reported provenance, not proof of ownership or authorization.
-  Independently establish ownership and authority from the current creation or delegation records; missing, conflicting, or unverifiable ownership fails closed even when provenance is known.
-  `unknown` provenance is usable only when that independent ownership evidence is sufficient; otherwise preserve the worktree and stop.
-  If recording fails, preserve the worktree and stop rather than edit or remove it; the record may already have committed, so query it before any further action and never blindly retry.
-  If post-commit verification failed, stop lifecycle and provenance writers, retain the database and SQLite journals, and follow the installed recorder's documented read-only investigation procedure; a query of the current identity may not reveal the retained row.
-  Verify the exact path, detached HEAD, base OID, registration, and two-way `.git`/Git-admin pointers before editing.
+- Retain exact current-task creation and delegation evidence identifying the creator, path, base OID, and task scope in the active task context.
+  Verify registration with `git worktree list --porcelain`, status with `git status --short --untracked-files=all` and an ignored-file inventory, and verify the exact canonical path, detached HEAD, base OID, and two-way `.git`/Git-admin pointers before editing.
+  Independently establish ownership and authority from contemporaneous creation and delegation evidence; Git registration, a worktree name, and historical provenance records alone are not proof of ownership or authorization.
+  If identity or ownership is missing, conflicting, or unverifiable, preserve the worktree and stop.
 - Check repository-specific scheduled and non-cooperating writers and maintain the required locks and quiescence over the complete operation, including Git-annex shared state where applicable.
   Unrelated isolated worktrees are not by themselves blockers.
 - A new repository with unborn `main` may receive only the minimal seed README and initial commit before creating a task worktree; do not use this exception for implementation or unrelated changes.
@@ -28,17 +22,14 @@ description: Use before the first file edit or Git write in each repository for 
 
 ## Existing worktrees and legacy state
 
-- Before recording an existing registered worktree, verify its exact canonical root and two-way Git metadata, then query its current provenance with `wtctl query --path <worktree> --json`.
-  If it is unrecorded, independently verify the original creator session from contemporaneous creation records and use `wtctl record --path <worktree> --session <id>` only when that evidence establishes the creator.
-  Otherwise use `wtctl record --path <worktree> --unknown`; do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker.
-  The record is insert-only: do not guess, overwrite, delete, or re-record an existing or conflicting provenance entry; preserve it and resolve discrepancies through a supported documented procedure or stop.
-  The current recorder does not attribute older inode-only provenance rows; preserve them and independently verify the creator before recording a new entry or `--unknown`.
-  Recording `--unknown` does not establish ownership or authorize edits, recovery, or deletion.
-- Preserve existing legacy markers, Git administration state, worktree locks, snapshots, refs, and quarantines; the current provenance-only `wtctl` neither interprets nor migrates them.
+- Before acting on an existing registered worktree, verify its exact canonical root, registration, status, and two-way Git metadata, and independently establish ownership and authority from contemporaneous creation and delegation evidence.
+  Do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker; preserve the worktree and stop if ownership is unknown or mismatched.
+  Preserve existing provenance records, generation markers, databases, and journals without modification.
+- Preserve existing legacy markers, Git administration state, worktree locks, snapshots, refs, and quarantines.
   Do not remove or alter legacy markers, locks, quarantines, or their contents manually, and do not use native Git removal as a substitute for a refused legacy recovery.
   A legacy worktree lock or unresolved quarantine is a stop condition for ordinary cleanup until its supported recovery has completed.
 - Keep the previous `wtctl` binary and its matching documentation available for legacy recovery and artifact-quarantine procedures.
-  Before invoking it, identify its exact executable path, version or build identity, and documented capabilities, and verify that its documentation supports the specific legacy state and operation; do not assume the current `wtctl` implements old lifecycle commands.
+  Before invoking it, identify its exact executable path, version or build identity, and documented capabilities, and verify that its documentation supports the specific legacy state and operation; consult `nix/wtctl-migration.md` in Dotfiles for the exact historical revision.
   Follow that version's documented supported recovery and required checks, exact-target authorization, locks, and external-writer and Git-annex quiescence; inspect the affected data and preserve anything unclear.
   Never bypass a guard, hook, permission, lock, or safety refusal, and never use unsupported deletion or manual quarantine cleanup as a fallback.
   If the previous binary, matching documentation, identity, or applicable safe procedure cannot be established, preserve all state and report the blocker rather than guessing.
@@ -52,7 +43,7 @@ description: Use before the first file edit or Git write in each repository for 
   Verify the exact integration checkout and target, clean tracked and untracked state, hooks, external writers, and current `main` OID before mutating it.
 - When `main` is an ancestor of the verified task tip, integrate using `git merge --ff-only --no-overwrite-ignore <task-oid>` in the integration checkout, then verify the expected OID and checkout state.
   Do not use force, bypass hooks or guards, or mutate the task checkout to repair `main`.
-- For divergent `main`, while maintaining the same lock and quiescence, pin the current `main` and task OIDs and create a fresh detached integration worktree at that exact `main` OID using the creation and provenance procedure above.
+- For divergent `main`, while maintaining the same lock and quiescence, pin the current `main` and task OIDs and create a fresh detached integration worktree at that exact `main` OID using the creation and ownership-verification procedure above.
   Before merging, persist a task-owned integration record outside the worktrees containing their exact paths, the pinned OIDs, the intended target ref, integration worktree identity, pre-merge cleanliness and ignored-file inventory, and current phase; retain it until reconciliation is complete.
   In that integration worktree run `git merge --no-ff --no-commit <task-oid>`, allowing repository hooks and signing policy to operate normally.
   Resolve conflicts only there, inspect the staged result, run the repository's relevant verification, and commit with the required message and hooks.
@@ -69,9 +60,9 @@ description: Use before the first file edit or Git write in each repository for 
   If a recorded verified merge commit exists and `main` remains pinned, repeat its parent, cleanliness, verification, and pre-fast-forward checks before retrying the fast-forward.
   If the record proves merge has not started, `main` is still pinned, and the integration worktree and merge state exactly match the recorded clean pre-merge state, restart the merge.
   For any missing record, changed target, mismatched merge state, ambiguous data, safety refusal, or other unverified partial state, stop and report it without deletion or bypass; obtain a separately reviewed recovery plan before further mutation.
-- Before removal inspect exact path and two-way Git metadata, creator provenance and independently established ownership, process activity, locks, integration status, and all tracked, untracked, and ignored data.
+- Before removal inspect exact path and two-way Git metadata, creation evidence and independently established ownership, process activity, locks, integration status, and all tracked, untracked, and ignored data.
   `git worktree remove` can delete ignored files: preserve unclear or user-owned data and obtain explicit authorization for any non-regenerable data deletion.
-  Do not remove another session's worktree without explicit authorization, including when its owner is dead; a provenance record alone does not authorize removal.
+  Do not remove another session's worktree without explicit authorization, including when its owner is dead; historical records alone do not authorize removal.
   For an integrated clean worktree with only verified disposable ignored files and all checks satisfied, use `git worktree remove <exact-path>` without `--force` and verify removal with `git worktree list --porcelain`.
   Do not prune, delete Git metadata manually, or discard dirty or unintegrated work without a separately specified, authorized preservation and recovery procedure.
   If ownership is unknown, preserve the worktree and stop.
@@ -81,7 +72,7 @@ description: Use before the first file edit or Git write in each repository for 
 
 ## Parallel work
 
-- The parent creates and records each detached worktree before delegation, gives the exact path, base and scope, and assigns disjoint paths.
+- The parent creates and verifies each detached worktree before delegation, gives the exact path, base and scope, and assigns disjoint paths.
   A delegated writer never creates or removes worktrees, integrates, updates refs, or pushes.
 - Keep outputs inside the assigned worktree and serialize unavoidable shared resources with an owned lock.
   Do not remove another writer's lock or use a shared stash.

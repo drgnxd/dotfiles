@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   user,
@@ -124,13 +123,7 @@ in
 
   home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
 
-  home.packages =
-    packages.packages
-    # wtctl publishes aarch64-darwin only; Linux is intentionally unsupported upstream.
-    ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-      inputs.wtctl.packages.${pkgs.stdenv.hostPlatform.system}.default
-    ]
-    ++ private_tools;
+  home.packages = packages.packages ++ private_tools;
 
   programs.bash = {
     # Login and terminal shells are Nushell on Darwin, so the generated

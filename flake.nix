@@ -32,8 +32,6 @@
     nix-hazkey.url = "github:aster-void/nix-hazkey";
     nix-hazkey.inputs.nixpkgs.follows = "nixpkgs";
 
-    wtctl.url = "github:drgnxd/wtctl";
-    wtctl.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

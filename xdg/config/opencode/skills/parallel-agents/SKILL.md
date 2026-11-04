@@ -11,9 +11,9 @@ a user waiver under the global rules is not a conflict and still applies.
 
 ## Parent / integrator
 
-- The parent creates each detached worktree with Git and records the creating
-  session with `wtctl record` before delegating, as specified by git-workflow.
-  A self-reported record is not proof of ownership. Writing agents never run
+- The parent creates each detached worktree with Git and supplies exact current-task
+  creation and delegation evidence before delegating, as specified by git-workflow.
+  Git registration alone is not proof of ownership. Writing agents never run
   `git worktree add`.
 - Each delegation prompt states the worktree path, worktree ID, allowed edit
   scope, and that the agent must not integrate. Subagents inherit the parent's
@@ -22,7 +22,7 @@ a user waiver under the global rules is not a conflict and still applies.
   updates are out of scope unless explicitly assigned. Worktrees isolate only
   files, the index, and checkout state; they do not prevent merge conflicts.
 - Place worktrees under `~/.local/state/<repo>/worktrees/` (the global rules
-  require this, never `$TMPDIR`), and name and record them as `git-workflow`
+  require this, never `$TMPDIR`), and name and verify them as `git-workflow`
   specifies; do not use the client's built-in worktree isolation, which places
   them inside the repository.
 - Only the integrator integrates and removes worktrees, using Git under the
@@ -35,8 +35,9 @@ a user waiver under the global rules is not a conflict and still applies.
 - Run every Git command as `git -C <assigned-worktree>` and give file tools
   absolute paths under it; the shell cwd may reset to the parent's between calls.
 - Before the first write and before each commit, compare canonical paths of
-  `git rev-parse --show-toplevel`, the assignment, and `wtctl query --path
-  <worktree> --json`; independently establish ownership and stop on a mismatch,
+  `git rev-parse --show-toplevel`, the assignment, and `git worktree list
+  --porcelain`; check status and current-task creation and delegation evidence,
+  independently establish ownership and stop on a mismatch,
   unknown ownership, or if HEAD is not detached.
 - Commit only in the assigned detached worktree. Do not create or update refs,
   integrate, take the integration lock, touch `main`, or remove worktrees.
