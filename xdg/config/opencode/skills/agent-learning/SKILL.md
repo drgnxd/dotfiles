@@ -1,6 +1,6 @@
 ---
 name: agent-learning
-description: Use at the start of a manager task to read the bounded agent-learning ledger, and at task completion when the task involved routing, delegation, user correction, rework, or a verification or reviewer finding, to record a sanitized lesson.
+description: Use at the start of a main-agent task to read the bounded agent-learning ledger, and at task completion when the task involved routing, delegation, user correction, rework, or a verification or reviewer finding, to record a sanitized lesson.
 ---
 
 # Agent Learning Ledger

@@ -28,8 +28,10 @@ let
   opencode_pdf_reader_prompt = ../../../xdg/config/opencode/prompts/pdf-reader.md;
   opencode_researcher_prompt = ../../../xdg/config/opencode/prompts/researcher.md;
   opencode_browser_operator_prompt = ../../../xdg/config/opencode/prompts/browser-operator.md;
-  opencode_manager_prompt = ../../../xdg/config/opencode/prompts/manager.md;
-  opencode_implementer_prompt = ../../../xdg/config/opencode/prompts/implementer.md;
+  opencode_main_prompt = ../../../xdg/config/opencode/prompts/main.md;
+  opencode_strategist_prompt = ../../../xdg/config/opencode/prompts/strategist.md;
+  opencode_producer_prompt = ../../../xdg/config/opencode/prompts/producer.md;
+  opencode_reviewer_prompt = ../../../xdg/config/opencode/prompts/reviewer.md;
   opencode_package_template = ../../../xdg/config/opencode/package.json;
   opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
   opencode_tools_template = ../../../xdg/config/opencode/tools;
@@ -86,8 +88,10 @@ in
     "opencode/prompts/pdf-reader.md".source = opencode_pdf_reader_prompt;
     "opencode/prompts/researcher.md".source = opencode_researcher_prompt;
     "opencode/prompts/browser-operator.md".source = opencode_browser_operator_prompt;
-    "opencode/prompts/manager.md".source = opencode_manager_prompt;
-    "opencode/prompts/implementer.md".source = opencode_implementer_prompt;
+    "opencode/prompts/main.md".source = opencode_main_prompt;
+    "opencode/prompts/strategist.md".source = opencode_strategist_prompt;
+    "opencode/prompts/producer.md".source = opencode_producer_prompt;
+    "opencode/prompts/reviewer.md".source = opencode_reviewer_prompt;
   }
   // lib.mapAttrs' (
     name: src: lib.nameValuePair "opencode/skills/${name}" { source = src; }
