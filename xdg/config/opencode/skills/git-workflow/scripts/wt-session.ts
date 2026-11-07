@@ -120,7 +120,7 @@ export function verifyPointers(worktree: string, admin: string): void {
 // own Git directory is not a place it may live.
 function isLinkedAdmin(ctx: Pick<Context, "env" | "cwd">, worktree: string, admin: string): boolean {
   const common = realpath(resolve(worktree, git(ctx, ["rev-parse", "--git-common-dir"], { cwd: worktree }).stdout))
-  return dirname(admin) === join(common, "worktrees")
+  return dirname(admin) === realpath(join(common, "worktrees"))
 }
 
 export function writeMarker(admin: string, fields: Fields): void {
