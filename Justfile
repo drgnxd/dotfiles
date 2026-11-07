@@ -134,9 +134,9 @@ test-opencode-plugin-sync:
 test-opencode-tool-sync:
   bash home/tests/opencode-tool-sync.sh
 
-# Test the git-workflow worktree session recorder
+# Test and type-check the git-workflow worktree session recorder
 test-wt-session:
-  uv run --no-project python -m unittest discover -s xdg/config/opencode/skills/git-workflow/scripts -p 'test_*.py'
+  cd xdg/config/opencode/skills/git-workflow/scripts && bun install --frozen-lockfile && bun test && bunx tsc --noEmit
 
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:

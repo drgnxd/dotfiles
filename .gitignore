@@ -69,4 +69,5 @@ xdg/config/nushell/generated/
 
 # Opencode
 xdg/config/opencode/node_modules/
+xdg/config/opencode/skills/*/scripts/node_modules/
 xdg/config/opencode/opencode-notifier-state.json

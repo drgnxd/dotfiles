@@ -11,13 +11,13 @@ description: Use before the first file edit or Git write in each repository for 
 - Use the repository's documented shell environment, verify it loaded, and inspect an untrusted `.envrc` against the trusted version before allowing it.
 - Use a fresh detached worktree for each task or revision, never a task branch or a shared worktree.
   Record the exact local `main` OID and use `git worktree add --detach <path> <oid>` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, never under a temporary directory.
-- Prefer `uv run --script <this-skill-dir>/scripts/wt_session.py create <name> [--base <rev>]` to create the worktree.
+- Prefer `bun <this-skill-dir>/scripts/wt-session.ts create <name> [--base <rev>]` to create the worktree.
   It resolves the base (default `refs/heads/main`) to an OID, runs `git worktree add --detach` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, verifies the detached HEAD and two-way `.git`/Git-admin pointers, and writes a write-once `session-owner` record in the worktree's Git administration directory.
   The record holds the creating tool, session ID, base OID, canonical path, and creation time.
   The tool and session ID come from `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID`; the helper records `unknown` when neither is set and refuses to guess when both are.
   `git worktree remove` and `git worktree prune` delete the record with the worktree; `git worktree move` keeps it but invalidates it because it names the original path.
   If the helper reports that a worktree exists but is unrecorded and preserved, including after a failed `git worktree add`, preserve it, do not retry blindly, and stop; never write, copy, or edit a `session-owner` file by hand.
-- `wt_session.py owner <worktree-root>` compares the record with the current session and exits 0 for `mine`, 1 for `other`, 3 for `unknown`, 4 for `unrecorded`, and 2 for an error; accept `mine` only when the exit status is 0 and the output contains the line `status=mine`.
+- `wt-session.ts owner <worktree-root>` compares the record with the current session and exits 0 for `mine`, 1 for `other`, 3 for `unknown`, 4 for `unrecorded`, and 2 for an error; accept `mine` only when the exit status is 0 and the output contains the line `status=mine`.
   `mine` means only that the same top-level tool session ID created the worktree: it does not identify one agent or task, and subagents or sibling agents that share the session environment all read each other's worktrees as `mine`.
   A worktree recorded as `unknown` never reads as `mine`, and a stale `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID` exported in a long-lived shell yields wrong results.
   The record is supporting evidence only: it never replaces the creation and delegation evidence below and never authorizes removal or integration.

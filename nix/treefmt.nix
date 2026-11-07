@@ -10,6 +10,7 @@ _: {
     "*.lock"
     "*.plist"
     "xdg/config/opencode/node_modules/**"
+    "xdg/config/opencode/skills/*/scripts/node_modules/**"
     "result/**"
   ];
 }
