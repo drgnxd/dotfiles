@@ -24,7 +24,7 @@ const TIME_RE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/
 const GIT_ENV_DROP = new Set([
   "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
   "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX",
-  "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT",
+  "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_NOSYSTEM",
 ])
 const GIT_ENV_DROP_PREFIXES = ["GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_"]
 const OWNER_EXIT = { mine: 0, other: 1, unknown: 3, unrecorded: 4 } as const
@@ -83,7 +83,10 @@ export function currentSession(env: Env): { tool: string; session: string } {
 
 export function stateBase(env: Env): string {
   const value = env.XDG_STATE_HOME ?? ""
-  return realpath(isAbsolute(value) ? value : join(env.HOME ?? "", ".local/state"))
+  if (isAbsolute(value)) return realpath(value)
+  const home = env.HOME ?? ""
+  if (!isAbsolute(home)) throw new Failure("neither an absolute XDG_STATE_HOME nor an absolute HOME is set")
+  return realpath(join(home, ".local/state"))
 }
 
 function resolveFrom(base: string, raw: string): string {
@@ -113,12 +116,19 @@ export function verifyPointers(worktree: string, admin: string): void {
   }
 }
 
+// The record is only valid in a linked worktree's `$GIT_COMMON_DIR/worktrees/<id>/`; the main worktree's
+// own Git directory is not a place it may live.
+function isLinkedAdmin(ctx: Pick<Context, "env" | "cwd">, worktree: string, admin: string): boolean {
+  const common = realpath(resolve(worktree, git(ctx, ["rev-parse", "--git-common-dir"], { cwd: worktree }).stdout))
+  return dirname(admin) === join(common, "worktrees")
+}
+
 export function writeMarker(admin: string, fields: Fields): void {
   if (Object.values(fields).some((value) => value.includes("\n"))) throw new Failure("marker values must not contain newlines")
-  const body = Object.entries(fields).map(([key, value]) => `${key}=${value}\n`).join("")
+  const body = Buffer.from(Object.entries(fields).map(([key, value]) => `${key}=${value}\n`).join(""), "utf8")
   const fd = openSync(join(admin, MARKER), constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600)
   try {
-    writeSync(fd, body)
+    for (let written = 0; written < body.length; ) written += writeSync(fd, body, written)
     fsyncSync(fd)
   } finally {
     closeSync(fd)
@@ -127,6 +137,7 @@ export function writeMarker(admin: string, fields: Fields): void {
 
 export function readMarker(ctx: Pick<Context, "env" | "cwd">, worktree: string): Fields | null {
   const admin = adminDir(ctx, worktree)
+  if (!isLinkedAdmin(ctx, worktree, admin)) return null
   let fd: number
   try {
     fd = openSync(join(admin, MARKER), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK)
@@ -143,9 +154,9 @@ export function readMarker(ctx: Pick<Context, "env" | "cwd">, worktree: string):
     closeSync(fd)
   }
   if (data.length > MAX_MARKER_BYTES) throw new Failure(`marker in ${admin} is too large`)
-  const lines = new TextDecoder("utf-8", { fatal: true }).decode(data).split("\n")
+  const lines = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(data).split("\n")
   if (lines[lines.length - 1] === "") lines.pop()
-  const fields: Fields = {}
+  const fields: Fields = Object.create(null) as Fields
   for (const line of lines) {
     const index = line.indexOf("=")
     const key = line.slice(0, index)
@@ -199,6 +210,7 @@ function create(ctx: Context, name: string, baseRev: string): number {
     if (git(ctx, ["symbolic-ref", "-q", "HEAD"], { cwd: path, check: false }).status !== 1) throw new Failure("new worktree HEAD is not detached")
     const admin = adminDir(ctx, path)
     verifyPointers(path, admin)
+    if (!isLinkedAdmin(ctx, path, admin)) throw new Failure(`${admin} is not a linked worktree administration directory`)
     const created = new Date().toISOString().replace(/\.\d{3}Z$/, "Z")
     ;(ctx.writeMarker ?? writeMarker)(admin, { version: MARKER_VERSION, session, tool, base, path, created })
   } catch (error) {
@@ -224,6 +236,7 @@ function lstatExists(path: string): boolean {
 
 function owner(ctx: Context, target: string): number {
   const path = realpath(resolve(ctx.cwd, target))
+  if (!lstatExists(path)) throw new Failure(`${path} does not exist`)
   if (realpath(git(ctx, ["rev-parse", "--show-toplevel"], { cwd: path }).stdout) !== path) throw new Failure(`${path} is not a worktree root`)
   const fields = readMarker(ctx, path)
   let status: Status
@@ -239,7 +252,9 @@ function owner(ctx: Context, target: string): number {
   return OWNER_EXIT[status]
 }
 
-const USAGE = `usage: wt-session.ts <command>
+// Bun loads `.env` and `bunfig.toml` (including `preload`) from the caller's repository unless told not to,
+// so run it as `bun --no-env-file --config=/dev/null wt-session.ts <command>`.
+const USAGE = `usage: bun --no-env-file --config=/dev/null wt-session.ts <command>
   whoami                          print the current session ID (exit 1 when unknown)
   create <name> [--base <rev>]    create and record a detached worktree (default base refs/heads/main)
   owner [path]                    compare a worktree's record with this session
@@ -292,12 +307,10 @@ export function main(argv: string[], ctx: Context): number {
 }
 
 if (import.meta.main) {
-  process.exit(
-    main(process.argv.slice(2), {
-      env: process.env,
-      cwd: process.cwd(),
-      out: (text) => void process.stdout.write(text),
-      err: (text) => void process.stderr.write(text),
-    }),
-  )
+  process.exitCode = main(process.argv.slice(2), {
+    env: process.env,
+    cwd: process.cwd(),
+    out: (text) => void writeSync(1, text),
+    err: (text) => void writeSync(2, text),
+  })
 }

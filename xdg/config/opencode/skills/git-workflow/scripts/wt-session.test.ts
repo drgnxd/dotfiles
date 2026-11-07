@@ -5,6 +5,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { adminDir, main, readMarker, realpath, stateBase, verifyPointers, writeMarker, type Context } from "./wt-session"
 
+const SCRIPT = join(import.meta.dir, "wt-session.ts")
+
 type Env = Record<string, string | undefined>
 
 interface Fixture {
@@ -184,6 +186,38 @@ test("a relative XDG_STATE_HOME is ignored", () => {
   expect(stateBase({ HOME: fx.root, XDG_STATE_HOME: "relative/state" })).toBe(realpath(join(fx.root, ".local/state")))
 })
 
+test("a state base that is not absolute is refused", () => {
+  for (const env of [{}, { HOME: "" }, { HOME: "relative" }, { HOME: "relative", XDG_STATE_HOME: "also/relative" }]) {
+    expect(() => stateBase(env), JSON.stringify(env)).toThrow(/absolute/)
+  }
+  expect(run(["create", "task"], OC, { HOME: "", XDG_STATE_HOME: "" }).code).toBe(2)
+})
+
+test("the Git config variables that point at files are ignored too", () => {
+  writeFileSync(join(fx.root, "evil.gitconfig"), "[core]\n\thooksPath = /nonexistent\n")
+  const result = run(["create", "task"], OC, { GIT_CONFIG_GLOBAL: join(fx.root, "evil.gitconfig") })
+  expect(result.code, result.err).toBe(0)
+})
+
+function cleanProcessEnv(): Record<string, string> {
+  return { PATH: process.env.PATH ?? "", HOME: fx.root, XDG_STATE_HOME: fx.state }
+}
+
+test("the documented bun invocation ignores .env and bunfig.toml from the caller's repository", () => {
+  writeFileSync(join(fx.repo, ".env"), "OPENCODE_SESSION_ID=from-dotenv\n")
+  writeFileSync(join(fx.repo, "pre.ts"), 'import { writeFileSync } from "node:fs"\nwriteFileSync("PRELOAD_RAN", "1")\n')
+  writeFileSync(join(fx.repo, "bunfig.toml"), 'preload = ["./pre.ts"]\n')
+  const result = spawnSync("bun", ["--no-env-file", "--config=/dev/null", SCRIPT, "whoami"], { cwd: fx.repo, env: cleanProcessEnv(), encoding: "utf8" })
+  expect(result.stdout.trim()).toBe("tool=unknown session=unknown")
+  expect(existsSync(join(fx.repo, "PRELOAD_RAN"))).toBe(false)
+})
+
+test("plain bun does load .env, which is why the flags are required", () => {
+  writeFileSync(join(fx.repo, ".env"), "OPENCODE_SESSION_ID=from-dotenv\n")
+  const result = spawnSync("bun", [SCRIPT, "whoami"], { cwd: fx.repo, env: cleanProcessEnv(), encoding: "utf8" })
+  expect(result.stdout.trim()).toBe("tool=opencode session=from-dotenv")
+})
+
 test("the marker is write-once", () => {
   const admin = adminDir(ctxOf(), create())
   expect(() => writeMarker(admin, { version: "1" })).toThrow(/EEXIST/)
@@ -257,8 +291,30 @@ test("owner requires a worktree root", () => {
   expectOwnerError(join(path, "sub"), "not a worktree root")
 })
 
-test("owner on a missing path is an error, not a crash", () => {
-  expectOwnerError(join(fx.state, "missing"), "error")
+test("owner on a missing path says the path does not exist", () => {
+  expectOwnerError(join(fx.state, "missing"), "does not exist")
+})
+
+test("a record planted in the main worktree's Git directory is ignored", () => {
+  writeMarker(adminDir(ctxOf(), fx.repo), {
+    version: "1", session: "ses_abc", tool: "opencode", base: fx.first, path: fx.repo, created: "2026-01-01T00:00:00Z",
+  })
+  const result = run(["owner", fx.repo], OC)
+  expect([result.code, fields(result.out).status]).toEqual([4, "unrecorded"])
+})
+
+test("the on-disk record format is fixed", () => {
+  const path = create()
+  const lines = readFileSync(markerPath(path), "utf8").split("\n")
+  expect(lines.pop()).toBe("")
+  expect(lines.map((line) => line.split("=")[0])).toEqual(["version", "session", "tool", "base", "path", "created"])
+  expect(lines[0]).toBe("version=1")
+  expect(lines[1]).toBe("session=ses_abc")
+  expect(lines[2]).toBe("tool=opencode")
+  expect(lines[4]).toBe(`path=${path}`)
+  expect(lines[5]).toMatch(/^created=\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/)
+  writeFileSync(markerPath(path), `version=1\nsession=ses_abc\ntool=opencode\nbase=${fx.first}\npath=${path}\ncreated=2026-11-07T15:12:35Z\n`)
+  expect(fields(run(["owner", path], OC).out).status).toBe("mine")
 })
 
 test("whoami", () => {
