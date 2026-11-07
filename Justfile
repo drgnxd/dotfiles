@@ -136,7 +136,7 @@ test-opencode-tool-sync:
 
 # Test the git-workflow worktree session recorder
 test-wt-session:
-  python3 -m unittest discover -s xdg/config/opencode/skills/git-workflow/scripts -p 'test_*.py'
+  uv run --no-project python -m unittest discover -s xdg/config/opencode/skills/git-workflow/scripts -p 'test_*.py'
 
 # Check that machine-local paths and manifests are not tracked
 check-public-boundary:
