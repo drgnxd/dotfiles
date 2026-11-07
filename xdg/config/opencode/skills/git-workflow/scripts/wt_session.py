@@ -32,8 +32,10 @@ TIME_RE = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\Z")
 # Inherited from a hook context or a user shell, these would redirect Git to another repository.
 GIT_ENV_DROP = (
     "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
-    "GIT_OBJECT_DIRECTORY", "GIT_NAMESPACE", "GIT_PREFIX",
+    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX",
+    "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT",
 )
+GIT_ENV_DROP_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
 OWNER_EXIT = {"mine": 0, "other": 1, "unknown": 3, "unrecorded": 4}
 ERROR_EXIT = 2
 
@@ -43,7 +45,10 @@ class Failure(Exception):
 
 
 def git(*args, cwd=None, check=True):
-    env = {k: v for k, v in os.environ.items() if k not in GIT_ENV_DROP}
+    env = {
+        k: v for k, v in os.environ.items()
+        if k not in GIT_ENV_DROP and not k.startswith(GIT_ENV_DROP_PREFIXES)
+    }
     try:
         result = subprocess.run(
             ["git", *args], cwd=cwd, env=env, capture_output=True, text=True, check=False
@@ -168,6 +173,7 @@ def repo_name():
 
 
 def registered(path):
+    path = os.path.realpath(path)
     listing = git("worktree", "list", "--porcelain").stdout.splitlines()
     return any(
         line.startswith("worktree ") and os.path.realpath(line[len("worktree "):]) == path
@@ -201,7 +207,7 @@ def cmd_create(args):
         path = os.path.realpath(path)
         if git("rev-parse", "HEAD", cwd=path).stdout.strip() != base:
             raise Failure("new worktree HEAD does not match the base OID")
-        if git("symbolic-ref", "-q", "HEAD", cwd=path, check=False).returncode == 0:
+        if git("symbolic-ref", "-q", "HEAD", cwd=path, check=False).returncode != 1:
             raise Failure("new worktree HEAD is not detached")
         admin = admin_dir(path)
         verify_pointers(path, admin)
@@ -218,11 +224,13 @@ def cmd_create(args):
         )
     except (Failure, OSError, UnicodeError) as error:
         raise Failure(f"worktree {path} exists but is unrecorded and preserved: {error}") from error
-    if session == "unknown":
-        print("warning: no session ID found; recorded as unknown", file=sys.stderr)
-    print(f"path={path}")
-    print(f"base={base}")
-    print(f"tool={tool} session={session}")
+    lines = [f"path={path}", f"base={base}", f"tool={tool} session={session}"]
+    try:
+        if session == "unknown":
+            print("warning: no session ID found; recorded as unknown", file=sys.stderr)
+        print("\n".join(lines))
+    except BrokenPipeError:
+        pass  # the worktree and its record already exist; do not report a failure
     return 0
 
 

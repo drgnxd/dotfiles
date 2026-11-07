@@ -158,6 +158,17 @@ class WtSessionTest(unittest.TestCase):
         self.assertTrue(os.path.isdir(path))
         os.environ.pop("GIT_DIR", None)
 
+    def test_inherited_git_config_variables_are_ignored(self):
+        env = {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.worktree",
+            "GIT_CONFIG_VALUE_0": os.devnull,
+            "GIT_CONFIG_PARAMETERS": "'core.worktree'='/nonexistent'",
+        }
+        with mock.patch.dict(os.environ, env):
+            path = self.create(OPENCODE_SESSION_ID="a")
+        self.assertTrue(os.path.isdir(path))
+
     def test_state_base_ignores_relative_xdg_state_home(self):
         with tempfile.TemporaryDirectory() as home, mock.patch.dict(
             os.environ, {"HOME": home, "XDG_STATE_HOME": "relative/state"}

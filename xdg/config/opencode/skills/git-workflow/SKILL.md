@@ -17,7 +17,7 @@ description: Use before the first file edit or Git write in each repository for 
   The tool and session ID come from `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID`; the helper records `unknown` when neither is set and refuses to guess when both are.
   `git worktree remove` and `git worktree prune` delete the record with the worktree; `git worktree move` keeps it but invalidates it because it names the original path.
   If the helper reports that a worktree exists but is unrecorded and preserved, including after a failed `git worktree add`, preserve it, do not retry blindly, and stop; never write, copy, or edit a `session-owner` file by hand.
-- `wt_session.py owner <worktree-root>` compares the record with the current session and exits 0 for `mine`, 1 for `other`, 3 for `unknown`, 4 for `unrecorded`, and 2 for an error.
+- `wt_session.py owner <worktree-root>` compares the record with the current session and exits 0 for `mine`, 1 for `other`, 3 for `unknown`, 4 for `unrecorded`, and 2 for an error; accept `mine` only when the exit status is 0 and the output contains the line `status=mine`.
   `mine` means only that the same top-level tool session ID created the worktree: it does not identify one agent or task, and subagents or sibling agents that share the session environment all read each other's worktrees as `mine`.
   A worktree recorded as `unknown` never reads as `mine`, and a stale `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID` exported in a long-lived shell yields wrong results.
   The record is supporting evidence only: it never replaces the creation and delegation evidence below and never authorizes removal or integration.
