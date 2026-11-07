@@ -11,6 +11,14 @@ description: Use before the first file edit or Git write in each repository for 
 - Use the repository's documented shell environment, verify it loaded, and inspect an untrusted `.envrc` against the trusted version before allowing it.
 - Use a fresh detached worktree for each task or revision, never a task branch or a shared worktree.
   Record the exact local `main` OID and use `git worktree add --detach <path> <oid>` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, never under a temporary directory.
+- Prefer `uv run --script <this-skill-dir>/scripts/wt_session.py create <name> [--base <rev>]` to create the worktree.
+  It resolves the base (default local `main`) to an OID, runs `git worktree add --detach` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, verifies the detached HEAD and two-way `.git`/Git-admin pointers, and writes a write-once `session-owner` record in the worktree's Git administration directory.
+  The record holds the creating tool, session ID, base OID, canonical path, and creation time from `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID`; it records `unknown` when neither is set and refuses to guess when both are.
+  Git deletes the record with the worktree.
+  If the helper reports a created but unrecorded worktree, preserve it and stop; never write, copy, or edit a `session-owner` file by hand.
+- `wt_session.py owner <worktree-root>` reports `mine`, `other`, `unknown`, or `unrecorded` by comparing the record with the current session.
+  The record is supporting evidence only: it never replaces the creation and delegation evidence below and never authorizes removal or integration.
+  Anything other than `mine`, or a helper error, leaves ownership unverified, so preserve the worktree and stop.
 - Retain exact current-task creation and delegation evidence identifying the creator, path, base OID, and task scope in the active task context.
   Verify registration with `git worktree list --porcelain`, status with `git status --short --untracked-files=all` and an ignored-file inventory, and verify the exact canonical path, detached HEAD, base OID, and two-way `.git`/Git-admin pointers before editing.
   Independently establish ownership and authority from contemporaneous creation and delegation evidence; Git registration, a worktree name, and historical provenance records alone are not proof of ownership or authorization.
