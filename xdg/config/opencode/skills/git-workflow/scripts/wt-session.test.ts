@@ -114,6 +114,12 @@ test("create records a Claude Code session", () => {
   expect(fields(run(["owner", path], session).out).status).toBe("mine")
 })
 
+test("create records a Copilot session", () => {
+  const session = { COPILOT_AGENT_SESSION_ID: "copilot-test-1" }
+  const path = create(session)
+  expect(fields(run(["owner", path], session).out).status).toBe("mine")
+})
+
 test("another session or tool reads as other", () => {
   const path = create()
   const other = run(["owner", path], { OPENCODE_SESSION_ID: "ses_xyz" })
@@ -135,7 +141,7 @@ test("the main worktree is unrecorded", () => {
   expect([result.code, fields(result.out).status]).toEqual([4, "unrecorded"])
 })
 
-test("both session IDs are refused before anything is created", () => {
+test("multiple session IDs are refused before anything is created", () => {
   const result = run(["create", "task"], { OPENCODE_SESSION_ID: "a", CLAUDE_CODE_SESSION_ID: "b" })
   expect(result.code).toBe(2)
   expect(result.err).toContain("refusing to guess")

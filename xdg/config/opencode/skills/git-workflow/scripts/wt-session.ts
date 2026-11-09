@@ -15,7 +15,7 @@ const MARKER = "session-owner"
 const MARKER_VERSION = "1"
 const MAX_MARKER_BYTES = 4096
 const FIELDS = ["version", "session", "tool", "base", "path", "created"] as const
-const TOOLS = ["opencode", "claude-code", "unknown"]
+const TOOLS = ["opencode", "claude-code", "copilot", "unknown"]
 const NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/
 const SESSION_RE = /^[A-Za-z0-9_.-]{1,128}$/
 const OID_RE = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/
@@ -71,7 +71,11 @@ export function realpath(path: string): string {
 
 export function currentSession(env: Env): { tool: string; session: string } {
   const found: { tool: string; session: string }[] = []
-  for (const [name, tool] of [["OPENCODE_SESSION_ID", "opencode"], ["CLAUDE_CODE_SESSION_ID", "claude-code"]] as const) {
+  for (const [name, tool] of [
+    ["OPENCODE_SESSION_ID", "opencode"],
+    ["CLAUDE_CODE_SESSION_ID", "claude-code"],
+    ["COPILOT_AGENT_SESSION_ID", "copilot"],
+  ] as const) {
     const value = env[name] ?? ""
     if (value === "") continue
     if (!SESSION_RE.test(value) || value === "unknown") throw new Failure(`${name} is not a valid session ID`)

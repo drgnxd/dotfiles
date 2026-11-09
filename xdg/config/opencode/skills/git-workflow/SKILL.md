@@ -14,12 +14,12 @@ description: Use before the first file edit or Git write in each repository for 
 - Prefer `bun --no-env-file --config=/dev/null <this-skill-dir>/scripts/wt-session.ts create <name> [--base <rev>]` to create the worktree; always pass both flags, because plain `bun` loads `.env` and runs `bunfig.toml` preload scripts from the repository you are working in; keep `<this-skill-dir>` an absolute path, and if the `bun` on `PATH` rejects the flags, stop instead of dropping them.
   It resolves the base (default `refs/heads/main`) to an OID, runs `git worktree add --detach` at a unique path under `${XDG_STATE_HOME:-~/.local/state}/<repo>/worktrees/`, verifies the detached HEAD and two-way `.git`/Git-admin pointers, and writes a write-once `session-owner` record in the worktree's Git administration directory.
   The record holds the creating tool, session ID, base OID, canonical path, and creation time.
-  The tool and session ID come from `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID`; the helper records `unknown` when neither is set and refuses to guess when both are.
+  The tool and session ID come from `OPENCODE_SESSION_ID`, `CLAUDE_CODE_SESSION_ID`, or `COPILOT_AGENT_SESSION_ID`; the helper records `unknown` when none is set and refuses to guess when multiple are set.
   `git worktree remove` and `git worktree prune` delete the record with the worktree; `git worktree move` keeps it but invalidates it because it names the original path.
   If the helper reports that a worktree exists but is unrecorded and preserved, including after a failed `git worktree add`, preserve it, do not retry blindly, and stop; never write, copy, or edit a `session-owner` file by hand.
 - `wt-session.ts owner <worktree-root>` (same `bun` flags) compares the record with the current session and exits 0 for `mine`, 1 for `other`, 3 for `unknown`, 4 for `unrecorded`, and 2 for an error; accept `mine` only when the exit status is 0 and the output contains the line `status=mine`.
   `mine` means only that the same top-level tool session ID created the worktree: it does not identify one agent or task, and subagents or sibling agents that share the session environment all read each other's worktrees as `mine`.
-  A worktree recorded as `unknown` never reads as `mine`, and a stale `OPENCODE_SESSION_ID` or `CLAUDE_CODE_SESSION_ID` exported in a long-lived shell yields wrong results.
+  A worktree recorded as `unknown` never reads as `mine`, and a stale session ID exported in a long-lived shell yields wrong results.
   The record is supporting evidence only: it never replaces the creation and delegation evidence below and never authorizes removal or integration.
   Anything other than `mine`, or a helper error, leaves ownership unverified, so preserve the worktree and stop.
 - Retain exact current-task creation and delegation evidence identifying the creator, path, base OID, and task scope in the active task context.
