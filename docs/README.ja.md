@@ -17,7 +17,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 
 *   **シェル:** Nushell（構造化データを扱うモダンなシェル、XDG準拠、モジュール構成）
     *   詳細は [architecture/nushell.ja.md](architecture/nushell.ja.md) を参照
-    *   主なコマンド: `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
+    *   主なコマンド: `g` (ripgrep), `f` (fd), `y` (yazi), `update` (system upgrade)
     *   以前のZsh機能を全てNushellに移行済み
 *   **レガシーシェル:** Zsh設定はgit履歴にアーカイブ済み
 *   **ターミナル:** Alacritty (Solarized Darkテーマ)
@@ -208,12 +208,11 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **全てがデータ**: パイプラインはプレーンテキストではなく構造化データ（テーブル、レコード）を使用
 *   **XDG準拠**: 全ての設定はXDG Base Directory仕様に準拠
 *   **モジュール構成**: `autoload/` ディレクトリに分割された保守性の高い設定
-*   **条件付きコマンド**: スマートフォールバック（`g`は`rg`/`grep`、`f`は`fd`/`find`、`cat`は`bat`/`cat`）
+*   **条件付きコマンド**: スマートフォールバック（`g`は`rg`/`grep`、`f`は`fd`/`find`）
 *   **PATHヘルパー**: 既存パスのみを順序通りに先頭追加する`path-add`を使用
 *   **主なコマンド**:
     *   `g` - Ripgrep検索
     *   `f` - fd検索
-    *   `cat` - bat（無い場合はcat）
     *   `la`, `ld`, `lf`, `lsize` - リスト表示の派生
     *   `y` - cwd追跡付きYaziファイルマネージャ
      *   `refresh-nix [input]` - Nix inputを更新しlockfile差分を表示

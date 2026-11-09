@@ -8,32 +8,11 @@ export def --wrapped f [...args] {
     cmd-or-fallback fd find ...$args
 }
 
-export def --wrapped cat [...args] {
-    cmd-or-fallback bat cat --primary-args ["--paging=never" "--color=auto"] ...$args
-}
-
 export alias .. = cd ..
 export alias ... = cd ../..
 export alias .... = cd ../../..
 
 export alias c = clear
-
-export def --wrapped cp [...args] {
-    ^cp -i ...$args
-}
-
-export def --wrapped mv [...args] {
-    ^mv -i ...$args
-}
-
-export def --wrapped rm [...args] {
-    # Skip -i if -f/--force is specified to allow non-interactive removal
-    if ($args | any { $in == "-f" or $in == "--force" }) {
-        ^rm ...$args
-    } else {
-        ^rm -i ...$args
-    }
-}
 
 export def --wrapped la [...args] {
     let paths = ($args | default [])

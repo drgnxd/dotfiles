@@ -19,7 +19,7 @@ This repository contains configurations for my macOS and Linux environments, inc
 
 *   **Shell:** Nushell (modern shell with structured data, XDG-compliant, modular configuration)
     *   See [docs/architecture/nushell.md](docs/architecture/nushell.md) for details
-    *   Key commands: `g` (ripgrep), `f` (fd), `cat` (bat), `y` (yazi), `update` (system upgrade)
+    *   Key commands: `g` (ripgrep), `f` (fd), `y` (yazi), `update` (system upgrade)
     *   Includes all previous Zsh functionality migrated to Nushell
 *   **Legacy Shell:** Zsh configuration is archived in git history
 *   **Terminal:** Alacritty with Solarized Dark theme
@@ -213,12 +213,11 @@ Modern shell with structured data and modular configuration:
 *   **Everything is Data**: Pipelines use structured data (tables, records) instead of plain text
 *   **XDG Compliant**: All configuration follows XDG Base Directory specification
 *   **Modular Architecture**: Configuration split across `autoload/` directory for maintainability
-*   **Conditional Commands**: Smart fallbacks (`g` uses `rg`/`grep`, `f` uses `fd`/`find`, `cat` uses `bat`/`cat`)
+*   **Conditional Commands**: Smart fallbacks (`g` uses `rg`/`grep`, `f` uses `fd`/`find`)
 *   **PATH Helper**: Uses a small `path-add` helper to prepend existing paths in order
 *   **Key Commands**:
     *   `g` - Ripgrep search
     *   `f` - fd search
-    *   `cat` - bat (fallback to cat)
     *   `la`, `ld`, `lf`, `lsize` - List variants
     *   `y` - Yazi file manager with cwd tracking
      *   `refresh-nix [input]` - Refresh Nix inputs and show the lockfile diff

@@ -94,7 +94,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 ### File Operations
 - `la`, `ld`, `lf`, `lsize` - List variants (all/dirs/files/size)
-- `cat` - Display files (uses bat if available)
 - `f` - Find files (uses fd if available)
 
 ### Search

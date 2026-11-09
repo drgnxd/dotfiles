@@ -94,7 +94,6 @@ $env.ENV_CONVERSIONS = ($env.ENV_CONVERSIONS | default {}) | merge {
 
 ### ファイル操作
 - `la`, `ld`, `lf`, `lsize` - リスト表示の派生（全/ディレクトリ/ファイル/サイズ順）
-- `cat` - ファイル表示（使用可能な場合はbatを使用）
 - `f` - ファイル検索（使用可能な場合はfdを使用）
 
 ### 検索
