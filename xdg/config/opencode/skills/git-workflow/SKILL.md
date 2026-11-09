@@ -45,7 +45,10 @@ description: Use before the first file edit or Git write in each repository for 
 
 - Only the integrator may integrate or remove worktrees.
   Hold the repository's `main-integration.lock` from inspection through integration and cleanup, verify lock ownership, and stop on an existing lock; never remove another writer's lock.
-  The lock is the atomic `mkdir` of `main-integration.lock` in the Git common directory; create its `owner` file exclusively with a unique token, process ID, and host on separate lines, and release only after verifying the same token.
+  Resolve the lock path once as `$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)/main-integration.lock` for the repository being integrated, because the plain output can be relative to the `-C` directory, which `-C` does not make the shell's working directory, and a relative `mkdir` locks the wrong repository.
+  The lock is the atomic `mkdir` of that path; create its `owner` file exclusively with a unique token, process ID, and host on separate lines, and release only after verifying the same token.
+  Use that stored absolute path for every lock operation (`mkdir`, `owner` file, token check, release), never a relative one, so a later `cd` cannot redirect it.
+  A failed release, or a lock still present in the integrated repository afterward, must be reported, not left to an exit trap.
   Coordinate any other repository-specific locks with their owners and stop if mutual exclusion cannot be established.
   Verify the exact integration checkout and target, clean tracked and untracked state, hooks, external writers, and current `main` OID before mutating it.
 - When `main` is an ancestor of the verified task tip, integrate using `git merge --ff-only --no-overwrite-ignore <task-oid>` in the integration checkout, then verify the expected OID and checkout state.
