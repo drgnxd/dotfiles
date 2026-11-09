@@ -36,14 +36,10 @@ description: Use before the first file edit or Git write in each repository for 
 - Before acting on an existing registered worktree, verify its exact canonical root, registration, status, and two-way Git metadata, and independently establish ownership and authority from contemporaneous creation and delegation evidence.
   Do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker; preserve the worktree and stop if ownership is unknown or mismatched.
   Preserve existing provenance records, generation markers, databases, and journals without modification.
-- Preserve existing legacy markers, Git administration state, worktree locks, snapshots, refs, and quarantines.
-  Do not remove or alter legacy markers, locks, quarantines, or their contents manually, and do not use native Git removal as a substitute for a refused legacy recovery.
-  A legacy worktree lock or unresolved quarantine is a stop condition for ordinary cleanup until its supported recovery has completed.
-- Keep the previous `wtctl` binary and its matching documentation available for legacy recovery and artifact-quarantine procedures.
-  Before invoking it, identify its exact executable path, version or build identity, and documented capabilities, and verify that its documentation supports the specific legacy state and operation; consult `nix/wtctl-migration.md` in Dotfiles for the exact historical revision.
-  Follow that version's documented supported recovery and required checks, exact-target authorization, locks, and external-writer and Git-annex quiescence; inspect the affected data and preserve anything unclear.
-  Never bypass a guard, hook, permission, lock, or safety refusal, and never use unsupported deletion or manual quarantine cleanup as a fallback.
-  If the previous binary, matching documentation, identity, or applicable safe procedure cannot be established, preserve all state and report the blocker rather than guessing.
+- Worktrees created by the retired `wtctl` (locked with an `agent-task` reason, or recorded in its provenance database) are ordinary Git worktrees.
+  Their markers and records are historical evidence only and never establish ownership; treat them as another session's worktrees.
+  Remove one only with explicit user authorization naming the exact worktree and its inventory, using `git worktree unlock <exact-path>` and then `git worktree remove <exact-path>` without `--force`.
+  Do not delete markers, locks, or Git administration data by hand.
 
 ## Integration and cleanup
 
