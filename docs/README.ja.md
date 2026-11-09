@@ -25,7 +25,7 @@ sudo /run/current-system/sw/bin/darwin-rebuild switch --flake path:.
 *   **ターミナルマルチプレクサ:** Zellij
 *   **ファイルマネージャ:** Yazi (Solarized Darkテーマ)
 
-*   **Linux デスクトップ（Phase 2）:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
+*   **Linux デスクトップ:** Hyprland、Waybar、Wofi、fcitx5 + mozc、cliphist + wl-clipboard、hypridle + hyprlock、mako、grim + slurp、SwayOSD、Hyprpicker
 *   **パッケージマネージャ:** Nix（nix-darwin + home-manager）
 *   **開発ツール:** Git（delta・git-lfs・git-annex・git-absorb・git-cliff統合）、ast-grep、nix-diff、nixfmt、nix-tree、lazygit、gh、opencode（`oc`・`ocd`エイリアス）
 *   **コンテナ・仮想化:** Lima（Linux仮想マシン）、Docker、Docker Compose
