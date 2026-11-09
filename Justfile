@@ -126,13 +126,9 @@ test-private-terms:
 test-spotlight-app-launchers:
   bash home/modules/activation/test_spotlight_app_launchers.sh
 
-# Test OpenCode plugin activation preserves unmanaged user plugins
-test-opencode-plugin-sync:
-  bash home/tests/opencode-plugin-sync.sh
-
-# Test OpenCode tool activation wrapper argument and safety-flag forwarding
-test-opencode-tool-sync:
-  bash home/tests/opencode-tool-sync.sh
+# Test OpenCode tool and plugin activation (backups, exec bit, unmanaged files, symlinks)
+test-opencode-managed-sync:
+  bash home/tests/opencode-managed-sync.sh
 
 # Test and type-check the git-workflow worktree session recorder
 test-wt-session:

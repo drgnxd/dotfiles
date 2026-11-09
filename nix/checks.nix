@@ -93,16 +93,13 @@ forAllSystems (
       deadnix --fail .
       touch $out
     '';
-    opencode-tool-sync-tests =
-      p.runCommand "check-opencode-tool-sync" { nativeBuildInputs = [ p.bash ]; }
+    opencode-managed-sync-tests =
+      p.runCommand "check-opencode-managed-sync" { nativeBuildInputs = [ p.bash ]; }
         ''
-          cp ${../home/modules/activation/sync_opencode_tools.sh} sync_opencode_tools.sh
-          cp ${../home/tests/opencode-tool-sync.sh} test-opencode-tool-sync.sh
-          chmod u+w sync_opencode_tools.sh test-opencode-tool-sync.sh
           mkdir -p home/modules/activation home/tests
-          cp sync_opencode_tools.sh home/modules/activation/sync_opencode_tools.sh
-          cp test-opencode-tool-sync.sh home/tests/opencode-tool-sync.sh
-          bash home/tests/opencode-tool-sync.sh
+          cp ${../home/modules/activation/sync_opencode_managed.sh} home/modules/activation/sync_opencode_managed.sh
+          cp ${../home/tests/opencode-managed-sync.sh} home/tests/opencode-managed-sync.sh
+          bash home/tests/opencode-managed-sync.sh
           touch $out
         '';
   }

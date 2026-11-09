@@ -4,8 +4,11 @@
 # - AGENTS.md is synced as a real file built by concatenating the public
 #   global_rules.md template with a machine-local, git-ignored AGENTS.local.md
 #   appendix, so machine-specific paths never enter the public repo.
-# - Custom tools are synced as real files because Bun resolves imports from
-#   realpaths and store symlinks cannot reach ~/.config/opencode/node_modules.
+# - Custom tools and plugins are synced as real files because Bun resolves
+#   imports from realpaths and store symlinks cannot reach
+#   ~/.config/opencode/node_modules. Unmanaged files in those directories are
+#   never touched, and a hand-edited managed file is kept as
+#   `<name>.before-nix.<timestamp>` before being replaced.
 # - Conflicting real files at migrated symlink paths are backed up as `.before-nix`.
 {
   config,
@@ -35,8 +38,12 @@ let
   opencode_package_template = ../../../xdg/config/opencode/package.json;
   opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
   opencode_tools_template = ../../../xdg/config/opencode/tools;
-  opencode_tools_sync = ./sync_opencode_tools.sh;
-  opencode_tools_sync_helper = "${config.home.homeDirectory}/repos/opencode-tools-sync/opencode_tools_sync.py";
+  opencode_managed_sync = ./sync_opencode_managed.sh;
+  # Tools removed from the repository: { name = "<file>"; sha256 = "<hash of the deployed file>"; }.
+  # The file is moved aside only while it still has exactly that content.
+  retiredOpencodeTools = [ ];
+  retiredNameIsSafe =
+    name: name != "" && !(lib.hasPrefix "." name) && !(lib.hasInfix "/" name) && name != "..";
   opencode_plugins_template = ../../../xdg/config/opencode/plugins;
   jaq = "${pkgs.jaq}/bin/jaq";
   node = "${pkgs.nodejs_22}/bin/node";
@@ -77,6 +84,14 @@ let
     '') migratedAssetTargets
   );
 in
+assert lib.assertMsg
+  (builtins.all (
+    tool:
+    retiredNameIsSafe tool.name
+    && !(builtins.pathExists (opencode_tools_template + "/${tool.name}"))
+    && builtins.match "[0-9a-f]{64}" tool.sha256 != null
+  ) retiredOpencodeTools)
+  "retiredOpencodeTools entries need a plain file name that is gone from the repository and a sha256";
 {
   xdg.configFile = {
     "opencode/tui.json".source = tui_config_template;
@@ -227,22 +242,29 @@ in
     chmod u+w "$opencode_target"
   '';
 
-  home.activation.syncOpencodeTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    source "${opencode_tools_sync}"
-    # The helper cannot lock non-cooperating writers, so mutation needs a one-run quiescence attestation.
-    sync_opencode_tools \
-      "${pkgs.python3}/bin/python3" \
-      "${opencode_tools_sync_helper}" \
-      "dotfiles-opencode-tools" \
+  # Tools must stay a real directory: Bun resolves imports from realpaths and
+  # has to walk up to ~/.config/opencode/node_modules.
+  home.activation.syncOpencodeTools = lib.hm.dag.entryAfter [ "syncOpencodeRules" ] ''
+    source "${opencode_managed_sync}"
+    sync_opencode_managed_dir \
       "${opencode_tools_template}" \
       "${config.xdg.configHome}/opencode/tools" \
-      "${config.xdg.stateHome}/opencode-tools-sync" \
-      "$DRY_RUN_CMD"
+      "${config.xdg.stateHome}/opencode/tools-deployed" \
+      real
+    ${builtins.concatStringsSep "\n" (
+      map (
+        tool:
+        ''retire_opencode_managed_file "${config.xdg.configHome}/opencode/tools" "${tool.name}" "${tool.sha256}"''
+      ) retiredOpencodeTools
+    )}
   '';
 
   home.activation.syncOpencodePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    source "${./sync_opencode_plugins.sh}"
-    sync_opencode_plugins "${opencode_plugins_template}" "${config.xdg.configHome}/opencode/plugins"
+    source "${opencode_managed_sync}"
+    sync_opencode_managed_dir \
+      "${opencode_plugins_template}" \
+      "${config.xdg.configHome}/opencode/plugins" \
+      "${config.xdg.stateHome}/opencode/plugins-deployed"
   '';
 
   home.activation.syncOpencodeRules = lib.hm.dag.entryAfter [ "syncOpencodeConfig" ] ''
