@@ -45,10 +45,13 @@ description: Use before the first file edit or Git write in each repository for 
 
 - Only the integrator may integrate or remove worktrees.
   Hold the repository's `main-integration.lock` from inspection through integration and cleanup, verify lock ownership, and stop on an existing lock; never remove another writer's lock.
-  Resolve the lock path once as `$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)/main-integration.lock` for the repository being integrated, because the plain output can be relative to the `-C` directory, which `-C` does not make the shell's working directory, and a relative `mkdir` locks the wrong repository.
-  The lock is the atomic `mkdir` of that path; create its `owner` file exclusively with a unique token, process ID, and host on separate lines, and release only after verifying the same token.
+  Resolve the canonical integration checkout root and Git common directory with `git -C <verified-integration-checkout> rev-parse --path-format=absolute --show-toplevel` and `git -C <verified-integration-checkout> rev-parse --path-format=absolute --git-common-dir` before changing cwd, and verify that they identify the intended repository.
+  Resolve the lock path once as `<absolute-git-common-dir>/main-integration.lock` for that verified repository, because the plain output can be relative to the `-C` directory, which `-C` does not make the shell's working directory, and a relative `mkdir` locks the wrong repository.
+  The lock is the atomic `mkdir` of that path; create its `owner` file exclusively with a unique token, process ID, host, canonical repository root, absolute Git common directory, and absolute lock path on separate lines.
   Use that stored absolute path for every lock operation (`mkdir`, `owner` file, token check, release), never a relative one, so a later `cd` cannot redirect it.
-  A failed release, or a lock still present in the integrated repository afterward, must be reported, not left to an exit trap.
+  Before releasing the lock, verify that the owner file is a regular non-symlink file and exactly matches the recorded token, process ID, host, canonical repository root, absolute Git common directory, and absolute lock path.
+  Perform final repository and worktree reconciliation while holding the lock; if any final check fails, do not release the lock, leave it intact, mark the task incomplete, and report its captured absolute path.
+  Release the lock only after final reconciliation succeeds, then verify that the captured lock path is absent as both a filesystem entry (`! -e`) and a symlink (`! -L`).
   Coordinate any other repository-specific locks with their owners and stop if mutual exclusion cannot be established.
   Verify the exact integration checkout and target, clean tracked and untracked state, hooks, external writers, and current `main` OID before mutating it.
 - When `main` is an ancestor of the verified task tip, integrate using `git merge --ff-only --no-overwrite-ignore <task-oid>` in the integration checkout, then verify the expected OID and checkout state.
