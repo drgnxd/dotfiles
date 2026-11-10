@@ -35,8 +35,7 @@ description: Use before the first file edit or Git write in each repository for 
 
 - Before acting on an existing registered worktree, verify its exact canonical root, registration, status, and two-way Git metadata, and independently establish ownership and authority from contemporaneous creation and delegation evidence.
   Do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker; preserve the worktree and stop if ownership is unknown or mismatched, except for removal under the `--force` waiver in the removal bullet below.
-  Preserve existing provenance records, generation markers, databases, and journals without modification.
-- Worktrees created by the retired `wtctl` (locked with an `agent-task` reason, or recorded in its provenance database) are ordinary Git worktrees.
+- Worktrees created by the retired `wtctl` (locked with an `agent-task` reason) are ordinary Git worktrees.
   Their markers and records are historical evidence only and never establish ownership; treat them as another session's worktrees.
   Remove one only with explicit user authorization naming the exact worktree and its inventory, using `git worktree unlock <exact-path>` and then `git worktree remove <exact-path>`; if Git refuses because of modified, staged, untracked, merge-state, or submodule content, apply the `--force` waiver in the removal bullet below.
   Do not delete markers, locks, or Git administration data by hand.
