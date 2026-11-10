@@ -229,6 +229,9 @@ in
       # nixpkgs' ollama build disables MLX (-DOLLAMA_MLX_BACKENDS=""); Homebrew's
       # formula depends on mlx-c and builds with MLX support for Apple Silicon.
       "ollama"
+      # nixpkgs' mitscheme does not support aarch64-darwin; Homebrew ships a
+      # bottled build.
+      "mit-scheme"
     ];
     # GUI .app bundles go here even when nixpkgs also packages them
     # (e.g. musescore now builds on aarch64-darwin; the PDF reader Skim is

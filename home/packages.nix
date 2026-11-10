@@ -149,6 +149,7 @@ let
     "ngspice"
     "opencode"
     # ollama: managed via homebrew formula on Darwin for MLX support (see hosts/darwin/default.nix).
+    # mit-scheme: managed via homebrew formula on Darwin because nixpkgs does not support it there (see hosts/darwin/default.nix).
   ];
 
   all_names = lib.unique (
