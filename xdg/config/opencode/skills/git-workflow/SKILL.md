@@ -21,7 +21,7 @@ description: Use before the first file edit or Git write in each repository for 
   `mine` means only that the same top-level tool session ID created the worktree: it does not identify one agent or task, and subagents or sibling agents that share the session environment all read each other's worktrees as `mine`.
   A worktree recorded as `unknown` never reads as `mine`, and a stale session ID exported in a long-lived shell yields wrong results.
   The record is supporting evidence only: it never replaces the creation and delegation evidence below and never authorizes removal or integration.
-  Anything other than `mine`, or a helper error, leaves ownership unverified, so preserve the worktree and stop.
+  Anything other than `mine`, or a helper error, leaves ownership unverified, so preserve the worktree and stop; the only exception is removal under the `--force` waiver in the removal bullet below.
 - Retain exact current-task creation and delegation evidence identifying the creator, path, base OID, and task scope in the active task context.
   Verify registration with `git worktree list --porcelain`, status with `git status --short --untracked-files=all` and an ignored-file inventory, and verify the exact canonical path, detached HEAD, base OID, and two-way `.git`/Git-admin pointers before editing.
   Independently establish ownership and authority from contemporaneous creation and delegation evidence; Git registration, a worktree name, and historical provenance records alone are not proof of ownership or authorization.
@@ -29,16 +29,16 @@ description: Use before the first file edit or Git write in each repository for 
 - Check repository-specific scheduled and non-cooperating writers and maintain the required locks and quiescence over the complete operation, including Git-annex shared state where applicable.
   Unrelated isolated worktrees are not by themselves blockers.
 - A new repository with unborn `main` may receive only the minimal seed README and initial commit before creating a task worktree; do not use this exception for implementation or unrelated changes.
-- If there are staged, unstaged, untracked, or ignored changes of unclear ownership, do not mutate the worktree and coordinate instead.
+- If there are staged, unstaged, untracked, or ignored changes of unclear ownership, do not mutate the worktree and coordinate instead, except for removal under the `--force` waiver in the removal bullet below.
 
 ## Existing worktrees and legacy state
 
 - Before acting on an existing registered worktree, verify its exact canonical root, registration, status, and two-way Git metadata, and independently establish ownership and authority from contemporaneous creation and delegation evidence.
-  Do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker; preserve the worktree and stop if ownership is unknown or mismatched.
+  Do not infer the creator from the current process, worktree name, a later owner, or an unverified legacy marker; preserve the worktree and stop if ownership is unknown or mismatched, except for removal under the `--force` waiver in the removal bullet below.
   Preserve existing provenance records, generation markers, databases, and journals without modification.
 - Worktrees created by the retired `wtctl` (locked with an `agent-task` reason, or recorded in its provenance database) are ordinary Git worktrees.
   Their markers and records are historical evidence only and never establish ownership; treat them as another session's worktrees.
-  Remove one only with explicit user authorization naming the exact worktree and its inventory, using `git worktree unlock <exact-path>` and then `git worktree remove <exact-path>` without `--force`.
+  Remove one only with explicit user authorization naming the exact worktree and its inventory, using `git worktree unlock <exact-path>` and then `git worktree remove <exact-path>`; if Git refuses because of modified, staged, untracked, merge-state, or submodule content, apply the `--force` waiver in the removal bullet below.
   Do not delete markers, locks, or Git administration data by hand.
 
 ## Integration and cleanup
@@ -77,8 +77,12 @@ description: Use before the first file edit or Git write in each repository for 
   `git worktree remove` can delete ignored files: preserve unclear or user-owned data and obtain explicit authorization for any non-regenerable data deletion.
   Do not remove another session's worktree without explicit authorization, including when its owner is dead; historical records alone do not authorize removal.
   For an integrated clean worktree with only verified disposable ignored files and all checks satisfied, use `git worktree remove <exact-path>` without `--force` and verify removal with `git worktree list --porcelain`.
-  Do not prune, delete Git metadata manually, or discard dirty or unintegrated work without a separately specified, authorized preservation and recovery procedure.
-  If ownership is unknown, preserve the worktree and stop.
+  If `git worktree remove` refuses because of modified, staged, untracked, merge-state, or submodule content, use a single `--force` (never `-ff`) only under the global waiver: current user authorization naming the exact worktree path and the complete inventory to be discarded, including submodule content, in-progress merge, rebase, cherry-pick, revert, or bisect state, per-worktree refs and the HEAD reflog, and commits reachable only from its detached HEAD, re-verified unchanged immediately before execution together with registration, two-way metadata, live processes, and lock state.
+  Clear a worktree lock only with `git worktree unlock <exact-path>` under that authorization; identity and process checks still apply, ownership may be unknown or another session's, and integration status is inspected and disclosed in the inventory rather than required.
+  Only the integrator uses this waiver; a delegated writer never removes worktrees.
+  Never prune or delete Git metadata manually.
+  Do not discard dirty or unintegrated work except under that waiver or a separately specified, authorized preservation and recovery procedure.
+  If ownership is unknown, preserve the worktree and stop, unless the user names its exact path for removal under the waiver above.
 - Reconcile all worktrees created for the task, including delegated worktrees and revisions, from task records and Git's worktree list; report retained entries and reasons.
   Do not infer task linkage from names alone.
 - Do not push unless explicitly requested; never force-push or rewrite history without explicit authorization.
