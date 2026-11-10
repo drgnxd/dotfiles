@@ -162,6 +162,10 @@ in
   xdg.dataFile."claude/agents/Explore.md".source = ../xdg/data/claude/agents/Explore.md;
   xdg.dataFile."claude/agents/Plan.md".source = ../xdg/data/claude/agents/Plan.md;
   xdg.dataFile."claude/agents/Review.md".source = ../xdg/data/claude/agents/Review.md;
+  xdg.dataFile."claude/agents/researcher.md".source = ../xdg/data/claude/agents/researcher.md;
+  xdg.dataFile."claude/agents/pdf-reader.md".source = ../xdg/data/claude/agents/pdf-reader.md;
+  xdg.dataFile."claude/agents/browser-operator.md".source =
+    ../xdg/data/claude/agents/browser-operator.md;
   xdg.dataFile."copilot/copilot-instructions.md".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/opencode/AGENTS.md";
   xdg.dataFile."copilot/skills".source =
