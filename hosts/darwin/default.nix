@@ -155,7 +155,8 @@ in
         "com.apple.keyboard.fnState" = 1;
       };
       # Menu-bar plugins live in the home-manager-managed folder; they are
-      # Nix-store symlinks, so SwiftBar must not try to chmod them.
+      # symlinks (via the Nix store) to binaries installed outside it, so
+      # SwiftBar must not try to chmod them.
       "com.ameba.SwiftBar" = {
         PluginDirectory = "${home_dir}/.config/swiftbar/plugins";
         MakePluginExecutable = false;
