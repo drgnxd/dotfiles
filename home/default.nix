@@ -101,6 +101,15 @@ in
 
   xdg.enable = true;
 
+  # Option documentation and the man-page index add evaluation and build work
+  # to every switch.
+  manual = {
+    manpages.enable = false;
+    html.enable = false;
+    json.enable = false;
+  };
+  programs.man.generateCaches = false;
+
   xdg.configFile = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
     "zsh/.zshrc".source = ../xdg/config/zsh/.zshrc;
   };

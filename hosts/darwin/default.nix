@@ -38,6 +38,7 @@ in
 
   system.stateVersion = 5;
   system.startup.chime = false;
+  documentation.enable = false;
   time.timeZone = "Asia/Tokyo";
 
   security.pam.services.sudo_local = {
