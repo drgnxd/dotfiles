@@ -137,7 +137,7 @@ dotfiles/
 ```
 
 - `home/modules/` をアプリケーション設定の唯一の入口とする。
-- `hosts/` にはマシン単位（nix-darwin）の設定を置き、ホストごとの差異はモジュールではなくここに置く。
+- `hosts/` にはマシン単位の nix-darwin 設定を置く（現状は macOS のみ）。Linux 固有の差異は `home/modules/linux/` に置き、モジュール内の OS 分岐は `lib.optionalAttrs` を使う。
 - `xdg/config/` には、ネイティブ形式で管理する意義のあるファイルだけを置く。
 
 ## 運用ルール

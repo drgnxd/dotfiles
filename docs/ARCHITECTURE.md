@@ -23,60 +23,26 @@
 ~/.config/dotfiles/                  # Nix flake repository
 |- flake.nix                         # Entry point (nix-darwin + home-manager)
 |- flake.lock                        # Pinned inputs
-|- hosts/
-|  |- darwin/
-|  |  |- default.nix                 # nix-darwin system configuration
-|  |  `- launchd.nix                 # launchd agents/services
+|- hosts/darwin/                     # nix-darwin system configuration and launchd agents
 |- home/
 |  |- default.nix                    # home-manager entrypoint (imports modules)
 |  |- packages.nix                   # Package list
-|  `- modules/
-|     |- activation/
-|     |  |- directories.nix          # Ensure local config/cache directories
-|     |  |- macos_defaults.nix       # User defaults (Darwin only)
-|     |  |- nushell_ensure.nix       # Ensure local Nushell overlays
-|     |  `- opencode.nix             # Sync OpenCode assets/rules
-|     |- linux/
-|     |  |- desktop.nix              # Linux desktop module aggregator
-|     |  |- hyprland.nix             # Hyprland compositor config
-|     |  |- waybar.nix               # Waybar status bar config
-|     |  `- fcitx5.nix               # fcitx5/mozc input method
-|     |- alacritty.nix               # Terminal config + helper scripts
-|     |- atuin.nix                   # Atuin shell history
-|     |- bat.nix                     # bat pager config
-|     |- direnv.nix                  # direnv integration
-|     |- fzf.nix                     # fzf integration
-|     |- gh.nix                      # GitHub CLI config
-|     |- git.nix                     # git/delta + local template
-|     |- neovim.nix                  # Neovim config + plugins
-|     |- nushell.nix                 # Nushell files (autoload)
-|     |- nushell-integrations.nix    # Build generated Nushell init scripts
-|     |- shellcheck.nix              # shellcheckrc
-|     |- starship.nix                # Starship prompt settings
-|     |- xdg_config_files.nix        # Darwin-only npmrc deployment
-|     |- xdg_desktop_files.nix       # Darwin desktop/Stats plist
-|     |- yazi.nix                    # Yazi file manager config
-|     |- zellij.nix                  # Zellij terminal multiplexer
-|     `- zoxide.nix                  # zoxide integration
-|- xdg/config/                       # Config sources (XDG)
-|  |- alacritty/
-|  |- git/
-|  |- npm/
-|  |- nushell/
-|  |- nvim/
-|  |- opencode/
-|  |- starship/
-|  |- stats/
-|  `- yazi/
-|- scripts/
-|  `- darwin/setup_cloud_symlinks.sh # Optional CloudStorage symlink helper
-|- secrets/
-|  `- secrets.nix                    # agenix key map
-|- docs/                             # Architecture and operation notes
-|- README.md                         # Main README (English)
-|- docs/README.ja.md                 # Japanese README
-`- docs/ARCHITECTURE.md              # This file
+|  |- modules/                       # One module per application
+|  |  |- activation/                 # Activation hooks (defaults, OpenCode sync, bootstrap)
+|  |  `- linux/                      # Linux desktop modules (Hyprland, Waybar, fcitx5)
+|  |- lib/                           # Shared Nix helpers (theme rendering)
+|  |- themes/                        # Color theme definitions
+|  `- tests/                         # Activation script tests
+|- nix/                              # Flake outputs: checks, devshells, apps, treefmt, pkgs
+|- xdg/config/                       # Native-format sources deployed under XDG_CONFIG_HOME
+|- xdg/data/                         # Native-format sources deployed under XDG_DATA_HOME
+|- scripts/                          # Repository tooling and runtime helpers
+|- secrets/                          # agenix recipient map (encrypted files)
+|- local/                            # Machine-specific overrides (real files are git-ignored)
+`- docs/                             # Architecture and operation notes
 ```
+
+Per-module listings are intentionally omitted because they go stale; run `ls home/modules`.
 
 ---
 
@@ -261,16 +227,6 @@ See [Security Model and Guard Flags](architecture/security-model.md).
 
 ---
 
-## Future Enhancements
-
-**Considered but not implemented**:
-- [ ] Multi-machine profiles (work/personal)
-- [ ] Automated backup via git hooks
-- [ ] Ansible playbook for initial system setup
-- [ ] Docker-based testing environment
-
----
-
 ## Reference
 
 **Related Documentation**:
@@ -278,30 +234,9 @@ See [Security Model and Guard Flags](architecture/security-model.md).
 - [Contributing Guide](CONTRIBUTING.md)
 - [Commit Convention](COMMIT_CONVENTION.md)
 
-## Archived Components
+## Zsh Remnant
 
-### Zsh Configuration (Legacy)
-
-The Zsh configuration has been **archived** and migrated to Nushell. The previous setup included:
-
-- **Entry Point**: `.zshrc.tmpl` with modular sourcing
-- **Plugin System**: zplug/zinit with Fast Syntax Highlighting
-- **Modules**: `.exports`, `.aliases`, `.functions`, `.zsh_plugins`
-- **Completions**: Per-command completion definitions
-- **Custom Themes**: 26 FSH chromas for syntax highlighting
-
-**Migration Date**: 2026-01
-**Status**: Superseded by Nushell configuration
-**Access**: Available in git history if needed
-
-**Key Differences from Zsh**:
-| Feature | Zsh | Nushell |
-|---------|-----|---------|
-| Data Model | Text streams | Structured tables/records |
-| Configuration | Multiple sourced files | Modular `autoload/` structure |
-| Aliases | Simple string replacement | `export def` functions with logic |
-| PATH Management | Manual string manipulation | `path-add` helper (prepend + exists check) |
-| Environment | `.zshenv` + `.zshrc` | `env.nu` + `config.nu` |
+Nushell is the login shell and the Zsh configuration is retired. A minimal Zsh stub remains on macOS: `ZDOTDIR` points at `~/.config/zsh` so the `compinit` dump that `/etc/zshrc` writes stays out of the home directory, and `xdg/config/zsh/.zshrc` only relocates `HISTFILE` under `XDG_STATE_HOME`. The old modular Zsh setup is available in git history.
 
 ---
 
@@ -314,6 +249,5 @@ The Zsh configuration has been **archived** and migrated to Nushell. The previou
 
 ---
 
-**Last Updated**: 2026-04
-**Author**: author
+**Last Updated**: 2026-11
 **License**: MIT

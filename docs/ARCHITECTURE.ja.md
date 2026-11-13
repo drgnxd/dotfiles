@@ -23,60 +23,26 @@
 ~/.config/dotfiles/                  # Nix フレークリポジトリ
 |- flake.nix                         # エントリポイント（nix-darwin + home-manager）
 |- flake.lock                        # 依存固定
-|- hosts/
-|  |- darwin/
-|  |  |- default.nix                 # nix-darwin システム設定
-|  |  `- launchd.nix                 # launchd エージェント/サービス
+|- hosts/darwin/                     # nix-darwin システム設定と launchd エージェント
 |- home/
-|  |- default.nix                    # home-manager エントリポイント（モジュール読込）
+|  |- default.nix                    # home-manager エントリポイント（モジュール読み込み）
 |  |- packages.nix                   # パッケージ一覧
-|  `- modules/
-|     |- activation/
-|     |  |- directories.nix          # ローカル設定/キャッシュディレクトリ作成
-|     |  |- macos_defaults.nix       # macOS デフォルト設定（Darwin専用）
-|     |  |- nushell_ensure.nix       # Nushell ローカル上書きファイル保証
-|     |  `- opencode.nix             # OpenCode 資産/ルール同期
-|     |- linux/
-|     |  |- desktop.nix              # Linux デスクトップ統合モジュール
-|     |  |- hyprland.nix             # Hyprland コンポジタ設定
-|     |  |- waybar.nix               # Waybar ステータスバー設定
-|     |  `- fcitx5.nix               # fcitx5/mozc 入力方式
-|     |- alacritty.nix               # ターミナル設定 + 補助スクリプト
-|     |- atuin.nix                   # Atuin 履歴連携
-|     |- bat.nix                     # bat 設定
-|     |- direnv.nix                  # direnv 連携
-|     |- fzf.nix                     # fzf 連携
-|     |- gh.nix                      # GitHub CLI 設定
-|     |- git.nix                     # git/delta + local テンプレート
-|     |- neovim.nix                  # Neovim 設定 + プラグイン
-|     |- nushell.nix                 # Nushell ファイル（autoload）
-|     |- nushell-integrations.nix    # 生成済み Nushell init スクリプト作成
-|     |- shellcheck.nix              # shellcheckrc
-|     |- starship.nix                # Starship プロンプト設定
-|     |- xdg_config_files.nix        # Darwin専用 npmrc 配備
-|     |- xdg_desktop_files.nix       # Darwin デスクトップ/Stats plist
-|     |- yazi.nix                    # Yazi ファイルマネージャ設定
-|     |- zellij.nix                  # Zellij ターミナルマルチプレクサ
-|     `- zoxide.nix                  # zoxide 連携
-|- xdg/config/                       # 設定ソース（XDG）
-|  |- alacritty/
-|  |- git/
-|  |- npm/
-|  |- nushell/
-|  |- nvim/
-|  |- opencode/
-|  |- starship/
-|  |- stats/
-|  `- yazi/
-|- scripts/
-|  `- darwin/setup_cloud_symlinks.sh # CloudStorage シンボリックリンク補助
-|- secrets/
-|  `- secrets.nix                    # agenix キーマップ
-|- docs/                             # アーキテクチャ/運用ドキュメント
-|- README.md                         # メイン README（英語）
-|- docs/README.ja.md                 # 日本語 README
-`- docs/ARCHITECTURE.ja.md           # このファイル
+|  |- modules/                       # アプリケーションごとのモジュール
+|  |  |- activation/                 # activation フック（defaults、OpenCode 同期、初期化）
+|  |  `- linux/                      # Linux デスクトップのモジュール（Hyprland、Waybar、fcitx5）
+|  |- lib/                           # 共有 Nix ヘルパー（テーマ描画）
+|  |- themes/                        # カラーテーマ定義
+|  `- tests/                         # activation スクリプトのテスト
+|- nix/                              # flake の出力：checks、devshells、apps、treefmt、pkgs
+|- xdg/config/                       # XDG_CONFIG_HOME に配備するネイティブ形式のソース
+|- xdg/data/                         # XDG_DATA_HOME に配備するネイティブ形式のソース
+|- scripts/                          # リポジトリ用ツールと実行時ヘルパー
+|- secrets/                          # agenix の宛先キーマップ（暗号化ファイル）
+|- local/                            # マシン固有の上書き（実ファイルは git 管理外）
+`- docs/                             # アーキテクチャ/運用ドキュメント
 ```
+
+モジュールごとの一覧は古くなるため意図的に載せていません。`ls home/modules` を実行してください。
 
 ---
 
@@ -261,16 +227,6 @@ limactl stop dev
 
 ---
 
-## Future Enhancements
-
-**検討中（未実装）**:
-- [ ] マルチマシンプロファイル（work/personal）
-- [ ] git hook による自動バックアップ
-- [ ] 初期セットアップ用 Ansible playbook
-- [ ] Docker ベースのテスト環境
-
----
-
 ## Reference
 
 **関連ドキュメント**:
@@ -278,30 +234,9 @@ limactl stop dev
 - [Contributing Guide](CONTRIBUTING.md)
 - [Commit Convention](COMMIT_CONVENTION.md)
 
-## Archived Components
+## Zsh Remnant
 
-### Zsh Configuration (Legacy)
-
-Zsh 設定は **アーカイブ済み** で、現在は Nushell へ移行済みです。旧構成は以下を含みます。
-
-- **Entry Point**: `.zshrc.tmpl` によるモジュール読み込み
-- **Plugin System**: zplug/zinit + Fast Syntax Highlighting
-- **Modules**: `.exports`, `.aliases`, `.functions`, `.zsh_plugins`
-- **Completions**: コマンド別補完定義
-- **Custom Themes**: 26 種類の FSH カラーテーマ
-
-**Migration Date**: 2026-01
-**Status**: Nushell 構成へ置き換え済み
-**Access**: 必要時は git history を参照
-
-**Key Differences from Zsh**:
-| Feature | Zsh | Nushell |
-|---------|-----|---------|
-| Data Model | Text streams | Structured tables/records |
-| Configuration | Multiple sourced files | Modular `autoload/` structure |
-| Aliases | Simple string replacement | `export def` functions with logic |
-| PATH Management | Manual string manipulation | `path-add` helper (prepend + exists check) |
-| Environment | `.zshenv` + `.zshrc` | `env.nu` + `config.nu` |
+ログインシェルは Nushell で、Zsh 設定は廃止済みです。macOS には最小限の Zsh スタブが残っています。`/etc/zshrc` が書く `compinit` の dump をホーム直下に置かないよう `ZDOTDIR` を `~/.config/zsh` に向け、`xdg/config/zsh/.zshrc` は `HISTFILE` を `XDG_STATE_HOME` 配下へ移すだけです。旧来のモジュール構成の Zsh 設定は git 履歴にあります。
 
 ---
 
@@ -314,6 +249,5 @@ Zsh 設定は **アーカイブ済み** で、現在は Nushell へ移行済み�
 
 ---
 
-**Last Updated**: 2026-04
-**Author**: author
+**Last Updated**: 2026-11
 **License**: MIT

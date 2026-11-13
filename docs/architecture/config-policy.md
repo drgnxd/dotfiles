@@ -137,7 +137,7 @@ dotfiles/
 ```
 
 - `home/modules/` is the single entrance for application configuration.
-- `hosts/` holds machine-level (nix-darwin) configuration; per-host differences belong there, not in modules.
+- `hosts/` holds machine-level nix-darwin configuration (macOS only today); Linux platform differences live in `home/modules/linux/`, and OS branches inside a module use `lib.optionalAttrs`.
 - `xdg/config/` holds only files that are worth keeping in native format.
 
 ## Operating Rules
