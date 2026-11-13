@@ -1,6 +1,7 @@
 # アーキテクチャ概要
 
 ## クイックリンク
+- [設定管理方針](architecture/config-policy.ja.md) - Nix-first, native-when-needed
 - [Nushell 設定](architecture/nushell.ja.md) - モジュール構成のモダンなシェル
 - [XDG Base Directory 準拠](architecture/xdg-compliance.ja.md)
 - [セキュリティモデルとガードフラグ](architecture/security-model.ja.md)

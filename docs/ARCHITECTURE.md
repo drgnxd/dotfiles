@@ -1,6 +1,7 @@
 # Architecture Overview
 
 ## Quick Links
+- [Configuration Management Policy](architecture/config-policy.md) - Nix-first, native-when-needed
 - [Nushell Configuration](architecture/nushell.md) - Modern shell with modular setup
 - [XDG Base Directory Compliance](architecture/xdg-compliance.md)
 - [Security Model and Guard Flags](architecture/security-model.md)
