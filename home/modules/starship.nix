@@ -1,5 +1,5 @@
 # Single source of truth: xdg/config/starship/starship.toml via xdg.configFile.
-# Plan B Nushell init uses STARSHIP_CONFIG=~/.config/starship/starship.toml.
+# The Nix-built Nushell init uses STARSHIP_CONFIG=~/.config/starship/starship.toml.
 { lib, ... }:
 
 let
@@ -13,7 +13,7 @@ in
 
   programs.starship = {
     enable = true;
-    # Init script built via nushell-integrations.nix (Plan B derivation)
+    # Init script built via nushell-integrations.nix (Nix-built init script)
     enableNushellIntegration = false;
   };
 }

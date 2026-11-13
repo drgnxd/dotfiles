@@ -135,7 +135,7 @@ Virtual environment display uses Starship's `env_var.VIRTUAL_ENV_PROMPT` module 
 
 Before each prompt, a Nushell hook checks whether `SSH_AUTH_SOCK` is set and whether its socket path exists. It sets `PASS_AGENT_DOWN=✗` only for the anomalous state, which produces a red Starship warning, and removes the variable when the socket returns. This is a zero-subprocess stat check, not an agent health check: a stale socket left by a dead agent is a known blind spot.
 
-The Plan B Starship init also sets Nushell's transient prompt commands. Nushell replaces a completed prompt with the Starship character, reducing scrollback to the character plus the command. `starship module character` receives no previous `--status` value through this path, so the transient character may always render with the success color.
+The Nix-built Starship init also sets Nushell's transient prompt commands. Nushell replaces a completed prompt with the Starship character, reducing scrollback to the character plus the command. `starship module character` receives no previous `--status` value through this path, so the transient character may always render with the success color.
 
 ## Configuration Settings
 

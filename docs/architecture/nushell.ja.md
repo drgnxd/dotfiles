@@ -135,7 +135,7 @@ Direnv は `autoload/06-direnv.nu` で `$env.config.hooks.env_change.PWD` にフ
 
 各 prompt の直前に Nushell hook が `SSH_AUTH_SOCK` の設定有無と socket path の存在を確認します。異常時だけ `PASS_AGENT_DOWN=✗` を設定して Starship に赤い警告を表示し、socket が戻れば変数を削除します。これは subprocess を使わない stat check であり、agent 自体の状態確認ではありません。process 終了後に残った stale socket を検出できない点は既知の制約です。
 
-Plan B の Starship init は Nushell の transient prompt command も設定します。実行済み prompt を Starship の character に置き換え、scrollback を character と command だけに縮約します。この経路の `starship module character` には直前の `--status` 値が渡らないため、transient character が常に success color になる場合があります。
+Nix でビルドした Starship init は Nushell の transient prompt command も設定します。実行済み prompt を Starship の character に置き換え、scrollback を character と command だけに縮約します。この経路の `starship module character` には直前の `--status` 値が渡らないため、transient character が常に success color になる場合があります。
 
 ## 設定値
 

@@ -3,7 +3,7 @@
 {
   programs.atuin = {
     enable = true;
-    # Init script built via nushell-integrations.nix (Plan B derivation)
+    # Init script built via nushell-integrations.nix (Nix-built init script)
     enableBashIntegration = false;
     enableNushellIntegration = false;
     settings = {

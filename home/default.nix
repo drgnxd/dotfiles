@@ -92,8 +92,8 @@ in
     ./modules/activation/macos_defaults.nix
     ./modules/markql.nix
     ./modules/swiftbar.nix
-    ./modules/xdg_config_files.nix
-    ./modules/xdg_desktop_files.nix
+    ./modules/npmrc.nix
+    ./modules/stats.nix
   ]
   ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ./modules/linux/desktop.nix

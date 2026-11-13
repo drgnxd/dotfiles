@@ -1,7 +1,7 @@
-# Nushell integration init scripts via Nix derivations (Plan B)
+# Nushell integration init scripts via Nix derivations
 #
-# Tools classified as Plan B generate deterministic init output with no
-# host-specific content, so their init scripts can be built at nix-build
+# Tools whose init output is deterministic and has no host-specific
+# content can have their init scripts built at nix-build
 # time and deployed as read-only config files.  This eliminates the
 # runtime SHA-256 hash-sync cost (~350 ms) for these three tools.
 #

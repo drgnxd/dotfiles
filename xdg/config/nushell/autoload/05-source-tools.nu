@@ -6,7 +6,7 @@
 # and deployed to ~/.config/nushell/generated/*.nu. Carapace completion is
 # configured directly in config.nu and has no runtime init cache.
 
-# Plan B: Nix-managed init scripts (read-only, always up-to-date after rebuild)
+# Nix-built init scripts (read-only, always up-to-date after rebuild)
 const starship_file = ($nu.home-dir | path join ".config" "nushell" "generated" "starship.nu")
 const zoxide_file = ($nu.home-dir | path join ".config" "nushell" "generated" "zoxide.nu")
 const atuin_file = ($nu.home-dir | path join ".config" "nushell" "generated" "atuin.nu")
