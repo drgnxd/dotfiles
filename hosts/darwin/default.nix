@@ -14,7 +14,7 @@ let
   # agent in ./launchd.nix replays this exact set at login to work around
   # that, so keep it as the single source of truth.
   user_launchd_env = {
-    PATH = "${home_dir}/.local/state/nix/profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin";
+    PATH = "${home_dir}/.local/state/nix/profile/bin:/etc/profiles/per-user/${user}/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin";
     CLAUDE_CONFIG_DIR = "${home_dir}/.local/share/claude";
     COPILOT_HOME = "${home_dir}/.local/share/copilot";
     NIXPKGS_OPENCODE_DISABLE_LEGACY_DB_WORKAROUND = "1";
@@ -228,6 +228,9 @@ in
     brews = [
       "mas"
       "pass-cli"
+      # nixpkgs' git-annex drags ghc and its Haskell libraries into every Home
+      # Manager derivation closure; Homebrew ships a bottle with two deps.
+      "git-annex"
       # nixpkgs' ollama build disables MLX (-DOLLAMA_MLX_BACKENDS=""); Homebrew's
       # formula depends on mlx-c and builds with MLX support for Apple Silicon.
       "ollama"

@@ -78,12 +78,16 @@ let
 
   git_tools = [
     "git-absorb"
-    "git-annex"
     "git-cliff"
     "git-crypt"
     "git-lfs"
     "lazygit"
   ];
+
+  # Darwin installs git-annex from Homebrew (hosts/darwin/default.nix): the
+  # nixpkgs build pulls ghc and ~335 Haskell store paths into every Home
+  # Manager derivation closure and cannot be cached once overridden.
+  linux_git_tools = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ "git-annex" ];
 
   dev_tools = [
     "ast-grep"
@@ -163,6 +167,7 @@ let
     ++ document_tools
     ++ security
     ++ linux_cli_tools
+    ++ linux_git_tools
     ++ system_tools
     ++ chess_tools
     ++ local_packages
