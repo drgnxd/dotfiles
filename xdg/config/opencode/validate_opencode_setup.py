@@ -514,8 +514,8 @@ def validate_config(errors: list[str]) -> None:
             errors.append(f"{agent_name} color has insufficient contrast")
 
 
-def validate_tui_config(errors: list[str]) -> None:
-    config_path = BASE_DIR / "tui.json"
+def validate_cli_config(errors: list[str]) -> None:
+    config_path = BASE_DIR / "cli.json"
     if not config_path.exists():
         errors.append(f"Missing required config file: {config_path}")
         return
@@ -527,13 +527,15 @@ def validate_tui_config(errors: list[str]) -> None:
         return
 
     if not isinstance(config, dict):
-        errors.append(f"Invalid TUI config object in {config_path}")
+        errors.append(f"Invalid CLI config object in {config_path}")
         return
 
-    if config.get("$schema") != "https://opencode.ai/tui.json":
-        errors.append("tui.json should set $schema to https://opencode.ai/tui.json")
-    if config.get("theme") != "terminal-transparent":
-        errors.append('tui.json should set theme to "terminal-transparent"')
+    if config.get("$schema") != "https://opencode.ai/v2/cli.json":
+        errors.append("cli.json should set $schema to https://opencode.ai/v2/cli.json")
+    if config.get("theme") != {"name": "terminal-transparent"}:
+        errors.append('cli.json should set theme to {"name": "terminal-transparent"}')
+    if (BASE_DIR / "tui.json").exists():
+        errors.append("tui.json is not read by OpenCode v2; manage cli.json instead")
 
 
 def _valid_theme_color(value: object) -> bool:
@@ -723,7 +725,7 @@ def main() -> int:
     validate_global_rules(errors)
     validate_delegation_rules(errors)
     validate_config(errors)
-    validate_tui_config(errors)
+    validate_cli_config(errors)
     validate_transparent_theme(errors)
     validate_package(errors)
     validate_tools(errors)

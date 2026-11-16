@@ -144,6 +144,10 @@ test-opencode:
   uv run --directory xdg/config/opencode python -m unittest discover -s tests -p 'test_*.py'
   cd xdg/config/opencode && bun install --frozen-lockfile && bun test tests && bunx tsc --noEmit -p .
 
+# Test the OpenCode cli.json managed-key merge
+test-opencode-cli-config:
+  JAQ="$(nix build --no-link --print-out-paths nixpkgs#jaq)/bin/jaq" bash home/tests/opencode-cli-config.sh
+
 # Test and type-check the git-workflow worktree session recorder
 test-wt-session:
   cd xdg/config/opencode/skills/git-workflow/scripts && bun install --frozen-lockfile && bun test && bunx tsc --noEmit

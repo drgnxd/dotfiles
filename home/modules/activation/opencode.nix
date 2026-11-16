@@ -22,7 +22,7 @@ let
   opencode_template = pkgs.writeText "opencode.json" (render_with_theme {
     templatePath = ../../../xdg/config/opencode/opencode.json;
   });
-  tui_config_template = ../../../xdg/config/opencode/tui.json;
+  cli_config_template = ../../../xdg/config/opencode/cli.json;
   opencode_local_example = ../../../xdg/config/opencode/opencode.local.json.example;
   opencode_agents_template = ../../../xdg/config/opencode/global_rules.md;
   opencode_agents_local_example = ../../../xdg/config/opencode/AGENTS.local.md.example;
@@ -39,6 +39,7 @@ let
   opencode_package_lock_template = ../../../xdg/config/opencode/package-lock.json;
   opencode_tools_template = ../../../xdg/config/opencode/tools;
   opencode_managed_sync = ./sync_opencode_managed.sh;
+  opencode_cli_config_sync = ./sync_opencode_cli_config.sh;
   # Tools removed from the repository: { name = "<file>"; sha256 = "<hash of the deployed file>"; }.
   # The file is moved aside only while it still has exactly that content.
   retiredOpencodeTools = [ ];
@@ -94,7 +95,6 @@ assert lib.assertMsg
   "retiredOpencodeTools entries need a plain file name that is gone from the repository and a sha256";
 {
   xdg.configFile = {
-    "opencode/tui.json".source = tui_config_template;
     "opencode/themes/terminal-transparent.json".text = render_with_theme {
       templatePath = ../../../xdg/config/opencode/themes/terminal-transparent.json;
     };
@@ -211,6 +211,14 @@ assert lib.assertMsg
     } > "$agents_target.tmp"
     mv -f "$agents_target.tmp" "$agents_target"
     chmod u+w "$agents_target"
+  '';
+
+  home.activation.syncOpencodeCliConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    source "${opencode_cli_config_sync}"
+    sync_opencode_cli_config \
+      "${jaq}" \
+      "${cli_config_template}" \
+      "${config.xdg.configHome}/opencode/cli.json"
   '';
 
   home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter [ "ensureOpencodeLocalConfig" ] ''
