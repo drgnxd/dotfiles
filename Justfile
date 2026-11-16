@@ -126,6 +126,14 @@ test-private-terms:
 test-spotlight-app-launchers:
   bash home/modules/activation/test_spotlight_app_launchers.sh
 
+# Report whether the externally built SwiftBar plugin binaries are installed and linked
+check-swiftbar-plugins:
+  bash scripts/darwin/check_swiftbar_plugins.sh
+
+# Test the SwiftBar plugin check against missing, non-executable and dangling cases
+test-check-swiftbar-plugins:
+  bash scripts/darwin/test_check_swiftbar_plugins.sh
+
 # Test OpenCode tool and plugin activation (backups, exec bit, unmanaged files, symlinks)
 test-opencode-managed-sync:
   bash home/tests/opencode-managed-sync.sh
