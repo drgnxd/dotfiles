@@ -159,7 +159,7 @@ def validate_config(errors: list[str]) -> None:
     if "research_search" in mcp or "research_search" in mcp.get("servers", {}):
         errors.append("research_search must not be configured in shared MCP servers")
 
-    policies = config.get("experimental", {}).get("policies", [])
+    policies = config.get("policies", [])
     if not any(
         policy == {"effect": "deny", "action": "provider.use", "resource": "*"}
         for policy in policies
@@ -218,8 +218,12 @@ def validate_config(errors: list[str]) -> None:
             errors.append(f"{role} must not impose a step limit")
         if agents.get(role, {}).get("hidden", False):
             errors.append(f"{role} must remain visible")
-    if config.get("subagent_depth") != 1 or config.get("experimental", {}).get("subagent_depth") != 1:
-        errors.append("Both subagent depth values must be 1 to disable nested delegation")
+    if config.get("experimental", {}).get("subagent_depth") != 1:
+        errors.append("experimental.subagent_depth must be 1 to disable nested delegation")
+    if "subagent_depth" in config:
+        errors.append("top-level subagent_depth is ignored by OpenCode v2; use experimental.subagent_depth")
+    if "policies" in config.get("experimental", {}):
+        errors.append("experimental.policies is deprecated; use top-level policies")
     # Suffix patterns keep these allows after the runtime's wildcard deny.
     expected_researcher_permissions = {
         "*": "deny",

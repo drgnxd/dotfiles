@@ -115,5 +115,35 @@ class AgentTopologyTest(unittest.TestCase):
         self.assertEqual(producer["task"], {"*": "deny"})
 
 
+class LegacySettingRegressionTest(unittest.TestCase):
+    def validate(self, mutate):
+        config = json.loads((BASE / "opencode.json").read_text())
+        mutate(config)
+        errors = []
+        with patch.object(Path, "read_text", return_value=json.dumps(config)):
+            validator.validate_config(errors)
+        return errors
+
+    def test_current_config_has_no_v2_legacy_errors(self):
+        errors = self.validate(lambda config: None)
+        self.assertFalse([e for e in errors if "subagent_depth" in e or "policies" in e], errors)
+
+    def test_ignored_top_level_subagent_depth_is_rejected(self):
+        errors = self.validate(lambda config: config.update(subagent_depth=1))
+        self.assertTrue(any("top-level subagent_depth" in e for e in errors), errors)
+
+    def test_missing_subagent_depth_is_rejected(self):
+        errors = self.validate(lambda config: config["experimental"].pop("subagent_depth"))
+        self.assertTrue(any("experimental.subagent_depth must be 1" in e for e in errors), errors)
+
+    def test_deprecated_experimental_policies_are_rejected(self):
+        errors = self.validate(lambda config: config["experimental"].update(policies=config["policies"]))
+        self.assertTrue(any("experimental.policies is deprecated" in e for e in errors), errors)
+
+    def test_provider_policy_removal_is_rejected(self):
+        errors = self.validate(lambda config: config.update(policies=[]))
+        self.assertIn("OpenCode must deny all providers by default", errors)
+
+
 if __name__ == "__main__":
     unittest.main()

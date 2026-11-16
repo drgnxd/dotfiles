@@ -11,7 +11,6 @@
     "fetch_pdf": "deny",
     "research_search_*": "deny"
   },
-  "subagent_depth": 1,
   "provider": {
     "openai": {
       "options": {
@@ -212,18 +211,18 @@
     "buffer": 20000
   },
   "experimental": {
-    "subagent_depth": 1,
-    "policies": [
-      {
-        "effect": "deny",
-        "action": "provider.use",
-        "resource": "*"
-      },
-      {
-        "effect": "allow",
-        "action": "provider.use",
-        "resource": "openai"
-      }
-    ]
-  }
+    "subagent_depth": 1
+  },
+  "policies": [
+    {
+      "effect": "deny",
+      "action": "provider.use",
+      "resource": "*"
+    },
+    {
+      "effect": "allow",
+      "action": "provider.use",
+      "resource": "openai"
+    }
+  ]
 }
