@@ -130,6 +130,12 @@ test-spotlight-app-launchers:
 test-opencode-managed-sync:
   bash home/tests/opencode-managed-sync.sh
 
+# Validate the OpenCode setup, run its Python and Bun tests, and type-check plugins and tools
+test-opencode:
+  uv run --directory xdg/config/opencode python validate_opencode_setup.py
+  uv run --directory xdg/config/opencode python -m unittest discover -s tests -p 'test_*.py'
+  cd xdg/config/opencode && bun install --frozen-lockfile && bun test tests && bunx tsc --noEmit -p .
+
 # Test and type-check the git-workflow worktree session recorder
 test-wt-session:
   cd xdg/config/opencode/skills/git-workflow/scripts && bun install --frozen-lockfile && bun test && bunx tsc --noEmit
