@@ -59,7 +59,61 @@ class ResearcherPermissionsTest(unittest.TestCase):
             "playwright_browser_file_upload",
         ):
             self.assertEqual(decision(tool), "deny")
-        self.assertEqual(config["agent"]["manager"]["permission"]["playwright_*"], "deny")
+        self.assertEqual(config["agent"]["main"]["permission"]["playwright_*"], "deny")
+
+
+class AgentTopologyTest(unittest.TestCase):
+    def setUp(self):
+        self.config = json.loads((BASE / "opencode.json").read_text())
+        self.agents = self.config["agent"]
+
+    def test_default_agent_is_a_defined_primary(self):
+        default = self.config["default_agent"]
+        self.assertIn(default, self.agents)
+        self.assertEqual(self.agents[default]["mode"], "primary")
+
+    def test_main_delegates_only_to_defined_subagents(self):
+        delegates = {k: v for k, v in self.agents["main"]["permission"]["task"].items() if k != "*"}
+        self.assertEqual(self.agents["main"]["permission"]["task"]["*"], "deny")
+        for name in delegates:
+            with self.subTest(agent=name):
+                self.assertIn(name, self.agents)
+                self.assertEqual(self.agents[name]["mode"], "subagent")
+
+    def test_subagents_cannot_delegate(self):
+        for name, agent in self.agents.items():
+            if agent.get("mode") != "subagent":
+                continue
+            with self.subTest(agent=name):
+                task = agent.get("permission", {}).get("task")
+                catch_all = agent.get("permission", {}).get("*")
+                self.assertTrue(task == {"*": "deny"} or task == "deny" or catch_all == "deny")
+
+    def test_prompt_files_exist_for_every_prompted_agent(self):
+        for name, agent in self.agents.items():
+            prompt = agent.get("prompt")
+            if prompt is None:
+                continue
+            with self.subTest(agent=name):
+                relative = prompt.removeprefix("{file:").removesuffix("}")
+                self.assertTrue((BASE / relative).is_file(), relative)
+
+    def test_retired_agent_name_is_not_referenced(self):
+        for path in [BASE / "opencode.json", BASE / "global_rules.md", *(BASE / "prompts").glob("*.md")]:
+            with self.subTest(path=path.name):
+                self.assertNotIn('"manager"', path.read_text())
+
+    def test_read_only_reviewers_and_producer_isolation(self):
+        for name in ("strategist", "reviewer"):
+            permission = self.agents[name]["permission"]
+            with self.subTest(agent=name):
+                self.assertEqual(permission["*"], "deny")
+                self.assertEqual({k for k, v in permission.items() if v == "allow"}, {"read", "glob", "grep"})
+        producer = self.agents["producer"]["permission"]
+        for tool in ("webfetch", "websearch", "codesearch", "playwright_*"):
+            self.assertEqual(producer[tool], "deny")
+        self.assertEqual(producer["task"], {"*": "deny"})
+
 
 if __name__ == "__main__":
     unittest.main()
