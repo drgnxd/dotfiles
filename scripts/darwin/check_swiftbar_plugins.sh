@@ -19,6 +19,9 @@ for plugin in "${plugins[@]}"; do
   if [ ! -L "$plugin_dir/$plugin" ] || [ ! -e "$plugin_dir/$plugin" ]; then
     printf 'ERROR: link missing or dangling: %s\n' "$plugin_dir/$plugin" >&2
     errors=$((errors + 1))
+  elif [ -e "$bin_dir/$plugin" ] && [ "$(readlink -f "$plugin_dir/$plugin")" != "$(readlink -f "$bin_dir/$plugin")" ]; then
+    printf 'ERROR: link does not resolve to the installed binary: %s\n' "$plugin_dir/$plugin" >&2
+    errors=$((errors + 1))
   fi
 done
 

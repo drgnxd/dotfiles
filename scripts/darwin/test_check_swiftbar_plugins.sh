@@ -29,6 +29,15 @@ fi
 chmod +x "$bin_dir"/*.bin
 run_check
 
+: >"$tmp_dir/stale"
+chmod +x "$tmp_dir/stale"
+ln -sf "$tmp_dir/stale" "$plugin_dir/attention.1m.bin"
+if run_check; then
+  printf 'expected a link to another file to fail\n' >&2
+  exit 1
+fi
+ln -sf "$bin_dir/attention.1m.bin" "$plugin_dir/attention.1m.bin"
+
 rm "$bin_dir/attention.1m.bin"
 if run_check; then
   printf 'expected dangling link to fail\n' >&2
