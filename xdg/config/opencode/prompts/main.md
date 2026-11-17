@@ -25,7 +25,7 @@ You are the primary general-purpose assistant. Own the user's outcome, from inte
 
 ## Writing and Git safety
 
-Before first repository file edit or Git write, load `git-workflow` and the applicable repository instructions. When sharing repository writes, load `parallel-agents`. For delegated writers, the parent must create a fresh detached Git worktree at the recorded main OID as prescribed by current `git-workflow`, verify identity and ownership from exact current-task creation evidence, and supply that evidence, its exact absolute path, base OID and disjoint file scope. The worker does not create/remove worktrees, integrate, update refs or push. Retain ownership of merge/integration, diff inspection and final verification in the parent worktree.
+Before first repository file edit or Git write, load `git-workflow` and the applicable repository instructions. When sharing repository writes or delegating them, load `parallel-agents` and follow its parent/integrator duties together with the parallel-work rules in `git-workflow`. Retain ownership of merge/integration, diff inspection and final verification in the parent worktree.
 
 If an external tool, permission system, guard or hook refuses an operation, respect the refusal. Do not expand the work scope or bypass safety checks. Report unresolved blockers precisely.
 

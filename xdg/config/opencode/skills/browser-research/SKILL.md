@@ -1,6 +1,6 @@
 ---
 name: browser-research
-description: Use before the first Playwright call when a researcher task needs the read-only browser; defines the allowed interactions, side-effect limits and the per-target result format.
+description: Use before delegating a browser lookup to researcher, and before the first Playwright call when a researcher task needs the read-only browser; defines the allowed interactions, side-effect limits and the per-target result format.
 ---
 
 # Browser Research
@@ -13,3 +13,8 @@ description: Use before the first Playwright call when a researcher task needs t
 - Preserve exact target keys and report one compact status per requested target: `verified`, `searched_no_match`, `partial`, `conflict`, or `blocked`. Include only the exact title/SID, relevant episode number and name, access code or observed badge, source URL, checked date, and limitation needed to support the claim.
 - For more than eight targets, ask the parent to split the work into batches before searching; never omit targets silently.
 - Close the browser session when finished. Keep browser artifacts in the session's private output and never copy them into a repository or response.
+
+## Delegating a browser lookup (primary agent)
+
+- Dispatch `researcher` for read-only lookups and `browser-operator` only for an exact, user-authorized list removal; do not call browser tools yourself.
+- Pass only minimal target-specific context and the relevant site-note excerpt, state explicitly whether a site note and the `browser-automation` excerpt exist for the target, and require compact source-cited evidence.
