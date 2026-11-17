@@ -4,8 +4,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # OpenCode 2.1.4 is the first release that lets the ChatGPT context caps be disabled. Remove this input
-    # once the settled nixpkgs carries opencode 2.1.4 or newer.
+    # OpenCode 2.1.4 is the first release that lets the ChatGPT context caps be disabled. The settled nixpkgs now
+    # carries 2.2.5, but its darwin node_modules fixed-output hash mismatches and the build fails (checked
+    # 2026-11-17). Remove this input once the settled nixpkgs builds opencode 2.1.4 or newer.
     nixpkgs-opencode.url = "github:NixOS/nixpkgs/e62746b0b472753ef019baceab6f1e2e52014980";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
