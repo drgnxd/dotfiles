@@ -44,6 +44,13 @@
                 '';
               };
           }
+          // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+            # The sandboxed Vite build resolves localhost, which the macOS sandbox rejects unless local networking
+            # is allowed. Hydra has no darwin build of this version, so it is built locally.
+            en-croissant = prev.en-croissant.overrideAttrs (_: {
+              __darwinAllowLocalNetworking = true;
+            });
+          }
           // prev.lib.optionalAttrs (opencodeNixpkgs != null) {
             # Taken from a newer nixpkgs than the soaked one, because only OpenCode 2.1.4 and later can disable
             # the ChatGPT context caps.
