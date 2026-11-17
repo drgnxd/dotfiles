@@ -139,10 +139,11 @@ test-opencode-managed-sync:
   bash home/tests/opencode-managed-sync.sh
 
 # Validate the OpenCode setup, run its Python and Bun tests, and type-check plugins and tools
+# Dependencies come from npm ci because that is how activation installs them; Bun lays them out differently.
 test-opencode:
   uv run --directory xdg/config/opencode python validate_opencode_setup.py
   uv run --directory xdg/config/opencode python -m unittest discover -s tests -p 'test_*.py'
-  cd xdg/config/opencode && bun install --frozen-lockfile && bun test tests && bunx tsc --noEmit -p .
+  cd xdg/config/opencode && npm ci --ignore-scripts --no-audit --no-fund && bun test tests && node_modules/.bin/tsc --noEmit -p .
 
 # Test the OpenCode cli.json managed-key merge
 test-opencode-cli-config:
