@@ -1,7 +1,7 @@
 {
   # Single source of nixpkgs config (allowUnfree); pkgs is injected via specialArgs.
   mkPkgs =
-    nixpkgs: system: opencodeNixpkgs:
+    nixpkgs: system:
     import nixpkgs {
       inherit system;
       config.allowUnfree = true;
@@ -50,17 +50,6 @@
             en-croissant = prev.en-croissant.overrideAttrs (_: {
               __darwinAllowLocalNetworking = true;
             });
-          }
-          // prev.lib.optionalAttrs (opencodeNixpkgs != null) {
-            # Taken from a newer nixpkgs than the soaked one, because only OpenCode 2.1.4 and later can disable
-            # the ChatGPT context caps.
-            inherit
-              (import opencodeNixpkgs {
-                inherit system;
-                config.allowUnfree = true;
-              })
-              opencode
-              ;
           }
         )
       ];
