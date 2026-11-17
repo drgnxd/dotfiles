@@ -146,7 +146,7 @@ test-opencode:
 
 # Test the OpenCode cli.json managed-key merge
 test-opencode-cli-config:
-  JAQ="$(nix build --no-link --print-out-paths nixpkgs#jaq)/bin/jaq" bash home/tests/opencode-cli-config.sh
+  JAQ="$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#jaq)/bin/jaq" bash home/tests/opencode-cli-config.sh
 
 # Test and type-check the git-workflow worktree session recorder
 test-wt-session:

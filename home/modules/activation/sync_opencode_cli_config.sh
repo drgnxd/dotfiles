@@ -5,9 +5,19 @@
 # OpenCode v2 reads CLI settings from cli.json and rewrites it with the user's
 # persisted preferences, so the file cannot be a read-only store symlink. Only
 # the keys present in the template are set; an unreadable target is kept as is.
+# A symlinked target belongs to the user and is left alone.
 
 sync_opencode_cli_config() {
   local jaq="$1" template="$2" target="$3" merged
+
+  if [[ -n ${DRY_RUN_CMD:-} ]]; then
+    printf 'would sync managed keys into %s\n' "$target" >&2
+    return 0
+  fi
+  if [[ -L $target ]]; then
+    echo "warning: $target is a symlink; leaving it unmanaged" >&2
+    return 0
+  fi
 
   mkdir -p "$(dirname "$target")"
   if [[ ! -s $target ]]; then

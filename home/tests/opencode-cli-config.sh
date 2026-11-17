@@ -32,4 +32,15 @@ printf '{not json\n' >"$target"
 sync_opencode_cli_config "$jaq" "$template" "$target" 2>/dev/null
 [[ "$(<"$target")" == '{not json' ]] || fail 'invalid target was modified'
 [[ -z "$(find "$tmp/config" -name '*.tmp.*')" ]] || fail 'temp file left behind'
+# A symlinked target is user-owned and must stay untouched, including its destination.
+printf '{"keep":true}\n' >"$tmp/elsewhere.json"
+rm -f "$target"
+ln -s "$tmp/elsewhere.json" "$target"
+sync_opencode_cli_config "$jaq" "$template" "$target" 2>/dev/null
+[[ -L $target && "$(<"$tmp/elsewhere.json")" == '{"keep":true}' ]] || fail 'symlinked target was modified'
+
+# Home Manager dry-run must not write anything.
+rm -f "$target"
+DRY_RUN_CMD='echo' sync_opencode_cli_config "$jaq" "$template" "$target" 2>/dev/null
+[[ ! -e $target ]] || fail 'dry-run created the target'
 printf 'OK\n'
