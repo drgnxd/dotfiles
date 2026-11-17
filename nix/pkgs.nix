@@ -45,10 +45,12 @@
               };
           }
           // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
-            # The sandboxed Vite build resolves localhost, which the macOS sandbox rejects unless local networking
-            # is allowed. Hydra has no darwin build of this version, so it is built locally.
-            en-croissant = prev.en-croissant.overrideAttrs (_: {
+            # Hydra has no darwin build of this version, so it is built locally. The sandboxed Vite step resolves
+            # localhost, which macOS rejects unless local networking is allowed, and zstd-sys probes pkg-config
+            # for a system zstd that the package does not provide on darwin.
+            en-croissant = prev.en-croissant.overrideAttrs (old: {
               __darwinAllowLocalNetworking = true;
+              buildInputs = (old.buildInputs or [ ]) ++ [ prev.zstd ];
             });
           }
         )
