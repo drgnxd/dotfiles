@@ -122,10 +122,6 @@ test-external-agents:
 test-private-terms:
   bash scripts/security/test_private_terms.sh
 
-# Test generation and collision handling for Spotlight launchers
-test-spotlight-app-launchers:
-  bash home/modules/activation/test_spotlight_app_launchers.sh
-
 # Report whether the externally built SwiftBar plugin binaries are installed and linked
 check-swiftbar-plugins:
   bash scripts/darwin/check_swiftbar_plugins.sh

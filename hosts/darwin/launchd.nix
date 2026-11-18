@@ -230,7 +230,9 @@ in
     };
 
     # Simple login apps: open -a at login
-    login-alacritty = mkLoginApp "alacritty" "Alacritty";
+    # An explicit path: `open -a Alacritty` can still resolve to a leftover
+    # store bundle, whose path is the TCC identity copyApps avoids.
+    login-alacritty = mkLoginApp "alacritty" "${home_dir}/Applications/Home Manager Apps/Alacritty.app";
     login-floorp = mkLoginApp "floorp" "Floorp";
     login-proton-mail = mkLoginApp "proton-mail" "Proton Mail";
     login-proton-pass = mkLoginApp "proton-pass" "Proton Pass";

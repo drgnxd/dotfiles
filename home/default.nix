@@ -88,7 +88,7 @@ in
     ./modules/zoxide.nix
   ]
   ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-    ./modules/activation/spotlight_apps.nix
+    ./modules/activation/retire_spotlight_launchers.nix
     ./modules/activation/macos_defaults.nix
     ./modules/markql.nix
     ./modules/swiftbar.nix
@@ -114,7 +114,15 @@ in
     "zsh/.zshrc".source = ../xdg/config/zsh/.zshrc;
   };
 
-  targets.darwin.linkApps.enable = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin true;
+  # macOS TCC identifies this ad-hoc signed terminal by its executable path.
+  # A running process is re-attributed to /nix/store/.links/<hash> once GC or
+  # dedup removes its store path, which re-prompts for Desktop, Documents and
+  # network volumes. A copy at a fixed path outside the store avoids that; an
+  # Alacritty update changes the binary and may still prompt once.
+  targets.darwin = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+    linkApps.enable = false;
+    copyApps.enable = true;
+  };
 
   home.sessionVariables = {
     CLAUDE_CONFIG_DIR = "${config.xdg.dataHome}/claude";
