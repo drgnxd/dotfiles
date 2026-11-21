@@ -3,6 +3,7 @@
   "model": "openai/gpt-6-luna",
   "small_model": "openai/gpt-6-luna",
   "default_agent": "main",
+  "shell": "nu",
   "enabled_providers": [
     "openai"
   ],
